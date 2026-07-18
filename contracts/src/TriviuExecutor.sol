@@ -37,6 +37,11 @@ interface IParameterRegistry {
 ///         - No flash-loan support yet (Aave v3 / Balancer: v0.2).
 ///         - Fee-on-transfer tokens are NOT supported and must not enter the
 ///           token whitelist.
+///         - A direct token donation to this contract permanently trips the
+///           stateless check for that token (griefing DoS — no sweep function
+///           exists in v0). v0.2 moves to balance-delta accounting; the
+///           tradeoff is recorded in /decisions/0002-donation-griefing.md and
+///           pinned by test_KnownLimitation_DonationTripsStatelessCheck.
 contract TriviuExecutor {
     /// @notice On-chain parameter registry (whitelists, caps).
     IParameterRegistry public immutable registry;
