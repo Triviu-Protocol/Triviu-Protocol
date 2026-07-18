@@ -79,7 +79,7 @@ Full guide in [`sim/README.md`](sim/README.md).
 1. Open an issue with the **Parameter proposal** template (it includes the
    trilemma axis affected and the cost accepted).
 2. PR changing `engine/config/` after public discussion.
-3. Merge — the on-chain mirror is updated in the `ParameterRegistry`, and the
+3. Merge → the on-chain mirror is updated in the `ParameterRegistry`, and the
    event records **the PR URL**: the forum → Git → block trail is complete.
 
 ## Principles (litepaper §2)

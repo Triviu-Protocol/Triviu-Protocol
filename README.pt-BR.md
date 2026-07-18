@@ -1,4 +1,4 @@
-<p align="center">
+﻿<p align="center">
   <img src="brand/simbolo.svg" width="120" alt="Símbolo do Triviu: ciclo de três nós com arcos direcionais"/>
 </p>
 
@@ -79,7 +79,7 @@ Guia completo em [`sim/README.md`](sim/README.md).
 1. Abra uma issue com o template **Proposta de parâmetro** (inclui o eixo do
    trilema afetado e o custo assumido).
 2. PR alterando `engine/config/` após discussão pública.
-3. Merge — o espelho on-chain é atualizado no `ParameterRegistry`, e o evento
+3. Merge → o espelho on-chain é atualizado no `ParameterRegistry`, e o evento
    grava **a URL do PR**: a trilha fórum → Git → bloco fica completa.
 
 ## Princípios (litepaper §2)

@@ -1,47 +1,18 @@
-# /sim — run everything on a local Polygon fork
+# Fork simulation — start here
 
-The official path is **local fork → testnet (Amoy) → audit → mainnet**, and
-that order is not a suggestion. Mistakes on a fork are free; everywhere else
-they pay gas.
+Mistakes here are free. Mistakes on mainnet pay gas.
 
-## Prerequisites
+## Steps
 
-- [Foundry](https://getfoundry.sh) (`anvil`, `forge`)
-- Node 20
-- A Polygon RPC endpoint (prefer a self-hosted node or redundant providers —
-  litepaper §6, infrastructure risk)
+1. Install Foundry (forge/anvil/cast): https://book.getfoundry.sh
+2. Spin up a local Polygon fork:
 
-## Step 1 — local fork (mistakes here are free)
+   anvil --fork-url $POLYGON_RPC
 
-```bash
-export POLYGON_RPC="your-rpc-url"
-anvil --fork-url $POLYGON_RPC --chain-id 31337
-```
+3. Point `engine/config/params.toml` at `http://127.0.0.1:8545`
+   and keep `dry_run = true`.
+4. Run the engine: `cd engine && npm install && npm run dev`.
+5. Inspect calls with `cast call` / `cast run` before any testnet.
 
-## Step 2 — contracts
-
-```bash
-cd contracts
-forge install foundry-rs/forge-std
-forge build
-forge test -vvv
-```
-
-## Step 3 — engine (dry_run=true by default — it does NOT send transactions)
-
-```bash
-cd ../engine
-npm install
-cp config/params.example.toml config/params.toml
-# Edit params.toml: rpc_url = "http://127.0.0.1:8545", dry_run = true
-npm run dev
-```
-
-## What "working" looks like
-
-- `forge test` green in `contracts/`
-- The engine printing detected cycles and fork-simulation results **without
-  sending a single transaction**
-
-Only after that does testnet (Amoy) make sense — and nothing touches mainnet
-before an external audit ([SECURITY.md](../SECURITY.md)).
+The project's official path: **fork -> testnet (Amoy) -> audit -> mainnet.**
+Skipping steps is at your own risk — and defeats the educational purpose of this repo.
