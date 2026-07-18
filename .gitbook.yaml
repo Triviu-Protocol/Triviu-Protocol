@@ -1,4 +1,5 @@
-root: ./docs/
+root: ./whitepaper/
 
 structure:
-  readme: triviu-litepaper-v0.1.md
+  readme: README.md
+  summary: SUMMARY.md

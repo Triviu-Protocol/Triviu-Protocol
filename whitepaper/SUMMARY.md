@@ -1,0 +1,18 @@
+# Summary
+
+* [Triviu Whitepaper](README.md)
+* [1. Motivation — don't trust, verify](01-motivation.md)
+* [2. Principles](02-principles.md)
+* [3. Triangular arbitrage](03-triangular-arbitrage.md)
+* [4. Architecture](04-architecture.md)
+* [5. The success fee](05-success-fee.md)
+* [6. The Gas-Tank](06-gas-tank.md)
+* [7. Operational transparency](07-transparency.md)
+* [8. Risks and economic limits](08-risks.md)
+* [9. Security and audits](09-security-and-audits.md)
+* [10. Education and the AI persona](10-education.md)
+* [11. Sustainability](11-sustainability.md)
+* [12. Governance](12-governance.md)
+* [13. The trilemma](13-trilemma.md)
+* [14. Roadmap](14-roadmap.md)
+* [Glossary](glossary.md)
