@@ -1,6 +1,8 @@
 # Triviu engine parameters — copy to params.toml and adjust.
 # Changes to CANONICAL parameters go through a PR (see CONTRIBUTING.md);
 # the on-chain mirror lives in ParameterRegistry.
+# Your params.toml copy is PERSONAL and gitignored: rpc_url often embeds a
+# provider API key.
 
 [network]
 chain_id = 137           # Polygon PoS
@@ -9,10 +11,33 @@ rpc_url = "http://127.0.0.1:8545"  # default: local fork (sim/). Prefer a self-h
 [execution]
 dry_run = true           # default: NEVER sends a transaction. Change deliberately.
 min_profit_wei = "3100000000000000"  # teaching example; calibrate via simulation
+principal_wei = "1000000000000000000" # volume V for the cycle (wei of the start asset)
 max_slippage_bps = 30
 
 [assets]
-# Minimal example whitelist (official Polygon addresses — verify them yourself):
+# Polygon PoS — verify these addresses yourself before using
 wmatic = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"
 usdc   = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"
+usdce  = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
 weth   = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"
+
+[router]
+# QuickSwap v2 router (UniV2-compatible). Bytecode presence verified on-chain
+# 2026-07-18 via public RPC — verify it yourself too: don't trust, verify.
+univ2 = "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff"
+
+[contracts]
+# TriviuExecutor address — empty until your own deploy (fork/testnet first).
+executor = ""
+
+# Pools the monitor reads. token0/token1 order MUST match the pair contract.
+# The example below was verified on-chain 2026-07-18 (token0() = WMATIC,
+# token1() = USDC.e) — and you should re-verify it yourself on Polygonscan.
+[[pools]]
+kind = "univ2"
+address = "0x6e7a5FAFcec6BB1e78bAE2A1F0B612012BF14827" # QuickSwap WMATIC/USDC.e
+token0 = "wmatic"
+token1 = "usdce"
+decimals0 = 18
+decimals1 = 6
+fee_bps = 30

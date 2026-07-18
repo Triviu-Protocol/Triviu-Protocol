@@ -25,3 +25,5 @@ jobs:
         working-directory: engine
       - run: npm run typecheck
         working-directory: engine
+      - run: npm test
+        working-directory: engine
