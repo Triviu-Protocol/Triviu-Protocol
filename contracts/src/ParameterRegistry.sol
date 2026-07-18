@@ -22,11 +22,21 @@ contract ParameterRegistry {
     /// @notice Suggested default minProfit (reference-asset units).
     uint256 public defaultMinProfit;
 
+    /// @notice Success-fee rate in basis points, applied to a cycle's PROFIT
+    ///         (never the principal). Configurable via PR, but the Executor
+    ///         enforces its own hardcoded ceiling regardless of this value.
+    uint16 public feeBps;
+
+    /// @notice Destination for the success fee. address(0) disables the fee.
+    address public treasury;
+
     event OwnerTransferred(address indexed previousOwner, address indexed newOwner);
     event TokenAllowed(address indexed token, bool allowed, string prUrl);
     event TargetAllowed(address indexed target, bool allowed, string prUrl);
     event MaxSlippageSet(uint16 bps, string prUrl);
     event DefaultMinProfitSet(uint256 value, string prUrl);
+    event FeeBpsSet(uint16 bps, string prUrl);
+    event TreasurySet(address indexed treasury, string prUrl);
 
     error NotOwner();
     error EmptyPrUrl();
@@ -88,5 +98,28 @@ contract ParameterRegistry {
     {
         defaultMinProfit = value;
         emit DefaultMinProfitSet(value, prUrl);
+    }
+
+    /// @notice Sets the success-fee rate (bps of profit). The Executor caps the
+    ///         effective fee at its own MAX_FEE_BPS, so a value above the cap
+    ///         cannot over-charge users — it is simply clamped on use.
+    function setFeeBps(uint16 bps, string calldata prUrl)
+        external
+        onlyOwner
+        withPr(prUrl)
+    {
+        feeBps = bps;
+        emit FeeBpsSet(bps, prUrl);
+    }
+
+    /// @notice Sets the treasury that receives the success fee. address(0)
+    ///         disables the fee entirely (the whole result returns to the caller).
+    function setTreasury(address newTreasury, string calldata prUrl)
+        external
+        onlyOwner
+        withPr(prUrl)
+    {
+        treasury = newTreasury;
+        emit TreasurySet(newTreasury, prUrl);
     }
 }

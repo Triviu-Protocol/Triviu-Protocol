@@ -17,16 +17,26 @@ interface IERC20 {
 interface IParameterRegistry {
     function isAllowedTarget(address target) external view returns (bool);
     function isAllowedToken(address token) external view returns (bool);
+    function feeBps() external view returns (uint16);
+    function treasury() external view returns (address);
 }
 
 /// @title  TriviuExecutor
 /// @author Triviu Contributors
 /// @notice Executes a triangular arbitrage cycle (A→B→C→A) in ONE transaction.
 ///         Non-custodial and stateless: pulls the principal from the caller at
-///         the start, returns principal + result to the caller at the end, and
-///         never holds a balance between transactions. If
+///         the start, returns principal + net result to the caller at the end,
+///         and never holds a balance between transactions. If
 ///         `finalBalance < principal + minProfit`, the whole transaction
 ///         reverts — no leg is ever left exposed.
+///
+///         SUCCESS FEE (litepaper §8): when the cycle profits, a fee — a
+///         percentage of the PROFIT only, never the principal — is routed to the
+///         Registry's treasury in the SAME transaction, and the rest returns to
+///         the caller. There is no entry fee; a revert or a break-even cycle
+///         pays nothing. The fee rate is a Registry parameter, clamped here to
+///         MAX_FEE_BPS so it can never exceed half of profit. If the treasury is
+///         unset, the whole result returns to the caller.
 /// @dev    This is the contract from litepaper §4.1. Decisions are recorded in
 ///         /decisions (Record No. 0001: Polygon PoS).
 ///
@@ -46,6 +56,12 @@ contract TriviuExecutor {
     /// @notice On-chain parameter registry (whitelists, caps).
     IParameterRegistry public immutable registry;
 
+    /// @notice Hardcoded ceiling on the success fee: 50% of profit (5000 bps).
+    ///         The Registry's feeBps is clamped to this on every use, so a
+    ///         compromised or mistaken owner can NEVER take more than half of a
+    ///         cycle's profit — verifiable in bytecode, not just in docs.
+    uint16 public constant MAX_FEE_BPS = 5000;
+
     /// @notice One leg of the cycle: a call to an allowed target (router/pool).
     struct Step {
         address target; // must pass registry.isAllowedTarget
@@ -58,13 +74,16 @@ contract TriviuExecutor {
     error UnprofitableCycle(uint256 finalBalance, uint256 required);
     error NotStateless(uint256 danglingBalance);
 
-    /// @notice Emitted on every successful cycle. The public dashboard (Dune)
-    ///         also aggregates the reverts — failures included, always.
+    /// @notice Emitted on every successful cycle. `profit` is what the caller
+    ///         keeps (net of fee); `fee` is what went to the treasury in the
+    ///         same transaction. The public dashboard (Dune) also aggregates the
+    ///         reverts — failures included, always.
     event CycleExecuted(
         address indexed caller,
         address indexed asset,
         uint256 principal,
-        uint256 profit
+        uint256 profit,
+        uint256 fee
     );
 
     constructor(address _registry) {
@@ -111,10 +130,31 @@ contract TriviuExecutor {
             revert UnprofitableCycle(finalBalance, required);
         }
 
-        // 4. Return EVERYTHING to the caller in the same transaction.
-        require(IERC20(asset).transfer(msg.sender, finalBalance), "transfer failed");
+        // 4. Success fee — charged ONLY on profit, and only when there is profit
+        //    (guaranteed here, since finalBalance >= principal + minProfit).
+        //    Nothing is charged on reverts or break-even: those never reach here.
+        //    The fee is clamped to MAX_FEE_BPS so the Registry can never
+        //    over-charge, and it is routed to the treasury in THIS transaction —
+        //    the contract keeps no balance afterwards (stateless invariant holds).
+        uint256 profit = finalBalance - principal;
+        uint256 fee = 0;
+        address treasury = registry.treasury();
+        // treasury == 0 disables the fee; treasury == this is a misconfiguration
+        // that would strand the fee and brick the stateless check, so it also
+        // disables the fee rather than trapping funds.
+        if (treasury != address(0) && treasury != address(this)) {
+            uint16 bps = registry.feeBps();
+            if (bps > MAX_FEE_BPS) bps = MAX_FEE_BPS;
+            fee = (profit * bps) / 10_000;
+            if (fee != 0) {
+                require(IERC20(asset).transfer(treasury, fee), "fee transfer failed");
+            }
+        }
 
-        emit CycleExecuted(msg.sender, asset, principal, finalBalance - principal);
+        // 5. Return the rest to the caller — principal + net profit.
+        require(IERC20(asset).transfer(msg.sender, finalBalance - fee), "transfer failed");
+
+        emit CycleExecuted(msg.sender, asset, principal, profit - fee, fee);
     }
 
     /*//////////////////////////////////////////////////////////////////////

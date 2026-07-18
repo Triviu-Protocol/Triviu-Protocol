@@ -66,6 +66,43 @@ contract ParameterRegistryTest is Test {
         assertEq(registry.defaultMinProfit(), 7e15);
     }
 
+    function test_SetFeeBps_StoresAndEmits() public {
+        vm.expectEmit(false, false, false, true, address(registry));
+        emit ParameterRegistry.FeeBpsSet(3000, PR);
+        registry.setFeeBps(3000, PR);
+        assertEq(registry.feeBps(), 3000);
+    }
+
+    function test_SetTreasury_StoresAndEmits() public {
+        address treasury = makeAddr("treasury");
+        vm.expectEmit(true, false, false, true, address(registry));
+        emit ParameterRegistry.TreasurySet(treasury, PR);
+        registry.setTreasury(treasury, PR);
+        assertEq(registry.treasury(), treasury);
+    }
+
+    function test_RevertWhen_FeeSettersNotOwner() public {
+        vm.startPrank(stranger);
+        vm.expectRevert(ParameterRegistry.NotOwner.selector);
+        registry.setFeeBps(3000, PR);
+        vm.expectRevert(ParameterRegistry.NotOwner.selector);
+        registry.setTreasury(stranger, PR);
+        vm.stopPrank();
+    }
+
+    function test_RevertWhen_FeeSettersEmptyPr() public {
+        vm.expectRevert(ParameterRegistry.EmptyPrUrl.selector);
+        registry.setFeeBps(3000, "");
+        vm.expectRevert(ParameterRegistry.EmptyPrUrl.selector);
+        registry.setTreasury(address(0x7EA5), "");
+    }
+
+    function test_FeeDisabledByDefault() public view {
+        // A fresh Registry has no treasury -> the Executor charges no fee.
+        assertEq(registry.treasury(), address(0));
+        assertEq(registry.feeBps(), 0);
+    }
+
     function test_TransferOwner_RotatesAuthority() public {
         address multisig = makeAddr("multisig");
 
