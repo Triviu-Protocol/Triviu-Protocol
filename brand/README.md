@@ -2,7 +2,7 @@
 
 License: **CC BY 4.0** (free use and adaptation with attribution to
 "Triviu Contributors").
-Full manual: `manual/triviu-brandbook-v2-en.html` (English edition — canonical). PT-BR edition: `manual/triviu-brandbook-v2.html`.
+Full manual: `manual/triviu-brandbook-v2-en.html` (English — canonical).
 
 ## Files
 

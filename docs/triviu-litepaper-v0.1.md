@@ -4,7 +4,7 @@
 
 Litepaper v0.1 — July 2026
 Network: Polygon PoS · Code license: AGPL-3.0 · Authors: Triviu Contributors
-*Canonical version. Tradução em português: [triviu-litepaper-v0.1.pt-BR.md](triviu-litepaper-v0.1.pt-BR.md)*
+*Canonical version (English). This is the source of truth for the protocol.*
 
 ---
 

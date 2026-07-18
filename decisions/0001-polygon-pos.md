@@ -26,5 +26,3 @@ expansion candidates — each will require its own record); smaller side-chains
 
 All documentation, the engine and the simulator assume Polygon as default;
 trilemma-diagram reading of this choice: S 0.9 · Sec 0.8 · D 0.55.
-
-Português: [0001-polygon-pos.pt-BR.md](0001-polygon-pos.pt-BR.md)

@@ -28,7 +28,7 @@ before it forms:
 
 - **No token, no presale, no allocation, no yield** (litepaper §2.5, §5). This
   is the single most important fact: with no asset offered, sold or promised,
-  the classic securities analysis (Howey / SEC, CVM, MiCA "asset-referenced /
+  the classic securities analysis (US Howey/SEC, EU MiCA "asset-referenced /
   utility token" regimes) has little to attach to.
 - **No custody, no deposits, no pooled funds** (§2.1, §4.1). The Executor holds
   no third-party funds (proven on-chain — see the Medusa audit). This keeps the
@@ -46,7 +46,7 @@ that way**, not about repairing a broken one.
 
 ## 3. Findings
 
-### L-01 · MiCA/CVM/SEC exposure — LEGAL_LOW (holds only while "no token" holds)
+### L-01 · Securities exposure (SEC/MiCA and equivalents) — LEGAL_LOW (holds only while "no token" holds)
 
 As specified, there is no security, no e-money token, no asset-referenced
 token, no public offer. Exposure is low **and conditional**: it depends
@@ -70,12 +70,12 @@ already mandates an "AI-GENERATED" badge and an "AI persona" bio line (manual
   ships. This is a publication-checklist enforcement item, not a redesign. The
   §9.4 checklist already contains it; keep it non-optional.
 
-### L-03 · Data protection (GDPR/LGPD) — LEGAL_LOW (dependent on site/analytics choices)
+### L-03 · Data protection (GDPR / general privacy law) — LEGAL_LOW (dependent on site/analytics choices)
 
 The site is described as zero-tracking, zero-framework (framework §10.1). If
-that holds, personal-data processing is minimal and the GDPR/LGPD surface is
-small. Risk appears only if analytics, forms, newsletters or comment systems
-are added later.
+that holds, personal-data processing is minimal and the privacy-law surface
+(EU GDPR and equivalents in the launch jurisdictions) is small. Risk appears
+only if analytics, forms, newsletters or comment systems are added later.
 
 - **Action:** before adding any tracker/form, add a privacy notice and a lawful
   basis; keep the "zero tracking" default as the safe path. If a docs search or

@@ -14,14 +14,15 @@ report are stated in the report itself.
 
 The audit **product** (Audit-as-a-Service, D2) is the Náutilo's sealed report:
 the Medusa **detects** on-chain, and the Náutilo — the product-facing auditor —
-**issues and seals** the client-readable report by severity, in PT-BR, under a
-hardcoded frontier disclaimer. The Crocodilo document is an internal legal
-risk-surface map, **not** a legal opinion (that is OAB-reserved). The
-Tubarão-branco is the final judge.
+**issues and seals** the client-readable report by severity, under a hardcoded
+frontier disclaimer. Report language follows the client's canonical language:
+Triviu is DeFi and English-canonical, so the report is in English. The Crocodilo
+document is an internal legal risk-surface map, **not** a legal opinion (that is
+bar-reserved). The Tubarão-branco is the final judge.
 
 | Report | Predator | What it is |
 |---|---|---|
-| [**Laudo D2 (product · PT-BR)**](2026-07-18-nautilo-laudo-D2-triviu-v0.md) | **Náutilo** | The sealed audit product: findings by severity + frontier disclaimer. **The portfolio deliverable.** |
+| [**D2 audit report (product)**](2026-07-18-nautilo-audit-report-D2-triviu-v0.md) | **Náutilo** | The sealed audit product: findings by severity + frontier disclaimer. **The portfolio deliverable.** |
 | [On-chain detection](2026-07-18-medusa-triviu-v0.md) | Medusa | Technical vulnerability detection (input to the laudo) |
 | [Legal risk-surface map](2026-07-18-crocodilo-legal-triviu-v0.md) | Crocodilo | Internal compliance map — **not** a legal opinion; does not replace an attorney |
 | [Judge (N2) verdict](2026-07-18-tubarao-branco-n2-verdict.md) | Tubarão-branco | Ratifies the N1 audits; every claim verified against source |

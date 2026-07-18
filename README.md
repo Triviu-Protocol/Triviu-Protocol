@@ -10,8 +10,6 @@
   <code>Polygon PoS</code> · <code>AGPL-3.0</code> · <code>v0 — pre-testnet, NOT AUDITED</code> · <code>no token</code>
 </p>
 
-<p align="center">🇧🇷 <a href="README.pt-BR.md">Leia em português</a></p>
-
 ---
 
 > ### ⚠ RISK NOTICE — REQUIRED READING

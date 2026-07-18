@@ -8,14 +8,14 @@
 
 ## 1. N1 audits under review
 
-- Náutilo — sealed D2 audit product ([laudo](2026-07-18-nautilo-laudo-D2-triviu-v0.md))
+- Náutilo — sealed D2 audit product ([report](2026-07-18-nautilo-audit-report-D2-triviu-v0.md))
 - Medusa — on-chain detection ([report](2026-07-18-medusa-triviu-v0.md))
 - Crocodilo — legal risk-surface map, not a legal opinion ([report](2026-07-18-crocodilo-legal-triviu-v0.md))
 
-Canon note: the audit **product** is the Náutilo's laudo (it orchestrates the
+Canon note: the audit **product** is the Náutilo's report (it orchestrates the
 Medusa's detection and seals it under the frontier disclaimer). The Medusa
 report is the technical input; the Crocodilo map is internal and explicitly not
-an OAB-reserved legal opinion.
+a bar-reserved legal opinion.
 
 ## 2. Verification of the N1 claims against source (not taken on faith)
 
@@ -33,7 +33,8 @@ code at `86cf80e`:
 The Medusa report does **not** claim tools it did not run (Slither/Mythril/
 Echidna are declared as not-run) — this satisfies the anti-"clean bill" rule.
 The Crocodilo report correctly declines to assert a unilateral veto (Art. 4)
-because nothing reaches LEGAL_CRITICAL.
+because nothing reaches LEGAL_CRITICAL, and correctly declares itself **not** a
+bar-reserved legal opinion.
 
 ## 3. Judgment of the auditors' rigor (N2 duty)
 
@@ -44,11 +45,13 @@ because nothing reaches LEGAL_CRITICAL.
 - **Crocodilo (N1):** rigor accepted. Severities are proportionate; the "no
   token / no promise" invariant is correctly identified as the load-bearing
   condition, and its breach is pre-classified as a re-qualification trigger. The
-  map correctly declares itself **not** a legal opinion (OAB-reserved).
-- **Náutilo (product):** rigor accepted. The laudo seals the Medusa's detection
-  by severity, carries the hardcoded frontier disclaimer, and — per Article 6 —
-  concludes "no findings in the categories examined," never "the contract is
-  secure." No CRITICAL/HIGH softened; the two MEDIUMs reach the laudo intact.
+  map correctly declares itself **not** a bar-reserved legal opinion.
+- **Náutilo (product):** rigor accepted. The report seals the Medusa's detection
+  by severity, carries the hardcoded frontier disclaimer, is issued in the
+  client's canonical language (English — Triviu is DeFi, EN-canonical), and —
+  per Article 6 — concludes "no findings in the categories examined," never "the
+  contract is secure." No CRITICAL/HIGH softened; the two MEDIUMs reach the
+  report intact.
 
 ## 4. Blood Law surface (my own direct duty, Art. 13.3)
 

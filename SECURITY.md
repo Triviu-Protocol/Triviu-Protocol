@@ -19,5 +19,3 @@ amounts before funds and rules are published.
 - `engine/` (only flaws that cause loss of the operator's funds)
 
 Out of scope: third-party RPCs, fork front-ends, social engineering.
-
-Português: [SECURITY.pt-BR.md](SECURITY.pt-BR.md)

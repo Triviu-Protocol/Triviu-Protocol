@@ -40,5 +40,3 @@ is not free. v0.2's `executeCycle` will compute profit as
 `finalBalance − startBalance` and return exactly that delta, making donations
 irrelevant. Until then, the limitation ships documented in the contract
 header, the test suite and this record — failures included.
-
-Português: [0002-donation-griefing.pt-BR.md](0002-donation-griefing.pt-BR.md)

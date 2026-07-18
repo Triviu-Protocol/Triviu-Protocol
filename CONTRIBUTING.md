@@ -23,5 +23,3 @@ Git history is the official record of everything.
 - `forge build && forge test` in `contracts/`
 - `npm run typecheck` in `engine/`
 - Anything touching execution must run on a local fork first (`sim/`).
-
-Português: [CONTRIBUTING.pt-BR.md](CONTRIBUTING.pt-BR.md)
