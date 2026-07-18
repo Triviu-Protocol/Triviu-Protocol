@@ -37,9 +37,13 @@ by construction.
 
 ## 4.3 Flash loans (optional)
 
-Integration with established Polygon providers (Aave v3, Balancer Vault) allows
-execution without idle capital of one's own. Gas is still paid by the caller: if
-the cycle is not profitable, the transaction reverts and only the gas is lost.
+Integration with established Polygon providers allows execution without idle
+capital of one's own. Aave v3 charges a 0.05% premium and enforces
+repay-or-revert atomicity within the same transaction; Balancer's Vault currently
+charges no protocol fee (a governance parameter). Gas is still paid by the
+caller: if the cycle is not profitable, the transaction reverts and only the gas
+is lost — and the flash-loan premium is itself part of the cost the
+profitability condition ([Section 3](03-triangular-arbitrage.md)) must clear.
 
 ## 4.4 Off-chain engine (open source)
 
