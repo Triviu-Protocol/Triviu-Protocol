@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triviu — Brand Manual &amp; Design System v2.0 (EN)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   TRIVIU — DESIGN TOKENS v2.0 · English edition (canonical)
+   This document consumes the very tokens it specifies.
+   ============================================================ */
+:root{
+  --papel:#FAFAF7;
+  --nevoa:#E9EBE7;
+  --fio:#DDE0DA;
+  --grafite:#52575D;
+  --tinta:#16181D;
+  --ultramar:#2743C7;   /* axis: Decentralization */
+  --lacre:#C13327;      /* axis: Security */
+  --acafrao:#E8B23A;    /* axis: Scalability */
+  --acafrao-texto:#8A6414;
+  --acafrao-fundo:#FBF3DF;
+  --violeta-polygon:#7B3FE4;
+  --f-display:"Libre Caslon Text",Georgia,serif;
+  --f-texto:"Public Sans",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+  --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:24px;--s-6:32px;--s-7:48px;--s-8:64px;--s-9:96px;
+  --r-s:4px;--r-m:6px;--r-l:10px;--r-pill:999px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+body{background:var(--papel);color:var(--tinta);font-family:var(--f-texto);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+::selection{background:var(--acafrao);color:var(--tinta)}
+a{color:var(--ultramar);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:2px solid var(--ultramar);outline-offset:2px;border-radius:2px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 var(--s-5)}
+.mono{font-family:var(--f-mono)}
+nav{position:sticky;top:0;z-index:50;background:rgba(250,250,247,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--fio)}
+.nav-inner{max-width:1040px;margin:0 auto;padding:10px var(--s-5);display:flex;align-items:center;gap:var(--s-5)}
+.nav-mark{display:flex;align-items:center;gap:10px;flex:none}
+.nav-mark svg{width:26px;height:26px}
+.nav-mark b{font-family:var(--f-display);font-size:17px;font-weight:700;letter-spacing:-.01em}
+.nav-links{display:flex;gap:var(--s-4);overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.04em;color:var(--grafite);text-decoration:none;white-space:nowrap;padding:4px 0}
+.nav-links a:hover{color:var(--tinta)}
+header.capa{padding:var(--s-9) 0 var(--s-8);border-bottom:2px solid var(--tinta)}
+.capa-grid{display:grid;grid-template-columns:1fr;gap:var(--s-7);align-items:center}
+@media(min-width:820px){.capa-grid{grid-template-columns:340px 1fr}}
+.capa-eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;color:var(--grafite);text-transform:uppercase;margin-bottom:var(--s-4)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(40px,6vw,64px);line-height:1.04;letter-spacing:-.015em}
+.capa-tag{font-family:var(--f-display);font-style:italic;font-size:clamp(18px,2.4vw,22px);margin-top:var(--s-4)}
+.capa-meta{margin-top:var(--s-6);font-family:var(--f-mono);font-size:12.5px;color:var(--grafite);line-height:2}
+.capa-meta b{color:var(--tinta);font-weight:500}
+#capa-simbolo{transition:transform .2s ease-out;transform-origin:50% 50%}
+#capa-simbolo:hover,#capa-simbolo:focus{transform:rotate(120deg)}
+section.cap{padding:var(--s-8) 0;border-bottom:1px solid var(--fio);scroll-margin-top:64px}
+.cap-num{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;color:var(--lacre);margin-bottom:var(--s-2)}
+h2{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,4vw,38px);line-height:1.15;letter-spacing:-.01em;margin-bottom:var(--s-4)}
+.lead{font-size:18px;max-width:66ch}
+h3{font-family:var(--f-texto);font-weight:700;font-size:15px;letter-spacing:.02em;margin:var(--s-7) 0 var(--s-3)}
+h3 .h3num{font-family:var(--f-mono);font-weight:500;color:var(--grafite);margin-right:8px;font-size:13px}
+p{max-width:66ch;margin-bottom:var(--s-3)}
+p.nota{font-size:14px;color:var(--grafite)}
+.prancha{background:#fff;border:1px solid var(--fio);border-radius:var(--r-m);padding:var(--s-6);display:flex;flex-direction:column;align-items:center;gap:var(--s-4)}
+.figcap{font-family:var(--f-mono);font-size:12px;color:var(--grafite);text-align:center;line-height:1.7;max-width:54ch}
+.grid-2{display:grid;grid-template-columns:1fr;gap:var(--s-5)}
+.grid-3{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-4)}
+.grid-4{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--s-4)}
+@media(min-width:760px){.grid-2{grid-template-columns:1fr 1fr}.grid-3{grid-template-columns:repeat(3,1fr)}.grid-4{grid-template-columns:repeat(4,1fr)}}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:var(--s-4) 0}
+th{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--grafite);text-align:left;padding:10px 12px;border-bottom:2px solid var(--tinta);font-weight:500}
+td{padding:12px;border-bottom:1px solid var(--fio);vertical-align:top}
+td .sw{display:inline-block;width:15px;height:15px;border-radius:3px;border:1px solid rgba(0,0,0,.12);vertical-align:-2px;margin-right:8px}
+.tab-scroll{overflow-x:auto}
+.btn{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--f-texto);font-weight:600;font-size:14.5px;padding:11px 20px;border-radius:var(--r-m);border:1.5px solid transparent;transition:transform .15s ease-out,background .15s ease-out}
+.btn:active{transform:translateY(1px)}
+.btn-prim{background:var(--ultramar);color:#fff}
+.btn-prim:hover{background:#1E37A6}
+.btn-sec{background:transparent;border-color:var(--tinta);color:var(--tinta)}
+.btn-sec:hover{background:var(--nevoa)}
+.btn-ghost{background:transparent;color:var(--ultramar);padding:11px 8px}
+.badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;padding:5px 12px;border-radius:var(--r-pill)}
+.badge-ia{background:var(--tinta);color:var(--papel)}
+.badge-ia::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--violeta-polygon)}
+.badge-lacre{background:var(--lacre);color:#fff}
+.badge-teste{background:transparent;border:1.5px solid var(--grafite);color:var(--grafite)}
+.aviso{background:var(--acafrao-fundo);border:1px solid var(--acafrao);border-radius:var(--r-m);padding:var(--s-4) var(--s-5);max-width:640px}
+.aviso b{font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;color:var(--acafrao-texto);display:block;margin-bottom:6px}
+.aviso p{font-size:14px;margin:0;max-width:none}
+.cod{background:var(--tinta);color:#E8EAE6;border-radius:var(--r-l);padding:var(--s-4) var(--s-5);font-family:var(--f-mono);font-size:13.5px;line-height:1.7;overflow-x:auto;max-width:640px}
+.cod .c{color:#9BA3AE}.cod .k{color:#E8B23A}.cod .u{color:#8FA1F2}
+.metrica{background:#fff;border:1px solid var(--fio);border-radius:var(--r-m);padding:var(--s-5);max-width:280px}
+.metrica .lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;color:var(--grafite);text-transform:uppercase}
+.metrica .val{font-family:var(--f-mono);font-size:34px;font-weight:600;margin:6px 0 2px}
+.metrica .nota{font-size:12.5px;color:var(--grafite)}
+.ficha{background:#fff;border:1px solid var(--fio);border-left:3px solid var(--tinta);border-radius:var(--r-m);padding:var(--s-5);max-width:660px}
+.ficha .fnum{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;color:var(--grafite)}
+.ficha .ftit{font-family:var(--f-display);font-weight:700;font-size:20px;margin:6px 0 14px}
+.frow{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--fio);font-size:14px;align-items:flex-start}
+.frow .dot{flex:none;width:11px;height:11px;border-radius:50%;margin-top:5px}
+.frow .eixo{flex:none;width:132px;font-weight:700}
+.frow .eixo small{display:block;font-weight:400}
+.chip{font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;border:1.2px solid var(--grafite);color:var(--grafite);border-radius:var(--r-pill);padding:1px 8px}
+.frow p{margin:6px 0 0;max-width:none;font-size:13.5px}
+.dont{position:relative;background:#fff;border:1px solid var(--fio);border-radius:var(--r-m);padding:var(--s-5) var(--s-4);display:flex;flex-direction:column;align-items:center;gap:var(--s-3)}
+.dont .slash{position:absolute;inset:0;pointer-events:none}
+.dont .slash::after{content:"";position:absolute;left:8%;right:8%;top:50%;height:2.5px;background:var(--lacre);transform:rotate(-18deg)}
+.dont .dlabel{font-family:var(--f-mono);font-size:11.5px;color:var(--grafite);text-align:center;line-height:1.6}
+.voz-par{display:grid;grid-template-columns:1fr;gap:var(--s-4);max-width:760px}
+@media(min-width:700px){.voz-par{grid-template-columns:1fr 1fr}}
+.voz-c,.voz-e{border-radius:var(--r-m);padding:var(--s-4);font-size:14.5px;border:1px solid var(--fio);background:#fff}
+.voz-c{border-left:3px solid var(--ultramar)}
+.voz-e{border-left:3px solid var(--lacre)}
+.voz-c b,.voz-e b{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;display:block;margin-bottom:6px}
+.voz-c b{color:var(--ultramar)}.voz-e b{color:var(--lacre)}
+.thumb{aspect-ratio:16/9;border-radius:var(--r-l);overflow:hidden;position:relative;border:1px solid var(--fio)}
+.thumb-ok{background:var(--papel);display:flex;flex-direction:column;justify-content:space-between;padding:var(--s-4)}
+.thumb-ok .t{font-family:var(--f-display);font-weight:700;font-size:clamp(17px,2.6vw,24px);line-height:1.15;max-width:13ch}
+.thumb-bad{background:linear-gradient(135deg,#0B3D1E,#052012);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px}
+.thumb-bad .t{color:#7CFC9A;font-weight:800;font-size:clamp(20px,3.4vw,30px);text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.thumb-bad .s{color:#FFD93B;font-weight:700;font-size:14px}
+.thumb .slashbig{position:absolute;inset:0;pointer-events:none}
+.thumb .slashbig::after{content:"";position:absolute;left:4%;right:4%;top:50%;height:4px;background:var(--lacre);transform:rotate(-14deg)}
+.check{list-style:none;max-width:660px}
+.check li{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--fio);font-size:15px}
+.check li::before{content:"";flex:none;width:18px;height:18px;margin-top:3px;border:2px solid var(--tinta);border-radius:4px}
+footer{padding:var(--s-7) 0 var(--s-8)}
+.colofao{font-family:var(--f-mono);font-size:12px;color:var(--grafite);line-height:2}
+.mt-6{margin-top:var(--s-6)}
+.row{display:flex;flex-wrap:wrap;gap:var(--s-4);align-items:center}
+.spec-type{border-top:1px solid var(--fio);padding:var(--s-4) 0}
+.spec-type .nome{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;color:var(--grafite);text-transform:uppercase;margin-bottom:6px}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="simbolo">
+      <path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="6.5" stroke-linecap="round"/>
+      <path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="6.5" stroke-linecap="round"/>
+      <path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="6.5" stroke-linecap="round"/>
+      <path d="M -4.5 -4 L 5 0 L -4.5 4 Z" transform="translate(73,37.5) rotate(30)" fill="currentColor"/>
+      <path d="M -4.5 -4 L 5 0 L -4.5 4 Z" transform="translate(73,82.5) rotate(150)" fill="currentColor"/>
+      <path d="M -4.5 -4 L 5 0 L -4.5 4 Z" transform="translate(34,60) rotate(-90)" fill="currentColor"/>
+      <circle cx="40" cy="25.36" r="8" fill="#2743C7"/>
+      <circle cx="100" cy="60" r="8" fill="#C13327"/>
+      <circle cx="40" cy="94.64" r="8" fill="#E8B23A"/>
+    </g>
+    <g id="simbolo-min">
+      <path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+      <path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+      <path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="40" cy="25.36" r="8.5" fill="#2743C7"/>
+      <circle cx="100" cy="60" r="8.5" fill="#C13327"/>
+      <circle cx="40" cy="94.64" r="8.5" fill="#E8B23A"/>
+    </g>
+    <g id="simbolo-mono">
+      <path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="6.5" stroke-linecap="round"/>
+      <path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="6.5" stroke-linecap="round"/>
+      <path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="6.5" stroke-linecap="round"/>
+      <path d="M -4.5 -4 L 5 0 L -4.5 4 Z" transform="translate(73,37.5) rotate(30)" fill="currentColor"/>
+      <path d="M -4.5 -4 L 5 0 L -4.5 4 Z" transform="translate(73,82.5) rotate(150)" fill="currentColor"/>
+      <path d="M -4.5 -4 L 5 0 L -4.5 4 Z" transform="translate(34,60) rotate(-90)" fill="currentColor"/>
+      <circle cx="40" cy="25.36" r="8" fill="currentColor"/>
+      <circle cx="100" cy="60" r="8" fill="currentColor"/>
+      <circle cx="40" cy="94.64" r="8" fill="currentColor"/>
+    </g>
+  </defs>
+</svg>
+
+<nav aria-label="Contents">
+  <div class="nav-inner">
+    <span class="nav-mark">
+      <svg viewBox="0 0 120 120" style="color:var(--tinta)"><use href="#simbolo-min"/></svg>
+      <b>Triviu</b>
+    </span>
+    <div class="nav-links">
+      <a href="#foundations">01 Foundations</a>
+      <a href="#trilemma">02 Trilemma</a>
+      <a href="#mark">03 Mark</a>
+      <a href="#color">04 Color</a>
+      <a href="#type">05 Typography</a>
+      <a href="#tokens">06 Tokens</a>
+      <a href="#components">07 Components</a>
+      <a href="#voice">08 Voice</a>
+      <a href="#applications">09 Applications</a>
+      <a href="#governance">10 Governance</a>
+    </div>
+  </div>
+</nav>
+
+<header class="capa">
+  <div class="wrap capa-grid">
+    <svg id="capa-simbolo" viewBox="0 0 120 120" style="color:var(--tinta);width:100%;max-width:300px" role="img" tabindex="0" aria-label="Triviu mark: three-node cycle with directional arcs">
+      <use href="#simbolo"/>
+    </svg>
+    <div>
+      <div class="capa-eyebrow">Brand manual · Design system · Brandbook</div>
+      <h1>Triviu</h1>
+      <p class="capa-tag">Open source. Verifiable math. No promises.</p>
+      <div class="capa-meta">
+        version <b>2.0 · English edition (canonical)</b> · July 2026 · <b>Polygon PoS</b><br>
+        mark <b>"The Cycle"</b> · structure: <b>the blockchain trilemma</b><br>
+        assets under <b>CC BY 4.0</b> · changes via pull request · siblings: <b>litepaper v0.1 (EN)</b>, <b>edição PT-BR</b>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section class="cap" id="foundations">
+  <div class="cap-num">§ 01</div>
+  <h2>Foundations</h2>
+  <p class="lead">The Triviu brand exists for one thing: to make the verifiable visible. Everything it communicates — from the logotype to the color of a button — derives from the litepaper, the seven principles and, as of this version, the blockchain trilemma as a structure of honesty.</p>
+
+  <h3><span class="h3num">1.1</span>Essence</h3>
+  <p style="font-family:var(--f-display);font-style:italic;font-size:22px;max-width:44ch">"The ability to verify."</p>
+  <p>We do not sell an outcome; we deliver the means to check it. Every piece must survive this question: <em>can the reader verify this on their own?</em> If not, the piece does not ship.</p>
+
+  <h3><span class="h3num">1.2</span>The name</h3>
+  <p><b>Triviu</b> derives from the Latin <em>trivium</em> — the meeting of three roads, and also the classical curriculum that founded all education. Spelling: always "Triviu", capital T. Suggested pronunciation: /ˈtrɪviu/.</p>
+
+  <h3><span class="h3num">1.3</span>The three readings of the mark</h3>
+  <div class="tab-scroll"><table>
+    <tr><th>Reading</th><th>What the three nodes are</th><th>Where it comes from</th></tr>
+    <tr><td><b>The trivium</b></td><td>Three roads that meet</td><td>The name — <em>trivium</em>, the etymology</td></tr>
+    <tr><td><b>The route</b></td><td>Three pools in the A→B→C→A cycle</td><td>The product — the litepaper's atomic arbitrage</td></tr>
+    <tr><td><b>The trilemma</b></td><td>Decentralization · Security · Scalability</td><td>The context — every blockchain's fundamental constraint</td></tr>
+  </table></div>
+  <p class="nota">A mark of three, with three readings. The third one structures this whole manual — see § 02.</p>
+
+  <h3><span class="h3num">1.4</span>Principles the brand must embody</h3>
+  <div class="tab-scroll"><table>
+    <tr><th style="width:34%">Principle</th><th>Visual and verbal consequence</th></tr>
+    <tr><td><b>Non-custody</b></td><td>Never illustrate vaults, keys held by us, or "your money with us".</td></tr>
+    <tr><td><b>Open source</b></td><td>Code blocks are a first-class brand element, not decoration.</td></tr>
+    <tr><td><b>Radical transparency</b></td><td>Metrics always include failures; no drop shadows in the interface (§ 06).</td></tr>
+    <tr><td><b>No promises</b></td><td>Forbidden vocabulary in § 08 — including "we solved the trilemma". No dollar signs, projections or earnings screenshots.</td></tr>
+    <tr><td><b>No token</b></td><td>No own-coin iconography, "ticker" or project price chart.</td></tr>
+    <tr><td><b>Education before execution</b></td><td>Every primary call to action leads to learning or simulating, never to "earning".</td></tr>
+    <tr><td><b>Labeled AI</b></td><td>The "AI-GENERATED" badge is a mandatory component (§ 07.3) on all synthetic content.</td></tr>
+  </table></div>
+</section>
+
+<section class="cap" id="trilemma">
+  <div class="cap-num">§ 02</div>
+  <h2>The trilemma as structure</h2>
+  <p class="lead">The blockchain trilemma says no network maximizes <b>decentralization</b>, <b>security</b> and <b>scalability</b> at once: improving two axes charges a price on the third. The industry usually treats it as a marketing problem — "we solved the trilemma". Triviu does the opposite: it adopts the trilemma as an <b>instrument of honesty</b> and builds it into the brand itself.</p>
+
+  <h3><span class="h3num">2.1</span>Triviu's position</h3>
+  <p style="font-family:var(--f-display);font-style:italic;font-size:20px;max-width:54ch">"Triviu doesn't solve the trilemma. It travels it — and documents the price of every lap."</p>
+  <p>The classic trilemma is drawn as a static triangle: pick two vertices and accept losing the third. Our mark draws it as a <b>cycle</b>: with each release, the protocol moves along the three axes, declares which axis it prioritized and which one paid — in the Tradeoff Record (§ 07.7). Choosing is inevitable; hiding the choice is optional. We don't hide it.</p>
+
+  <h3><span class="h3num">2.2</span>The mark, read through the trilemma</h3>
+  <div class="prancha">
+    <svg viewBox="0 0 320 224" style="width:100%;max-width:460px" role="img" aria-label="Mark with the three nodes labeled: Decentralization, Security and Scalability">
+      <path d="M130 68.04 Q184 78.43 220 120" fill="none" stroke="#16181D" stroke-width="8" stroke-linecap="round"/>
+      <path d="M220 120 Q184 161.57 130 171.96" fill="none" stroke="#16181D" stroke-width="8" stroke-linecap="round"/>
+      <path d="M130 171.96 Q112 120 130 68.04" fill="none" stroke="#16181D" stroke-width="8" stroke-linecap="round"/>
+      <path d="M -6.75 -6 L 7.5 0 L -6.75 6 Z" transform="translate(179.5,86.2) rotate(30)" fill="#16181D"/>
+      <path d="M -6.75 -6 L 7.5 0 L -6.75 6 Z" transform="translate(179.5,153.8) rotate(150)" fill="#16181D"/>
+      <path d="M -6.75 -6 L 7.5 0 L -6.75 6 Z" transform="translate(121,120) rotate(-90)" fill="#16181D"/>
+      <circle cx="130" cy="68.04" r="12" fill="#2743C7"/>
+      <circle cx="220" cy="120" r="12" fill="#C13327"/>
+      <circle cx="130" cy="171.96" r="12" fill="#E8B23A"/>
+      <text x="130" y="72.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="#FFFFFF">A</text>
+      <text x="220" y="124.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="#FFFFFF">B</text>
+      <text x="130" y="176.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="#16181D">C</text>
+      <text x="130" y="44" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="#2743C7">Decentralization</text>
+      <text x="240" y="124" font-family="IBM Plex Mono" font-size="12" fill="#C13327">Security</text>
+      <text x="130" y="206" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="#8A6414">Scalability</text>
+    </svg>
+    <div class="figcap">Plate 1 — The three readings overlaid: the nodes are the pools (A·B·C) and the trilemma vertices. The flow does not elect one vertex: it circulates through all three. <em>Traveled, not chosen.</em></div>
+  </div>
+
+  <h3><span class="h3num">2.3</span>Our founding record — Polygon PoS</h3>
+  <div class="ficha">
+    <div class="fnum">TRADEOFF RECORD No. 0001 · FOUNDING DECISION</div>
+    <div class="ftit">Execution network: Polygon PoS</div>
+    <div class="frow">
+      <span class="dot" style="background:var(--acafrao)"></span>
+      <span class="eixo">Scalability <small><span class="chip">GAINS</span></small></span>
+      <p>Low gas makes small cycles executable and mistakes cheap — a prerequisite for any hands-on DeFi education.</p>
+    </div>
+    <div class="frow">
+      <span class="dot" style="background:var(--lacre)"></span>
+      <span class="eixo">Security <small><span class="chip">HOLDS</span></small></span>
+      <p>Atomicity removes leg exposure: either the cycle closes or everything reverts. Contract risk remains — external audit before v1.</p>
+    </div>
+    <div class="frow">
+      <span class="dot" style="background:var(--ultramar)"></span>
+      <span class="eixo">Decentralization <small><span class="chip">COSTS</span></small></span>
+      <p>We inherit Polygon's validator set. Mitigation: verified contracts, local fork simulation and a self-hosted RPC recommendation.</p>
+    </div>
+  </div>
+  <p class="nota" style="margin-top:16px">This record opens the series. Every published architecture decision gets its own — rule in § 07.7.</p>
+</section>
+
+<section class="cap" id="mark">
+  <div class="cap-num">§ 03</div>
+  <h2>Mark &amp; logotype — "The Cycle"</h2>
+  <p class="lead">Three equal nodes joined by directional arcs, with no side resting on the ground. A pyramid is static hierarchy; this is flow that ends where it began — atomicity, the traveled trilemma and the trivium, in a single form.</p>
+
+  <h3><span class="h3num">3.1</span>Construction — Proposition I</h3>
+  <div class="prancha">
+    <svg viewBox="0 0 300 280" style="width:100%;max-width:480px" role="img" aria-label="Geometric construction of the mark: inscribed rotated triangle, arcs and dimensions">
+      <circle cx="150" cy="140" r="80" fill="none" stroke="#B9BFB8" stroke-width="1.2" stroke-dasharray="4 5"/>
+      <line x1="58" y1="140" x2="246" y2="140" stroke="#B9BFB8" stroke-width="1" stroke-dasharray="2 5"/>
+      <path d="M110 70.72 L230 140 L110 209.28 Z" fill="none" stroke="#B9BFB8" stroke-width="1.2" stroke-dasharray="4 5"/>
+      <line x1="150" y1="140" x2="110" y2="70.72" stroke="#B9BFB8" stroke-width="1.2"/>
+      <text x="122" y="104" font-family="IBM Plex Mono" font-size="11" fill="#52575D">R</text>
+      <path d="M170 140 A20 20 0 0 1 140 157.3" fill="none" stroke="#52575D" stroke-width="1"/>
+      <text x="176" y="158" font-family="IBM Plex Mono" font-size="11" fill="#52575D">120°</text>
+      <path d="M110 70.72 Q182 84.6 230 140" fill="none" stroke="#16181D" stroke-width="9" stroke-linecap="round"/>
+      <path d="M230 140 Q182 195.4 110 209.28" fill="none" stroke="#16181D" stroke-width="9" stroke-linecap="round"/>
+      <path d="M110 209.28 Q86 140 110 70.72" fill="none" stroke="#16181D" stroke-width="9" stroke-linecap="round"/>
+      <path d="M -9 -8 L 10 0 L -9 8 Z" transform="translate(176,95) rotate(30)" fill="#16181D"/>
+      <path d="M -9 -8 L 10 0 L -9 8 Z" transform="translate(176,185) rotate(150)" fill="#16181D"/>
+      <path d="M -9 -8 L 10 0 L -9 8 Z" transform="translate(98,140) rotate(-90)" fill="#16181D"/>
+      <circle cx="110" cy="70.72" r="16" fill="#2743C7"/>
+      <circle cx="230" cy="140" r="16" fill="#C13327"/>
+      <circle cx="110" cy="209.28" r="16" fill="#E8B23A"/>
+      <line x1="110" y1="70.72" x2="74" y2="50" stroke="#52575D" stroke-width="1"/>
+      <text x="70" y="46" text-anchor="end" font-family="IBM Plex Mono" font-size="11" fill="#52575D">x = R/5</text>
+      <line x1="98" y1="140" x2="110" y2="140" stroke="#52575D" stroke-width="1"/>
+      <text x="92" y="132" text-anchor="end" font-family="IBM Plex Mono" font-size="11" fill="#52575D">f = R/7</text>
+    </svg>
+    <div class="figcap">Plate 2 — Inscribed equilateral triangle, rotated 90°: no side rests. Arcs with sagitta f = R/7 in the A→B→C→A direction; arrows 120° apart; nodes of radius x = R/5. The cycle closes where it began. <em>Verifiable, therefore proven.</em></div>
+  </div>
+
+  <h3><span class="h3num">3.2</span>Logotype — primary signature</h3>
+  <div class="prancha">
+    <div class="row" style="justify-content:center;gap:18px">
+      <svg viewBox="0 0 120 120" style="width:64px;color:var(--tinta)"><use href="#simbolo"/></svg>
+      <span style="font-family:var(--f-display);font-weight:700;font-size:52px;letter-spacing:-.015em;line-height:1">Triviu</span>
+    </div>
+    <div class="figcap">Horizontal signature: mark + wordmark in Libre Caslon Text 700, optically center-aligned. Mark-to-cap-height ratio = 1.25. The Lacre node points at the word: the cycle delivers the name.</div>
+  </div>
+
+  <h3><span class="h3num">3.3</span>Permitted variants</h3>
+  <div class="grid-4">
+    <div class="prancha">
+      <svg viewBox="0 0 120 120" style="width:76px;color:var(--tinta)"><use href="#simbolo"/></svg>
+      <div class="figcap">Positive (default)</div>
+    </div>
+    <div class="prancha">
+      <svg viewBox="0 0 120 120" style="width:76px;color:var(--tinta)"><use href="#simbolo-mono"/></svg>
+      <div class="figcap">Monochrome Ink</div>
+    </div>
+    <div class="prancha" style="background:var(--tinta)">
+      <svg viewBox="0 0 120 120" style="width:76px;color:var(--papel)"><use href="#simbolo"/></svg>
+      <div class="figcap" style="color:#B9BFB8">Negative on Ink</div>
+    </div>
+    <div class="prancha">
+      <svg viewBox="0 0 120 120" style="width:76px;color:var(--ultramar)"><use href="#simbolo-mono"/></svg>
+      <div class="figcap">One color (Ultramar)</div>
+    </div>
+  </div>
+
+  <h3><span class="h3num">3.4</span>Clear space and sizes</h3>
+  <p>Clear space: one node diameter (<span class="mono">2x</span>) on all sides. Nothing enters it — no text, no border, no other logo. And a rule inherited from the mark study: <b>the mark is never rotated to "rest" on a horizontal base</b> — the 90° rotation is part of the brand.</p>
+  <div class="prancha" style="max-width:560px">
+    <div class="row" style="align-items:flex-end;justify-content:center;gap:26px">
+      <div style="text-align:center"><svg viewBox="0 0 120 120" style="width:24px;color:var(--tinta)"><use href="#simbolo-min"/></svg><div class="figcap">24px<br>minimum · no arrows</div></div>
+      <div style="text-align:center"><svg viewBox="0 0 120 120" style="width:32px;color:var(--tinta)"><use href="#simbolo-min"/></svg><div class="figcap">32px<br>no arrows</div></div>
+      <div style="text-align:center"><svg viewBox="0 0 120 120" style="width:40px;color:var(--tinta)"><use href="#simbolo"/></svg><div class="figcap">40px<br>arrows come in</div></div>
+      <div style="text-align:center"><svg viewBox="0 0 120 120" style="width:64px;color:var(--tinta)"><use href="#simbolo"/></svg><div class="figcap">64px<br>full mark</div></div>
+    </div>
+    <div class="figcap">Direction arrows from 40px upward; below that, the reduced variant (no arrows). Minimums: mark 24px on screen, 8mm in print; horizontal signature 96px wide.</div>
+  </div>
+
+  <h3><span class="h3num">3.5</span>Incorrect uses</h3>
+  <div class="grid-3">
+    <div class="dont">
+      <svg viewBox="0 0 120 120" style="width:64px;color:var(--tinta);transform:scaleX(1.45)"><use href="#simbolo"/></svg>
+      <div class="slash"></div><div class="dlabel">Do not distort</div>
+    </div>
+    <div class="dont">
+      <svg viewBox="0 0 120 120" style="width:64px;color:var(--tinta);filter:drop-shadow(4px 6px 5px rgba(0,0,0,.45))"><use href="#simbolo"/></svg>
+      <div class="slash"></div><div class="dlabel">No shadows or embossing</div>
+    </div>
+    <div class="dont">
+      <svg viewBox="0 0 120 120" style="width:64px;color:#21C05C"><use href="#simbolo-mono"/></svg>
+      <div class="slash"></div><div class="dlabel">Do not recolor — above all in "profit green"</div>
+    </div>
+    <div class="dont">
+      <svg viewBox="0 0 120 120" style="width:64px;color:var(--tinta)"><use href="#simbolo-min" transform="rotate(30 60 60)"/></svg>
+      <div class="slash"></div><div class="dlabel">Never rest it on a horizontal base — it becomes the very silhouette we avoid</div>
+    </div>
+    <div class="dont">
+      <svg viewBox="0 0 120 120" style="width:64px;color:var(--tinta);transform:scaleX(-1)"><use href="#simbolo"/></svg>
+      <div class="slash"></div><div class="dlabel">Never mirror — it reverses the A→B→C→A direction</div>
+    </div>
+    <div class="dont">
+      <div class="row" style="gap:8px;align-items:center">
+        <svg viewBox="0 0 120 120" style="width:56px;color:var(--tinta)"><use href="#simbolo"/></svg>
+        <span style="font-family:var(--f-display);font-weight:700;font-size:40px;color:#21C05C">$</span>
+      </div>
+      <div class="slash"></div><div class="dlabel">Never pair with dollar signs, coins or profit charts</div>
+    </div>
+  </div>
+</section>
+
+<section class="cap" id="color">
+  <div class="cap-num">§ 04</div>
+  <h2>Color</h2>
+  <p class="lead">The palette is a proof-plate triad — blue, red and yellow over paper and ink, in the tradition of the proof books (Byrne, <em>Elements of Euclid</em>, 1847). In v2.0 it gains a function: <b>each color is a trilemma axis</b>. None of them is "profit green"; that is deliberate.</p>
+
+  <div class="prancha mt-6">
+    <svg viewBox="0 0 320 260" style="width:100%;max-width:440px" role="img" aria-label="Palette as a cycle: each arc one color, each node a trilemma axis">
+      <path d="M121 62.45 Q190.5 77.2 238 130" fill="none" stroke="#2743C7" stroke-width="11" stroke-linecap="round"/>
+      <path d="M238 130 Q190.5 182.85 121 197.55" fill="none" stroke="#C13327" stroke-width="11" stroke-linecap="round"/>
+      <path d="M121 197.55 Q99 130 121 62.45" fill="none" stroke="#E8B23A" stroke-width="11" stroke-linecap="round"/>
+      <circle cx="121" cy="62.45" r="7" fill="#16181D"/>
+      <circle cx="238" cy="130" r="7" fill="#16181D"/>
+      <circle cx="121" cy="197.55" r="7" fill="#16181D"/>
+      <text x="196" y="74" font-family="IBM Plex Mono" font-size="12" fill="#2743C7">#2743C7</text>
+      <text x="196" y="196" font-family="IBM Plex Mono" font-size="12" fill="#C13327">#C13327</text>
+      <text x="92" y="134" text-anchor="end" font-family="IBM Plex Mono" font-size="12" fill="#8A6414">#E8B23A</text>
+      <text x="121" y="40" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#52575D">Decentralization</text>
+      <text x="248" y="134" font-family="IBM Plex Mono" font-size="11" fill="#52575D">Security</text>
+      <text x="121" y="226" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#52575D">Scalability</text>
+    </svg>
+    <div class="figcap">Plate 3 — The palette is the cycle and the trilemma: each axis, one color; each color, one journey. Ultramar → Lacre → Açafrão → Ultramar.</div>
+  </div>
+
+  <h3><span class="h3num">4.1</span>Color tokens — light mode</h3>
+  <div class="tab-scroll"><table>
+    <tr><th>Token</th><th>Hex</th><th>Axis</th><th>Use</th><th>Contrast on Papel</th></tr>
+    <tr><td><span class="sw" style="background:#FAFAF7"></span><b>Papel</b> <span class="mono" style="color:var(--grafite)">paper</span></td><td class="mono">#FAFAF7</td><td>—</td><td>Default background. Cool and neutral — never warm cream.</td><td>—</td></tr>
+    <tr><td><span class="sw" style="background:#16181D"></span><b>Tinta</b> <span class="mono" style="color:var(--grafite)">ink</span></td><td class="mono">#16181D</td><td>—</td><td>Text, mark stroke, code backgrounds.</td><td>16.2:1 ✓ AAA</td></tr>
+    <tr><td><span class="sw" style="background:#52575D"></span><b>Grafite</b> <span class="mono" style="color:var(--grafite)">graphite</span></td><td class="mono">#52575D</td><td>—</td><td>Secondary text, captions, dimensions.</td><td>6.3:1 ✓ AA</td></tr>
+    <tr><td><span class="sw" style="background:#E9EBE7"></span><b>Névoa</b> <span class="mono" style="color:var(--grafite)">mist</span></td><td class="mono">#E9EBE7</td><td>—</td><td>Subtle fills, hover.</td><td>—</td></tr>
+    <tr><td><span class="sw" style="background:#DDE0DA"></span><b>Fio</b> <span class="mono" style="color:var(--grafite)">hairline</span></td><td class="mono">#DDE0DA</td><td>—</td><td>1px borders and dividers.</td><td>—</td></tr>
+    <tr><td><span class="sw" style="background:#2743C7"></span><b>Ultramar</b> <span class="mono" style="color:var(--grafite)">ultramarine</span></td><td class="mono">#2743C7</td><td><b>Decentralization</b></td><td>Primary action, links, focus; governance and network content.</td><td>7.4:1 ✓ AA</td></tr>
+    <tr><td><span class="sw" style="background:#C13327"></span><b>Lacre</b> <span class="mono" style="color:var(--grafite)">sealing wax</span></td><td class="mono">#C13327</td><td><b>Security</b></td><td>Verification seal, errors, prohibitions; audit content.</td><td>5.3:1 ✓ AA</td></tr>
+    <tr><td><span class="sw" style="background:#E8B23A"></span><b>Açafrão</b> <span class="mono" style="color:var(--grafite)">saffron</span></td><td class="mono">#E8B23A</td><td><b>Scalability</b></td><td>Risk and highlight; cost, gas and performance content. Fill only.</td><td>text: <span class="mono">#8A6414</span></td></tr>
+    <tr><td><span class="sw" style="background:#7B3FE4"></span><b>Violeta-Polygon</b></td><td class="mono">#7B3FE4</td><td>—</td><td>Reserved: Polygon-network references and the AI badge dot.</td><td>4.9:1 ✓ AA</td></tr>
+  </table></div>
+
+  <h3><span class="h3num">4.2</span>Color as taxonomy</h3>
+  <p>The axis defines the accent. A page, docs chapter or video about <b>governance and decentralization</b> accents Ultramar; about <b>security, audits and verification</b>, Lacre; about <b>costs, gas and performance</b>, Açafrão. Rule: <b>one surface, one axis</b> — the full triad appears only in the mark and in the plates. Overall proportion <b>80 / 14 / 6</b>: Papel and Névoa, Tinta and Grafite, triad.</p>
+
+  <h3><span class="h3num">4.3</span>Tokens — dark mode</h3>
+  <div class="tab-scroll"><table>
+    <tr><th>Token</th><th>Light</th><th>Dark</th><th>Note</th></tr>
+    <tr><td>Background</td><td class="mono">#FAFAF7</td><td class="mono">#131519</td><td>Never pure black.</td></tr>
+    <tr><td>Text</td><td class="mono">#16181D</td><td class="mono">#ECEDEA</td><td></td></tr>
+    <tr><td>Ultramar</td><td class="mono">#2743C7</td><td class="mono">#8FA1F2</td><td>Lighter version for AA contrast.</td></tr>
+    <tr><td>Lacre</td><td class="mono">#C13327</td><td class="mono">#E4736A</td><td></td></tr>
+    <tr><td>Açafrão</td><td class="mono">#E8B23A</td><td class="mono">#E8B23A</td><td>Same; fill only.</td></tr>
+  </table></div>
+</section>
+
+<section class="cap" id="type">
+  <div class="cap-num">§ 05</div>
+  <h2>Typography</h2>
+  <p class="lead">Three voices, three origins — all open source, as principle 2 demands. The rule of three runs through the system: three colors, three families, three readings, three axes.</p>
+
+  <div class="spec-type">
+    <div class="nome">Display — Libre Caslon Text</div>
+    <div style="font-family:var(--f-display);font-size:clamp(26px,4vw,40px);font-weight:700;line-height:1.15">To decentralize, to secure, to scale — and to document the price of each verb.</div>
+    <p class="nota" style="margin-top:8px">Caslon is the letterform of the 19th-century proof books — the same tradition as the plates. Use: headlines, cover, quotations. Weights 400 and 700; italic in quotations and the essence.</p>
+  </div>
+
+  <div class="spec-type">
+    <div class="nome">Text — Public Sans</div>
+    <div style="font-size:17px;max-width:64ch">Created as the U.S. government's public typeface and maintained in an open repository, Public Sans carries in its name what Triviu stands for: what is public can be verified. Use: body, interface, buttons. Weights 400–700.</div>
+  </div>
+
+  <div class="spec-type">
+    <div class="nome">Data — IBM Plex Mono</div>
+    <div class="mono" style="font-size:15px">block 58 214 002 · route A→B→C→A · 0x7a3f…c2d9 · minProfit = 0.0031</div>
+    <p class="nota" style="margin-top:8px">Everything on-chain is set in mono: addresses, hashes, blocks, parameters, table figures. Addresses truncated in the <span class="mono">0x1234…abcd</span> pattern (4+4), with a typographic ellipsis.</p>
+  </div>
+
+  <h3><span class="h3num">5.1</span>Type scale</h3>
+  <div class="tab-scroll"><table>
+    <tr><th>Role</th><th>Family / weight</th><th>Size / leading</th></tr>
+    <tr><td>Display (cover)</td><td>Caslon 700</td><td class="mono">64 / 1.04 · tracking −1.5%</td></tr>
+    <tr><td>H2 chapter</td><td>Caslon 700</td><td class="mono">38 / 1.15</td></tr>
+    <tr><td>H3 section</td><td>Public Sans 700</td><td class="mono">15 / 1.4 · tracking +2%</td></tr>
+    <tr><td>Lead</td><td>Public Sans 400</td><td class="mono">18 / 1.6</td></tr>
+    <tr><td>Body</td><td>Public Sans 400</td><td class="mono">16 / 1.65 · max 66ch</td></tr>
+    <tr><td>Caption / dimension</td><td>Plex Mono 400</td><td class="mono">12 / 1.7</td></tr>
+    <tr><td>Table label</td><td>Plex Mono 500</td><td class="mono">11 / caps · tracking +10%</td></tr>
+  </table></div>
+</section>
+
+<section class="cap" id="tokens">
+  <div class="cap-num">§ 06</div>
+  <h2>Design tokens &amp; interface principles</h2>
+  <p class="lead">This document consumes the very tokens it specifies — inspect the CSS and check. What follows applies to the site, docs, dashboard and any protocol frontend.</p>
+
+  <h3><span class="h3num">6.1</span>Space, radius and hairline</h3>
+  <div class="tab-scroll"><table>
+    <tr><th>Group</th><th>Scale</th><th>Rule</th></tr>
+    <tr><td>Space</td><td class="mono">4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96</td><td>4px base; larger jumps between chapters than inside them.</td></tr>
+    <tr><td>Radius</td><td class="mono">4 · 6 · 10 · pill</td><td>Subtle. Sharp corners only in geometric plates.</td></tr>
+    <tr><td>Hairline</td><td class="mono">1px Fio · 2px Tinta</td><td>Hierarchy through line, not shadow.</td></tr>
+    <tr><td>Elevation</td><td class="mono">none</td><td><b>Transparency casts no shadow.</b> Depth is made with hairlines and background color.</td></tr>
+    <tr><td>Grid</td><td class="mono">12 col / max 1040</td><td>8 col on tablet, 4 on mobile; 24px gutter.</td></tr>
+  </table></div>
+
+  <h3><span class="h3num">6.2</span>Motion — the 120° rule</h3>
+  <p>As sober as everything else: <span class="mono">150–200ms, ease-out</span>, only on hover, focus and reveal. Mark rotations happen <b>only in multiples of 120°</b> — one node of the cycle at a time, always in the A→B→C→A direction (hover the cover mark). Nothing bounces, nothing pulses: hype in motion is still hype. Always respect <span class="mono">prefers-reduced-motion</span>.</p>
+
+  <h3><span class="h3num">6.3</span>Iconography</h3>
+  <p><span class="mono">1.75px</span> stroke, pure geometry, flat terminals, 24px grid, one color per icon. Forbidden: coin, vault, rocket and bull/bear icons.</p>
+</section>
+
+<section class="cap" id="components">
+  <div class="cap-num">§ 07</div>
+  <h2>Components</h2>
+  <p class="lead">Rendered live with this document's tokens. Three are mandatory by principle: the AI badge, the risk notice and — new in v2.0 — the Tradeoff Record.</p>
+
+  <h3><span class="h3num">7.1</span>Buttons</h3>
+  <div class="row">
+    <button class="btn btn-prim">Simulate on a fork</button>
+    <button class="btn btn-sec">Read the code</button>
+    <button class="btn btn-ghost">View on Polygonscan →</button>
+  </div>
+  <p class="nota" style="margin-top:16px">The label says exactly what happens ("Simulate on a fork", never "Start earning"). Primary action in Ultramar; one per screen.</p>
+
+  <h3><span class="h3num">7.2</span>Badges</h3>
+  <div class="row">
+    <span class="badge badge-ia">AI-GENERATED</span>
+    <span class="badge badge-lacre">✓ VERIFIED ON-CHAIN</span>
+    <span class="badge badge-teste">TESTNET</span>
+  </div>
+
+  <h3><span class="h3num">7.3</span>AI badge — mandatory</h3>
+  <p>All content presented by the synthetic persona carries the <b>"AI-GENERATED"</b> badge: Tinta background, Papel text in Plex Mono, Violeta-Polygon dot. Placement: top-right corner in video and imagery, first line of every channel biography, footer of every script. Never removed, never scaled below 24px in height, never hidden in a description.</p>
+
+  <h3><span class="h3num">7.4</span>Risk notice — mandatory</h3>
+  <div class="aviso">
+    <b>RISK NOTICE — REQUIRED READING</b>
+    <p>Most atomic-arbitrage opportunities on Polygon are captured by professional operators. For most individual users, the expected result after gas costs tends toward zero or negative. Triviu is educational infrastructure — it is not a source of income. Reverted transactions still pay gas.</p>
+  </div>
+  <p class="nota" style="margin-top:16px">Fixed copy, one official translation per language, no paraphrasing. Present on: home page, execution docs, README, every persona video description.</p>
+
+  <h3><span class="h3num">7.5</span>Code block</h3>
+  <div class="cod"><span class="c">// the condition the contract enforces — and reverts on if unmet</span><br><span class="k">require</span>(finalBalance &gt;= initialBalance + <span class="u">minProfit</span>, <span class="u">"unprofitable cycle"</span>);</div>
+
+  <h3><span class="h3num">7.6</span>Metric card</h3>
+  <div class="row">
+    <div class="metrica">
+      <div class="lbl">Executions · 30 days</div>
+      <div class="val">1,284</div>
+      <div class="nota">failures included — always</div>
+    </div>
+    <div class="metrica">
+      <div class="lbl">Revert rate</div>
+      <div class="val">37.2%</div>
+      <div class="nota">publish the real number, good or bad</div>
+    </div>
+  </div>
+  <p class="nota" style="margin-top:16px">A metric without its failure context is marketing; a metric with failures is evidence. We only publish the latter.</p>
+
+  <h3><span class="h3num">7.7</span>Tradeoff Record — mandatory</h3>
+  <p>Every published architecture decision ships with its record: three lines, one per trilemma axis, each with a verdict — <span class="chip">GAINS</span> <span class="chip">HOLDS</span> or <span class="chip">COSTS</span>. <b>A record without a cost line is invalid</b> — if nothing was paid, nothing was decided. The canonical example is Record No. 0001 (§ 2.3); the series continues, numbered, in the repository.</p>
+
+  <h3><span class="h3num">7.8</span>Trilemma diagram</h3>
+  <div class="prancha" style="max-width:520px">
+    <svg viewBox="0 0 260 232" style="width:100%;max-width:360px" role="img" aria-label="Trilemma diagram with three axes and a plotted reading">
+      <line x1="130" y1="125" x2="87.5" y2="51.4" stroke="#DDE0DA" stroke-width="1.2"/>
+      <line x1="130" y1="125" x2="215" y2="125" stroke="#DDE0DA" stroke-width="1.2"/>
+      <line x1="130" y1="125" x2="87.5" y2="198.6" stroke="#DDE0DA" stroke-width="1.2"/>
+      <path d="M115.9 100.7 L158.05 125 L115.9 149.3 Z" fill="none" stroke="#DDE0DA" stroke-width="1" stroke-dasharray="3 4"/>
+      <path d="M101.95 76.4 L186.1 125 L101.95 173.6 Z" fill="none" stroke="#DDE0DA" stroke-width="1" stroke-dasharray="3 4"/>
+      <path d="M87.5 51.4 L215 125 L87.5 198.6 Z" fill="none" stroke="#B9BFB8" stroke-width="1.2"/>
+      <path d="M106.6 84.5 L198 125 L91.75 191.25 Z" fill="rgba(22,24,29,.07)" stroke="#16181D" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="87.5" cy="51.4" r="5" fill="#2743C7"/>
+      <circle cx="215" cy="125" r="5" fill="#C13327"/>
+      <circle cx="87.5" cy="198.6" r="5" fill="#E8B23A"/>
+      <text x="87.5" y="38" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#2743C7">D</text>
+      <text x="224" y="129" font-family="IBM Plex Mono" font-size="11" fill="#C13327">S</text>
+      <text x="87.5" y="216" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#8A6414">Sc</text>
+    </svg>
+    <div class="figcap">Reading of Record No. 0001 — Polygon PoS: Sc 0.9 · S 0.8 · D 0.55. Component rule: <b>plotting 1.0 on all three axes is forbidden</b> — the perfect triangle is the perfect lie.</div>
+  </div>
+</section>
+
+<section class="cap" id="voice">
+  <div class="cap-num">§ 08</div>
+  <h2>Voice &amp; writing</h2>
+  <p class="lead">Triviu's voice is that of someone who demonstrates, not someone who persuades: clear, technical, calm and promise-free. Non-negotiable editorial rule: <b>show technology, never income.</b> And, in v2.0: <b>name the tradeoff, never deny it.</b></p>
+
+  <h3><span class="h3num">8.1</span>Vocabulary</h3>
+  <div class="tab-scroll"><table>
+    <tr><th style="width:50%">Forbidden — in any piece</th><th>Use instead</th></tr>
+    <tr><td>"passive income", "guaranteed profit", "earn $X a day"</td><td>"simulate", "verify", "read the code"</td></tr>
+    <tr><td>"we solved the trilemma", "the best of all three worlds", "no tradeoffs"</td><td>"our position on the trilemma" + Tradeoff Record link</td></tr>
+    <tr><td>Dollar signs, money emoji, earnings screenshots, profit counters</td><td>Block numbers, hashes, revert rate, gas</td></tr>
+    <tr><td>"once-in-a-lifetime opportunity", "limited spots", artificial urgency</td><td>Release dates, changelog, roadmap without promised deadlines</td></tr>
+    <tr><td>"trust us", "safe and guaranteed"</td><td>"don't trust: verify", link to the verified contract</td></tr>
+    <tr><td>Return projections, backtests as promises</td><td>Backtests as method, with code and data to reproduce</td></tr>
+  </table></div>
+
+  <h3><span class="h3num">8.2</span>Right and wrong</h3>
+  <div class="voz-par">
+    <div class="voz-e"><b>WRONG</b>"Meet the bot that earns on the blockchain while you sleep! 🚀💰"</div>
+    <div class="voz-c"><b>RIGHT</b>"What happens inside an arbitrage transaction — block by block, with the contract open on screen."</div>
+    <div class="voz-e"><b>WRONG</b>"Polygon solved the trilemma: fast, secure and decentralized."</div>
+    <div class="voz-c"><b>RIGHT</b>"We chose Polygon for scalability — and Record No. 0001 documents what that costs in decentralization."</div>
+    <div class="voz-e"><b>WRONG</b>"Proven results: +3% a day on our protocol."</div>
+    <div class="voz-c"><b>RIGHT</b>"Revert rate over the last 30 days: 37.2%. Public dashboard, failures included."</div>
+  </div>
+
+  <h3><span class="h3num">8.3</span>Tone by channel</h3>
+  <p><b>Docs and litepaper:</b> formal-technical, declarative sentences. <b>Persona videos:</b> professorial and direct, always with the AI badge in frame. <b>Social:</b> concise, one verifiable fact per post, link to the evidence. Everywhere: plain language, jargon only when defined first — "trilemma" included.</p>
+</section>
+
+<section class="cap" id="applications">
+  <div class="cap-num">§ 09</div>
+  <h2>Applications</h2>
+  <p class="lead">The brand in use — and the counter-example we will never be.</p>
+
+  <h3><span class="h3num">9.1</span>Video thumbnail</h3>
+  <div class="grid-2">
+    <div>
+      <div class="thumb thumb-ok">
+        <div class="row" style="justify-content:space-between;width:100%">
+          <svg viewBox="0 0 120 120" style="width:30px;color:var(--tinta)"><use href="#simbolo-min"/></svg>
+          <span class="badge badge-ia" style="font-size:10px;padding:4px 10px">AI-GENERATED</span>
+        </div>
+        <div class="t">The trilemma in practice: why Polygon</div>
+        <div class="mono" style="font-size:11px;color:var(--grafite)">lesson 03 · tradeoff record no. 0001</div>
+      </div>
+      <div class="figcap" style="text-align:left;margin-top:10px">Right — Papel, Caslon title, visible AI badge, the tradeoff at the center of the lesson, zero promises.</div>
+    </div>
+    <div>
+      <div class="thumb thumb-bad">
+        <div class="t">$500/DAY 🤑</div>
+        <div class="s">SECRET BOT • LIMITED SPOTS</div>
+        <div class="slashbig"></div>
+      </div>
+      <div class="figcap" style="text-align:left;margin-top:10px">Wrong — violates § 8.1 (promise, dollar sign, urgency), § 4 (profit green) and § 7.3 (no AI badge). Piece rejected.</div>
+    </div>
+  </div>
+
+  <h3><span class="h3num">9.2</span>AI persona avatar</h3>
+  <div class="row">
+    <div style="width:96px;height:96px;border-radius:50%;background:var(--tinta);display:flex;align-items:center;justify-content:center">
+      <svg viewBox="0 0 120 120" style="width:52px;color:var(--papel)"><use href="#simbolo"/></svg>
+    </div>
+    <div style="max-width:52ch">
+      <p style="margin-bottom:6px"><b>Channel name</b> + first line of the bio: <span class="mono" style="font-size:13px">"Synthetic persona · AI-generated · triviu.org"</span></p>
+      <p class="nota">The avatar uses the negative on Tinta. The persona never simulates a photographic human face.</p>
+    </div>
+  </div>
+
+  <h3><span class="h3num">9.3</span>Repository header (GitHub)</h3>
+  <div class="prancha" style="align-items:flex-start;max-width:660px">
+    <div class="row">
+      <svg viewBox="0 0 120 120" style="width:34px;color:var(--tinta)"><use href="#simbolo-min"/></svg>
+      <span style="font-family:var(--f-display);font-weight:700;font-size:24px">triviu / protocol</span>
+      <span class="badge badge-lacre" style="font-size:10px">✓ VERIFIED CONTRACT</span>
+    </div>
+    <div class="mono" style="font-size:12.5px;color:var(--grafite)">AGPL-3.0 · Polygon PoS · risk notice in the README · tradeoff records in /decisions · parameters via PR</div>
+  </div>
+
+  <h3><span class="h3num">9.4</span>Publication checklist</h3>
+  <p>No piece ships without passing every item:</p>
+  <ul class="check">
+    <li>Zero income promises, projections or profit screenshots — including implicit ones.</li>
+    <li>No "trilemma solved" claims; if the piece cites an architecture decision, the Tradeoff Record is linked — cost line filled in.</li>
+    <li>"AI-GENERATED" badge present and legible whenever a synthetic persona appears.</li>
+    <li>Risk notice (§ 7.4) present whenever the piece touches execution.</li>
+    <li>Every technical claim has a verifiable link (contract, block, PR or public data).</li>
+    <li>Palette, typography, rotation and clear space per §§ 3–5 — the mark never rests on a base.</li>
+    <li>No dollar sign, coin, rocket, bull or bear in the iconography.</li>
+  </ul>
+</section>
+
+<section class="cap" id="governance" style="border-bottom:none">
+  <div class="cap-num">§ 10</div>
+  <h2>Brand governance</h2>
+  <p class="lead">The brand follows the same flow as the protocol: public, versioned and changeable by merit.</p>
+  <p>The assets (SVGs, tokens, this manual) live in the repository's <span class="mono">/brand</span> directory, under <b>CC BY 4.0</b>. Changes come in via pull request with rationale; Git history is the official record. Forks and integrations that remove the risk notice, the AI badge or the tradeoff records violate the spirit of the project and may not use the Triviu name.</p>
+
+  <h3><span class="h3num">10.1</span>Changelog</h3>
+  <div class="tab-scroll"><table>
+    <tr><th>Version</th><th>Date</th><th>Changes</th></tr>
+    <tr><td class="mono">v2.0-en</td><td class="mono">Jul 2026</td><td>English edition — canonical for the international launch. Content identical to v2.0; PT-BR kept as translation.</td></tr>
+    <tr><td class="mono">v2.0</td><td class="mono">Jul 2026</td><td>"The Cycle" mark (90° rotation, directional arcs, arrow-less variant &lt;40px). Trilemma as structure (§ 02): triad mapped to the axes, color as taxonomy, Tradeoff Record and Trilemma Diagram, the 120° rule, trilemma vocabulary, new incorrect uses (horizontal base, mirroring).</td></tr>
+    <tr><td class="mono">v1.0</td><td class="mono">Jul 2026</td><td>Foundation: Ultramar·Lacre·Açafrão triad, Caslon + Public Sans + Plex Mono, mandatory AI badge and risk notice, static mark v1.</td></tr>
+  </table></div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between;align-items:flex-end">
+      <div class="row" style="gap:12px">
+        <svg viewBox="0 0 120 120" style="width:30px;color:var(--tinta)"><use href="#simbolo-min"/></svg>
+        <span style="font-family:var(--f-display);font-weight:700;font-size:20px">Triviu</span>
+      </div>
+      <div class="colofao" style="text-align:right">
+        Brand Manual &amp; Design System v2.0 · English edition · July 2026<br>
+        Set in Libre Caslon Text, Public Sans and IBM Plex Mono<br>
+        <em style="font-family:var(--f-display)">Open source. Verifiable math. No promises.</em>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
