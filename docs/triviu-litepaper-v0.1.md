@@ -24,10 +24,10 @@ Triviu applies that principle to a specific domain: triangular arbitrage on DEXs
 
 ## 2. Principles
 
-1. **Absolute non-custody.** The protocol never holds third-party funds. Every execution happens inside a single transaction, with principal and result returning to the caller.
+1. **Absolute non-custody.** The protocol never holds third-party funds. Every execution happens inside a single transaction, with principal and result returning to the caller. The success fee (Section 4.6) is taken inside that same transaction — the contract keeps no balance afterwards.
 2. **Open source.** Public repository under AGPL-3.0, signed releases, open CI.
-3. **Radical transparency.** Verified contracts, a public execution dashboard (failures included), parameters with full Git history.
-4. **No promises.** No return projections, in any material. Possibility is not probability — and Section 6 documents why.
+3. **Radical transparency.** Verified contracts, a public execution dashboard (failures included), parameters with full Git history, and a fee taken on-chain and emitted on every cycle.
+4. **No promises.** No return projections, in any material. Possibility is not probability — and Section 6 documents why. A success fee is the opposite of a promise: the protocol earns only when the user does.
 5. **No token.** Triviu has no token, presale, allocation or yield program, and none is planned.
 6. **Education before execution.** The default user path goes through a local fork and testnet before any mainnet transaction.
 7. **Labeled AI.** All content presented by a synthetic persona is identified as AI-generated, on every channel and in every piece.
@@ -70,6 +70,16 @@ Monitors pools via multicall/websocket, detects cycles, **simulates every route 
 
 A reproducible fork-and-replay environment, allowing anyone to verify — with public data — the strategy's actual behavior before spending a single cent of gas.
 
+### 4.6 Success fee (on-chain, profit-only)
+
+The protocol sustains itself with a **success fee**: a percentage of a cycle's **profit only**, taken inside the same atomic transaction and routed to a public treasury before the remainder returns to the caller. There is no entry or setup fee. A reverted cycle and a break-even cycle pay **nothing** — the fee exists only where real profit above gas exists. This is what "we only earn if you earn" means, enforced by code rather than asserted in copy.
+
+The rate is a `ParameterRegistry` parameter (changed via public pull request, mirrored on-chain), and the Executor **clamps it to a hardcoded ceiling of 50% of profit** — so no configuration, mistaken or malicious, can take more than half of a cycle's profit. If no treasury is set, the whole result returns to the caller. Every cycle emits both the caller's net profit and the fee, so the public dashboard shows exactly what the protocol took.
+
+### 4.7 Gas-Tank (user gas-safety reserve, non-custodial)
+
+A public, verifiable reserve that exists so an operation's return path is not left stuck in the block flow for want of gas. It is **not protocol revenue**: each account funds its own balance and is the only account that can withdraw it. Balances and movements are on-chain. The automated consumption path — spending a user's own reserve to complete a stuck leg — is a later milestone, specified and audited before it touches funds.
+
 ## 5. Operational transparency
 
 - Contracts verified on Polygonscan.
@@ -83,9 +93,9 @@ This section is part of the protocol's identity. Any distribution of Triviu that
 
 **Professional competition (MEV).** Most atomic-arbitrage opportunities on Polygon are captured by professional *searchers* with dedicated infrastructure, minimal latency and block-production-level integrations (for example, via FastLane). An individual operator on ordinary hardware arrives, in most cases, later — within the same block.
 
-**Realistic expectation.** For most individual operators, the expected result after gas costs tends toward zero or negative. Triviu is educational and technical infrastructure — not a source of income, and it must not be presented as one by anyone, including us.
+**Realistic expectation.** For most individual operators, the expected result after gas **and fee** tends toward zero or negative. Triviu is educational and technical infrastructure — not a source of income for the user, and it must not be presented as one by anyone, including us. The protocol sustains itself through the success fee on the cycles that do profit (Section 4.6); that is true on both sides at once, without contradiction — the user is not promised a gain, and the protocol earns only where a real gain occurs.
 
-**Gas and reverts.** Reverted transactions still pay gas. Atomicity eliminates market exposure; it does not eliminate cost.
+**Gas and reverts.** Reverted transactions still pay gas. Atomicity eliminates market exposure; it does not eliminate cost. The success fee, by contrast, is charged only on profit — a revert costs gas but never a fee.
 
 **Token risk.** Fee-on-transfer tokens, honeypots and manipulated liquidity exist. The Registry whitelist mitigates; it does not eliminate.
 
@@ -101,7 +111,7 @@ Non-negotiable editorial rule: show technology, never income. No Triviu material
 
 ## 8. Sustainability
 
-The project funds itself through ecosystem grants (Polygon and similar), on-chain donations to a public address, and B2B technical services (integration and consulting). There are no paid signals, premium groups, third-party capital management, or any product that depends on user deposits.
+The protocol funds itself primarily through the **on-chain success fee** (Section 4.6) — a share of the profit on cycles that actually profit, taken atomically, capped in bytecode, and emitted for anyone to audit — complemented by ecosystem grants (Polygon and similar), on-chain donations to a public address, and B2B technical services (integration and consulting). There are no paid signals, no premium groups, no third-party capital management, and no product that depends on user deposits: the success fee is protocol revenue on a settled result, not a fee on custody or on a promise.
 
 ## 9. Governance
 

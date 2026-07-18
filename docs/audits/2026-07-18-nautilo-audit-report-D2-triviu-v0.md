@@ -21,8 +21,8 @@
 | Field | Value |
 |---|---|
 | Client | Triviu (dogfooding — auditing the protocol itself) |
-| Object | `contracts/src/TriviuExecutor.sol` · `contracts/src/ParameterRegistry.sol` |
-| Audited commit | `86cf80e` (branch `main`) |
+| Object | `contracts/src/TriviuExecutor.sol` · `ParameterRegistry.sol` · `GasTank.sol` |
+| Audited scope | fee-model wave (this commit); supersedes the v0 core scope |
 | Target chain | Polygon PoS (execution) · Amoy (testnet) |
 | Solidity | `^0.8.24` · Foundry (forge 1.5.1) |
 | Product tier | **First-pass / gate** (production TVL = 0 · pre-testnet) |
@@ -47,10 +47,15 @@ report does not replace that step; it precedes it.
 | Access control | manual (owner model) | see §5 |
 | Static lint | `forge build` lints | 2 informational warnings (I-01) |
 
-**Not run in this pass (declared, not hidden):** Slither, Mythril, Echidna
-(unavailable in this environment). A missing tool is a limitation of the report,
-not a clean bill. They are scheduled for the CI hardening wave and for the
-external audit.
+This wave adds the success fee and the GasTank. On top of the table above:
+39/39 tests green; the invariant holds with the fee ACTIVE (128k calls); a hook
+token reentering the fee transfer is empirically blocked; the GasTank withdraw is
+empirically reentrancy-safe. Detail in the Medusa re-audit
+([fee-reaudit](2026-07-18-medusa-triviu-fee-reaudit.md)).
+
+**Not run in this pass (declared, not hidden):** Slither ships in CI as of this
+wave (fail-on-HIGH); Mythril and Echidna remain scheduled for the external audit.
+A missing tool is a limitation of the report, not a clean bill.
 
 ## 3. Findings by severity
 
@@ -90,11 +95,16 @@ transaction — it does not reach other users or stored funds.
 
 **L-01 · Non-standard ERC-20 returns**
 The contract checks the boolean return of `transfer`/`transferFrom` via `require`
-(verified at line 115 of the audited contract — correct for WMATIC/USDC/USDC.e/
-WETH on Polygon). Tokens that return no value would revert on decode, not pass
-silently. The whitelist is the control.
+(correct for WMATIC/USDC/USDC.e/WETH on Polygon). Tokens that return no value
+would revert on decode, not pass silently. The whitelist is the control.
 - Recommendation: add an ERC-20-compliance item to the whitelist policy; consider
   `SafeERC20` in v0.2 if any non-standard token becomes a candidate.
+
+**FEE-01 · Treasury misconfiguration (treasury == executor) — fixed in-wave**
+Setting the treasury to the executor's own address would have stranded the fee
+and bricked the stateless check (self-DoS). The executor now skips the fee in
+that case, routing the whole result to the caller. Pinned by
+`test_Fee_SkippedWhenTreasuryIsExecutorItself`. No residual risk.
 
 ### INFO
 
@@ -105,11 +115,28 @@ sits in `script/Deploy.s.sol` (`uint16`) and is **guarded** by
 `require(maxSlippageBps <= type(uint16).max)`. No code change; documented so the
 warnings are not read as unexamined.
 
+**FEE-02 · Fee rate is owner-controlled**
+The rate lives in the Registry (deployer now, timelocked multisig before mainnet).
+Mitigations are all on-chain and verifiable: hardcoded `MAX_FEE_BPS = 5000` (50%)
+clamp, a PR URL on every change, and the exact fee emitted per cycle. Recorded in
+`decisions/0003-success-fee.md`.
+
+**GASTANK-01 · Automated consumption path not implemented**
+`GasTank` v0 is a user-controlled escrow (each account funds and withdraws its
+own balance; pull-payment, CEI, reentrancy-safe). The automated path — spending a
+user's reserve to complete a stuck return leg — does not exist yet and gets its
+own audit when specified.
+
 ## 4. Positive observations (examined and confirmed)
 
-- **Stateless invariant proven**: the executor never holds a balance between
-  transactions — 128,000 calls, 0 violations. Non-custody is machine-verifiable,
-  not rhetorical.
+- **Stateless invariant proven, fee active**: the executor never holds a balance
+  between transactions — 128,000 calls, 0 violations, with the success fee
+  routing. Non-custody is machine-verifiable, not rhetorical.
+- **Success fee is profit-only, atomic, capped and success-only**: charged solely
+  on realized profit above gas, routed in the same transaction, never above 50%,
+  and zero on reverts/break-even. "We only earn if you earn," enforced in code.
+- **Reentrancy blocked by the stateless check**: a hook token reentering the fee
+  transfer is rejected with `NotStateless` — verified empirically, not argued.
 - **Cycle condition is on-chain and non-discretionary**:
   `finalBalance ≥ principal + minProfit` reverts everything — no leg is left
   exposed (litepaper §3).
@@ -129,7 +156,9 @@ upgrade** — there is nothing to seize. Correct for a stateless design.
 
 **No CRITICAL or HIGH findings in the categories examined.** Two MEDIUM findings
 (M-01, M-02) are inherent, declared v0 limitations — documented, tested and
-scheduled for v0.2 fixes. They are mainnet gates, not defects of this delivery.
+scheduled for v0.2 fixes; they are mainnet gates, not defects of this delivery.
+The fee change added one LOW (FEE-01), fixed in-wave, and two INFO items (FEE-02,
+GASTANK-01), by design. The GasTank v0 lets no account move another's funds.
 
 This report **does not conclude that "the contract is secure."** It concludes
 that, in the categories and commit examined, with the tools actually run, the

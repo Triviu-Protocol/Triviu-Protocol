@@ -23,7 +23,8 @@ bar-reserved). The Tubarão-branco is the final judge.
 | Report | Predator | What it is |
 |---|---|---|
 | [**D2 audit report (product)**](2026-07-18-nautilo-audit-report-D2-triviu-v0.md) | **Náutilo** | The sealed audit product: findings by severity + frontier disclaimer. **The portfolio deliverable.** |
-| [On-chain detection](2026-07-18-medusa-triviu-v0.md) | Medusa | Technical vulnerability detection (input to the laudo) |
+| [On-chain detection](2026-07-18-medusa-triviu-v0.md) | Medusa | Technical vulnerability detection (input to the report) |
+| [On-chain re-audit — fee + GasTank](2026-07-18-medusa-triviu-fee-reaudit.md) | Medusa | Detection over the fee/GasTank delta (0 CRITICAL/HIGH; 1 LOW fixed) |
 | [Legal risk-surface map](2026-07-18-crocodilo-legal-triviu-v0.md) | Crocodilo | Internal compliance map — **not** a legal opinion; does not replace an attorney |
 | [Judge (N2) verdict](2026-07-18-tubarao-branco-n2-verdict.md) | Tubarão-branco | Ratifies the N1 audits; every claim verified against source |
 

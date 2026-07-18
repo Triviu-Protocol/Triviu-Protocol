@@ -61,12 +61,33 @@ refusing (`dry_run`), requires a passed simulation, and requires an explicit
 mainnet acknowledgement env var. Repository confirmed private. No sensitive
 surface breached.
 
+## 4b. Fee-model wave — additional N2 verification (2026-07-18)
+
+The success fee, the GasTank and the re-audits were checked against source at
+this commit:
+
+| Claim | Where | Verified |
+|---|---|---|
+| Fee capped at 50% in bytecode | `MAX_FEE_BPS = 5000`; `if (bps > MAX_FEE_BPS) bps = MAX_FEE_BPS` | `TriviuExecutor.sol` L63/L147 |
+| Fee on profit only, never principal | `fee = (profit * bps) / 10_000`, `profit = finalBalance - principal` | L148/L139 |
+| Self-DoS guard (treasury != executor) | `if (treasury != address(0) && treasury != address(this))` | L145 |
+| GasTank CEI (state before external call) | balance debited then `call{value}` | `GasTank.sol` L47→L48 |
+| Reentrancy on fee transfer blocked | hook-token test | `test_ReentrancyDuringFeeTransferIsBlocked` |
+| Whole suite green with fee active | `forge test` | 39/39 pass; invariant 128k calls, 0 violations |
+
+Medusa's fee re-audit and Náutilo's updated D2 report are ratified. FEE-01 was
+fixed in-wave; FEE-02/GASTANK-01 are by-design INFO. No CRITICAL/HIGH introduced.
+Blood Law check on the new code: the fee is atomic and non-custodial (nothing
+held between transactions — re-proven), the cap is in bytecode, the GasTank moves
+no account's funds but its own owner's. No gota through.
+
 ## 5. Verdict
 
-**APROVA_PERFEITO for the v0 fork/testnet scope.** No CRITICAL or HIGH finding
-in either domain. The open MEDIUM findings (F-01, F-02) are inherent v0
-limitations, documented, tested and scheduled — they are gates for mainnet, not
-defects in this delivery. Both N1 audits are ratified.
+**APROVA_PERFEITO for the fork/testnet scope, including the success fee, the
+GasTank and the re-audits.** No CRITICAL or HIGH finding in any domain. The open
+MEDIUM findings (F-01, F-02) are inherent v0 limitations, documented, tested and
+scheduled — gates for mainnet, not defects. All N1 audits (Medusa v0 + fee
+re-audit, Crocodilo, Náutilo D2) are ratified.
 
 **Mainnet remains VETOED by construction** until: F-01 (balance-delta
 accounting) closed, F-02 (typed adapters) tightened, an external third-party

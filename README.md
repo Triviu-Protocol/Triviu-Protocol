@@ -29,6 +29,10 @@ teaches anyone to read, audit and run this code themselves. Founding document:
 not issue a token, does not sell signals, does not promise returns. If anyone
 offers any of those things in Triviu's name, it is a scam — report it.
 
+**How it sustains itself:** an on-chain **success fee on profit only** — taken
+atomically, capped at 50% of profit in bytecode, zero on reverts or break-even.
+The protocol earns only when the user does ([litepaper §4.6](docs/triviu-litepaper-v0.1.md)).
+
 ## Don't trust: verify
 
 | What | Where |
