@@ -26,5 +26,6 @@ It discovers the QuickSwap WMATIC/USDC.e/WETH triangle from the factory, reads
 reserves through the real `fetchEdges`, and runs Bellman-Ford. "No profitable
 cycle" is the expected, honest result most of the time — see the risk notice.
 
-The project's official path: **fork -> testnet (Amoy) -> audit -> mainnet.**
-Skipping steps is at your own risk — and defeats the educational purpose of this repo.
+The project's official path: **fork -> audit -> mainnet.**
+Skipping the fork rehearsal is at your own risk — and defeats the educational
+purpose of this repo.

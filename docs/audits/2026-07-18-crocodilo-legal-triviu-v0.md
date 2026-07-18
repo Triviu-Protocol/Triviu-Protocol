@@ -1,19 +1,18 @@
 # Legal & regulatory qualification — Triviu v0
 
-- **Auditor:** Crocodilo (Predators Protocol · regulatory/legal) · internal review
+- **Auditor:** Crocodilo (Predators Protocol · regulatory/legal) — external provider
 - **Date:** 2026-07-18
 - **Scope commit:** `86cf80e`
 - **Object:** the public repository, litepaper v0.1, brand manual, site copy and
   the v0 contracts — as a **product**, not as legal advice.
 
-> **Nature of this document.** This is an internal compliance qualification by
-> the Predators legal auditor. It is **not** legal advice and does not create an
-> attorney–client relationship. For a public launch that targets specific
-> jurisdictions (US/EU in particular), a licensed attorney in the launch
-> jurisdiction should confirm these conclusions. What follows is a
-> risk-surface map with severities and required actions, produced to the same
-> standard the Predators Protocol applies to any client — and, by the founder's
-> instruction, offered as part of the Triviu portfolio.
+> **Nature of this document.** This is a compliance risk-surface map by the
+> Predators Protocol legal auditor (external provider). It is **not** legal
+> advice and does not create an attorney–client relationship — a legal opinion is
+> bar-reserved and requires a licensed attorney. For a public launch targeting
+> specific jurisdictions, a licensed attorney should confirm these conclusions.
+> What follows is a risk-surface map with severities and actions, produced to the
+> standard the Predators Protocol applies to any client.
 
 ## 1. What was examined
 

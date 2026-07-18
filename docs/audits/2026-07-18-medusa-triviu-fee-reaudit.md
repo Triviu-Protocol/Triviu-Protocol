@@ -1,6 +1,6 @@
 # On-chain re-audit — Triviu success fee + GasTank
 
-- **Auditor:** Medusa (Predators Protocol · Web3 on-chain audit) · internal
+- **Auditor:** Medusa (Predators Protocol · Web3 on-chain audit) — external provider
 - **Date:** 2026-07-18
 - **Scope:** the DELTA over the v0 audit — the success fee in
   `TriviuExecutor.sol` / `ParameterRegistry.sol`, and the new `GasTank.sol`.
@@ -8,9 +8,9 @@
   Article 6 requires a fresh audit for changed code, which this is.
 - **Solidity:** `^0.8.24` · Foundry (forge 1.5.1)
 
-> Internal audit. The external third-party audit remains a hard mainnet gate
-> (litepaper §10). This raises the floor on the fee change; it does not clear
-> mainnet.
+> External audit by Predators Protocol. This clears the fee change for the
+> pre-mainnet scope; the mainnet gate is the Predators Protocol final review at
+> the closing commit, with F-01/F-02 resolved.
 
 ## 1. What was examined (this delta)
 
@@ -79,9 +79,9 @@ testnet blockers.
 | LOW | 1 (FEE-01, fixed) | No | No |
 | INFO | 2 (FEE-02, GASTANK-01) | No | No |
 
-**Medusa verdict for the fee + GasTank delta (fork/testnet scope): APPROVED.**
+**Medusa verdict for the fee + GasTank delta (pre-mainnet scope): APPROVED.**
 No CRITICAL or HIGH. The one LOW was fixed in-wave; the INFO items are
 by-design and documented. Article 5 (imutável) honored: nothing with a known
 unmitigated vulnerability is approved. Mainnet remains gated on F-01/F-02 and the
-external audit — unchanged by this delta. New code = new audit: this covers
-exactly the fee and GasTank at this commit.
+Predators Protocol final review — unchanged by this delta. New code = new audit:
+this covers exactly the fee and GasTank at this commit.

@@ -54,8 +54,11 @@ empirically reentrancy-safe. Detail in the Medusa re-audit
 ([fee-reaudit](2026-07-18-medusa-triviu-fee-reaudit.md)).
 
 **Not run in this pass (declared, not hidden):** Slither ships in CI as of this
-wave (fail-on-HIGH); Mythril and Echidna remain scheduled for the external audit.
-A missing tool is a limitation of the report, not a clean bill.
+wave (fail-on-HIGH); Mythril and Echidna remain scheduled for the pre-mainnet
+final review. A missing tool is a limitation of the report, not a clean bill.
+
+This report is issued by Predators Protocol (external audit provider); Triviu is
+the client. It is the sealed audit **product** (Náutilo Audit-as-a-Service D2).
 
 ## 3. Findings by severity
 
@@ -164,8 +167,8 @@ This report **does not conclude that "the contract is secure."** It concludes
 that, in the categories and commit examined, with the tools actually run, the
 findings are those listed above — and that final assurance rests with whoever
 signs the deploy. Consistent with the Tubarão-branco (N2 verdict · APROVA_PERFEITO
-for fork/testnet scope · mainnet vetoed by construction until M-01/M-02 close +
-external audit).
+for the pre-mainnet scope · mainnet vetoed by construction until M-01/M-02 close +
+the Predators Protocol final review).
 
 **Scope seal:** valid for commit `86cf80e`. Code modified afterwards = new
 report (the shell does not re-seal itself).

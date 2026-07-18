@@ -39,9 +39,9 @@ bar-reserved legal opinion.
 ## 3. Judgment of the auditors' rigor (N2 duty)
 
 - **Medusa (N1):** rigor accepted. The approval is correctly **bounded** to
-  fork/testnet and explicitly conditioned on F-01/F-02 plus the external audit
-  before mainnet — consistent with Article 5 (imutável: never approve a known
-  unmitigated vulnerability). No gota let through.
+  the pre-mainnet scope and explicitly conditioned on F-01/F-02 plus the
+  Predators Protocol final review before mainnet — consistent with Article 5
+  (imutável: never approve a known unmitigated vulnerability). No gota let through.
 - **Crocodilo (N1):** rigor accepted. Severities are proportionate; the "no
   token / no promise" invariant is correctly identified as the load-bearing
   condition, and its breach is pre-classified as a re-qualification trigger. The

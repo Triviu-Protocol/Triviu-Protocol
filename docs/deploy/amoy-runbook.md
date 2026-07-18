@@ -1,12 +1,14 @@
-# Deploy runbook — Polygon Amoy (testnet)
+# Deploy runbook — fork rehearsal → mainnet
 
-The official path is **local fork → testnet (Amoy) → external audit → mainnet**
-(SECURITY.md). Mainnet is gated on an external audit; this runbook covers the
-**testnet** step only.
+The official path is **local fork → audit → mainnet** (SECURITY.md). There is no
+separate public-testnet phase; the local fork is the rehearsal, and mainnet is
+gated on the Predators Protocol audit clearing the final review. The commands
+below are network-agnostic — the same script deploys to a fork or to mainnet;
+only the RPC and the key change.
 
 These exact commands were rehearsed on a local Polygon fork and executed
 successfully end to end (3 contracts deployed, wiring verified, fee configured
-on-chain). On Amoy they are identical — only the RPC and the key change.
+on-chain).
 
 ## Prerequisites (the operator provides)
 

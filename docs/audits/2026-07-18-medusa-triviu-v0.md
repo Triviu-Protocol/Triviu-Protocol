@@ -1,6 +1,6 @@
 # On-chain audit report — Triviu v0 contracts
 
-- **Auditor:** Medusa (Predators Protocol · Web3 on-chain audit) · internal audit
+- **Auditor:** Medusa (Predators Protocol · Web3 on-chain audit) — external audit provider
 - **Date:** 2026-07-18
 - **Scope commit:** `86cf80e` (branch `main`)
 - **Files:** `contracts/src/TriviuExecutor.sol`, `contracts/src/ParameterRegistry.sol`
@@ -8,11 +8,12 @@
 - **Solidity:** `^0.8.24` · Foundry (forge 1.5.1)
 - **Status of the code under audit:** v0, pre-testnet.
 
-> This is an **internal** audit by the Predators on-chain auditor. Per the
-> litepaper (§10, roadmap) an **external** third-party audit remains a hard gate
-> before any mainnet deployment. This report does not replace it; it raises the
-> floor before it. Consistent with the brand rule, this document lists what was
-> examined — it does not claim "no issues found" in the abstract.
+> This is an **external** audit by Predators Protocol (independent audit
+> provider). Per Náutilo Art. 5/6, no audit guarantees the absence of
+> vulnerabilities and final assurance rests with whoever signs the deploy.
+> Consistent with the brand rule, this document lists what was examined — it does
+> not claim "no issues found" in the abstract. Tools not run in a given pass are
+> declared as such, not hidden.
 
 ## 1. What was examined
 
@@ -27,9 +28,9 @@
 | Access control | manual (owner model) | see §3 |
 
 Static tools not run in this pass (declared, not hidden): Slither (install
-unavailable in this environment), Mythril, Echidna. They are scheduled for the
-CI hardening wave and, again, for the external audit. Their absence is a
-limitation of this report, not a clean bill.
+unavailable in this environment), Mythril, Echidna. Slither later shipped in CI
+(fail-on-HIGH); Mythril and Echidna are scheduled for the pre-mainnet final
+review. Their absence here is a limitation of this report, not a clean bill.
 
 ## 2. Threat model
 
@@ -143,14 +144,14 @@ whitelist is the control.
 CONDITIONS.** No CRITICAL or HIGH findings. The two MEDIUM findings are inherent,
 declared v0 limitations with explicit v0.2 remediations already recorded. Per
 Article 5 (imutável — *Medusa never approves a known unmitigated vulnerability*),
-this approval is **strictly bounded to local fork and Amoy testnet** and is
-**not** a mainnet approval: mainnet remains gated on (1) F-01 fixed via
-balance-delta accounting, (2) F-02 tightened via typed adapters, and (3) the
-external third-party audit required by the litepaper. Any of these unmet =
-mainnet deploy is a constitutional violation.
+this approval is **strictly bounded to the pre-mainnet scope** and is **not** a
+mainnet approval: mainnet remains gated on (1) F-01 fixed via balance-delta
+accounting, (2) F-02 tightened via typed adapters, and (3) the Predators Protocol
+final pre-mainnet review at the closing commit. Any of these unmet = mainnet
+deploy is a constitutional violation.
 
 ---
 *Retest anchor: re-audit required at the commit that closes F-01/F-02, before the
-external audit engagement. This report reflects commit `86cf80e` and does not
+final pre-mainnet review. This report reflects commit `86cf80e` and does not
 carry to modified code (Article 6 — the audited code must not change; new version
 = new audit).*

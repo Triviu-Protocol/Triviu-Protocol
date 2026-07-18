@@ -1,7 +1,10 @@
 # Security Policy
 
-**Current status: v0 — UNAUDITED. Local fork and testnet use only.**
-No mainnet deployment before an external audit (v0.2 milestone in the litepaper).
+**Current status: pre-mainnet. Not yet deployed.**
+No mainnet deployment before the Predators Protocol audit (external, independent
+provider · Náutilo Audit-as-a-Service) clears the final review at the closing
+commit. Audit reports are public in [`docs/audits/`](docs/audits/) — don't trust,
+verify.
 
 ## Responsible disclosure
 

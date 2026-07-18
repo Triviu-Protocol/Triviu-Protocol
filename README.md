@@ -59,8 +59,8 @@ site/        Landing page (EN canonical, ES toggle) — single HTML file
 
 ## Getting started — always through the fork
 
-The official path is **local fork → testnet (Amoy) → audit → mainnet**, and
-that order is not a suggestion:
+The official path is **local fork → audit → mainnet**, and that order is not a
+suggestion. The fork is where you rehearse and verify for free:
 
 ```bash
 # 1. Local Polygon fork (mistakes here are free)
