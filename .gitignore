@@ -5,3 +5,5 @@ broadcast/
 .env
 *.log
 dist/
+# Personal engine config — rpc_url may embed provider API keys. Never commit.
+engine/config/params.toml
