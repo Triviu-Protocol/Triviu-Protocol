@@ -11,8 +11,11 @@
  *    and running on a fork.
  *  - Every stage below says what it did and what it refused to do.
  */
-import { createPublicClient, http } from "viem";
+import { createPublicClient, defineChain, http } from "viem";
 import { loadParams } from "./config.js";
+
+/** Canonical Multicall3, deployed at the same address across EVM chains. */
+const MULTICALL3 = "0xcA11bde05977b3631167028862bE2a173976CA11" as const;
 import { fetchEdges, type PoolsClient } from "./monitor/pools.js";
 import { findNegativeCycle, meetsExecutionCondition } from "./graph/bellmanFord.js";
 import { buildTriangularCycleSteps } from "./build/steps.js";
@@ -46,7 +49,16 @@ async function main() {
     return;
   }
 
-  const publicClient = createPublicClient({ transport: http(params.network.rpcUrl) });
+  // The chain object carries the Multicall3 address fetchEdges relies on;
+  // without it, viem's multicall throws "multicallAddress is required".
+  const chain = defineChain({
+    id: chainId,
+    name: `configured-${chainId}`,
+    nativeCurrency: { name: "native", symbol: "NATIVE", decimals: 18 },
+    rpcUrls: { default: { http: [params.network.rpcUrl] } },
+    contracts: { multicall3: { address: MULTICALL3 } },
+  });
+  const publicClient = createPublicClient({ chain, transport: http(params.network.rpcUrl) });
 
   // Stage 1 — monitor: one multicall, both directions of every pool.
   const edges = await fetchEdges(publicClient as unknown as PoolsClient, params.pools);
