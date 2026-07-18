@@ -8,8 +8,14 @@
 
 ## 1. N1 audits under review
 
-- Medusa — on-chain security ([report](2026-07-18-medusa-triviu-v0.md))
-- Crocodilo — legal/regulatory ([report](2026-07-18-crocodilo-legal-triviu-v0.md))
+- Náutilo — sealed D2 audit product ([laudo](2026-07-18-nautilo-laudo-D2-triviu-v0.md))
+- Medusa — on-chain detection ([report](2026-07-18-medusa-triviu-v0.md))
+- Crocodilo — legal risk-surface map, not a legal opinion ([report](2026-07-18-crocodilo-legal-triviu-v0.md))
+
+Canon note: the audit **product** is the Náutilo's laudo (it orchestrates the
+Medusa's detection and seals it under the frontier disclaimer). The Medusa
+report is the technical input; the Crocodilo map is internal and explicitly not
+an OAB-reserved legal opinion.
 
 ## 2. Verification of the N1 claims against source (not taken on faith)
 
@@ -37,7 +43,12 @@ because nothing reaches LEGAL_CRITICAL.
   unmitigated vulnerability). No gota let through.
 - **Crocodilo (N1):** rigor accepted. Severities are proportionate; the "no
   token / no promise" invariant is correctly identified as the load-bearing
-  condition, and its breach is pre-classified as a re-qualification trigger.
+  condition, and its breach is pre-classified as a re-qualification trigger. The
+  map correctly declares itself **not** a legal opinion (OAB-reserved).
+- **Náutilo (product):** rigor accepted. The laudo seals the Medusa's detection
+  by severity, carries the hardcoded frontier disclaimer, and — per Article 6 —
+  concludes "no findings in the categories examined," never "the contract is
+  secure." No CRITICAL/HIGH softened; the two MEDIUMs reach the laudo intact.
 
 ## 4. Blood Law surface (my own direct duty, Art. 13.3)
 

@@ -12,11 +12,24 @@ report are stated in the report itself.
 
 ## Reports at commit `86cf80e` (v0)
 
-| Report | Auditor | Domain | Verdict |
-|---|---|---|---|
-| [On-chain security](2026-07-18-medusa-triviu-v0.md) | Medusa | Contract security | Approved for fork/testnet with 2 documented MEDIUM conditions; **not** a mainnet approval |
-| [Legal & regulatory](2026-07-18-crocodilo-legal-triviu-v0.md) | Crocodilo | Compliance | No CRITICAL/HIGH; cleared private + fork/testnet; 4 conditions before public launch |
-| [Judge (N2) verdict](2026-07-18-tubarao-branco-n2-verdict.md) | Tubarão-branco | Final judge | Ratifies both N1 audits; claims verified against source |
+The audit **product** (Audit-as-a-Service, D2) is the Náutilo's sealed report:
+the Medusa **detects** on-chain, and the Náutilo — the product-facing auditor —
+**issues and seals** the client-readable report by severity, in PT-BR, under a
+hardcoded frontier disclaimer. The Crocodilo document is an internal legal
+risk-surface map, **not** a legal opinion (that is OAB-reserved). The
+Tubarão-branco is the final judge.
+
+| Report | Predator | What it is |
+|---|---|---|
+| [**Laudo D2 (product · PT-BR)**](2026-07-18-nautilo-laudo-D2-triviu-v0.md) | **Náutilo** | The sealed audit product: findings by severity + frontier disclaimer. **The portfolio deliverable.** |
+| [On-chain detection](2026-07-18-medusa-triviu-v0.md) | Medusa | Technical vulnerability detection (input to the laudo) |
+| [Legal risk-surface map](2026-07-18-crocodilo-legal-triviu-v0.md) | Crocodilo | Internal compliance map — **not** a legal opinion; does not replace an attorney |
+| [Judge (N2) verdict](2026-07-18-tubarao-branco-n2-verdict.md) | Tubarão-branco | Ratifies the N1 audits; every claim verified against source |
+
+**Verdict at `86cf80e`:** no CRITICAL/HIGH in any domain. Two documented MEDIUM
+contract findings (F-01 donation griefing, F-02 arbitrary calldata) gate mainnet,
+not testnet. Approved for fork/testnet scope; mainnet vetoed by construction
+until those close and the external audit passes.
 
 ## How to read a severity
 
