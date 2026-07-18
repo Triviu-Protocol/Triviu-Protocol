@@ -1,9 +1,9 @@
-# 10. Education and the AI persona
+# 10. Education
 
-All of Triviu's educational content is presented by a synthetic persona,
-identified as AI in every channel biography and in every video or post. The
-"AI-GENERATED" label is a mandatory component, never removed or hidden — both a
-principle and, where applicable, a legal-transparency requirement.
+Education is the second half of Triviu's proposition. Executing arbitrage is the
+mechanism; teaching anyone to read, audit, simulate and run the code is the point.
+All educational content is **labeled as AI-generated** wherever it applies —
+transparency about synthetic content is a principle, not a footnote.
 
 ## The curriculum — four pillars
 

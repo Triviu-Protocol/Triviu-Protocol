@@ -39,7 +39,7 @@ uint256 fee = (profit * bps) / 10_000;
 ## Transparency
 
 - The rate lives in the Registry and changes only via public PR (forum → Git →
-  block). The founder's ADM panel sets it within the hardcoded ceiling.
+  block), always within the hardcoded ceiling.
 - Every cycle emits `CycleExecuted(caller, asset, profit, fee)` — the public
   dashboard shows exactly what the protocol took, per cycle and in aggregate.
 - If the treasury is unset (or, by a safety guard, equal to the executor

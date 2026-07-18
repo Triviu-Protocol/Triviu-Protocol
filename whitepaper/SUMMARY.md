@@ -10,7 +10,7 @@
 * [7. Operational transparency](07-transparency.md)
 * [8. The economic reality](08-risks.md)
 * [9. Security and audits](09-security-and-audits.md)
-* [10. Education and the AI persona](10-education.md)
+* [10. Education](10-education.md)
 * [11. Sustainability](11-sustainability.md)
 * [12. Governance](12-governance.md)
 * [13. The trilemma](13-trilemma.md)

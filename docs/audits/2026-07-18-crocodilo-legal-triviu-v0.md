@@ -57,12 +57,12 @@ entirely on the "no token / no promise" invariant never breaking.
   fundraising / no custody" to that immutable list explicitly. Any future change
   here is a new legal review, not a patch.
 
-### L-02 · AI persona disclosure (EU AI Act art. 50, transparency) — LEGAL_MEDIUM
+### L-02 · AI-generated content disclosure (EU AI Act art. 50, transparency) — LEGAL_MEDIUM
 
-The educational persona is synthetic. The EU AI Act's transparency obligations
-require that AI-generated content and interactions be disclosed. The brand
-already mandates an "AI-GENERATED" badge and an "AI persona" bio line (manual
-§7.3, §12.1) — this is the correct control and it is **already designed in**.
+Where educational content is AI-generated, the EU AI Act's transparency
+obligations require that it be disclosed as such. The brand already mandates an
+"AI-GENERATED" badge on synthetic content (manual §7.3, §12.1) — this is the
+correct control and it is **already designed in**.
 
 - **Action:** ensure the badge is present on **every** distribution surface
   (video, thumbnail, channel bio, script footer) before any EU-facing content

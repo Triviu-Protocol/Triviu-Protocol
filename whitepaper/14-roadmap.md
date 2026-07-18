@@ -1,25 +1,28 @@
 # 14. Roadmap
 
-The sequence is **Web2 first, Web3 at the end** — the product surface (site,
-admin, docs, dashboard, persona) is built first; the on-chain deployment is the
-closing act, going straight to mainnet after the audit, with no separate
-public-testnet phase.
+The roadmap below is the **protocol** roadmap — the on-chain, verifiable
+milestones. Consistent with Principle 4, it is a statement of intent, not a
+schedule commitment. There are no promised dates.
 
-## Web2 block
+## Milestones
 
-- **Whitepaper** (this document) on GitBook — the litepaper is its parameter base.
-- **ADM panel** — configures the fee molds, parameters and operations.
-- **Public site and dashboard** — landing plus the failures-included dashboard.
-- **Email, domain and infrastructure** — everything owned by the project.
-- **AI persona** — the labeled educational layer.
-
-## Web3 block (end only)
-
-- **Final review** by Predators Protocol at the closing commit, with the open
-  findings (F-01, F-02) resolved.
-- **Mainnet deployment** — the Executor, Registry and Gas-Tank, deployed straight
-  to Polygon mainnet after the audit clears. The Registry moves to a timelocked
+- **v0 — pre-mainnet.** This whitepaper, the public repository, the verified
+  contracts, the off-chain engine, and the local-fork simulator. Everything is
+  auditable from the code; nothing is deployed.
+- **Audit gate.** A final review by the Predators Protocol audit process at the
+  closing commit, with the open findings (F-01, F-02) resolved. Mainnet is gated
+  on this — no exceptions.
+- **v0.2 — mainnet.** The Executor, Registry and Gas-Tank deployed straight to
+  Polygon mainnet after the audit clears. There is no separate public-testnet
+  phase: the local fork is the rehearsal. The Registry moves to a timelocked
   multisig; the public dashboard goes live, failures included from day one.
+- **v1.** Registry with an active timelock, a second Predators Protocol review,
+  and the complete public education material.
 
-Consistent with Principle 4, the roadmap is a statement of intent, not a schedule
-commitment. There are no promised dates.
+## What the roadmap is not
+
+It is not a marketing calendar and it carries no operational internals. The
+sequence, the tooling and the launch mechanics of the project are managed
+privately; this document commits only to what can be verified on-chain when it
+ships. If a date, a return figure, or a growth promise ever appears attached to
+Triviu, it did not come from this roadmap.

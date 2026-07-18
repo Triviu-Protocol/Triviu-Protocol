@@ -69,7 +69,7 @@ Three type families, all open-source, echoing the rule of three:
 The brand is enforced, not suggested. Two components may never be removed:
 
 1. The **risk notice** — present wherever execution is discussed.
-2. The **"AI-GENERATED" label** — present on all synthetic-persona content.
+2. The **"AI-GENERATED" label** — present on all AI-generated content.
 
 Forks and integrations that strip the risk notice, the AI label or the tradeoff
 records may not use the Triviu name. The mark is a promise about honesty; remove

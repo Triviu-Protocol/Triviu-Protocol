@@ -21,8 +21,9 @@ wins.
    none is planned.
 6. **Education before execution.** The default user path goes through a local
    fork before any mainnet transaction.
-7. **Labeled AI.** All content presented by a synthetic persona is identified as
-   AI-generated, on every channel and in every piece.
+7. **Labeled AI.** Any AI-generated content is identified as such, on every
+   channel and in every piece — transparency about synthetic content is a rule,
+   not a courtesy.
 
 ## The immutable rules
 

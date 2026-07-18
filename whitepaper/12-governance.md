@@ -18,7 +18,7 @@ on-chain**, with the PR URL recorded in the on-chain event.
 
 - **No token.** No custody. No promise. (See [Principles](02-principles.md).)
 - The **risk notice** is present on all execution-related content.
-- The **AI label** is present on all synthetic-persona content.
+- The **AI label** is present on all AI-generated content.
 - Tradeoff Records are **append-only** — Git history is immutable.
 - The dashboard's **"failures included"** policy is permanent.
 

@@ -7,3 +7,8 @@ broadcast/
 dist/
 # Personal engine config — rpc_url may embed provider API keys. Never commit.
 engine/config/params.toml
+# OPSEC trap: internal/operational material never belongs in this public repo.
+# The ADM control panel and internal strategy live in the local vault, off GitHub.
+/adm/
+/docs/internal/
+/docs/architecture/

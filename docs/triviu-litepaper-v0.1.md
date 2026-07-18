@@ -30,7 +30,7 @@ Triviu applies that principle to a specific domain: triangular arbitrage on DEXs
 4. **No promises.** No return projections, in any material. Possibility is not probability — and Section 6 documents why. A success fee is the opposite of a promise: the protocol earns only when the user does.
 5. **No token.** Triviu has no token, presale, allocation or yield program, and none is planned.
 6. **Education before execution.** The default user path goes through a local fork and testnet before any mainnet transaction.
-7. **Labeled AI.** All content presented by a synthetic persona is identified as AI-generated, on every channel and in every piece.
+7. **Labeled AI.** Any AI-generated content is identified as such, on every channel and in every piece.
 
 ## 3. Triangular arbitrage
 
@@ -103,9 +103,9 @@ This section is part of the protocol's identity. Any distribution of Triviu that
 
 **Infrastructure risk.** RPCs and data providers are trust points external to the protocol; users should prefer self-hosted nodes or redundant providers.
 
-## 7. Education and the AI persona
+## 7. Education
 
-All of Triviu's educational content is presented by a synthetic persona, identified as AI in every channel biography and in every video or post. The curriculum is public and follows four pillars: (1) AMMs and pools from zero; (2) the anatomy of a real triangular arbitrage, with numbers — gas, slippage, competition; (3) "run it yourself," reading and executing the code on a fork and testnet; (4) wallet security and MEV literacy.
+Education is half of Triviu's proposition. All educational content is labeled as AI-generated wherever it applies — transparency about synthetic content is a rule. The curriculum is public and follows four pillars: (1) AMMs and pools from zero; (2) the anatomy of a real triangular arbitrage, with numbers — gas, slippage, competition; (3) "run it yourself," reading and executing the code on a local fork; (4) wallet security and MEV literacy.
 
 Non-negotiable editorial rule: show technology, never income. No Triviu material displays profit projections, earnings screenshots or get-rich language.
 
