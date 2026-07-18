@@ -1,0 +1,4 @@
+root: ./docs/
+
+structure:
+  readme: triviu-litepaper-v0.1.md

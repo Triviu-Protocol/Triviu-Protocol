@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Triviu · Open source. Verifiable math. No promises.</title>
+<meta name="description" content="Triviu is an open, non-custodial protocol for atomic triangular arbitrage on Polygon — built to be read, audited and run by you. Educational infrastructure. No token. No promises.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
+  --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
+  --violeta:#7B3FE4;
+  --fd:"Libre Caslon Text",Georgia,serif;--ft:"Public Sans",system-ui,sans-serif;--fm:"IBM Plex Mono",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{background:var(--papel);color:var(--tinta);font-family:var(--ft);font-size:16.5px;line-height:1.65;-webkit-font-smoothing:antialiased;
+  background-image:repeating-linear-gradient(90deg,rgba(22,24,29,.028) 0 1px,transparent 1px 90px)}
+::selection{background:var(--acafrao);color:var(--tinta)}
+a{color:var(--ultramar);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:2px solid var(--ultramar);outline-offset:2px;border-radius:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px;position:relative}
+.mono{font-family:var(--fm)}
+
+/* ---------- 3D ---------- */
+#scene{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100%}
+.no3d #scene{display:none}
+#fallback-mark{display:none}
+.no3d #fallback-mark{display:block}
+#tip{position:fixed;z-index:60;pointer-events:none;opacity:0;transform:translate(-50%,-130%);transition:opacity .2s ease-out;font-family:var(--fm);font-size:12px;letter-spacing:.06em;background:var(--tinta);color:var(--papel);padding:7px 12px;border-radius:999px;white-space:nowrap}
+#tip.on{opacity:1}
+#tip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px}
+
+/* ---------- loader ---------- */
+#loader{position:fixed;inset:0;background:var(--papel);z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .3s ease-out}
+#loader.done{opacity:0;pointer-events:none}
+#loader svg{width:72px;transition:transform .2s ease-out}
+#loader .pct{font-family:var(--fm);font-size:13px;color:var(--grafite);letter-spacing:.1em}
+
+/* ---------- nav ---------- */
+nav{position:sticky;top:0;z-index:50;background:rgba(250,250,247,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--fio)}
+.nav-inner{max-width:1120px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:22px}
+.nav-mark{display:flex;align-items:center;gap:10px;flex:none;text-decoration:none;color:var(--tinta)}
+.nav-mark svg{width:26px;height:26px}
+.nav-mark b{font-family:var(--fd);font-size:18px;font-weight:700}
+.nav-links{display:flex;gap:18px;overflow-x:auto;scrollbar-width:none;flex:1}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{font-family:var(--fm);font-size:11.5px;letter-spacing:.05em;color:var(--grafite);text-decoration:none;white-space:nowrap;padding:4px 0}
+.nav-links a:hover{color:var(--tinta)}
+.lang{display:flex;gap:2px;border:1.5px solid var(--tinta);border-radius:999px;padding:2px;flex:none}
+.lang button{font-family:var(--fm);font-size:11px;letter-spacing:.06em;border:0;background:transparent;color:var(--grafite);padding:4px 10px;border-radius:999px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--tinta);color:var(--papel)}
+.gh{flex:none;font-weight:600;font-size:13.5px;text-decoration:none;color:var(--papel);background:var(--tinta);padding:8px 14px;border-radius:6px}
+.gh:hover{background:#000}
+@media(max-width:720px){.gh{display:none}}
+
+/* ---------- hero ---------- */
+header.hero{position:relative;z-index:1;min-height:calc(92svh - 53px);display:flex;align-items:center;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1fr;gap:36px;align-items:center;width:100%;padding:56px 0 40px}
+@media(min-width:900px){.hero-grid{grid-template-columns:minmax(0,1.05fr) minmax(320px,.85fr)}}
+.eyebrow{font-family:var(--fm);font-size:12px;letter-spacing:.14em;color:var(--grafite);text-transform:uppercase;margin-bottom:16px}
+h1{font-family:var(--fd);font-weight:700;font-size:clamp(44px,7vw,82px);line-height:1.02;letter-spacing:-.015em}
+.hero p.sub{font-size:clamp(17px,2vw,20px);max-width:52ch;margin-top:20px}
+.cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:30px}
+.btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;padding:13px 22px;border-radius:6px;text-decoration:none;border:1.5px solid transparent;transition:transform .15s ease-out,background .15s ease-out}
+.btn:active{transform:translateY(1px)}
+.btn-prim{background:var(--ultramar);color:#fff}
+.btn-prim:hover{background:#1E37A6}
+.btn-sec{border-color:var(--tinta);color:var(--tinta)}
+.btn-sec:hover{background:var(--nevoa)}
+.hero-meta{margin-top:26px;font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:2}
+.hero-meta b{color:var(--tinta);font-weight:500}
+#stage-hit{position:relative;height:min(52svh,440px);min-height:300px;cursor:grab;touch-action:none;display:flex;align-items:flex-end;justify-content:center}
+#stage-hit.dragging{cursor:grabbing}
+#stage-hit svg{width:100%;max-width:280px}
+.dragcue{font-family:var(--fm);font-size:11px;letter-spacing:.14em;color:var(--grafite);text-transform:uppercase;pointer-events:none;padding-bottom:2px}
+.scrollcue{font-family:var(--fm);font-size:11px;letter-spacing:.14em;color:var(--grafite);margin-top:34px;text-transform:uppercase}
+
+/* ---------- marquee ---------- */
+.marquee{position:relative;z-index:1;border-top:1.5px solid var(--tinta);border-bottom:1.5px solid var(--tinta);background:var(--papel);overflow:hidden;white-space:nowrap}
+.marquee .track{display:inline-block;padding:11px 0;font-family:var(--fm);font-size:12.5px;letter-spacing:.12em;color:var(--tinta);animation:mq 26s linear infinite}
+.marquee span{margin:0 26px}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.marquee .track{animation:none}}
+
+/* ---------- faixa de risco ---------- */
+.risk{position:relative;z-index:1;background:var(--acafrao-fundo);border-bottom:1px solid var(--acafrao)}
+.risk .wrap{padding:20px 24px}
+.risk b{font-family:var(--fm);font-size:12px;letter-spacing:.1em;color:var(--acafrao-texto);display:block;margin-bottom:6px}
+.risk p{font-size:14.5px;max-width:88ch}
+
+/* ---------- seções ---------- */
+main{position:relative;z-index:1}
+section{position:relative;padding:88px 0;border-bottom:1px solid var(--fio);scroll-margin-top:64px;background:rgba(250,250,247,.88);backdrop-filter:blur(2px);overflow:hidden}
+.gnum{position:absolute;top:8px;right:-6px;font-family:var(--fd);font-weight:700;font-size:clamp(120px,20vw,230px);line-height:1;color:rgba(22,24,29,.05);pointer-events:none;user-select:none}
+h2{font-family:var(--fd);font-weight:700;font-size:clamp(30px,4.6vw,46px);line-height:1.1;letter-spacing:-.01em;margin-bottom:18px;max-width:24ch}
+.lead{font-size:18px;max-width:62ch}
+.arrow{font-weight:600;font-size:15px}
+.enter{display:block;text-align:center;font-family:var(--fm);font-size:10.5px;letter-spacing:.16em;color:var(--grafite);text-transform:uppercase;padding:22px 0 0}
+
+.cards{display:grid;grid-template-columns:1fr;gap:16px;margin-top:44px}
+@media(min-width:760px){.cards{grid-template-columns:repeat(4,1fr)}}
+.card{background:#fff;border:1px solid var(--fio);border-radius:6px;padding:22px;display:flex;flex-direction:column;gap:10px;transition:transform .15s ease-out,border-color .15s ease-out}
+.card:hover,.card:active{transform:translateY(-3px);border-color:var(--grafite)}
+.card .dot{width:11px;height:11px;border-radius:50%}
+.card h3{font-weight:700;font-size:15.5px}
+.card p{font-size:13.5px;color:var(--grafite)}
+
+/* como funciona */
+.steps{display:grid;grid-template-columns:1fr;gap:14px;margin-top:44px}
+@media(min-width:820px){.steps{grid-template-columns:1fr auto 1fr auto 1fr}}
+.step{background:#fff;border:1px solid var(--fio);border-radius:6px;padding:24px}
+.step .n{font-family:var(--fm);font-size:12px;color:var(--lacre);letter-spacing:.1em}
+.step h3{font-family:var(--fd);font-weight:700;font-size:21px;margin:8px 0 8px}
+.step p{font-size:14px;color:var(--grafite)}
+.step .tag{display:inline-block;margin-top:12px;font-family:var(--fm);font-size:10.5px;letter-spacing:.1em;border:1.2px solid var(--fio);border-radius:999px;padding:2px 10px;color:var(--grafite)}
+.step-arrow{display:none;align-self:center;font-family:var(--fd);font-size:34px;color:var(--grafite)}
+@media(min-width:820px){.step-arrow{display:block}}
+
+/* três leituras */
+.readings{display:grid;grid-template-columns:1fr;gap:0;margin-top:44px;border:1px solid var(--fio);border-radius:6px;overflow:hidden;background:#fff}
+@media(min-width:760px){.readings{grid-template-columns:repeat(3,1fr)}}
+.reading{padding:22px;border-bottom:1px solid var(--fio)}
+@media(min-width:760px){.reading{border-bottom:0;border-right:1px solid var(--fio)}.reading:last-child{border-right:0}}
+.reading .rl{font-family:var(--fm);font-size:11px;letter-spacing:.12em;color:var(--grafite);text-transform:uppercase}
+.reading h3{font-family:var(--fd);font-size:20px;font-weight:700;margin:6px 0 6px}
+.reading p{font-size:13.5px;color:var(--grafite);margin:0}
+
+.cod{background:var(--tinta);color:#E8EAE6;border-radius:10px;padding:22px 26px;font-family:var(--fm);font-size:14px;line-height:1.8;overflow-x:auto;max-width:640px;margin-top:32px}
+.cod .k{color:#E8B23A}.cod .u{color:#8FA1F2}.cod .c{color:#9BA3AE}
+
+.ficha{background:#fff;border:1px solid var(--fio);border-left:3px solid var(--tinta);border-radius:6px;padding:24px;max-width:640px;margin-top:36px}
+.ficha .fnum{font-family:var(--fm);font-size:11px;letter-spacing:.12em;color:var(--grafite)}
+.ficha .ftit{font-family:var(--fd);font-weight:700;font-size:19px;margin:6px 0 12px}
+.frow{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--fio);font-size:13.5px;align-items:flex-start}
+.frow .dot{flex:none;width:10px;height:10px;border-radius:50%;margin-top:5px}
+.frow b{flex:none;width:118px;font-size:13.5px}
+.chip{font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;border:1.2px solid var(--grafite);color:var(--grafite);border-radius:999px;padding:1px 7px;margin-left:6px}
+
+.pilares{display:grid;grid-template-columns:1fr;gap:14px;margin-top:40px;counter-reset:p}
+@media(min-width:760px){.pilares{grid-template-columns:1fr 1fr}}
+.pilar{background:#fff;border:1px solid var(--fio);border-radius:6px;padding:20px 22px;display:flex;gap:16px}
+.pilar::before{counter-increment:p;content:counter(p,decimal-leading-zero);font-family:var(--fm);font-size:12px;color:var(--lacre);padding-top:3px}
+.pilar div p{font-size:13.5px;color:var(--grafite)}
+.pilar div h3{font-size:15px;margin-bottom:4px}
+.badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--fm);font-size:11.5px;letter-spacing:.08em;padding:5px 12px;border-radius:999px;background:var(--tinta);color:var(--papel)}
+.badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--violeta)}
+
+section.not{background:rgba(22,24,29,.94);color:var(--papel);border-bottom:none}
+section.not h2{color:var(--papel);max-width:26ch}
+section.not .gnum{color:rgba(250,250,247,.06)}
+.notlist{list-style:none;margin-top:36px;max-width:640px}
+.notlist li{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid #2A2D33;font-size:16px}
+.notlist li::before{content:"✕";font-family:var(--fm);color:#E4736A;flex:none}
+section.not .nota{color:#9BA3AE;font-size:14px;margin-top:22px;max-width:62ch}
+
+table{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:36px;max-width:820px}
+th{font-family:var(--fm);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--grafite);text-align:left;padding:10px 12px;border-bottom:2px solid var(--tinta);font-weight:500}
+td{padding:13px 12px;border-bottom:1px solid var(--fio)}
+.metricas{display:grid;grid-template-columns:1fr;gap:14px;margin-top:36px;max-width:820px}
+@media(min-width:700px){.metricas{grid-template-columns:repeat(3,1fr)}}
+.metrica{background:#fff;border:1px solid var(--fio);border-radius:6px;padding:20px}
+.metrica .lbl{font-family:var(--fm);font-size:10.5px;letter-spacing:.1em;color:var(--grafite);text-transform:uppercase}
+.metrica .val{font-family:var(--fm);font-size:30px;font-weight:600;margin:6px 0 2px}
+.metrica .nt{font-size:12px;color:var(--grafite)}
+
+/* roadmap */
+.road{display:grid;grid-template-columns:1fr;gap:14px;margin-top:44px}
+@media(min-width:820px){.road{grid-template-columns:repeat(4,1fr)}}
+.mile{background:#fff;border:1px solid var(--fio);border-radius:6px;padding:22px;position:relative}
+.mile .md{width:12px;height:12px;border-radius:50%;margin-bottom:12px}
+.mile .mv{font-family:var(--fm);font-size:12px;letter-spacing:.1em;color:var(--grafite)}
+.mile h3{font-family:var(--fd);font-size:19px;font-weight:700;margin:6px 0 6px}
+.mile p{font-size:13.5px;color:var(--grafite);margin:0}
+
+details{border-bottom:1px solid var(--fio);max-width:820px}
+summary{font-weight:600;font-size:16px;padding:18px 0;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::after{content:"+";font-family:var(--fm);color:var(--grafite)}
+details[open] summary::after{content:"−"}
+details p{padding:0 0 18px;font-size:15px;max-width:66ch}
+
+.final{position:relative;z-index:1;padding:88px 0;background:rgba(250,250,247,.88)}
+footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44px 0 64px;background:var(--papel)}
+.foot-grid{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:flex-end}
+.colofao{font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:2;text-align:right}
+.reveal{opacity:0;transform:translateY(12px);transition:opacity .2s ease-out,transform .2s ease-out}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <g id="mark-min">
+    <path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+    <path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+    <path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="40" cy="25.36" r="8.5" fill="#2743C7"/>
+    <circle cx="100" cy="60" r="8.5" fill="#C13327"/>
+    <circle cx="40" cy="94.64" r="8.5" fill="#E8B23A"/>
+  </g>
+</defs></svg>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+<div id="tip" role="status"><span class="dot"></span><span id="tip-txt"></span></div>
+
+<div id="loader" aria-hidden="true">
+  <svg id="loader-mark" viewBox="0 0 120 120" style="color:var(--tinta)"><use href="#mark-min"/></svg>
+  <div class="pct"><span id="pct">0</span>%</div>
+</div>
+
+<nav aria-label="Main">
+  <div class="nav-inner">
+    <a class="nav-mark" href="#top"><svg viewBox="0 0 120 120"><use href="#mark-min"/></svg><b>Triviu</b></a>
+    <div class="nav-links">
+      <a href="#protocol" data-i18n="nav_protocol">Protocol</a>
+      <a href="#how" data-i18n="nav_how">How it works</a>
+      <a href="#math" data-i18n="nav_math">The math</a>
+      <a href="#trilemma" data-i18n="nav_trilemma">Trilemma</a>
+      <a href="#education" data-i18n="nav_education">Education</a>
+      <a href="#verify" data-i18n="nav_verify">Verify</a>
+      <a href="#roadmap" data-i18n="nav_road">Roadmap</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button id="btn-en" aria-pressed="true" onclick="setLang('en')">EN</button>
+      <button id="btn-es" aria-pressed="false" onclick="setLang('es')">ES</button>
+    </div>
+    <a class="gh" href="#verify" data-i18n="nav_code">Read the code</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <div class="eyebrow" data-i18n="hero_eyebrow">Open protocol · Polygon PoS · no token</div>
+      <h1 data-i18n="hero_h1">Don't trust.<br>Verify.</h1>
+      <p class="sub" data-i18n="hero_sub">Triviu is an open, non-custodial protocol for atomic triangular arbitrage on Polygon — built to be read, audited and run by you. Educational infrastructure, with every rule public and every limit documented.</p>
+      <div class="cta-row">
+        <a class="btn btn-prim" href="#verify" data-i18n="hero_cta1">Read the code</a>
+        <a class="btn btn-sec" href="#verify" data-i18n="hero_cta2">Read the litepaper</a>
+      </div>
+      <div class="hero-meta">
+        <span data-i18n="hero_m1"><b>AGPL-3.0</b> code · <b>CC BY 4.0</b> brand · signed releases</span><br>
+        <span data-i18n="hero_m2">stateless executor · parameters via public PR · audit before mainnet</span>
+      </div>
+      <div class="scrollcue" data-i18n="hero_scroll">Scroll — the risk notice comes first</div>
+    </div>
+    <div id="stage-hit" aria-label="Interactive 3D mark: drag to turn, tap a node">
+      <svg id="fallback-mark" viewBox="0 0 120 120" style="color:var(--tinta)" role="img" aria-label="Triviu mark"><use href="#mark-min"/></svg>
+      <div class="dragcue" data-i18n="hero_drag">Drag · turn the cycle · tap a node</div>
+    </div>
+  </div>
+</header>
+
+<div class="marquee" aria-hidden="true">
+  <div class="track" id="mq-track">
+    <span>NO TOKEN</span><span>·</span><span>NON-CUSTODIAL</span><span>·</span><span>OPEN SOURCE</span><span>·</span><span>ATOMIC A→B→C→A</span><span>·</span><span>FAILURES PUBLISHED</span><span>·</span><span>DON'T TRUST — VERIFY</span><span>·</span><span>NO TOKEN</span><span>·</span><span>NON-CUSTODIAL</span><span>·</span><span>OPEN SOURCE</span><span>·</span><span>ATOMIC A→B→C→A</span><span>·</span><span>FAILURES PUBLISHED</span><span>·</span><span>DON'T TRUST — VERIFY</span><span>·</span>
+  </div>
+</div>
+
+<div class="risk" role="note">
+  <div class="wrap">
+    <b data-i18n="risk_t">⚠ RISK NOTICE — REQUIRED READING</b>
+    <p data-i18n="risk_p">Most atomic-arbitrage opportunities on Polygon are captured by professional operators. For most individual users, the expected result after gas costs tends toward zero or negative. Triviu is educational infrastructure — it is not a source of income. Reverted transactions still pay gas.</p>
+  </div>
+</div>
+
+<main>
+
+<section id="protocol">
+  <div class="gnum">01</div>
+  <div class="wrap reveal">
+    <div class="eyebrow" data-i18n="p_eyebrow">01 · The protocol</div>
+    <h2 data-i18n="p_h2">One transaction. Three legs. Zero custody.</h2>
+    <p class="lead" data-i18n="p_lead">A triangular cycle A→B→C→A runs inside a single atomic transaction: either it closes with the minimum profit, or everything reverts and no leg is left exposed. Your keys and your funds never touch us — the executor is stateless by construction.</p>
+    <div class="cards">
+      <div class="card"><span class="dot" style="background:var(--ultramar)"></span><h3 data-i18n="c1_t">Atomic executor</h3><p data-i18n="c1_p">Stateless, verified contract. Pulls the principal from the caller, runs the legs, returns everything in the same transaction — or reverts it all.</p></div>
+      <div class="card"><span class="dot" style="background:var(--lacre)"></span><h3 data-i18n="c2_t">Parameter registry</h3><p data-i18n="c2_p">Whitelists and caps on-chain. Every change records the URL of its public pull request: forum → Git → block.</p></div>
+      <div class="card"><span class="dot" style="background:var(--acafrao)"></span><h3 data-i18n="c3_t">Fork simulator</h3><p data-i18n="c3_p">Every route runs on a local Polygon fork before anything else. Mistakes there are free — and that is the point.</p></div>
+      <div class="card"><span class="dot" style="background:var(--grafite)"></span><h3 data-i18n="c4_t">Open engine</h3><p data-i18n="c4_p">Cycle detection with Bellman–Ford over −log(rates), written to be read. dry-run by default; mainnet requires an explicit risk acknowledgment.</p></div>
+    </div>
+    <div class="readings">
+      <div class="reading"><div class="rl" data-i18n="rd1_l">Reading I · the name</div><h3 data-i18n="rd1_t">The trivium</h3><p data-i18n="rd1_p">Latin for the meeting of three roads — and the classical curriculum that founded education.</p></div>
+      <div class="reading"><div class="rl" data-i18n="rd2_l">Reading II · the product</div><h3 data-i18n="rd2_t">The route</h3><p data-i18n="rd2_p">Three pools in one closed, atomic loop. It ends where it began, or it never happened.</p></div>
+      <div class="reading"><div class="rl" data-i18n="rd3_l">Reading III · the context</div><h3 data-i18n="rd3_t">The trilemma</h3><p data-i18n="rd3_p">Decentralization, security, scalability — one node each. Traveled, not chosen.</p></div>
+    </div>
+    <span class="enter" data-i18n="enter0">Scroll to enter · How it works</span>
+  </div>
+</section>
+
+<section id="how">
+  <div class="gnum">02</div>
+  <div class="wrap reveal">
+    <div class="eyebrow" data-i18n="h_eyebrow">02 · How it works</div>
+    <h2 data-i18n="h_h2">Detect. Simulate. Execute — or revert.</h2>
+    <p class="lead" data-i18n="h_lead">Three moves, always in this order. The third one has two honest endings, and both are published.</p>
+    <div class="steps">
+      <div class="step"><div class="n">STEP 01</div><h3 data-i18n="s1_t">Detect</h3><p data-i18n="s1_p">The open engine watches whitelisted pools and searches for negative cycles over −log(rates) — Bellman–Ford, in readable code.</p><span class="tag" data-i18n="s1_g">off-chain · open source</span></div>
+      <div class="step-arrow">→</div>
+      <div class="step"><div class="n">STEP 02</div><h3 data-i18n="s2_t">Simulate</h3><p data-i18n="s2_p">Every candidate route runs on a local Polygon fork first. Gas, slippage and revert reasons — measured where mistakes cost nothing.</p><span class="tag" data-i18n="s2_g">fork · mandatory</span></div>
+      <div class="step-arrow">→</div>
+      <div class="step"><div class="n">STEP 03</div><h3 data-i18n="s3_t">Execute — or revert</h3><p data-i18n="s3_p">On-chain, the contract enforces the profit condition. Met: everything returns to your wallet. Not met: the whole transaction reverts. Both outcomes go on the public dashboard.</p><span class="tag" data-i18n="s3_g">atomic · non-custodial</span></div>
+    </div>
+    <span class="enter" data-i18n="enter1">Scroll to enter · The math</span>
+  </div>
+</section>
+
+<section id="math">
+  <div class="gnum">03</div>
+  <div class="wrap reveal">
+    <div class="eyebrow" data-i18n="m_eyebrow">03 · The math</div>
+    <h2 data-i18n="m_h2">The whole strategy fits in one condition.</h2>
+    <p class="lead" data-i18n="m_lead">For volume V in asset A, effective rates r and pool fees φ, the contract enforces exactly this — and reverts when it fails. No discretion, no dashboard magic: a formula you can check.</p>
+    <div class="cod">
+      <span class="c" data-i18n="m_c1">// gross profit of the cycle</span><br>
+      profit = V · [ r₁·r₂·r₃ · (1−φ₁)(1−φ₂)(1−φ₃) − 1 ]<br><br>
+      <span class="c" data-i18n="m_c2">// execution condition — otherwise the whole tx reverts</span><br>
+      <span class="k">require</span>(profit − G ≥ <span class="u">minProfit</span>)
+    </div>
+    <p style="margin-top:24px"><a href="#verify" class="arrow" data-i18n="m_link">See it implemented in the executor →</a></p>
+    <span class="enter" data-i18n="enter2">Scroll to enter · The trilemma</span>
+  </div>
+</section>
+
+<section id="trilemma">
+  <div class="gnum">04</div>
+  <div class="wrap reveal">
+    <div class="eyebrow" data-i18n="t_eyebrow">04 · The trilemma</div>
+    <h2 data-i18n="t_h2">We don't solve the trilemma. We travel it.</h2>
+    <p class="lead" data-i18n="t_lead">No blockchain maximizes decentralization, security and scalability at once. The industry markets that away; we document it instead. Every architecture decision ships with a Tradeoff Record — and a record without a cost line is invalid.</p>
+    <div class="ficha">
+      <div class="fnum" data-i18n="t_fnum">TRADEOFF RECORD No. 0001 · FOUNDING DECISION</div>
+      <div class="ftit" data-i18n="t_ftit">Execution network: Polygon PoS</div>
+      <div class="frow"><span class="dot" style="background:var(--acafrao)"></span><b data-i18n="t_ax1">Scalability<span class="chip">GAINS</span></b><p data-i18n="t_r1">Low gas makes small cycles executable and mistakes cheap — the prerequisite of hands-on education.</p></div>
+      <div class="frow"><span class="dot" style="background:var(--lacre)"></span><b data-i18n="t_ax2">Security<span class="chip">HOLDS</span></b><p data-i18n="t_r2">Atomicity removes leg exposure; contract risk remains — external audit before v1.</p></div>
+      <div class="frow"><span class="dot" style="background:var(--ultramar)"></span><b data-i18n="t_ax3">Decentralization<span class="chip">COSTS</span></b><p data-i18n="t_r3">We inherit Polygon's validator set. Mitigation: verified contracts, local simulation, self-hosted RPC.</p></div>
+    </div>
+    <span class="enter" data-i18n="enter3">Scroll to enter · Education</span>
+  </div>
+</section>
+
+<section id="education">
+  <div class="gnum">05</div>
+  <div class="wrap reveal">
+    <div class="eyebrow" data-i18n="e_eyebrow">05 · Education</div>
+    <h2 data-i18n="e_h2">Learn it before you run it.</h2>
+    <p class="lead" data-i18n="e_lead">A public curriculum, taught by a synthetic persona that is labeled as AI in every video and every bio — always. The editorial rule is non-negotiable: show technology, never income.</p>
+    <div class="pilares">
+      <div class="pilar"><div><h3 data-i18n="e1_t">AMMs from zero</h3><p data-i18n="e1_p">How pools set prices, and why that creates the discrepancies arbitrage closes.</p></div></div>
+      <div class="pilar"><div><h3 data-i18n="e2_t">Anatomy of a real cycle</h3><p data-i18n="e2_p">Gas, slippage, competition — the numbers of one real transaction, block by block.</p></div></div>
+      <div class="pilar"><div><h3 data-i18n="e3_t">Run it yourself</h3><p data-i18n="e3_p">Read the code with the persona and execute it on a fork and testnet, where mistakes are free.</p></div></div>
+      <div class="pilar"><div><h3 data-i18n="e4_t">Wallet &amp; MEV literacy</h3><p data-i18n="e4_p">Key safety, approvals hygiene, and how professional searchers actually win.</p></div></div>
+    </div>
+    <p style="margin-top:28px"><span class="badge">AI-GENERATED</span> &nbsp;<span style="font-size:13.5px;color:var(--grafite)" data-i18n="e_badge">— the badge every piece of persona content carries, by rule.</span></p>
+    <span class="enter" data-i18n="enter4">Scroll to enter · Read this twice</span>
+  </div>
+</section>
+
+<section class="not" id="not">
+  <div class="gnum">06</div>
+  <div class="wrap reveal">
+    <div class="eyebrow" style="color:#9BA3AE" data-i18n="n_eyebrow">06 · Read this twice</div>
+    <h2 data-i18n="n_h2">What Triviu is not.</h2>
+    <ul class="notlist">
+      <li data-i18n="n1">It does not custody funds — there is no deposit function anywhere.</li>
+      <li data-i18n="n2">It has no token, presale or allocation — and none is planned.</li>
+      <li data-i18n="n3">It sells no signals, premium groups or "guaranteed" strategies.</li>
+      <li data-i18n="n4">It promises no returns. Possibility is not probability.</li>
+    </ul>
+    <p class="nota" data-i18n="n_nota">If anyone offers any of these things in Triviu's name, it is a scam — report it. The only official surfaces are this site and the public repository.</p>
+  </div>
+</section>
+
+<section id="verify">
+  <div class="gnum">07</div>
+  <div class="wrap reveal">
+    <div class="eyebrow" data-i18n="v_eyebrow">07 · Don't trust: verify</div>
+    <h2 data-i18n="v_h2">Everything we claim, you can check.</h2>
+    <table>
+      <tr><th data-i18n="v_th1">What</th><th data-i18n="v_th2">Where</th></tr>
+      <tr><td data-i18n="v_r1">Litepaper — the founding document</td><td class="mono">github.com/triviu — /docs</td></tr>
+      <tr><td data-i18n="v_r2">Contracts, v0 — unaudited, fork/testnet only</td><td class="mono">github.com/triviu — /contracts</td></tr>
+      <tr><td data-i18n="v_r3">Decisions and their costs (Tradeoff Records)</td><td class="mono">github.com/triviu — /decisions</td></tr>
+      <tr><td data-i18n="v_r4">Verified addresses on Polygonscan</td><td class="mono" data-i18n="v_soon1">to be published at first testnet deploy</td></tr>
+      <tr><td data-i18n="v_r5">Public dashboard — failures included</td><td class="mono" data-i18n="v_soon2">Dune, to be published</td></tr>
+    </table>
+    <div class="metricas">
+      <div class="metrica"><div class="lbl" data-i18n="mt1_l">Executions · incl. reverts</div><div class="val">—</div><div class="nt" data-i18n="mt_n">after first testnet deploy</div></div>
+      <div class="metrica"><div class="lbl" data-i18n="mt2_l">Revert rate · 30d</div><div class="val">—</div><div class="nt" data-i18n="mt_n2">the real number, good or bad</div></div>
+      <div class="metrica"><div class="lbl" data-i18n="mt3_l">Gas spent vs. net result</div><div class="val">—</div><div class="nt" data-i18n="mt_n3">failures included, always</div></div>
+    </div>
+    <span class="enter" data-i18n="enter5">Scroll to enter · Roadmap</span>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="gnum">08</div>
+  <div class="wrap reveal">
+    <div class="eyebrow" data-i18n="r_eyebrow">08 · Roadmap</div>
+    <h2 data-i18n="r_h2">Intent, not deadlines.</h2>
+    <p class="lead" data-i18n="r_lead">Consistent with the no-promises principle: the roadmap states direction, and every milestone below the audit gate stays off mainnet.</p>
+    <div class="road">
+      <div class="mile"><span class="md" style="background:var(--ultramar)"></span><div class="mv">v0 · NOW</div><h3 data-i18n="rm1_t">Public foundation</h3><p data-i18n="rm1_p">Litepaper, open repository, fork simulator, testnet execution.</p></div>
+      <div class="mile"><span class="md" style="background:var(--acafrao)"></span><div class="mv">v0.2</div><h3 data-i18n="rm2_t">Testnet + dashboard</h3><p data-i18n="rm2_p">Minimal whitelist on Amoy; public Dune dashboard with reverts included.</p></div>
+      <div class="mile"><span class="md" style="background:var(--lacre)"></span><div class="mv" data-i18n="rm3_v">GATE</div><h3 data-i18n="rm3_t">External audit</h3><p data-i18n="rm3_p">Independent review of Executor and Registry. Nothing touches mainnet before this.</p></div>
+      <div class="mile"><span class="md" style="background:var(--tinta)"></span><div class="mv">v1</div><h3 data-i18n="rm4_t">Mainnet + curriculum</h3><p data-i18n="rm4_p">Timelocked Registry, full educational curriculum, second audit.</p></div>
+    </div>
+    <span class="enter" data-i18n="enter6">Scroll to enter · FAQ</span>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="gnum">09</div>
+  <div class="wrap reveal">
+    <div class="eyebrow">09 · FAQ</div>
+    <h2 data-i18n="f_h2">Straight answers.</h2>
+    <details><summary data-i18n="f1_q">Is this an investment?</summary><p data-i18n="f1_a">No. Triviu is educational infrastructure and open-source tooling. It takes no deposits, manages no capital and promises no returns.</p></details>
+    <details><summary data-i18n="f2_q">Is there a token or presale?</summary><p data-i18n="f2_a">No — and none is planned. Anyone selling a "Triviu token" is running a scam. Report it.</p></details>
+    <details><summary data-i18n="f3_q">Will I make money running the bot?</summary><p data-i18n="f3_a">Probably not. Most opportunities are captured by professional operators with dedicated infrastructure; after gas, expected results tend toward zero or negative. That is why the risk notice sits at the top of this page.</p></details>
+    <details><summary data-i18n="f4_q">Why Polygon?</summary><p data-i18n="f4_a">Because low gas makes learning cheap. What that choice costs — in decentralization — is documented in Tradeoff Record No. 0001, in the open.</p></details>
+    <details><summary data-i18n="f5_q">Who is behind Triviu?</summary><p data-i18n="f5_a">Triviu Contributors. Code, parameters, decisions and their costs are all public in the repository — judge the work, not the names.</p></details>
+  </div>
+</section>
+
+</main>
+
+<div class="final">
+  <div class="wrap reveal">
+    <h2 data-i18n="cta_h2">Start on a fork. Mistakes there are free.</h2>
+    <div class="cta-row">
+      <a class="btn btn-prim" href="#verify" data-i18n="cta_b1">Open the fork guide</a>
+      <a class="btn btn-sec" href="#verify" data-i18n="cta_b2">Browse the repository</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap foot-grid">
+    <div style="display:flex;gap:12px;align-items:center">
+      <svg viewBox="0 0 120 120" style="width:30px;color:var(--tinta)"><use href="#mark-min"/></svg>
+      <div>
+        <div style="font-family:var(--fd);font-weight:700;font-size:20px">Triviu</div>
+        <div class="mono" style="font-size:11.5px;color:var(--grafite)" data-i18n="foot_lic">AGPL-3.0 code · CC BY 4.0 brand · no token · no tracking</div>
+      </div>
+    </div>
+    <div class="colofao">
+      <em style="font-family:var(--fd)" data-i18n="foot_tag">Open source. Verifiable math. No promises.</em><br>
+      <span data-i18n="foot_col">Set in Libre Caslon Text, Public Sans &amp; IBM Plex Mono · July 2026</span>
+    </div>
+  </div>
+</footer>
+
+<noscript><div class="wrap" style="padding:24px"><p>This page works without JavaScript too — the 3D scene and the language toggle simply stay off. Repository and litepaper: github.com/triviu</p></div></noscript>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="document.body.classList.add('no3d')"></script>
+<script>
+/* ================= i18n EN / ES ================= */
+var LANG="en";
+var T={
+en:{
+ nav_protocol:"Protocol",nav_how:"How it works",nav_math:"The math",nav_trilemma:"Trilemma",nav_education:"Education",nav_verify:"Verify",nav_road:"Roadmap",nav_code:"Read the code",
+ hero_eyebrow:"Open protocol · Polygon PoS · no token",
+ hero_h1:"Don't trust.<br>Verify.",
+ hero_sub:"Triviu is an open, non-custodial protocol for atomic triangular arbitrage on Polygon — built to be read, audited and run by you. Educational infrastructure, with every rule public and every limit documented.",
+ hero_cta1:"Read the code",hero_cta2:"Read the litepaper",
+ hero_m1:"<b>AGPL-3.0</b> code · <b>CC BY 4.0</b> brand · signed releases",
+ hero_m2:"stateless executor · parameters via public PR · audit before mainnet",
+ hero_scroll:"Scroll — the risk notice comes first",
+ hero_drag:"Drag · turn the cycle · tap a node",
+ risk_t:"⚠ RISK NOTICE — REQUIRED READING",
+ risk_p:"Most atomic-arbitrage opportunities on Polygon are captured by professional operators. For most individual users, the expected result after gas costs tends toward zero or negative. Triviu is educational infrastructure — it is not a source of income. Reverted transactions still pay gas.",
+ p_eyebrow:"01 · The protocol",p_h2:"One transaction. Three legs. Zero custody.",
+ p_lead:"A triangular cycle A→B→C→A runs inside a single atomic transaction: either it closes with the minimum profit, or everything reverts and no leg is left exposed. Your keys and your funds never touch us — the executor is stateless by construction.",
+ c1_t:"Atomic executor",c1_p:"Stateless, verified contract. Pulls the principal from the caller, runs the legs, returns everything in the same transaction — or reverts it all.",
+ c2_t:"Parameter registry",c2_p:"Whitelists and caps on-chain. Every change records the URL of its public pull request: forum → Git → block.",
+ c3_t:"Fork simulator",c3_p:"Every route runs on a local Polygon fork before anything else. Mistakes there are free — and that is the point.",
+ c4_t:"Open engine",c4_p:"Cycle detection with Bellman–Ford over −log(rates), written to be read. dry-run by default; mainnet requires an explicit risk acknowledgment.",
+ rd1_l:"Reading I · the name",rd1_t:"The trivium",rd1_p:"Latin for the meeting of three roads — and the classical curriculum that founded education.",
+ rd2_l:"Reading II · the product",rd2_t:"The route",rd2_p:"Three pools in one closed, atomic loop. It ends where it began, or it never happened.",
+ rd3_l:"Reading III · the context",rd3_t:"The trilemma",rd3_p:"Decentralization, security, scalability — one node each. Traveled, not chosen.",
+ enter0:"Scroll to enter · How it works",enter1:"Scroll to enter · The math",enter2:"Scroll to enter · The trilemma",enter3:"Scroll to enter · Education",enter4:"Scroll to enter · Read this twice",enter5:"Scroll to enter · Roadmap",enter6:"Scroll to enter · FAQ",
+ h_eyebrow:"02 · How it works",h_h2:"Detect. Simulate. Execute — or revert.",
+ h_lead:"Three moves, always in this order. The third one has two honest endings, and both are published.",
+ s1_t:"Detect",s1_p:"The open engine watches whitelisted pools and searches for negative cycles over −log(rates) — Bellman–Ford, in readable code.",s1_g:"off-chain · open source",
+ s2_t:"Simulate",s2_p:"Every candidate route runs on a local Polygon fork first. Gas, slippage and revert reasons — measured where mistakes cost nothing.",s2_g:"fork · mandatory",
+ s3_t:"Execute — or revert",s3_p:"On-chain, the contract enforces the profit condition. Met: everything returns to your wallet. Not met: the whole transaction reverts. Both outcomes go on the public dashboard.",s3_g:"atomic · non-custodial",
+ m_eyebrow:"03 · The math",m_h2:"The whole strategy fits in one condition.",
+ m_lead:"For volume V in asset A, effective rates r and pool fees φ, the contract enforces exactly this — and reverts when it fails. No discretion, no dashboard magic: a formula you can check.",
+ m_c1:"// gross profit of the cycle",m_c2:"// execution condition — otherwise the whole tx reverts",
+ m_link:"See it implemented in the executor →",
+ t_eyebrow:"04 · The trilemma",t_h2:"We don't solve the trilemma. We travel it.",
+ t_lead:"No blockchain maximizes decentralization, security and scalability at once. The industry markets that away; we document it instead. Every architecture decision ships with a Tradeoff Record — and a record without a cost line is invalid.",
+ t_fnum:"TRADEOFF RECORD No. 0001 · FOUNDING DECISION",t_ftit:"Execution network: Polygon PoS",
+ t_ax1:"Scalability<span class='chip'>GAINS</span>",t_r1:"Low gas makes small cycles executable and mistakes cheap — the prerequisite of hands-on education.",
+ t_ax2:"Security<span class='chip'>HOLDS</span>",t_r2:"Atomicity removes leg exposure; contract risk remains — external audit before v1.",
+ t_ax3:"Decentralization<span class='chip'>COSTS</span>",t_r3:"We inherit Polygon's validator set. Mitigation: verified contracts, local simulation, self-hosted RPC.",
+ e_eyebrow:"05 · Education",e_h2:"Learn it before you run it.",
+ e_lead:"A public curriculum, taught by a synthetic persona that is labeled as AI in every video and every bio — always. The editorial rule is non-negotiable: show technology, never income.",
+ e1_t:"AMMs from zero",e1_p:"How pools set prices, and why that creates the discrepancies arbitrage closes.",
+ e2_t:"Anatomy of a real cycle",e2_p:"Gas, slippage, competition — the numbers of one real transaction, block by block.",
+ e3_t:"Run it yourself",e3_p:"Read the code with the persona and execute it on a fork and testnet, where mistakes are free.",
+ e4_t:"Wallet & MEV literacy",e4_p:"Key safety, approvals hygiene, and how professional searchers actually win.",
+ e_badge:"— the badge every piece of persona content carries, by rule.",
+ n_eyebrow:"06 · Read this twice",n_h2:"What Triviu is not.",
+ n1:"It does not custody funds — there is no deposit function anywhere.",
+ n2:"It has no token, presale or allocation — and none is planned.",
+ n3:"It sells no signals, premium groups or \u201cguaranteed\u201d strategies.",
+ n4:"It promises no returns. Possibility is not probability.",
+ n_nota:"If anyone offers any of these things in Triviu's name, it is a scam — report it. The only official surfaces are this site and the public repository.",
+ v_eyebrow:"07 · Don't trust: verify",v_h2:"Everything we claim, you can check.",
+ v_th1:"What",v_th2:"Where",
+ v_r1:"Litepaper — the founding document",v_r2:"Contracts, v0 — unaudited, fork/testnet only",v_r3:"Decisions and their costs (Tradeoff Records)",v_r4:"Verified addresses on Polygonscan",v_r5:"Public dashboard — failures included",
+ v_soon1:"to be published at first testnet deploy",v_soon2:"Dune, to be published",
+ mt1_l:"Executions · incl. reverts",mt2_l:"Revert rate · 30d",mt3_l:"Gas spent vs. net result",
+ mt_n:"after first testnet deploy",mt_n2:"the real number, good or bad",mt_n3:"failures included, always",
+ r_eyebrow:"08 · Roadmap",r_h2:"Intent, not deadlines.",
+ r_lead:"Consistent with the no-promises principle: the roadmap states direction, and every milestone below the audit gate stays off mainnet.",
+ rm1_t:"Public foundation",rm1_p:"Litepaper, open repository, fork simulator, testnet execution.",
+ rm2_t:"Testnet + dashboard",rm2_p:"Minimal whitelist on Amoy; public Dune dashboard with reverts included.",
+ rm3_v:"GATE",rm3_t:"External audit",rm3_p:"Independent review of Executor and Registry. Nothing touches mainnet before this.",
+ rm4_t:"Mainnet + curriculum",rm4_p:"Timelocked Registry, full educational curriculum, second audit.",
+ f_h2:"Straight answers.",
+ f1_q:"Is this an investment?",f1_a:"No. Triviu is educational infrastructure and open-source tooling. It takes no deposits, manages no capital and promises no returns.",
+ f2_q:"Is there a token or presale?",f2_a:"No — and none is planned. Anyone selling a \u201cTriviu token\u201d is running a scam. Report it.",
+ f3_q:"Will I make money running the bot?",f3_a:"Probably not. Most opportunities are captured by professional operators with dedicated infrastructure; after gas, expected results tend toward zero or negative. That is why the risk notice sits at the top of this page.",
+ f4_q:"Why Polygon?",f4_a:"Because low gas makes learning cheap. What that choice costs — in decentralization — is documented in Tradeoff Record No. 0001, in the open.",
+ f5_q:"Who is behind Triviu?",f5_a:"Triviu Contributors. Code, parameters, decisions and their costs are all public in the repository — judge the work, not the names.",
+ cta_h2:"Start on a fork. Mistakes there are free.",cta_b1:"Open the fork guide",cta_b2:"Browse the repository",
+ foot_lic:"AGPL-3.0 code · CC BY 4.0 brand · no token · no tracking",
+ foot_tag:"Open source. Verifiable math. No promises.",
+ foot_col:"Set in Libre Caslon Text, Public Sans & IBM Plex Mono · July 2026",
+ tip_d:"Decentralization — Ultramar",tip_s:"Security — Lacre",tip_sc:"Scalability — Açafrão",
+ mq:"<span>NO TOKEN</span><span>·</span><span>NON-CUSTODIAL</span><span>·</span><span>OPEN SOURCE</span><span>·</span><span>ATOMIC A→B→C→A</span><span>·</span><span>FAILURES PUBLISHED</span><span>·</span><span>DON'T TRUST — VERIFY</span><span>·</span>",
+ title:"Triviu · Open source. Verifiable math. No promises."
+},
+es:{
+ nav_protocol:"Protocolo",nav_how:"Cómo funciona",nav_math:"La matemática",nav_trilemma:"Trilema",nav_education:"Educación",nav_verify:"Verificar",nav_road:"Hoja de ruta",nav_code:"Leer el código",
+ hero_eyebrow:"Protocolo abierto · Polygon PoS · sin token",
+ hero_h1:"No confíes.<br>Verifica.",
+ hero_sub:"Triviu es un protocolo abierto y sin custodia para arbitraje triangular atómico en Polygon — hecho para que tú lo leas, lo audites y lo ejecutes. Infraestructura educativa, con cada regla pública y cada límite documentado.",
+ hero_cta1:"Leer el código",hero_cta2:"Leer el litepaper",
+ hero_m1:"Código <b>AGPL-3.0</b> · Marca <b>CC BY 4.0</b> · releases firmadas",
+ hero_m2:"ejecutor stateless · parámetros vía PR público · auditoría antes de mainnet",
+ hero_scroll:"Desplázate — el aviso de riesgo va primero",
+ hero_drag:"Arrastra · gira el ciclo · toca un nodo",
+ risk_t:"⚠ AVISO DE RIESGO — LECTURA OBLIGATORIA",
+ risk_p:"La mayoría de las oportunidades de arbitraje atómico en Polygon son capturadas por operadores profesionales. Para la mayoría de los usuarios individuales, el resultado esperado después del gas tiende a cero o negativo. Triviu es infraestructura educativa — no es una fuente de ingresos. Las transacciones revertidas igual pagan gas.",
+ p_eyebrow:"01 · El protocolo",p_h2:"Una transacción. Tres tramos. Cero custodia.",
+ p_lead:"Un ciclo triangular A→B→C→A corre dentro de una sola transacción atómica: o cierra con la ganancia mínima, o todo se revierte y ningún tramo queda expuesto. Tus llaves y tus fondos nunca nos tocan — el ejecutor es stateless por construcción.",
+ c1_t:"Ejecutor atómico",c1_p:"Contrato stateless y verificado. Toma el principal del llamador, ejecuta los tramos y devuelve todo en la misma transacción — o revierte todo.",
+ c2_t:"Registro de parámetros",c2_p:"Whitelists y topes on-chain. Cada cambio graba la URL de su pull request público: foro → Git → bloque.",
+ c3_t:"Simulador en fork",c3_p:"Toda ruta corre primero en un fork local de Polygon. Equivocarse ahí es gratis — y esa es la idea.",
+ c4_t:"Motor abierto",c4_p:"Detección de ciclos con Bellman–Ford sobre −log(tasas), escrito para ser leído. dry-run por defecto; mainnet exige aceptar el riesgo explícitamente.",
+ rd1_l:"Lectura I · el nombre",rd1_t:"El trivium",rd1_p:"Latín para el encuentro de tres caminos — y el currículo clásico que fundó la educación.",
+ rd2_l:"Lectura II · el producto",rd2_t:"La ruta",rd2_p:"Tres pools en un solo bucle cerrado y atómico. Termina donde empezó, o nunca ocurrió.",
+ rd3_l:"Lectura III · el contexto",rd3_t:"El trilema",rd3_p:"Descentralización, seguridad, escalabilidad — un nodo cada una. Recorrido, no elegido.",
+ enter0:"Desplázate para entrar · Cómo funciona",enter1:"Desplázate para entrar · La matemática",enter2:"Desplázate para entrar · El trilema",enter3:"Desplázate para entrar · Educación",enter4:"Desplázate para entrar · Léelo dos veces",enter5:"Desplázate para entrar · Hoja de ruta",enter6:"Desplázate para entrar · FAQ",
+ h_eyebrow:"02 · Cómo funciona",h_h2:"Detectar. Simular. Ejecutar — o revertir.",
+ h_lead:"Tres movimientos, siempre en este orden. El tercero tiene dos finales honestos, y ambos se publican.",
+ s1_t:"Detectar",s1_p:"El motor abierto vigila pools de la whitelist y busca ciclos negativos sobre −log(tasas) — Bellman–Ford, en código legible.",s1_g:"off-chain · código abierto",
+ s2_t:"Simular",s2_p:"Toda ruta candidata corre primero en un fork local de Polygon. Gas, slippage y motivos de revert — medidos donde equivocarse no cuesta nada.",s2_g:"fork · obligatorio",
+ s3_t:"Ejecutar — o revertir",s3_p:"On-chain, el contrato impone la condición de ganancia. Se cumple: todo vuelve a tu billetera. No se cumple: toda la transacción revierte. Ambos resultados van al dashboard público.",s3_g:"atómico · sin custodia",
+ m_eyebrow:"03 · La matemática",m_h2:"Toda la estrategia cabe en una condición.",
+ m_lead:"Para un volumen V en el activo A, tasas efectivas r y comisiones φ, el contrato impone exactamente esto — y revierte cuando falla. Sin discreción, sin magia de dashboard: una fórmula que puedes comprobar.",
+ m_c1:"// ganancia bruta del ciclo",m_c2:"// condición de ejecución — si no, toda la tx revierte",
+ m_link:"Míralo implementado en el ejecutor →",
+ t_eyebrow:"04 · El trilema",t_h2:"No resolvemos el trilema. Lo recorremos.",
+ t_lead:"Ninguna blockchain maximiza descentralización, seguridad y escalabilidad a la vez. La industria lo esconde con marketing; nosotros lo documentamos. Cada decisión de arquitectura llega con su Ficha de Tradeoff — y una ficha sin línea de costo es inválida.",
+ t_fnum:"FICHA DE TRADEOFF N.º 0001 · DECISIÓN FUNDACIONAL",t_ftit:"Red de ejecución: Polygon PoS",
+ t_ax1:"Escalabilidad<span class='chip'>GANA</span>",t_r1:"El gas bajo hace ejecutables los ciclos pequeños y abarata el error — prerrequisito de la educación práctica.",
+ t_ax2:"Seguridad<span class='chip'>MANTIENE</span>",t_r2:"La atomicidad elimina la exposición por tramo; el riesgo de contrato permanece — auditoría externa antes de la v1.",
+ t_ax3:"Descentralización<span class='chip'>CUESTA</span>",t_r3:"Heredamos el conjunto de validadores de Polygon. Mitigación: contratos verificados, simulación local, RPC propio.",
+ e_eyebrow:"05 · Educación",e_h2:"Apréndelo antes de ejecutarlo.",
+ e_lead:"Un currículo público, enseñado por una persona sintética identificada como IA en cada video y cada biografía — siempre. La regla editorial no se negocia: mostrar tecnología, nunca ingresos.",
+ e1_t:"AMMs desde cero",e1_p:"Cómo los pools fijan precios, y por qué eso crea las discrepancias que el arbitraje cierra.",
+ e2_t:"Anatomía de un ciclo real",e2_p:"Gas, slippage, competencia — los números de una transacción real, bloque a bloque.",
+ e3_t:"Ejecútalo tú mismo",e3_p:"Lee el código con la persona y ejecútalo en fork y testnet, donde equivocarse es gratis.",
+ e4_t:"Billetera y MEV",e4_p:"Seguridad de llaves, higiene de approvals y cómo ganan de verdad los searchers profesionales.",
+ e_badge:"— la insignia que lleva todo contenido de la persona, por regla.",
+ n_eyebrow:"06 · Léelo dos veces",n_h2:"Lo que Triviu no es.",
+ n1:"No custodia fondos — no existe función de depósito en ningún lugar.",
+ n2:"No tiene token, preventa ni asignación — y no hay planes de tenerlos.",
+ n3:"No vende señales, grupos premium ni estrategias \u201cgarantizadas\u201d.",
+ n4:"No promete rendimientos. Posibilidad no es probabilidad.",
+ n_nota:"Si alguien ofrece cualquiera de estas cosas en nombre de Triviu, es una estafa — denúnciala. Las únicas superficies oficiales son este sitio y el repositorio público.",
+ v_eyebrow:"07 · No confíes: verifica",v_h2:"Todo lo que afirmamos, lo puedes comprobar.",
+ v_th1:"Qué",v_th2:"Dónde",
+ v_r1:"Litepaper — el documento fundador",v_r2:"Contratos, v0 — sin auditar, solo fork/testnet",v_r3:"Decisiones y sus costos (Fichas de Tradeoff)",v_r4:"Direcciones verificadas en Polygonscan",v_r5:"Dashboard público — fallos incluidos",
+ v_soon1:"se publicará en el primer deploy en testnet",v_soon2:"Dune, por publicar",
+ mt1_l:"Ejecuciones · incl. reverts",mt2_l:"Tasa de reversión · 30d",mt3_l:"Gas gastado vs. resultado neto",
+ mt_n:"tras el primer deploy en testnet",mt_n2:"el número real, bueno o malo",mt_n3:"fallos incluidos, siempre",
+ r_eyebrow:"08 · Hoja de ruta",r_h2:"Intención, no plazos.",
+ r_lead:"Coherente con el principio de no prometer: la hoja de ruta declara dirección, y todo hito antes de la puerta de auditoría queda fuera de mainnet.",
+ rm1_t:"Fundación pública",rm1_p:"Litepaper, repositorio abierto, simulador en fork, ejecución en testnet.",
+ rm2_t:"Testnet + dashboard",rm2_p:"Whitelist mínima en Amoy; dashboard público en Dune con reverts incluidos.",
+ rm3_v:"PUERTA",rm3_t:"Auditoría externa",rm3_p:"Revisión independiente del Ejecutor y del Registro. Nada toca mainnet antes de esto.",
+ rm4_t:"Mainnet + currículo",rm4_p:"Registro con timelock, currículo educativo completo, segunda auditoría.",
+ f_h2:"Respuestas directas.",
+ f1_q:"¿Esto es una inversión?",f1_a:"No. Triviu es infraestructura educativa y herramientas de código abierto. No recibe depósitos, no gestiona capital y no promete rendimientos.",
+ f2_q:"¿Hay token o preventa?",f2_a:"No — y no hay planes. Quien venda un \u201ctoken de Triviu\u201d está montando una estafa. Denúncialo.",
+ f3_q:"¿Ganaré dinero ejecutando el bot?",f3_a:"Probablemente no. La mayoría de las oportunidades las capturan operadores profesionales con infraestructura dedicada; después del gas, el resultado esperado tiende a cero o negativo. Por eso el aviso de riesgo está en la parte superior de esta página.",
+ f4_q:"¿Por qué Polygon?",f4_a:"Porque el gas bajo abarata el aprendizaje. Lo que esa elección cuesta — en descentralización — está documentado en la Ficha de Tradeoff N.º 0001, a la vista.",
+ f5_q:"¿Quién está detrás de Triviu?",f5_a:"Triviu Contributors. Código, parámetros, decisiones y sus costos son públicos en el repositorio — juzga el trabajo, no los nombres.",
+ cta_h2:"Empieza en un fork. Equivocarse ahí es gratis.",cta_b1:"Abrir la guía de fork",cta_b2:"Explorar el repositorio",
+ foot_lic:"Código AGPL-3.0 · Marca CC BY 4.0 · sin token · sin rastreo",
+ foot_tag:"Código abierto. Matemática verificable. Ninguna promesa.",
+ foot_col:"Compuesto en Libre Caslon Text, Public Sans e IBM Plex Mono · Julio 2026",
+ tip_d:"Descentralización — Ultramar",tip_s:"Seguridad — Lacre",tip_sc:"Escalabilidad — Açafrão",
+ mq:"<span>SIN TOKEN</span><span>·</span><span>SIN CUSTODIA</span><span>·</span><span>CÓDIGO ABIERTO</span><span>·</span><span>ATÓMICO A→B→C→A</span><span>·</span><span>FALLOS PUBLICADOS</span><span>·</span><span>NO CONFÍES — VERIFICA</span><span>·</span>",
+ title:"Triviu · Código abierto. Matemática verificable. Ninguna promesa."
+}};
+
+function setLang(lang){
+  LANG=lang;
+  var dict=T[lang];
+  document.querySelectorAll("[data-i18n]").forEach(function(el){
+    var k=el.getAttribute("data-i18n");
+    if(dict[k]!==undefined) el.innerHTML=dict[k];
+  });
+  document.getElementById("mq-track").innerHTML=dict.mq+dict.mq;
+  document.documentElement.lang=lang;
+  document.title=dict.title;
+  document.getElementById("btn-en").setAttribute("aria-pressed",lang==="en");
+  document.getElementById("btn-es").setAttribute("aria-pressed",lang==="es");
+}
+
+/* ================= 3D — o Ciclo ancorado à própria coluna ================= */
+/* Correção central: o objeto é projetado matematicamente no retângulo de
+   #stage-hit (a coluna reservada do hero) — nunca sobre o texto. Ao rolar,
+   ele acompanha o hero para cima e faz a transição para um posto ambiente
+   no canto superior direito, girando 120° por seção. */
+var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var three={ok:false};
+var OBJ_W=3.3; // largura do objeto no mundo (nós r=1 + arcos f=0.6 + esferas)
+
+function init3D(){
+  if(typeof THREE==="undefined"){document.body.classList.add("no3d");return}
+  try{
+    var canvas=document.getElementById("scene");
+    var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true});
+    renderer.setClearColor(0xFAFAF7,1);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    var scene=new THREE.Scene();
+    var camera=new THREE.PerspectiveCamera(38,1,0.1,60);
+    camera.position.set(0,0,6);
+    scene.add(new THREE.HemisphereLight(0xffffff,0xDDE0DA,1.05));
+    var dir=new THREE.DirectionalLight(0xffffff,0.65);dir.position.set(3,4,5);scene.add(dir);
+
+    var outer=new THREE.Group(),inner=new THREE.Group();
+    outer.add(inner);scene.add(outer);
+
+    var NODES=[
+      {p:[-0.5, 0.866,0],c:0x2743C7,tip:"tip_d"},
+      {p:[ 1.0, 0.0  ,0],c:0xC13327,tip:"tip_s"},
+      {p:[-0.5,-0.866,0],c:0xE8B23A,tip:"tip_sc"}
+    ];
+    var inkMats=[],spheres=[];
+    function v(a){return new THREE.Vector3(a[0],a[1],a[2])}
+    function arc(a,b){
+      var mid=v(a).add(v(b)).multiplyScalar(0.5);
+      var ctrl=mid.clone().multiplyScalar(1.6);
+      var curve=new THREE.QuadraticBezierCurve3(v(a),ctrl,v(b));
+      var mat=new THREE.MeshStandardMaterial({color:0x16181D,roughness:0.5,metalness:0.05});
+      inkMats.push(mat);
+      inner.add(new THREE.Mesh(new THREE.TubeGeometry(curve,48,0.055,12,false),mat));
+      var cone=new THREE.Mesh(new THREE.ConeGeometry(0.075,0.17,16),mat);
+      cone.position.copy(curve.getPointAt(0.5));
+      cone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),curve.getTangentAt(0.5).normalize());
+      inner.add(cone);
+    }
+    arc(NODES[0].p,NODES[1].p);arc(NODES[1].p,NODES[2].p);arc(NODES[2].p,NODES[0].p);
+    NODES.forEach(function(n){
+      var m=new THREE.Mesh(new THREE.SphereGeometry(0.15,32,24),
+        new THREE.MeshStandardMaterial({color:n.c,roughness:0.35,metalness:0.1}));
+      m.position.set(n.p[0],n.p[1],n.p[2]);m.userData.tip=n.tip;m.userData.hex=n.c;
+      inner.add(m);spheres.push(m);
+    });
+
+    var pts=new THREE.BufferGeometry(),N=260,arr=new Float32Array(N*3);
+    for(var i=0;i<N*3;i++)arr[i]=(Math.random()-0.5)*15;
+    pts.setAttribute("position",new THREE.BufferAttribute(arr,3));
+    var cloud=new THREE.Points(pts,new THREE.PointsMaterial({color:0x52575D,size:0.022,transparent:true,opacity:0.35}));
+    scene.add(cloud);
+
+    three={ok:true,renderer:renderer,scene:scene,camera:camera,outer:outer,inner:inner,
+           spheres:spheres,inkMats:inkMats,cloud:cloud,
+           anchor:{x:1.6,y:0,scale:1,docY:0,visH:4,visW:7,ppw:0.004},
+           tgt:{rx:0,ry:0,spin:0,px:0,py:0},cur:{rx:0,ry:0,spin:0,px:0,py:0},vel:0,
+           inkCur:new THREE.Color(0x16181D),inkTgt:new THREE.Color(0x16181D)};
+    resize3D();render3D();
+    if(!reduce)requestAnimationFrame(loop3D);
+  }catch(e){document.body.classList.add("no3d")}
+}
+function computeAnchor(){
+  // projeta o centro de #stage-hit para coordenadas de mundo no plano z=0
+  var a=three.anchor,cam=three.camera;
+  a.visH=2*cam.position.z*Math.tan(THREE.MathUtils.degToRad(cam.fov/2));
+  a.visW=a.visH*cam.aspect;
+  a.ppw=a.visW/window.innerWidth; // mundo por pixel
+  var r=document.getElementById("stage-hit").getBoundingClientRect();
+  var cx=r.left+r.width/2, cyDoc=r.top+window.scrollY+r.height/2;
+  a.x=((cx/window.innerWidth)-0.5)*a.visW;
+  a.docY=cyDoc; // posição no documento; convertida por frame conforme o scroll
+  var fitW=r.width*0.96*a.ppw, fitH=r.height*0.96*(a.visH/window.innerHeight);
+  a.scale=Math.min(fitW,fitH)/OBJ_W;
+}
+function resize3D(){
+  if(!three.ok)return;
+  var w=window.innerWidth,h=window.innerHeight;
+  three.renderer.setSize(w,h,false);
+  three.camera.aspect=w/h;three.camera.updateProjectionMatrix();
+  computeAnchor();onScroll3D();
+}
+function onScroll3D(){
+  if(!three.ok)return;
+  var a=three.anchor;
+  var max=document.documentElement.scrollHeight-window.innerHeight;
+  var p=max>0?window.scrollY/max:0;
+  three.tgt.spin=-p*9*(Math.PI*2/3); // 120° por seção
+
+  // posição ancorada ao hero (sobe junto com a página)...
+  var heroY=-((a.docY-window.scrollY)/window.innerHeight-0.5)*a.visH;
+  // ...e posto ambiente no canto superior direito (área livre da margem)
+  var postX=Math.max(a.visW/2-1.05,0), postY=a.visH/2-1.35;
+  var postS=Math.max(0.3,a.scale*0.42);
+  var t=Math.min(1,Math.max(0,(p-0.015)/0.11)); t=t*t*(3-2*t); // suave
+  var x=a.x+(postX-a.x)*t;
+  var y=heroY+(postY-heroY)*t;
+  var s=a.scale+(postS-a.scale)*t;
+  three.outer.position.set(x,y,0);
+  three.outer.scale.setScalar(s);
+  if(reduce){snap3D();render3D()}
+}
+function snap3D(){
+  var c=three.cur,t=three.tgt;
+  c.rx=t.rx;c.ry=t.ry;c.spin=t.spin;c.px=t.px;c.py=t.py;apply3D();
+}
+function apply3D(){
+  var c=three.cur;
+  three.inner.rotation.x=c.rx;three.inner.rotation.y=c.ry;
+  three.outer.rotation.z=c.spin;
+  three.camera.position.x=c.px;three.camera.position.y=c.py;
+  three.camera.lookAt(0,0,0);
+  three.inkCur.lerp(three.inkTgt,0.08);
+  three.inkMats.forEach(function(m){m.color.copy(three.inkCur)});
+}
+function render3D(){if(three.ok)three.renderer.render(three.scene,three.camera)}
+function loop3D(t){
+  if(!three.ok)return;
+  if(!document.hidden){
+    var c=three.cur,g=three.tgt,k=0.09;
+    // inércia do arraste
+    g.ry+=three.vel;three.vel*=0.94;
+    c.rx+=(g.rx-c.rx)*k;c.ry+=(g.ry-c.ry)*k;
+    c.spin+=((g.spin-(t*0.00005))-c.spin)*0.05;
+    c.px+=(g.px-c.px)*0.06;c.py+=(g.py-c.py)*0.06;
+    three.cloud.rotation.y+=0.0004;
+    apply3D();render3D();
+  }
+  requestAnimationFrame(loop3D);
+}
+
+/* ---------- toque, arraste (com inércia) e tap nos nós ---------- */
+(function(){
+  var hit=document.getElementById("stage-hit"),tip=document.getElementById("tip"),
+      tipTxt=document.getElementById("tip-txt"),tipDot=tip.querySelector(".dot"),
+      down=false,moved=0,lx=0,ly=0,tipTimer=null;
+  function pos(e){var t=e.touches?e.touches[0]:e;return{x:t.clientX,y:t.clientY}}
+  function start(e){if(!three.ok)return;down=true;moved=0;three.vel=0;var p=pos(e);lx=p.x;ly=p.y;hit.classList.add("dragging")}
+  function move(e){
+    if(!three.ok)return;
+    var p=pos(e);
+    if(down){
+      var dx=p.x-lx,dy=p.y-ly;lx=p.x;ly=p.y;moved+=Math.abs(dx)+Math.abs(dy);
+      three.tgt.ry+=dx*0.008;three.vel=dx*0.0016;
+      three.tgt.rx=Math.max(-0.9,Math.min(0.9,three.tgt.rx+dy*0.008));
+      if(reduce){snap3D();render3D()}
+      if(e.cancelable)e.preventDefault();
+    }else if(!reduce){
+      three.tgt.px=(p.x/window.innerWidth-0.5)*0.3;
+      three.tgt.py=-(p.y/window.innerHeight-0.5)*0.22;
+    }
+  }
+  function end(e){
+    if(!three.ok)return;
+    hit.classList.remove("dragging");
+    if(down&&moved<8){
+      var p=(e.changedTouches?e.changedTouches[0]:e);
+      var ndc=new THREE.Vector2((p.clientX/window.innerWidth)*2-1,-(p.clientY/window.innerHeight)*2+1);
+      var ray=new THREE.Raycaster();ray.setFromCamera(ndc,three.camera);
+      var hits=ray.intersectObjects(three.spheres);
+      if(hits.length){
+        var s=hits[0].object;
+        tipTxt.textContent=T[LANG][s.userData.tip];
+        tipDot.style.background="#"+s.userData.hex.toString(16).padStart(6,"0");
+        tip.style.left=p.clientX+"px";tip.style.top=p.clientY+"px";
+        tip.classList.add("on");
+        clearTimeout(tipTimer);tipTimer=setTimeout(function(){tip.classList.remove("on")},2600);
+      }
+    }
+    down=false;
+  }
+  hit.addEventListener("pointerdown",start);
+  window.addEventListener("pointermove",move,{passive:false});
+  window.addEventListener("pointerup",end);
+  hit.addEventListener("touchstart",start,{passive:true});
+  window.addEventListener("touchmove",move,{passive:false});
+  window.addEventListener("touchend",end);
+  window.addEventListener("scroll",onScroll3D,{passive:true});
+  window.addEventListener("resize",resize3D);
+  window.addEventListener("load",resize3D);
+})();
+
+/* ---------- seção escura: tinta vira papel ---------- */
+(function(){
+  var dark=document.getElementById("not");
+  if(!("IntersectionObserver" in window))return;
+  new IntersectionObserver(function(es){es.forEach(function(en){
+    if(!three.ok)return;
+    three.inkTgt.set(en.isIntersecting?0xFAFAF7:0x16181D);
+    if(reduce){three.inkCur.copy(three.inkTgt);apply3D();render3D()}
+  })},{threshold:0.35}).observe(dark);
+})();
+
+/* ---------- loader ---------- */
+(function(){
+  var loader=document.getElementById("loader"),pct=document.getElementById("pct"),mk=document.getElementById("loader-mark");
+  if(reduce){loader.classList.add("done");init3D();return}
+  var n=0;
+  var iv=setInterval(function(){
+    n=Math.min(100,n+Math.ceil(Math.random()*9));
+    pct.textContent=n;
+    mk.style.transform="rotate("+(Math.floor(n/34)*120)+"deg)";
+    if(n>=100){clearInterval(iv);init3D();setTimeout(function(){loader.classList.add("done")},150)}
+  },40);
+})();
+
+/* ---------- revelação ---------- */
+(function(){
+  if(!("IntersectionObserver" in window))return;
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){
+    if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}
+  })},{threshold:0.12});
+  document.querySelectorAll(".reveal").forEach(function(el){io.observe(el)});
+})();
+</script>
+</body>
+</html>
