@@ -119,7 +119,7 @@ The protocol funds itself primarily through the **on-chain success fee** (Sectio
 
 ## 10. Roadmap
 
-- **v0** — this litepaper, public repository, fork simulator, and the Web2 product (site, ADM, whitepaper, dashboard).
+- **v0** — this litepaper, public repository, fork simulator, and the public documentation and site.
 - **v0.2** — Executor on mainnet with a minimal whitelist, deployed after the Predators Protocol audit clears the final review; public execution dashboard.
 - **v1** — Registry with an active timelock, complete educational curriculum, a second Predators Protocol review.
 
