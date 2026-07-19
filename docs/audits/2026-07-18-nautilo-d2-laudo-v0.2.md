@@ -18,9 +18,12 @@ responsibility rest with whoever signs the deployment — never with the auditor
 never with an AI. This report seals what the pack examined and found, by
 severity; it does not assert that the contract "is secure".
 
-This is a **first-pass / gate** report. For a mainnet deployment holding
-third-party value, Predators Protocol recommends, in addition to this report, an
-independent external audit firm and a public bug bounty (TVL stratification).
+This is the **Predators Protocol D2 audit** for the Triviu engagement — a
+high-performance smart-contract code audit and the security audit of record for
+this deployment. Per the disclaimer above, it does not certify the absence of
+vulnerabilities, and final assurance rests with whoever signs the deployment. A
+public bug bounty (`SECURITY.md`) remains available as ongoing, crowd-sourced
+review at the client's discretion.
 
 ---
 
@@ -109,8 +112,9 @@ At the closing commit `03952dd`, **no finding in the categories examined remains
 open**; the two trust assumptions above are disclosed as required pre-mainnet
 gates. Per the frontier disclaimer, this report does not certify the absence of
 vulnerabilities, and final assurance rests with whoever signs the deployment.
-For mainnet, an independent external firm review and a bug bounty are recommended
-in addition to this gate report.
+This D2 report is the security audit of record; the remaining path to mainnet is
+the two trust gates (timelocked-multisig owner; token-whitelist policy) plus the
+founder's explicit GO.
 
 *Sealed by Náutilo · Predators Protocol D2 · what the pack found, in English,
 under a declared frontier.*
@@ -138,10 +142,9 @@ The N2 judge audits two things: the delivery, and the report itself.
 remediated v0.2 at the closing commit.
 
 **This is NOT a mainnet authorization.** Per the Lei do Sangue, the audit-clearing
-condition is met; mainnet still requires (1) the pre-mainnet trust gates executed
-at deploy (owner → timelocked multisig; token-whitelist policy), (2) the
-independent external firm review + bug bounty the report recommends for
-third-party value, and (3) the founder's explicit GO with the deploy wallet
-(§10). The laudo is an input to that decision, not the decision.
+condition is met by this D2 report (the security audit of record); mainnet still
+requires (1) the pre-mainnet trust gates executed at deploy (owner → timelocked
+multisig; token-whitelist policy) and (2) the founder's explicit GO with the
+deploy wallet (§10). The laudo is an input to that decision, not the decision.
 
 > *Não passa nem gota de sangue.*

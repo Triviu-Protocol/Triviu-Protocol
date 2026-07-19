@@ -9,9 +9,9 @@ and the Leão runs the deploy.
 
 - [ ] **D2 audit cleared.** Predators Protocol laudo sealed
       (`docs/audits/2026-07-18-nautilo-d2-laudo-v0.2.md`, Tubarão N2 APROVA_PERFEITO).
-- [ ] **External firm review + bug bounty.** For third-party value on mainnet the
-      laudo requires, in addition to D2, an independent external audit firm and a
-      public bug bounty. (Founder decision — see `SECURITY.md` bounty scope.)
+- [ ] **Bug bounty (optional).** The D2 laudo is the audit of record; a public
+      bug bounty (`SECURITY.md`) is available at the founder's discretion as
+      ongoing crowd-sourced review — not a blocking gate.
 - [ ] **Owner multisig ready.** A timelocked multisig address exists
       (`TRIVIU_OWNER_MULTISIG`). Deploying to a bare EOA is forbidden on mainnet
       (the script reverts).

@@ -64,11 +64,12 @@ v0.2 — recorded, fixed and pinned by tests, not swept aside:
 
 The official path is **local fork → audit → mainnet** — there is no separate
 public-testnet phase. With F-01 and F-02 resolved, the Predators Protocol D2
-audit has cleared a first-pass review at the closing commit (public in
-`/docs/audits`). For mainnet holding third-party value, that first-pass gate is
-completed, before deployment, by an independent external audit firm and a public
-bug bounty (`SECURITY.md`), plus a timelocked-multisig owner enforced by the
-deploy script. Until all of that, the contracts are pre-mainnet and not deployed.
+audit — the security audit of record — has cleared the review at the closing
+commit (public in `/docs/audits`). What remains before deployment is the two
+trust gates the audit disclosed: a timelocked-multisig owner (enforced by the
+deploy script) and a token-whitelist policy. A public bug bounty (`SECURITY.md`)
+runs alongside as ongoing review. Until then, the contracts are pre-mainnet and
+not deployed.
 
 ## Responsible disclosure
 

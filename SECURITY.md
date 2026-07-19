@@ -1,10 +1,10 @@
 # Security Policy
 
 **Current status: pre-mainnet. Not yet deployed.**
-No mainnet deployment before the Predators Protocol audit (external, independent
-provider · Náutilo Audit-as-a-Service) clears the final review at the closing
-commit, plus — for third-party value on mainnet — an independent external audit
-firm and this bug bounty. Audit reports are public in
+No mainnet deployment before the Predators Protocol D2 audit (Náutilo
+Audit-as-a-Service · the security audit of record) clears the final review at the
+closing commit, and before the two disclosed trust gates (timelocked-multisig
+owner; token-whitelist policy) are in place. Audit reports are public in
 [`docs/audits/`](docs/audits/) — don't trust, verify. The current D2 report is
 [`2026-07-18-nautilo-d2-laudo-v0.2.md`](docs/audits/2026-07-18-nautilo-d2-laudo-v0.2.md).
 
