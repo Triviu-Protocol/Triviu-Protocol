@@ -138,27 +138,48 @@ contract TriviuExecutorTest is Test {
         executor.executeCycle(address(token), 100e18, 1, _noSteps());
     }
 
-    function test_Stateless_HoldsNoBalance() public {
-        // Documented stateless invariant: a pre-existing balance blocks execution.
-        token.mint(address(executor), 5e18);
+    /// F-01 fixed (decisions/0002): a donation no longer blocks a cycle.
+    /// Balance-delta accounting measures the cycle relative to the starting
+    /// balance, so a hostile donation cannot grief the token's cycles.
+    function test_Donation_DoesNotBlockCycle() public {
+        token.mint(address(executor), 5e18); // hostile donation
+        token.mint(address(venue), 50e18);
 
         vm.prank(alice);
-        vm.expectRevert(
-            abi.encodeWithSelector(TriviuExecutor.NotStateless.selector, 5e18)
-        );
-        executor.executeCycle(address(token), 100e18, 0, _noSteps());
+        executor.executeCycle(address(token), 100e18, 10e18, _giveStep(10e18));
+
+        assertEq(token.balanceOf(alice), 1_010e18, "donation must not block the cycle");
     }
 
-    /// Honest edge (decisions/0002): ANYONE can donate 1 wei of an allowed
-    /// token to the executor and permanently trip the stateless check for that
-    /// token — there is no sweep function in v0. Failures included: this test
-    /// pins the real behavior until v0.2 moves to balance-delta accounting.
-    function test_KnownLimitation_DonationTripsStatelessCheck() public {
-        token.mint(address(executor), 1);
+    /// The donation is PRESERVED, never handed to the caller: the executor ends
+    /// holding exactly what it started with, and the caller receives only
+    /// principal + profit.
+    function test_Donation_PreservedNotStolen() public {
+        uint256 donation = 5e18;
+        token.mint(address(executor), donation);
+        token.mint(address(venue), 50e18);
 
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(TriviuExecutor.NotStateless.selector, 1));
-        executor.executeCycle(address(token), 100e18, 0, _noSteps());
+        executor.executeCycle(address(token), 100e18, 10e18, _giveStep(10e18));
+
+        assertEq(token.balanceOf(alice), 1_010e18, "caller gets principal + profit only");
+        assertEq(
+            token.balanceOf(address(executor)), donation,
+            "executor keeps exactly the donation, never the caller's funds"
+        );
+    }
+
+    /// A donation does NOT inflate measured profit: profit is the delta over the
+    /// starting balance, so a 5e18 donation with a 10e18 cycle still emits
+    /// profit == 10e18 (not 15e18).
+    function test_DeltaAccounting_DonationDoesNotInflateProfit() public {
+        token.mint(address(executor), 5e18);
+        token.mint(address(venue), 50e18);
+
+        vm.prank(alice);
+        vm.expectEmit(true, true, false, true, address(executor));
+        emit TriviuExecutor.CycleExecuted(alice, address(token), 100e18, 10e18, 0);
+        executor.executeCycle(address(token), 100e18, 10e18, _giveStep(10e18));
     }
 
     /*//////////////////////////////////////////////////////////////////////
@@ -245,7 +266,7 @@ contract TriviuExecutorTest is Test {
 
     function test_Fee_SkippedWhenTreasuryIsExecutorItself() public {
         // Misconfiguration guard: treasury == executor would strand the fee and
-        // brick the stateless check. The contract skips the fee instead.
+        // break the balance-preservation invariant. The contract skips the fee.
         token.mint(address(venue), 50e18);
         registry.setTreasury(address(executor), PR);
         registry.setFeeBps(3000, PR);
@@ -343,8 +364,9 @@ contract TriviuExecutorTest is Test {
 }
 
 /// A hook token (ERC-777-style) that tries to reenter executeCycle during the
-/// fee transfer. It should be blocked by the stateless check — proof that the
-/// entry-time `balanceOf(this) != 0 → revert` doubles as a reentrancy guard.
+/// fee transfer. It must be blocked by the explicit nonReentrant guard — v0.2
+/// balance-delta accounting removed the implicit stateless guard, so the
+/// storage-based guard is now what stops reentrancy.
 contract ReenteringToken {
     string public name = "Reenter";
     mapping(address => uint256) public balanceOf;
@@ -421,8 +443,8 @@ contract TriviuExecutorReentrancyTest is Test {
 
     function test_ReentrancyDuringFeeTransferIsBlocked() public {
         // Arm the hook and run a profitable cycle; the reentrant call must fail
-        // (the executor still holds the caller's funds -> NotStateless), and be
-        // swallowed by the try/catch, leaving the outer cycle correct.
+        // (nonReentrant: _status is ENTERED -> Reentrancy), be swallowed by the
+        // try/catch, and leave the outer cycle correct.
         token.arm();
 
         TriviuExecutor.Step[] memory steps = new TriviuExecutor.Step[](1);
@@ -441,20 +463,31 @@ contract TriviuExecutorReentrancyTest is Test {
 }
 
 /*//////////////////////////////////////////////////////////////////////////
-    INVARIANT — the protocol in one line: the executor NEVER holds a balance
-    between transactions (§08.3: invariant_ContractBalanceAlwaysZero).
+    INVARIANT — the protocol in one line: the executor NEVER holds any caller
+    funds between transactions. Under balance-delta accounting (v0.2) it may
+    hold donations; it must hold EXACTLY those and nothing more
+    (§08.3: invariant_ExecutorHoldsOnlyDonations).
 //////////////////////////////////////////////////////////////////////////*/
 
 contract ExecutorHandler {
     TriviuExecutor public immutable executor;
     MockERC20 public immutable token;
     MockVenue public immutable venue;
+    uint256 public totalDonated;
 
     constructor(TriviuExecutor _executor, MockERC20 _token, MockVenue _venue) {
         executor = _executor;
         token = _token;
         venue = _venue;
         token.approve(address(executor), type(uint256).max);
+    }
+
+    /// The fuzzer can donate dust or large amounts to the executor at any time;
+    /// the invariant must still hold (donations are preserved, never leaked).
+    function donate(uint256 amount) external {
+        amount = amount % 1e24;
+        token.mint(address(executor), amount);
+        totalDonated += amount;
     }
 
     function execute(uint256 principal, uint256 profit, uint256 minProfit) external {
@@ -504,7 +537,10 @@ contract TriviuExecutorInvariantTest is Test {
         targetContract(address(handler));
     }
 
-    function invariant_ContractBalanceAlwaysZero() public view {
-        assertEq(token.balanceOf(address(executor)), 0);
+    function invariant_ExecutorHoldsOnlyDonations() public view {
+        // Balance-delta accounting: the executor keeps exactly what was donated
+        // to it — never any caller principal or profit — across every mix of
+        // successful cycles, reverted cycles and donations.
+        assertEq(token.balanceOf(address(executor)), handler.totalDonated());
     }
 }

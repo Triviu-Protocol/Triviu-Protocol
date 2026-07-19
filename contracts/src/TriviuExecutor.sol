@@ -2,10 +2,10 @@
 pragma solidity ^0.8.24;
 
 /*//////////////////////////////////////////////////////////////////////////
-                                 TRIVIU v0
-      Atomic cycle executor — EDUCATIONAL SKELETON, NOT AUDITED.
-      Use on local forks and testnet (Amoy) only, until external audit.
-      Litepaper: /docs/triviu-litepaper-v0.1.md · Risk notice: /README.md
+                                 TRIVIU v0.2
+      Atomic cycle executor — EDUCATIONAL, PRE-MAINNET, NOT YET AUDITED.
+      Use on local forks only, until the external audit clears.
+      Whitepaper: /whitepaper · Risk notice: /README.md
 //////////////////////////////////////////////////////////////////////////*/
 
 interface IERC20 {
@@ -24,34 +24,43 @@ interface IParameterRegistry {
 /// @title  TriviuExecutor
 /// @author Triviu Contributors
 /// @notice Executes a triangular arbitrage cycle (A→B→C→A) in ONE transaction.
-///         Non-custodial and stateless: pulls the principal from the caller at
-///         the start, returns principal + net result to the caller at the end,
-///         and never holds a balance between transactions. If
-///         `finalBalance < principal + minProfit`, the whole transaction
+///         Non-custodial: it pulls the principal from the caller at the start,
+///         returns principal + net result to the caller at the end, and keeps
+///         none of the caller's funds between transactions. If the realized
+///         delta is below `principal + minProfit`, the whole transaction
 ///         reverts — no leg is ever left exposed.
 ///
-///         SUCCESS FEE (litepaper §8): when the cycle profits, a fee — a
-///         percentage of the PROFIT only, never the principal — is routed to the
-///         Registry's treasury in the SAME transaction, and the rest returns to
-///         the caller. There is no entry fee; a revert or a break-even cycle
-///         pays nothing. The fee rate is a Registry parameter, clamped here to
-///         MAX_FEE_BPS so it can never exceed half of profit. If the treasury is
-///         unset, the whole result returns to the caller.
-/// @dev    This is the contract from litepaper §4.1. Decisions are recorded in
-///         /decisions (Record No. 0001: Polygon PoS).
+///         BALANCE-DELTA ACCOUNTING (v0.2 · Tradeoff Record 0002): profit is
+///         measured as `finalBalance − startBalance`, not against a hardcoded
+///         zero. A stray token donation to this contract is preserved in place
+///         and can no longer trip a cycle — the v0 donation-griefing DoS is
+///         closed. The contract ends every cycle holding EXACTLY what it held
+///         before it (a donation, if any; otherwise zero) — never the caller's
+///         principal or profit.
 ///
-///         KNOWN v0 LIMITATIONS (honesty > marketing):
+///         REENTRANCY: `executeCycle` is `nonReentrant`. v0 relied on the
+///         strict `balanceOf(this) == 0` entry check as an implicit guard;
+///         balance-delta accounting removes that check, so an explicit
+///         storage-based guard replaces it. The guard slot is the only
+///         persistent storage that changes at runtime and holds no funds.
+///
+///         SUCCESS FEE (whitepaper §5): when the cycle profits, a fee — a
+///         percentage of the PROFIT only, never the principal — is routed to
+///         the Registry's treasury in the SAME transaction, and the rest
+///         returns to the caller. No entry fee; a revert or break-even cycle
+///         pays nothing. The fee rate is a Registry parameter, clamped here to
+///         MAX_FEE_BPS so it can never exceed half of profit. If the treasury
+///         is unset, the whole result returns to the caller.
+/// @dev    This is the contract from whitepaper §4.1. Decisions are recorded in
+///         /decisions (Record 0001: Polygon PoS; Record 0002: balance-delta).
+///
+///         KNOWN v0.2 LIMITATIONS (honesty > marketing):
 ///         - Steps carry arbitrary calldata to Registry-whitelisted targets;
-///           safety depends entirely on the curation of that whitelist
-///           (typed swap adapters arrive in v0.2).
-///         - No flash-loan support yet (Aave v3 / Balancer: v0.2).
+///           safety depends on the curation of that whitelist. Typed per-DEX
+///           swap adapters (F-02) land next and are gated before mainnet.
+///         - No flash-loan support yet (Aave v3 / Balancer: later).
 ///         - Fee-on-transfer tokens are NOT supported and must not enter the
-///           token whitelist.
-///         - A direct token donation to this contract permanently trips the
-///           stateless check for that token (griefing DoS — no sweep function
-///           exists in v0). v0.2 moves to balance-delta accounting; the
-///           tradeoff is recorded in /decisions/0002-donation-griefing.md and
-///           pinned by test_KnownLimitation_DonationTripsStatelessCheck.
+///           token whitelist (they would break delta accounting).
 contract TriviuExecutor {
     /// @notice On-chain parameter registry (whitelists, caps).
     IParameterRegistry public immutable registry;
@@ -62,6 +71,13 @@ contract TriviuExecutor {
     ///         cycle's profit — verifiable in bytecode, not just in docs.
     uint16 public constant MAX_FEE_BPS = 5000;
 
+    /// @dev Reentrancy guard states. 1 = not entered, 2 = entered. Kept at 1
+    ///      between transactions; holds no funds and does not affect the
+    ///      non-custody claim.
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
+    uint256 private _status;
+
     /// @notice One leg of the cycle: a call to an allowed target (router/pool).
     struct Step {
         address target; // must pass registry.isAllowedTarget
@@ -71,12 +87,12 @@ contract TriviuExecutor {
     error TokenNotAllowed(address token);
     error TargetNotAllowed(address target);
     error StepFailed(uint256 index);
-    error UnprofitableCycle(uint256 finalBalance, uint256 required);
-    error NotStateless(uint256 danglingBalance);
+    error UnprofitableCycle(uint256 realizedDelta, uint256 required);
+    error Reentrancy();
 
     /// @notice Emitted on every successful cycle. `profit` is what the caller
     ///         keeps (net of fee); `fee` is what went to the treasury in the
-    ///         same transaction. The public dashboard (Dune) also aggregates the
+    ///         same transaction. The public dashboard also aggregates the
     ///         reverts — failures included, always.
     event CycleExecuted(
         address indexed caller,
@@ -88,6 +104,17 @@ contract TriviuExecutor {
 
     constructor(address _registry) {
         registry = IParameterRegistry(_registry);
+        _status = _NOT_ENTERED;
+    }
+
+    /// @dev Storage-based reentrancy guard (no transient storage: keeps the
+    ///      contract portable across EVM versions, since foundry.toml pins
+    ///      solc 0.8.24 without an explicit cancun target).
+    modifier nonReentrant() {
+        if (_status == _ENTERED) revert Reentrancy();
+        _status = _ENTERED;
+        _;
+        _status = _NOT_ENTERED;
     }
 
     /// @notice Executes the cycle. The caller must have approved `principal`
@@ -101,12 +128,13 @@ contract TriviuExecutor {
         uint256 principal,
         uint256 minProfit,
         Step[] calldata steps
-    ) external {
+    ) external nonReentrant {
         if (!registry.isAllowedToken(asset)) revert TokenNotAllowed(asset);
 
-        // Stateless invariant: the contract must not carry a prior balance.
+        // Balance-delta accounting: record the starting balance. It may be
+        // non-zero (a donation); the cycle is measured relative to it, and it
+        // is preserved untouched — never returned to the caller.
         uint256 startBalance = IERC20(asset).balanceOf(address(this));
-        if (startBalance != 0) revert NotStateless(startBalance);
 
         // 1. Pull the principal from the caller (non-custody: this tx only).
         require(
@@ -123,25 +151,29 @@ contract TriviuExecutor {
             if (!ok) revert StepFailed(i);
         }
 
-        // 3. The litepaper §3 condition: close with minimum profit, or revert all.
+        // 3. The whitepaper §3 condition: the realized delta must cover
+        //    principal + minProfit, or the whole transaction reverts. Written
+        //    as finalBalance >= startBalance + required to rule out an
+        //    underflow if the cycle ever LOST funds (loss → revert all).
         uint256 finalBalance = IERC20(asset).balanceOf(address(this));
         uint256 required = principal + minProfit;
-        if (finalBalance < required) {
-            revert UnprofitableCycle(finalBalance, required);
+        if (finalBalance < startBalance + required) {
+            uint256 realized = finalBalance > startBalance ? finalBalance - startBalance : 0;
+            revert UnprofitableCycle(realized, required);
         }
 
-        // 4. Success fee — charged ONLY on profit, and only when there is profit
-        //    (guaranteed here, since finalBalance >= principal + minProfit).
-        //    Nothing is charged on reverts or break-even: those never reach here.
-        //    The fee is clamped to MAX_FEE_BPS so the Registry can never
-        //    over-charge, and it is routed to the treasury in THIS transaction —
-        //    the contract keeps no balance afterwards (stateless invariant holds).
-        uint256 profit = finalBalance - principal;
+        // delta = principal + gross profit; both subtractions are now safe.
+        uint256 delta = finalBalance - startBalance;
+        uint256 profit = delta - principal;
+
+        // 4. Success fee — charged ONLY on profit, and only when there is
+        //    profit. Clamped to MAX_FEE_BPS and routed to the treasury in THIS
+        //    transaction. Nothing is charged on reverts or break-even.
         uint256 fee = 0;
         address treasury = registry.treasury();
-        // treasury == 0 disables the fee; treasury == this is a misconfiguration
-        // that would strand the fee and brick the stateless check, so it also
-        // disables the fee rather than trapping funds.
+        // treasury == 0 disables the fee; treasury == this would strand the fee
+        // inside the executor and break the balance-preservation invariant, so
+        // it also disables the fee rather than trapping funds.
         if (treasury != address(0) && treasury != address(this)) {
             uint16 bps = registry.feeBps();
             if (bps > MAX_FEE_BPS) bps = MAX_FEE_BPS;
@@ -151,17 +183,18 @@ contract TriviuExecutor {
             }
         }
 
-        // 5. Return the rest to the caller — principal + net profit.
-        require(IERC20(asset).transfer(msg.sender, finalBalance - fee), "transfer failed");
+        // 5. Return principal + net profit to the caller. Exactly `delta` leaves
+        //    the contract (fee + caller share), so it is left holding precisely
+        //    `startBalance` — the donation, if any; otherwise zero.
+        require(IERC20(asset).transfer(msg.sender, delta - fee), "transfer failed");
 
         emit CycleExecuted(msg.sender, asset, principal, profit - fee, fee);
     }
 
     /*//////////////////////////////////////////////////////////////////////
-        TODO v0.2 (each item gets its own Tradeoff Record in /decisions):
-        - flashExecuteCycle(): capital via Aave v3 / Balancer Vault; gas is
-          still on the caller — no profit means revert, only gas is lost.
-        - Typed per-DEX swap adapters (replacing arbitrary calldata).
-        - Explicit per-leg approval management (exact approve + reset).
+        TODO before mainnet (each gets its own Tradeoff Record in /decisions):
+        - F-02: typed per-DEX swap adapters, replacing arbitrary step calldata.
+        - flashExecuteCycle(): capital via Aave v3 / Balancer Vault; gas stays
+          on the caller — no profit means revert, only gas is lost.
     //////////////////////////////////////////////////////////////////////*/
 }
