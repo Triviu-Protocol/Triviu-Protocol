@@ -18,7 +18,7 @@ import { loadParams } from "./config.js";
 const MULTICALL3 = "0xcA11bde05977b3631167028862bE2a173976CA11" as const;
 import { fetchEdges, type PoolsClient } from "./monitor/pools.js";
 import { findNegativeCycle, meetsExecutionCondition } from "./graph/bellmanFord.js";
-import { buildTriangularCycleSteps } from "./build/steps.js";
+import { buildTriangularCycleLegs } from "./build/steps.js";
 import { simulateCycle, type SimulationClient } from "./simulate/anvilFork.js";
 import { submitDecision, submitCycle, MAINNET_CHAIN_ID } from "./submit/tx.js";
 
@@ -94,7 +94,7 @@ async function main() {
     return;
   }
   if (!params.router.univ2) {
-    console.log("router.univ2 not configured — cannot build swap steps. Add it to params.toml.");
+    console.log("router.univ2 not configured — cannot build swap legs. Add it to params.toml.");
     return;
   }
 
@@ -114,12 +114,9 @@ async function main() {
   }
 
   const asset = path[0]!;
-  const steps = buildTriangularCycleSteps({
+  const legs = buildTriangularCycleLegs({
     router: params.router.univ2,
-    executor: params.contracts.executor,
     path,
-    amountIn: params.execution.principalWei,
-    deadline: BigInt(Math.floor(Date.now() / 1000) + 600),
   });
 
   const sim = await simulateCycle(publicClient as unknown as SimulationClient, {
@@ -128,7 +125,7 @@ async function main() {
     asset,
     principal: params.execution.principalWei,
     minProfit: params.execution.minProfitWei,
-    steps,
+    legs,
   });
   console.log("Fork simulation:", sim);
 
@@ -149,7 +146,7 @@ async function main() {
     asset,
     principal: params.execution.principalWei,
     minProfit: params.execution.minProfitWei,
-    steps,
+    legs,
     env: process.env,
   });
   console.log("Submitted:", txHash, "— the dashboard will show it either way, revert included.");

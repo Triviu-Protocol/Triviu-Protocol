@@ -1,95 +1,63 @@
 /**
- * Pipeline step 4 (§9.2): turn a detected cycle into the calldata legs the
- * TriviuExecutor will run.
+ * Pipeline step 4 (§9.2): turn a detected cycle into the TYPED legs the
+ * TriviuExecutor v0.2 will run (F-02). The engine no longer builds raw
+ * calldata — it fills in a `Leg` per hop and the contract constructs the swap
+ * itself, so a whitelisted router can only ever be asked to swap.
  *
- * v0 shape — one UniV2-compatible router, one multi-hop swap:
- *   step 1: asset.approve(router, amountIn)
- *   step 2: router.swapExactTokensForTokens(amountIn, 0, [A,B,C,A], executor, deadline)
+ * v0 shape — one UniV2-compatible router, one leg per hop of a closed cycle:
+ *   leg i: { dex: UniV2, router, tokenIn: path[i], tokenOut: path[i+1] }
  *
- * Two honest notes:
- *  - amountOutMin is 0 ON PURPOSE: the binding protection is the executor's
- *    on-chain check `finalBalance ≥ principal + minProfit` (litepaper §3).
- *    Per-leg floors arrive with the typed adapters of v0.2.
- *  - The asset token address must ALSO be whitelisted as a Registry target,
- *    because the approve leg is a call to the token itself.
+ * Honest note: amountOutMin is 0 by default — the binding protection is the
+ * executor's on-chain check `finalBalance ≥ principal + minProfit` (whitepaper
+ * §3). Per-leg floors and cross-DEX (UniV3) routing are set by the caller.
  */
-import { encodeFunctionData, parseAbi } from "viem";
 
-export interface Step {
-  target: `0x${string}`;
-  data: `0x${string}`;
-}
+/** Mirrors the on-chain `enum Dex`. */
+export const Dex = { UniV2: 0, UniV3: 1 } as const;
+export type DexId = (typeof Dex)[keyof typeof Dex];
 
-const erc20ApproveAbi = parseAbi([
-  "function approve(address spender, uint256 amount) returns (bool)",
-]);
-
-const univ2RouterAbi = parseAbi([
-  "function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline) returns (uint256[] amounts)",
-]);
-
-export function buildApproveStep(
-  token: `0x${string}`,
-  spender: `0x${string}`,
-  amount: bigint
-): Step {
-  return {
-    target: token,
-    data: encodeFunctionData({
-      abi: erc20ApproveAbi,
-      functionName: "approve",
-      args: [spender, amount],
-    }),
-  };
-}
-
-export function buildUniV2SwapStep(
-  router: `0x${string}`,
-  args: {
-    amountIn: bigint;
-    amountOutMin: bigint;
-    path: readonly `0x${string}`[];
-    to: `0x${string}`;
-    deadline: bigint;
-  }
-): Step {
-  return {
-    target: router,
-    data: encodeFunctionData({
-      abi: univ2RouterAbi,
-      functionName: "swapExactTokensForTokens",
-      args: [args.amountIn, args.amountOutMin, [...args.path], args.to, args.deadline],
-    }),
-  };
+/** Mirrors the on-chain `struct Leg` (field order matters for encoding). */
+export interface Leg {
+  dex: DexId;
+  router: `0x${string}`;
+  tokenIn: `0x${string}`;
+  tokenOut: `0x${string}`;
+  fee: number; // uint24 UniV3 pool fee tier; ignored for UniV2
+  amountOutMin: bigint;
 }
 
 /**
- * A→B→C→A as executor steps. `path` must be CLOSED (first == last) and have
- * at least 4 entries; `executor` receives the swap output so the on-chain
- * profit check sees the whole result.
+ * A→B→C→A as typed executor legs. `path` must be CLOSED (first == last) and
+ * have at least 4 entries. Every hop uses `router`/`dex` unless overridden.
  */
-export function buildTriangularCycleSteps(args: {
+export function buildTriangularCycleLegs(args: {
   router: `0x${string}`;
-  executor: `0x${string}`;
   path: readonly `0x${string}`[];
-  amountIn: bigint;
-  deadline: bigint;
-}): Step[] {
-  const { router, executor, path, amountIn, deadline } = args;
+  dex?: DexId;
+  fee?: number;
+  amountOutMin?: bigint;
+}): Leg[] {
+  const { router, path } = args;
+  const dex = args.dex ?? Dex.UniV2;
+  const fee = args.fee ?? 0;
+  const amountOutMin = args.amountOutMin ?? 0n;
+
   const first = path[0];
   const last = path[path.length - 1];
   if (path.length < 4 || first === undefined || first !== last) {
     throw new Error("cycle path must be closed (A→…→A) with at least 4 entries");
   }
 
-  return [
-    buildApproveStep(first, router, amountIn),
-    buildUniV2SwapStep(router, {
-      amountIn,
-      amountOutMin: 0n, // executor's minProfit check is the real gate — see header
-      path,
-      to: executor,
-      deadline,
-    }),
-  ];
+  const legs: Leg[] = [];
+  for (let i = 0; i < path.length - 1; i++) {
+    legs.push({
+      dex,
+      router,
+      tokenIn: path[i]!,
+      tokenOut: path[i + 1]!,
+      fee,
+      amountOutMin,
+    });
+  }
+  return legs;
 }

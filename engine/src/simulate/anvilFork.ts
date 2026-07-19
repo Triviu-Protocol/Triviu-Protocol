@@ -15,13 +15,13 @@
  *    protocol working, not the protocol failing.
  */
 import { triviuExecutorAbi } from "../abi.js";
-import type { Step } from "../build/steps.js";
+import type { Leg } from "../build/steps.js";
 
 export interface SimulationCallArgs {
   address: `0x${string}`;
   abi: typeof triviuExecutorAbi;
   functionName: "executeCycle";
-  args: readonly [`0x${string}`, bigint, bigint, readonly Step[]];
+  args: readonly [`0x${string}`, bigint, bigint, readonly Leg[]];
   account: `0x${string}`;
 }
 
@@ -38,7 +38,7 @@ export interface CycleSimulationRequest {
   asset: `0x${string}`;
   principal: bigint;
   minProfit: bigint;
-  steps: readonly Step[];
+  legs: readonly Leg[];
 }
 
 export interface SimulationResult {
@@ -69,7 +69,7 @@ export async function simulateCycle(
     address: req.executor,
     abi: triviuExecutorAbi,
     functionName: "executeCycle",
-    args: [req.asset, req.principal, req.minProfit, req.steps],
+    args: [req.asset, req.principal, req.minProfit, req.legs],
     account: req.account,
   };
 

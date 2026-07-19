@@ -1,65 +1,63 @@
 import { describe, expect, it } from "vitest";
-import { decodeFunctionData, parseAbi } from "viem";
-import { buildApproveStep, buildTriangularCycleSteps, buildUniV2SwapStep } from "./steps.js";
+import { buildTriangularCycleLegs, Dex } from "./steps.js";
 
 const TOKEN_A = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270" as const;
 const TOKEN_B = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174" as const;
 const TOKEN_C = "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619" as const;
 const ROUTER = "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff" as const;
-const EXECUTOR = "0x000000000000000000000000000000000000dEaD" as const;
 
-const erc20Abi = parseAbi(["function approve(address spender, uint256 amount) returns (bool)"]);
-const routerAbi = parseAbi([
-  "function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] path, address to, uint256 deadline) returns (uint256[] amounts)",
-]);
-
-describe("step builders — calldata the executor will forward", () => {
-  it("approve step targets the token and encodes spender + amount", () => {
-    const step = buildApproveStep(TOKEN_A, ROUTER, 123n);
-    expect(step.target).toBe(TOKEN_A);
-    const decoded = decodeFunctionData({ abi: erc20Abi, data: step.data });
-    expect(decoded.functionName).toBe("approve");
-    expect(decoded.args).toEqual([ROUTER, 123n]);
-  });
-
-  it("swap step targets the router and round-trips every argument", () => {
-    const step = buildUniV2SwapStep(ROUTER, {
-      amountIn: 10n ** 18n,
-      amountOutMin: 5n,
-      path: [TOKEN_A, TOKEN_B],
-      to: EXECUTOR,
-      deadline: 1_800_000_000n,
-    });
-    expect(step.target).toBe(ROUTER);
-    const decoded = decodeFunctionData({ abi: routerAbi, data: step.data });
-    expect(decoded.functionName).toBe("swapExactTokensForTokens");
-    expect(decoded.args).toEqual([10n ** 18n, 5n, [TOKEN_A, TOKEN_B], EXECUTOR, 1_800_000_000n]);
-  });
-
-  it("triangular cycle = approve leg + one multi-hop swap through the closed path", () => {
-    const steps = buildTriangularCycleSteps({
+describe("typed leg builder — what the v0.2 executor will run (F-02)", () => {
+  it("closed cycle → one typed leg per hop, chained head-to-tail", () => {
+    const legs = buildTriangularCycleLegs({
       router: ROUTER,
-      executor: EXECUTOR,
       path: [TOKEN_A, TOKEN_B, TOKEN_C, TOKEN_A],
-      amountIn: 7n,
-      deadline: 1_800_000_000n,
     });
-    expect(steps).toHaveLength(2);
-    expect(steps[0]!.target).toBe(TOKEN_A); // the approve is a call to the token itself
-    const swap = decodeFunctionData({ abi: routerAbi, data: steps[1]!.data });
-    expect(swap.args?.[2]).toEqual([TOKEN_A, TOKEN_B, TOKEN_C, TOKEN_A]);
-    expect(swap.args?.[1]).toBe(0n); // executor's on-chain minProfit is the binding gate
-    expect(swap.args?.[3]).toBe(EXECUTOR); // output lands where the check happens
+
+    expect(legs).toHaveLength(3);
+    expect(legs.map((l) => [l.tokenIn, l.tokenOut])).toEqual([
+      [TOKEN_A, TOKEN_B],
+      [TOKEN_B, TOKEN_C],
+      [TOKEN_C, TOKEN_A],
+    ]);
+    // Opens and closes on the asset; every hop chains to the next.
+    expect(legs[0]!.tokenIn).toBe(TOKEN_A);
+    expect(legs[legs.length - 1]!.tokenOut).toBe(TOKEN_A);
+    for (let i = 1; i < legs.length; i++) {
+      expect(legs[i]!.tokenIn).toBe(legs[i - 1]!.tokenOut);
+    }
+  });
+
+  it("defaults to UniV2 with no per-leg floor and every leg on the given router", () => {
+    const legs = buildTriangularCycleLegs({
+      router: ROUTER,
+      path: [TOKEN_A, TOKEN_B, TOKEN_C, TOKEN_A],
+    });
+    for (const leg of legs) {
+      expect(leg.dex).toBe(Dex.UniV2);
+      expect(leg.router).toBe(ROUTER);
+      expect(leg.fee).toBe(0);
+      expect(leg.amountOutMin).toBe(0n); // executor's on-chain minProfit is the binding gate
+    }
+  });
+
+  it("honors a UniV3 override with a pool fee tier", () => {
+    const legs = buildTriangularCycleLegs({
+      router: ROUTER,
+      path: [TOKEN_A, TOKEN_B, TOKEN_C, TOKEN_A],
+      dex: Dex.UniV3,
+      fee: 3000,
+    });
+    for (const leg of legs) {
+      expect(leg.dex).toBe(Dex.UniV3);
+      expect(leg.fee).toBe(3000);
+    }
   });
 
   it("refuses an open path — the cycle must end where it began", () => {
     expect(() =>
-      buildTriangularCycleSteps({
+      buildTriangularCycleLegs({
         router: ROUTER,
-        executor: EXECUTOR,
         path: [TOKEN_A, TOKEN_B, TOKEN_C],
-        amountIn: 7n,
-        deadline: 1_800_000_000n,
       })
     ).toThrow(/closed/);
   });

@@ -7,7 +7,7 @@ const REQ = {
   asset: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270" as const,
   principal: 10n ** 18n,
   minProfit: 0n,
-  steps: [],
+  legs: [],
 };
 
 describe("simulateCycle", () => {
@@ -41,11 +41,11 @@ describe("simulateCycle", () => {
     const client: SimulationClient = {
       simulateContract: async () => {
         throw Object.assign(new Error("outer"), {
-          cause: { shortMessage: "NotStateless(1)" },
+          cause: { shortMessage: "BrokenChain(1)" },
         });
       },
     };
     const result = await simulateCycle(client, REQ);
-    expect(result.reason).toBe("NotStateless(1)");
+    expect(result.reason).toBe("BrokenChain(1)");
   });
 });

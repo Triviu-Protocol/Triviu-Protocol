@@ -13,7 +13,7 @@
 import { createWalletClient, defineChain, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { triviuExecutorAbi } from "../abi.js";
-import type { Step } from "../build/steps.js";
+import type { Leg } from "../build/steps.js";
 
 export const MAINNET_CHAIN_ID = 137;
 
@@ -58,7 +58,7 @@ export interface SubmitCycleArgs {
   asset: `0x${string}`;
   principal: bigint;
   minProfit: bigint;
-  steps: readonly Step[];
+  legs: readonly Leg[];
   env: Record<string, string | undefined>;
 }
 
@@ -80,6 +80,6 @@ export async function submitCycle(args: SubmitCycleArgs): Promise<`0x${string}`>
     address: args.executor,
     abi: triviuExecutorAbi,
     functionName: "executeCycle",
-    args: [args.asset, args.principal, args.minProfit, [...args.steps]],
+    args: [args.asset, args.principal, args.minProfit, [...args.legs]],
   });
 }

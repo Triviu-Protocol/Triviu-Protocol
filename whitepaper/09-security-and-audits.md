@@ -44,24 +44,28 @@ audit provider imposes on itself.
   its own owner's.
 - **Static analysis** (Slither, fail-on-HIGH) runs in CI.
 
-## Known limitations (documented, not hidden)
+## Findings (recorded, tested, resolved)
 
-Two findings are open and gate mainnet — they are recorded, tested and scheduled,
-not swept aside:
+Two findings were raised during the internal review; both are now resolved in
+v0.2 — recorded, fixed and pinned by tests, not swept aside:
 
-- **F-01 · donation griefing.** A dust transfer to the executor trips the strict
-  stateless check for that token (no sweep in v0). Fix: balance-delta accounting
-  before mainnet. Tradeoff Record `decisions/0002`.
-- **F-02 · arbitrary calldata to whitelisted targets.** Safety rests on
-  conservative whitelist curation; typed per-DEX adapters replace it before
-  mainnet.
+- **F-01 · donation griefing (RESOLVED).** A dust transfer to the executor used
+  to trip the strict stateless check for that token. v0.2 moves to balance-delta
+  accounting, so a donation is preserved in place and never blocks a cycle;
+  removing the strict check also required an explicit reentrancy guard, which
+  replaced the implicit one. Tradeoff Record `decisions/0002`; audit
+  `docs/audits/2026-07-18-tubarao-triviu-v0.2-f01.md`.
+- **F-02 · arbitrary calldata to whitelisted targets (RESOLVED).** v0.2 replaces
+  raw step calldata with typed per-DEX swap adapters (UniswapV2 / UniswapV3): the
+  executor builds the swap itself, so a whitelisted router can only ever be asked
+  to swap, never to make an arbitrary call.
 
 ## The path to mainnet
 
 The official path is **local fork → audit → mainnet** — there is no separate
-public-testnet phase. Mainnet is gated on: F-01 and F-02 resolved, and the
-Predators Protocol audit clearing a final review at the closing commit. Until
-then, the contracts are pre-mainnet and not deployed.
+public-testnet phase. With F-01 and F-02 resolved, mainnet now remains gated on
+the Predators Protocol external audit clearing a final review at the closing
+commit. Until then, the contracts are pre-mainnet and not deployed.
 
 ## Responsible disclosure
 
