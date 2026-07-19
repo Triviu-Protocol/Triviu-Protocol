@@ -7,12 +7,12 @@ description: >-
 # Triviu Whitepaper
 
 > **Version:** whitepaper v1 · July 2026
-> **Network:** Polygon PoS · **Code:** AGPL-3.0 · **Brand:** CC BY 4.0
-> **Status:** pre-mainnet, not yet deployed
+> **Networks:** EVM · Polygon first (Arbitrum and BSC by the same contracts) · **Code:** AGPL-3.0 · **Brand:** CC BY 4.0
+> **Status:** pre-mainnet, not deployed on any chain
 
 {% hint style="warning" %}
-**Risk notice — required reading.** Most atomic-arbitrage opportunities on
-Polygon are captured by professional operators. For most individual users, the
+**Risk notice — required reading.** Most atomic-arbitrage opportunities — on any
+chain — are captured by professional operators. For most individual users, the
 expected result after gas **and fee** tends toward zero or negative. Triviu is
 educational infrastructure — it is not a source of income for the user. Reverted
 transactions still pay gas.
@@ -21,7 +21,8 @@ transactions still pay gas.
 ## Abstract
 
 Triviu is a non-custodial, open-source protocol for executing atomic triangular
-arbitrage on decentralized exchanges (DEXs) on the Polygon network, paired with
+arbitrage on EVM decentralized exchanges (DEXs) — Polygon first, with the same
+audited contracts designed for Arbitrum and BSC — paired with
 an educational layer that teaches anyone to read, audit, simulate and run the
 code themselves. The protocol does not custody third-party funds, does not raise
 capital, does not issue a token and does not promise returns. Its only
