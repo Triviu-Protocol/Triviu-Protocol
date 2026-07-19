@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triviu · Simulator</title>
+<meta name="description" content="Simulate a triangular arbitrage cycle on Triviu — no wallet, no money, just the math. See what running the protocol actually looks like: fees, slippage, gas, and how often it reverts.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
+  --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
+  --verde:#1E7A46;--verde-fundo:#E8F3EC;
+  --fd:"Libre Caslon Text",Georgia,serif;--ft:"Public Sans",system-ui,sans-serif;--fm:"IBM Plex Mono",ui-monospace,monospace;
+  --s-3:12px;--s-4:16px;--s-5:24px;--s-6:32px;--s-7:48px;--r-m:6px;--r-l:10px;
+}
+@media(prefers-color-scheme:dark){:root{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;--verde-fundo:#12241a;}}
+:root[data-theme="dark"]{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;--verde-fundo:#12241a;}
+:root[data-theme="light"]{--papel:#FAFAF7;--tinta:#16181D;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--ultramar:#2743C7;--lacre:#C13327;--acafrao-fundo:#FBF3DF;--acafrao-texto:#8A6414;--verde:#1E7A46;--verde-fundo:#E8F3EC;}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--papel);color:var(--tinta);font-family:var(--ft);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--ultramar);text-decoration:none}a:hover{text-decoration:underline}
+.mono{font-family:var(--fm)}
+.top{position:sticky;top:0;z-index:20;background:var(--papel);border-bottom:1px solid var(--fio);padding:14px 22px;display:flex;align-items:center;gap:12px}
+.top svg{width:26px;height:26px}.top b{font-size:15px}.top .spacer{flex:1}
+.top a.nav{font-family:var(--fm);font-size:12px;color:var(--grafite)}
+.wrap{max-width:960px;margin:0 auto;padding:var(--s-6) var(--s-5) var(--s-7)}
+h1{font-family:var(--fd);font-size:30px;letter-spacing:-.01em;margin-bottom:10px}
+.lead{font-size:16px;color:var(--grafite);max-width:66ch;margin-bottom:var(--s-5)}
+.aviso{background:var(--acafrao-fundo);border:1px solid var(--acafrao);border-radius:var(--r-m);padding:14px 18px;margin-bottom:var(--s-6)}
+.aviso b{font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:var(--acafrao-texto);display:block;margin-bottom:5px}
+.aviso p{font-size:13.5px;margin:0}
+.panel{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-6)}
+@media(max-width:760px){.panel{grid-template-columns:1fr}}
+.card{border:1px solid var(--fio);border-radius:var(--r-l);padding:var(--s-5);background:var(--papel)}
+.card h2{font-size:15px;margin-bottom:var(--s-4)}
+.ctrl{margin-bottom:var(--s-4)}
+.ctrl label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.ctrl label .v{font-family:var(--fm);color:var(--ultramar)}
+input[type=range]{width:100%;accent-color:var(--ultramar)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:var(--s-4)}
+button{font-family:var(--ft);font-size:14px;font-weight:500;padding:9px 16px;border-radius:var(--r-m);border:1px solid var(--tinta);background:var(--tinta);color:var(--papel);cursor:pointer}
+button.sec{background:transparent;color:var(--tinta);border-color:var(--fio)}
+button:hover{opacity:.9}
+.cycle{display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--fm);font-size:13px;margin:var(--s-4) 0;flex-wrap:wrap}
+.node{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:13px}
+.arr{color:var(--grafite)}
+.result{border-radius:var(--r-l);padding:var(--s-5);border:1px solid var(--fio)}
+.verdict{font-family:var(--fm);font-size:13px;letter-spacing:.04em;text-transform:uppercase;padding:8px 14px;border-radius:var(--r-m);display:inline-block;margin-bottom:var(--s-4)}
+.v-loss{background:var(--acafrao-fundo);color:var(--acafrao-texto);border:1px solid var(--acafrao)}
+.v-revert{background:var(--nevoa);color:var(--grafite);border:1px solid var(--fio)}
+.v-profit{background:var(--verde-fundo);color:var(--verde);border:1px solid var(--verde)}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:var(--s-3)}
+td{padding:7px 0;border-bottom:1px solid var(--fio)}
+td:last-child{text-align:right;font-family:var(--fm)}
+td.big{font-size:16px;font-weight:600;border-bottom:none;padding-top:12px}
+.tally{margin-top:var(--s-5);font-size:13px;color:var(--grafite)}
+.tally b{color:var(--tinta)}
+.bar{height:8px;border-radius:4px;background:var(--nevoa);overflow:hidden;margin-top:8px}
+.bar>i{display:block;height:100%;background:var(--verde)}
+footer{border-top:1px solid var(--fio);margin-top:var(--s-7);padding-top:var(--s-5);font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:1.9}
+.note{font-size:12.5px;color:var(--grafite);margin-top:var(--s-4)}
+</style>
+</head>
+<body>
+<header class="top">
+  <svg viewBox="0 0 120 120" aria-label="Triviu"><path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="25.36" r="8.5" fill="#2743C7"/><circle cx="100" cy="60" r="8.5" fill="#C13327"/><circle cx="40" cy="94.64" r="8.5" fill="#E8B23A"/></svg>
+  <b>Triviu</b><span class="mono" style="font-size:12px;color:var(--grafite)">· Simulator</span>
+  <span class="spacer"></span>
+  <a class="nav" href="/">Home</a><a class="nav" href="/whitepaper">Whitepaper</a><a class="nav" href="/dashboard">Dashboard</a>
+</header>
+<div class="wrap">
+  <h1>Simulate a cycle. No wallet, no money.</h1>
+  <p class="lead">This runs the exact math the on-chain contract enforces — the
+  constant-product AMM with its 0.3% fee per hop, price impact, gas, and the
+  success fee. It is what running Triviu actually looks like, failures included.
+  Nothing here touches a chain or a key.</p>
+
+  <div class="aviso">
+    <b>Read this first</b>
+    <p>Most atomic-arbitrage opportunities on Polygon are captured by professional
+    operators in the same block. This simulator exists to show you <em>why</em>:
+    the fee wall, slippage and gas usually turn a "profit on paper" into a revert
+    or a loss. Possibility is not probability.</p>
+  </div>
+
+  <div class="panel">
+    <div class="card">
+      <h2>Market &amp; trade</h2>
+      <div class="ctrl"><label>Volume V (in token A)<span class="v" id="vV">1,000</span></label><input type="range" id="V" min="50" max="100000" step="50" value="1000"></div>
+      <div class="ctrl"><label>Pool A→B price<span class="v" id="vp1">1.0000</span></label><input type="range" id="p1" min="0.90" max="1.10" step="0.0005" value="1.0000"></div>
+      <div class="ctrl"><label>Pool B→C price<span class="v" id="vp2">1.0000</span></label><input type="range" id="p2" min="0.90" max="1.10" step="0.0005" value="1.0000"></div>
+      <div class="ctrl"><label>Pool C→A price<span class="v" id="vp3">1.0000</span></label><input type="range" id="p3" min="0.90" max="1.10" step="0.0005" value="1.0000"></div>
+      <div class="ctrl"><label>Pool liquidity depth<span class="v" id="vL">250,000</span></label><input type="range" id="L" min="20000" max="5000000" step="10000" value="250000"></div>
+      <div class="ctrl"><label>Gas cost (in token A)<span class="v" id="vg">0.05</span></label><input type="range" id="g" min="0" max="5" step="0.01" value="0.05"></div>
+      <div class="ctrl"><label>Success fee on profit<span class="v" id="vf">30%</span></label><input type="range" id="f" min="0" max="50" step="5" value="30"></div>
+      <div class="row">
+        <button id="rand">Randomize market</button>
+        <button class="sec" id="fair">Fair market (product = 1)</button>
+      </div>
+      <p class="note">Each pool charges 0.3% (the 0.997 factor). Three hops compound
+      to ~0.9% — the cycle's price product must beat ~1.009 just to break even on
+      fees, before slippage and gas.</p>
+    </div>
+
+    <div class="result" id="resultCard">
+      <span class="verdict" id="verdict">—</span>
+      <div class="cycle">
+        <span class="node" style="background:#2743C7">A</span><span class="arr">→</span>
+        <span class="node" style="background:#C13327">B</span><span class="arr">→</span>
+        <span class="node" style="background:#E8B23A">C</span><span class="arr">→</span>
+        <span class="node" style="background:#2743C7">A</span>
+      </div>
+      <table>
+        <tr><td>Price product (before fees)</td><td id="oProd">—</td></tr>
+        <tr><td>Fee wall (0.997³)</td><td id="oWall">0.9910</td></tr>
+        <tr><td>Token A back after 3 hops</td><td id="oBack">—</td></tr>
+        <tr><td>Gross result</td><td id="oGross">—</td></tr>
+        <tr><td>Success fee</td><td id="oFee">—</td></tr>
+        <tr><td>Gas</td><td id="oGas">—</td></tr>
+        <tr><td class="big">Net to you</td><td class="big" id="oNet">—</td></tr>
+      </table>
+      <p class="note" id="explain">Adjust the market. The contract reverts the whole
+      transaction if the cycle does not clear a minimum profit — you would pay gas
+      and get nothing back.</p>
+    </div>
+  </div>
+
+  <div class="tally">
+    Over <b id="tN">0</b> random markets you've sampled,
+    <b id="tWin">0</b> would have profited after fees and gas —
+    <b id="tPct">0%</b>. The rest reverted or lost. That ratio is the honest lesson.
+    <div class="bar"><i id="tBar" style="width:0%"></i></div>
+  </div>
+
+  <footer>
+    Triviu · Open source. Verifiable math. No promises.<br>
+    This is education, not income. The real engine and contract are in the
+    <a href="/whitepaper">whitepaper</a> and the public repository — read them, don't trust this.
+  </footer>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const ids=["V","p1","p2","p3","L","g","f"];
+let N=0,WINS=0;
+
+function amountOut(x,rin,rout){const a=x*0.997;return a*rout/(rin+a);}
+function fmt(n,d=2){return n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});}
+
+function run(sample){
+  const V=+$("V").value, p1=+$("p1").value, p2=+$("p2").value, p3=+$("p3").value, L=+$("L").value, gas=+$("g").value, feeR=+$("f").value/100;
+  $("vV").textContent=V.toLocaleString("en-US");
+  $("vp1").textContent=p1.toFixed(4);$("vp2").textContent=p2.toFixed(4);$("vp3").textContent=p3.toFixed(4);
+  $("vL").textContent=L.toLocaleString("en-US");$("vg").textContent=gas.toFixed(2);$("vf").textContent=(feeR*100).toFixed(0)+"%";
+
+  const b=amountOut(V,L,L*p1), c=amountOut(b,L,L*p2), a=amountOut(c,L,L*p3);
+  const prod=p1*p2*p3, gross=a-V, fee=gross>0?gross*feeR:0;
+  // minProfit gate: the contract requires a strictly positive net after fee before it settles.
+  const net=gross-fee-gas;
+  const minProfit=1e-9;
+  const reverts = a < V + minProfit; // cycle does not even return principal + dust
+
+  $("oProd").textContent=prod.toFixed(4);
+  $("oBack").textContent=fmt(a)+" A";
+  $("oGross").textContent=(gross>=0?"+":"")+fmt(gross)+" A";
+  $("oFee").textContent="−"+fmt(fee)+" A";
+  $("oGas").textContent="−"+fmt(gas)+" A";
+  $("oNet").textContent=(net>=0?"+":"")+fmt(net)+" A";
+  $("oNet").style.color = net>0?"var(--verde)":(net<0?"var(--lacre)":"var(--grafite)");
+
+  const vd=$("verdict");
+  if(reverts){vd.className="verdict v-revert";vd.textContent="Reverts · you pay gas, get nothing";
+    $("explain").textContent="The cycle does not return the principal, so the on-chain condition fails and the whole transaction reverts. You still paid the gas — that is a real, common outcome.";}
+  else if(net>0){vd.className="verdict v-profit";vd.textContent="Profit after fees + gas";
+    $("explain").textContent="Rare, and in a real block a professional searcher likely takes it first. This is the exception the risk notice is about — not the expectation.";}
+  else{vd.className="verdict v-loss";vd.textContent="Settles, but net negative";
+    $("explain").textContent="The cycle returns more than principal, so it would NOT revert on the minProfit floor of 0 — but after gas and the success fee, you end up behind. Set a real minProfit and it reverts instead.";}
+
+  if(sample){N++; if(net>0)WINS++; const pct=N?Math.round(WINS/N*100):0;
+    $("tN").textContent=N;$("tWin").textContent=WINS;$("tPct").textContent=pct+"%";$("tBar").style.width=pct+"%";}
+}
+ids.forEach(id=>$(id).addEventListener("input",()=>run(false)));
+$("fair").addEventListener("click",()=>{$("p1").value="1.0000";$("p2").value="1.0000";$("p3").value="1.0000";run(false);});
+$("rand").addEventListener("click",()=>{
+  // Prices centered on 1 with small spread — like a real, mostly-efficient market.
+  for(const p of ["p1","p2","p3"]){let r=1+(gauss()*0.012);r=Math.max(0.9,Math.min(1.1,r));$(p).value=r.toFixed(4);}
+  run(true);
+});
+function gauss(){let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+run(false);
+</script>
+</body>
+</html>
