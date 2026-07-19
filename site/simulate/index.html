@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Triviu · Simulator</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M40 25.36 Q76 32.3 100 60' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M100 60 Q76 87.7 40 94.64' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M40 94.64 Q28 60 40 25.36' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='40' cy='25.36' r='11' fill='%232743C7'/%3E%3Ccircle cx='100' cy='60' r='11' fill='%23C13327'/%3E%3Ccircle cx='40' cy='94.64' r='11' fill='%23E8B23A'/%3E%3C/svg%3E">
-<meta name="description" content="Simulate a triangular arbitrage cycle on Triviu — drag the mark, run the flow, hear it. No wallet, no money, just the honest math: fees, slippage, gas, and how often it reverts.">
+<meta name="description" content="Simulate a triangular arbitrage cycle on Triviu — real tokens, live sound, and an honest 'long run' projection. No wallet, no money, just the math.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -41,7 +41,8 @@ button{font-family:var(--ft);font-size:14px;font-weight:500;padding:9px 16px;bor
 button.sec{background:transparent;color:var(--tinta);border-color:var(--fio)}
 button:disabled{opacity:.5;cursor:default}
 button:hover:not(:disabled){opacity:.9}
-.iconbtn{padding:8px 12px;font-family:var(--fm);font-size:13px}
+.bic{width:1em;height:1em;vertical-align:-0.13em;margin-right:6px;flex:none}
+.toolbar button{display:inline-flex;align-items:center}
 .markwrap svg.cyc{width:100%;height:auto;display:block;touch-action:none;overflow:visible}
 .arc{fill:none;stroke:var(--grafite);stroke-width:5.2;stroke-linecap:round;opacity:.6}
 .arc.flow{stroke-dasharray:6 9;animation:march 2.4s linear infinite}
@@ -51,29 +52,49 @@ button:hover:not(:disabled){opacity:.9}
 .node:focus{outline:none}
 .node-ring{fill:none;stroke:var(--ultramar);stroke-width:2;opacity:0;transition:opacity .15s}
 .node:focus-visible+.node-ring,.dragging .node-ring{opacity:.9}
-.nlabel{font-family:var(--fm);font-size:9px;fill:#fff;font-weight:600;pointer-events:none}
+.tokl{font-family:var(--fm);font-size:8px;fill:var(--tinta);font-weight:600;pointer-events:none}
 .dot{fill:var(--ultramar);opacity:0}
 .guide{stroke:var(--fio);stroke-width:1;stroke-dasharray:2 3;opacity:0;transition:opacity .2s}
 .card{border:1px solid var(--fio);border-radius:var(--r-l);padding:var(--s-5);background:var(--papel)}
 .ctrl{margin-bottom:14px}
-.ctrl label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.ctrl label{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:6px}
+.ctrl label .lbl{display:flex;align-items:center;gap:5px}
 .ctrl label .v{font-family:var(--fm);color:var(--ultramar)}
 input[type=range]{width:100%;accent-color:var(--ultramar)}
+input[type=number]{font-family:var(--fm);font-size:14px;padding:7px 10px;border:1px solid var(--fio);border-radius:var(--r-m);background:var(--papel);color:var(--tinta);width:100%}
 .verdict{font-family:var(--fm);font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;padding:8px 14px;border-radius:var(--r-m);display:inline-block;margin-bottom:var(--s-4);transition:background .2s}
 .v-loss{background:var(--acafrao-fundo);color:var(--acafrao-texto);border:1px solid var(--acafrao)}
 .v-revert{background:var(--nevoa);color:var(--grafite);border:1px solid var(--fio)}
 .v-profit{background:var(--verde-fundo);color:var(--verde);border:1px solid var(--verde)}
 .rare{font-family:var(--fm);font-size:9px;letter-spacing:.1em;border:1px solid currentColor;border-radius:999px;padding:1px 7px;margin-left:8px;vertical-align:middle}
-table{width:100%;border-collapse:collapse;font-size:14px;margin-top:var(--s-3)}
-td{padding:7px 0;border-bottom:1px solid var(--fio)}
-td:last-child{text-align:right;font-family:var(--fm)}
-td.big{font-size:16px;font-weight:600;border-bottom:none;padding-top:12px}
+table.res{width:100%;border-collapse:collapse;font-size:14px;margin-top:var(--s-3)}
+table.res td{padding:7px 0;border-bottom:1px solid var(--fio)}
+table.res td:last-child{text-align:right;font-family:var(--fm)}
+table.res td.big{font-size:16px;font-weight:600;border-bottom:none;padding-top:12px}
+.tcell{display:flex;align-items:center;gap:5px}
+.tip{width:16px;height:16px;min-width:16px;padding:0;border-radius:50%;border:1px solid var(--grafite);background:transparent;color:var(--grafite);font-family:var(--fm);font-size:10px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.tip:hover{border-color:var(--tinta);color:var(--tinta)}
+.tip-pop{position:fixed;z-index:40;max-width:240px;background:var(--tinta);color:var(--papel);font-size:12.5px;line-height:1.45;padding:10px 12px;border-radius:var(--r-m);box-shadow:0 6px 24px rgba(0,0,0,.22);display:none}
+.tip-pop.on{display:block}
 .tally{margin-top:var(--s-5);font-size:13px;color:var(--grafite)}
 .tally b{color:var(--tinta)}
 .bar{height:8px;border-radius:4px;background:var(--nevoa);overflow:hidden;margin-top:8px}
 .bar>i{display:block;height:100%;background:var(--verde);transition:width .3s}
 .note{font-size:12.5px;color:var(--grafite);margin-top:var(--s-4)}
 .hint{font-size:12px;color:var(--grafite);text-align:center;margin-top:6px}
+.cap{font-family:var(--fm);font-size:11px;color:var(--grafite);text-align:center;margin-top:2px}
+.lr{margin-top:var(--s-7);border:1px solid var(--fio);border-radius:var(--r-l);padding:var(--s-6) var(--s-5)}
+.lr h2{font-family:var(--fd);font-size:24px;margin-bottom:4px}
+.lr .sub{color:var(--grafite);font-size:14px;margin-bottom:var(--s-5);max-width:64ch}
+.lr-grid{display:grid;grid-template-columns:260px 1fr;gap:var(--s-6);align-items:start}
+@media(max-width:760px){.lr-grid{grid-template-columns:1fr}}
+.lr-in{margin-bottom:14px}
+.lr-in label{display:flex;align-items:center;gap:5px;font-size:13px;margin-bottom:5px}
+.lrchart{width:100%;height:auto;display:block;border:1px solid var(--fio);border-radius:var(--r-m);background:var(--papel)}
+.lr-read{margin-top:var(--s-4)}
+.lr-read .big{font-family:var(--fm);font-size:22px;font-weight:500}
+.lr-read .ins{font-size:13.5px;color:var(--grafite);margin-top:8px;max-width:62ch}
+.lr-read .pah{font-family:var(--fm);font-size:13px;margin-top:10px}
 footer{border-top:1px solid var(--fio);margin-top:var(--s-7);padding-top:var(--s-5);font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:1.9}
 @media(prefers-reduced-motion:reduce){.arc.flow{animation:none}}
 </style>
@@ -87,14 +108,15 @@ footer{border-top:1px solid var(--fio);margin-top:var(--s-7);padding-top:var(--s
 </header>
 <div class="wrap">
   <h1>Drag the mark. Run the cycle. Hear it.</h1>
-  <p class="lead">The three nodes of the Triviu mark <em>are</em> the three pools —
-  drag one to change its price, watch the token flow A→B→C→A and shrink as fees
-  eat it. Same math the on-chain contract enforces. No wallet, no money, no chain.</p>
+  <p class="lead">The three nodes are three real Polygon pools — USDC, WETH, WMATIC.
+  Drag one to change its price, watch the token flow and shrink as fees eat it, then
+  scroll to <em>The long run</em> to see what doing this over time does to your balance.
+  No wallet, no money, no chain.</p>
 
   <div class="aviso">
     <b>Read this first</b>
     <p>Most atomic-arbitrage opportunities on Polygon are captured by professional
-    operators in the same block. Play with this and you'll feel <em>why</em>: the
+    operators in the same block. This tool exists to let you feel <em>why</em>: the
     fee wall, slippage and gas usually turn a "profit on paper" into a revert.
     Possibility is not probability.</p>
   </div>
@@ -102,44 +124,43 @@ footer{border-top:1px solid var(--fio);margin-top:var(--s-7);padding-top:var(--s
   <div class="stage">
     <div class="markwrap">
       <div class="toolbar">
-        <button id="run">▶ Run the cycle</button>
-        <button class="sec" id="rand">🎲 Random market</button>
-        <button class="sec iconbtn" id="mute" aria-pressed="false" title="Sound">🔈 Sound</button>
+        <button id="run"><svg class="bic" viewBox="0 0 12 12" aria-hidden="true"><path d="M3.5 2.4 L9.6 6 L3.5 9.6 Z" fill="currentColor"/></svg>Run the cycle</button>
+        <button class="sec" id="rand"><svg class="bic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><polyline points="21 3 21 8 16 8"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><polyline points="3 21 3 16 8 16"/></svg>New market</button>
+        <button class="sec" id="mute" aria-pressed="false" title="Sound"></button>
       </div>
-      <svg class="cyc" viewBox="-6 -6 132 132" role="group" aria-label="The cycle: three pools A, B, C. Drag a node to set its price.">
+      <svg class="cyc" viewBox="-16 -10 152 140" role="group" aria-label="The cycle: three pools USDC, WETH, WMATIC. Drag a node to set its price.">
         <line class="guide" id="gd0"/><line class="guide" id="gd1"/><line class="guide" id="gd2"/>
         <path class="arc flow" id="arc0"/><path class="arc flow" id="arc1"/><path class="arc flow" id="arc2"/>
         <circle class="dot" id="dot" r="7"/>
         <g id="nodes"></g>
       </svg>
+      <div class="cap">USDC → WETH → WMATIC → USDC · example pools on Polygon (QuickSwap)</div>
       <div class="hint mono">drag a node · or use the sliders · ← → to nudge</div>
     </div>
 
     <div>
       <div class="card" style="margin-bottom:var(--s-5)">
         <span class="verdict v-revert" id="verdict">—</span>
-        <table>
-          <tr><td>Price product (before fees)</td><td id="oProd">—</td></tr>
-          <tr><td>Fee wall (0.997³)</td><td>0.9910</td></tr>
-          <tr><td>Token A back after 3 hops</td><td id="oBack">—</td></tr>
-          <tr><td>Gross result</td><td id="oGross">—</td></tr>
-          <tr><td>Success fee</td><td id="oFee">—</td></tr>
-          <tr><td>Gas</td><td id="oGas">—</td></tr>
-          <tr><td class="big">Net to you</td><td class="big" id="oNet">—</td></tr>
+        <table class="res">
+          <tr><td><span class="tcell">Price product (before fees) <button class="tip" data-tip="product" aria-label="What is price product?">?</button></span></td><td id="oProd">—</td></tr>
+          <tr><td><span class="tcell">Fee wall (0.997³) <button class="tip" data-tip="feewall" aria-label="What is the fee wall?">?</button></span></td><td>0.9910</td></tr>
+          <tr><td><span class="tcell">USDC back after 3 hops <button class="tip" data-tip="back" aria-label="What is back after 3 hops?">?</button></span></td><td id="oBack">—</td></tr>
+          <tr><td><span class="tcell">Gross result <button class="tip" data-tip="gross" aria-label="What is gross result?">?</button></span></td><td id="oGross">—</td></tr>
+          <tr><td><span class="tcell">Success fee <button class="tip" data-tip="fee" aria-label="What is the success fee?">?</button></span></td><td id="oFee">—</td></tr>
+          <tr><td><span class="tcell">Gas <button class="tip" data-tip="gas" aria-label="What is gas?">?</button></span></td><td id="oGas">—</td></tr>
+          <tr><td class="big"><span class="tcell">Net to you <button class="tip" data-tip="net" aria-label="What is net to you?">?</button></span></td><td class="big" id="oNet">—</td></tr>
         </table>
-        <p class="note" id="explain">Drag a node or hit Run. The contract reverts the
-        whole transaction if the cycle doesn't clear a minimum profit — you'd pay gas
-        and get nothing.</p>
+        <p class="note" id="explain">Drag a node or hit Run. If the cycle doesn't clear a profit, the whole transaction reverts — you only pay gas.</p>
       </div>
 
       <div class="card">
-        <div class="ctrl"><label>Volume V (token A)<span class="v" id="vV">1,000</span></label><input type="range" id="V" min="50" max="100000" step="50" value="1000"></div>
-        <div class="ctrl"><label>Pool A→B price<span class="v" id="vp1">1.0000</span></label><input type="range" id="p1" min="0.90" max="1.10" step="0.0005" value="1.0000"></div>
-        <div class="ctrl"><label>Pool B→C price<span class="v" id="vp2">1.0000</span></label><input type="range" id="p2" min="0.90" max="1.10" step="0.0005" value="1.0000"></div>
-        <div class="ctrl"><label>Pool C→A price<span class="v" id="vp3">1.0000</span></label><input type="range" id="p3" min="0.90" max="1.10" step="0.0005" value="1.0000"></div>
-        <div class="ctrl"><label>Pool liquidity depth<span class="v" id="vL">250,000</span></label><input type="range" id="L" min="20000" max="5000000" step="10000" value="250000"></div>
-        <div class="ctrl"><label>Gas (token A)<span class="v" id="vg">0.05</span></label><input type="range" id="g" min="0" max="5" step="0.01" value="0.05"></div>
-        <div class="ctrl"><label>Success fee on profit<span class="v" id="vf">30%</span></label><input type="range" id="f" min="0" max="50" step="5" value="30"></div>
+        <div class="ctrl"><label><span class="lbl">Volume V (USDC) <button class="tip" data-tip="volume" aria-label="What is volume?">?</button></span><span class="v" id="vV">1,000</span></label><input type="range" id="V" min="50" max="100000" step="50" value="1000"></div>
+        <div class="ctrl"><label><span class="lbl">USDC→WETH price <button class="tip" data-tip="price" aria-label="What is pool price?">?</button></span><span class="v" id="vp1">1.0000</span></label><input type="range" id="p1" min="0.90" max="1.10" step="0.0005" value="1.0000"></div>
+        <div class="ctrl"><label><span class="lbl">WETH→WMATIC price</span><span class="v" id="vp2">1.0000</span></label><input type="range" id="p2" min="0.90" max="1.10" step="0.0005" value="1.0000"></div>
+        <div class="ctrl"><label><span class="lbl">WMATIC→USDC price</span><span class="v" id="vp3">1.0000</span></label><input type="range" id="p3" min="0.90" max="1.10" step="0.0005" value="1.0000"></div>
+        <div class="ctrl"><label><span class="lbl">Pool liquidity depth <button class="tip" data-tip="depth" aria-label="What is liquidity depth?">?</button></span><span class="v" id="vL">250,000</span></label><input type="range" id="L" min="20000" max="5000000" step="10000" value="250000"></div>
+        <div class="ctrl"><label><span class="lbl">Gas (USDC) <button class="tip" data-tip="gas" aria-label="What is gas?">?</button></span><span class="v" id="vg">0.05</span></label><input type="range" id="g" min="0" max="5" step="0.01" value="0.05"></div>
+        <div class="ctrl"><label><span class="lbl">Success fee on profit <button class="tip" data-tip="fee" aria-label="What is the success fee?">?</button></span><span class="v" id="vf">30%</span></label><input type="range" id="f" min="0" max="50" step="5" value="30"></div>
       </div>
     </div>
   </div>
@@ -150,65 +171,87 @@ footer{border-top:1px solid var(--fio);margin-top:var(--s-7);padding-top:var(--s
     <div class="bar"><i id="tBar" style="width:0%"></i></div>
   </div>
 
+  <section class="lr">
+    <h2>The long run</h2>
+    <p class="sub">What running this over time does to your balance — modeled over random markets at your current settings. This is a decay, not a yield.</p>
+    <div class="lr-grid">
+      <div>
+        <div class="lr-in"><label>Starting capital (USDC)</label><input type="number" id="lrCap" value="1000" min="10" step="10"></div>
+        <div class="lr-in"><label>Cycles per day</label><input type="number" id="lrPd" value="20" min="1" step="1"></div>
+        <div class="lr-in"><label>Days</label><input type="number" id="lrDays" value="30" min="1" step="1"></div>
+        <div class="lr-in"><label><span class="lbl">Searcher competition <button class="tip" data-tip="comp" aria-label="What is searcher competition?">?</button></span><span id="lrCv" class="mono" style="color:var(--ultramar)">85%</span></label><input type="range" id="lrComp" min="0" max="100" step="5" value="85"></div>
+        <button id="project" style="width:100%;margin-top:6px">Project the long run</button>
+        <p class="note" style="margin-top:12px">Searcher competition is the whole story. At <b>0%</b> you're the only player and every edge is yours — the pure math, and it can grow. At the realistic <b>~85%</b> (whitepaper <a href="/whitepaper">§8</a>), searchers win most races and take most of your edge, and it decays. Drag it and see. Models random markets, not a forecast of your account.</p>
+      </div>
+      <div>
+        <svg class="lrchart" id="lrchart" viewBox="0 0 480 220" role="img" aria-label="Expected balance over time — a decay, with a luck band."></svg>
+        <div class="lr-read">
+          <div class="big" id="lrBal">—</div>
+          <div class="pah" id="lrPah">Project to see how the odds converge.</div>
+          <div class="ins" id="lrIns">Every attempt pays gas; the wins are too rare to beat the fee wall and the searchers. The more you run, the more certain the loss — the law of large numbers works against you. The band is luck; the trend is math.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <footer>
     Triviu · Open source. Verifiable math. No promises.<br>
     Education, not income. The real engine and contract are in the
     <a href="/whitepaper">whitepaper</a> and the public repository — read them, don't trust this.
   </footer>
 </div>
+<div class="tip-pop" id="tipPop" role="tooltip"></div>
 <script>
 const $=id=>document.getElementById(id);
 const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const CX=60,CY=60,REST=40; // mark centroid + resting radius (brand geometry)
-const NODES=[ // resting positions + colors, byte-exact from brand/simbolo.svg
-  {p:"p1",x:40,y:25.36,c:"#2743C7",label:"A"},
-  {p:"p2",x:100,y:60,c:"#C13327",label:"B"},
-  {p:"p3",x:40,y:94.64,c:"#E8B23A",label:"C"},
+const CX=60,CY=60,REST=40;
+const NODES=[
+  {p:"p1",x:40,y:25.36,c:"#2743C7",tok:"USDC"},
+  {p:"p2",x:100,y:60,c:"#C13327",tok:"WETH"},
+  {p:"p3",x:40,y:94.64,c:"#E8B23A",tok:"WMATIC"},
 ];
-// radial unit from centroid for each node (all at dist REST when price=1)
 NODES.forEach(n=>{const dx=n.x-CX,dy=n.y-CY,d=Math.hypot(dx,dy);n.ux=dx/d;n.uy=dy/d;});
 let N=0,WINS=0,running=false;
 
 /* ---------- honest math (identical to the audited engine) ---------- */
 function amountOut(x,rin,rout){const a=x*0.997;return a*rout/(rin+a);}
 const fmt=(n,d=2)=>n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
-function state(){
-  return {V:+$("V").value,p1:+$("p1").value,p2:+$("p2").value,p3:+$("p3").value,L:+$("L").value,gas:+$("g").value,feeR:+$("f").value/100};
-}
+function state(){return {V:+$("V").value,p1:+$("p1").value,p2:+$("p2").value,p3:+$("p3").value,L:+$("L").value,gas:+$("g").value,feeR:+$("f").value/100};}
 function compute(s){
   const b=amountOut(s.V,s.L,s.L*s.p1),c=amountOut(b,s.L,s.L*s.p2),a=amountOut(c,s.L,s.L*s.p3);
-  const prod=s.p1*s.p2*s.p3,gross=a-s.V,fee=gross>0?gross*s.feeR:0,net=gross-fee-s.gas;
-  const reverts=a<s.V+1e-9;
+  const prod=s.p1*s.p2*s.p3,reverts=a<s.V+1e-9;
+  const gross=a-s.V,fee=gross>0?gross*s.feeR:0;
+  // realized net: a revert unwinds the swaps — you only lose gas, principal intact.
+  const net=reverts? -s.gas : gross-fee-s.gas;
   return {b,c,a,prod,gross,fee,net,reverts,amts:[s.V,b,c,a]};
 }
 
 /* ---------- the living mark ---------- */
-function priceToDist(p){return REST+(p-1)*160;}        // p1.00→40, p1.10→56, p0.90→24
+function priceToDist(p){return REST+(p-1)*160;}
 function nodePos(n){const d=priceToDist(+$(n.p).value);return[CX+n.ux*d,CY+n.uy*d];}
 function bez(p0,pc,p1,t){const u=1-t;return[u*u*p0[0]+2*u*t*pc[0]+t*t*p1[0],u*u*p0[1]+2*u*t*pc[1]+t*t*p1[1]];}
-function control(p0,p1){const m=[(p0[0]+p1[0])/2,(p0[1]+p1[1])/2];return[m[0]+(m[0]-CX)*0.55,m[1]+(m[1]-CY)*0.55];} // bow outward
+function control(p0,p1){const m=[(p0[0]+p1[0])/2,(p0[1]+p1[1])/2];return[m[0]+(m[0]-CX)*0.55,m[1]+(m[1]-CY)*0.55];}
 function arcData(i){const A=nodePos(NODES[i]),B=nodePos(NODES[(i+1)%3]),c=control(A,B);return{A,B,c,d:`M${A[0]} ${A[1]} Q${c[0]} ${c[1]} ${B[0]} ${B[1]}`};}
-
 function drawMark(){
-  for(let i=0;i<3;i++){const ad=arcData(i);$("arc"+i).setAttribute("d",ad.d);
-    const g=$("gd"+i),pos=nodePos(NODES[i]);g.setAttribute("x1",CX);g.setAttribute("y1",CY);g.setAttribute("x2",NODES[i].x+NODES[i].ux*20);g.setAttribute("y2",NODES[i].y+NODES[i].uy*20);}
+  for(let i=0;i<3;i++){$("arc"+i).setAttribute("d",arcData(i).d);
+    const g=$("gd"+i);g.setAttribute("x1",CX);g.setAttribute("y1",CY);g.setAttribute("x2",NODES[i].x+NODES[i].ux*20);g.setAttribute("y2",NODES[i].y+NODES[i].uy*20);}
   document.querySelectorAll(".nodeg").forEach((g,i)=>{const[x,y]=nodePos(NODES[i]);g.setAttribute("transform",`translate(${x} ${y})`);
-    g.querySelector(".node").setAttribute("aria-valuenow",(+$(NODES[i].p).value).toFixed(4));});
+    g.querySelector(".node").setAttribute("aria-valuenow",(+$(NODES[i].p).value).toFixed(4));
+    const tl=g.querySelector(".tokl");tl.setAttribute("x",NODES[i].ux*15);tl.setAttribute("y",NODES[i].uy*15+3);});
 }
 function buildNodes(){
   const wrap=$("nodes");
   NODES.forEach((n,i)=>{
     const g=document.createElementNS("http://www.w3.org/2000/svg","g");g.setAttribute("class","nodeg");
     g.innerHTML=`<circle class="node-ring" r="13"/><circle class="node" r="8.5" fill="${n.c}" tabindex="0" role="slider"
-      aria-label="Pool ${n.label} price" aria-valuemin="0.90" aria-valuemax="1.10" aria-valuenow="1.0000"></circle>
-      <text class="nlabel" text-anchor="middle" dy="3.2">${n.label}</text>`;
+      aria-label="${n.tok} pool price" aria-valuemin="0.90" aria-valuemax="1.10" aria-valuenow="1.0000"></circle>
+      <text class="tokl" text-anchor="middle">${n.tok}</text>`;
     wrap.appendChild(g);
     const circle=g.querySelector(".node");
     const down=e=>{e.preventDefault();g.classList.add("dragging");$("gd"+i).style.opacity=.6;
       const svg=$("run").closest(".markwrap").querySelector("svg");
       const move=ev=>{const pt=svgPoint(svg,ev);const rel=[pt[0]-CX,pt[1]-CY];
-        let d=rel[0]*n.ux+rel[1]*n.uy;d=Math.max(24,Math.min(56,d));const price=1+(d-REST)/160;
-        setPrice(n.p,price);};
+        let d=rel[0]*n.ux+rel[1]*n.uy;d=Math.max(24,Math.min(56,d));setPrice(n.p,1+(d-REST)/160);};
       const up=()=>{g.classList.remove("dragging");$("gd"+i).style.opacity=0;document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",up);};
       document.addEventListener("pointermove",move);document.addEventListener("pointerup",up);};
     circle.addEventListener("pointerdown",down);
@@ -217,79 +260,169 @@ function buildNodes(){
       if(e.key==="ArrowLeft"||e.key==="ArrowDown"){setPrice(n.p,+$(n.p).value-step);e.preventDefault();}});
   });
 }
-function svgPoint(svg,e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const m=svg.getScreenCTM().inverse();const p=pt.matrixTransform(m);return[p.x,p.y];}
+function svgPoint(svg,e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const p=pt.matrixTransform(svg.getScreenCTM().inverse());return[p.x,p.y];}
 function setPrice(id,price){price=Math.max(0.90,Math.min(1.10,price));$(id).value=price.toFixed(4);sound("drag");refresh(false);}
 
-/* ---------- refresh (instant feedback) ---------- */
+/* ---------- refresh + verdict ---------- */
 function refresh(fromRun){
   const s=state(),r=compute(s);
   $("vV").textContent=s.V.toLocaleString("en-US");$("vp1").textContent=s.p1.toFixed(4);$("vp2").textContent=s.p2.toFixed(4);$("vp3").textContent=s.p3.toFixed(4);
   $("vL").textContent=s.L.toLocaleString("en-US");$("vg").textContent=s.gas.toFixed(2);$("vf").textContent=(s.feeR*100).toFixed(0)+"%";
-  $("oProd").textContent=r.prod.toFixed(4);$("oBack").textContent=fmt(r.a)+" A";
-  $("oGross").textContent=(r.gross>=0?"+":"")+fmt(r.gross)+" A";$("oFee").textContent="−"+fmt(r.fee)+" A";$("oGas").textContent="−"+fmt(s.gas)+" A";
-  $("oNet").textContent=(r.net>=0?"+":"")+fmt(r.net)+" A";$("oNet").style.color=r.net>0?"var(--verde)":(r.net<0?"var(--lacre)":"var(--grafite)");
+  $("oProd").textContent=r.prod.toFixed(4);$("oBack").textContent=fmt(r.a)+" USDC";
+  $("oGross").textContent=(r.gross>=0?"+":"")+fmt(r.gross)+" USDC";$("oFee").textContent="−"+fmt(r.fee)+" USDC";$("oGas").textContent="−"+fmt(s.gas)+" USDC";
+  $("oNet").textContent=(r.net>=0?"+":"")+fmt(r.net)+" USDC";$("oNet").style.color=r.net>0?"var(--verde)":(r.net<0?"var(--lacre)":"var(--grafite)");
   drawMark();
-  if(!fromRun) setVerdict(r,false);
+  if(!fromRun) setVerdict(r);
   return r;
 }
-function setVerdict(r,animated){
+function setVerdict(r){
   const vd=$("verdict");
   if(r.reverts){vd.className="verdict v-revert";vd.textContent="Reverts · you pay gas, get nothing";
-    $("explain").textContent="The cycle doesn't return the principal, so the on-chain condition fails and the whole transaction reverts. You still paid gas — a real, common outcome.";}
+    $("explain").textContent="The cycle doesn't return the principal, so the on-chain condition fails and the whole transaction reverts. Your principal is intact — you only paid the gas. A real, common outcome.";}
   else if(r.net>0){vd.className="verdict v-profit";vd.innerHTML="Profit after fees + gas <span class='rare'>RARE</span>";
     $("explain").textContent="Rare — and in a real block a professional searcher likely takes it first. This is the exception the risk notice is about, not the expectation.";}
   else{vd.className="verdict v-loss";vd.textContent="Settles, but net negative";
     $("explain").textContent="It returns more than principal, so it wouldn't revert on a zero floor — but after gas and the fee you end up behind.";}
 }
 
-/* ---------- run animation (the token flows and shrinks) ---------- */
+/* ---------- run animation ---------- */
 function run(sample){
   if(running)return;const r=refresh(true);
-  const dot=$("dot"),base=7;
-  const seg=[[0,1],[1,2],[2,0]]; // A→B, B→C, C→A
+  const dot=$("dot"),base=7,seg=[[0,1],[1,2],[2,0]];
   const radius=amt=>base*Math.max(0.28,Math.sqrt(Math.max(amt,0)/r.amts[0]));
   if(reduce){finish(r,sample);return;}
   running=true;$("run").disabled=true;dot.style.opacity=1;sound("whoosh");
   let hop=0;
-  function anim(hopStart){
-    const i=seg[hop][0],ad=arcData(i);const A=ad.A,C=ad.c,B=ad.B;
-    const r0=radius(r.amts[hop]),r1=radius(r.amts[hop+1]);const dur=380;let t0=null;
-    function frame(ts){if(!t0)t0=ts;const t=Math.min(1,(ts-t0)/dur);const p=bez(A,C,B,t);
+  (function anim(){
+    const i=seg[hop][0],ad=arcData(i);const r0=radius(r.amts[hop]),r1=radius(r.amts[hop+1]);const dur=380;let t0=null;
+    function frame(ts){if(!t0)t0=ts;const t=Math.min(1,(ts-t0)/dur);const p=bez(ad.A,ad.c,ad.B,t);
       dot.setAttribute("cx",p[0]);dot.setAttribute("cy",p[1]);dot.setAttribute("r",r0+(r1-r0)*t);
-      if(t<1){requestAnimationFrame(frame);}else{sound("hop");hop++;if(hop<3){anim();}else{dot.style.opacity=0;finish(r,sample);running=false;$("run").disabled=false;}}}
+      if(t<1)requestAnimationFrame(frame);else{sound("hop");hop++;if(hop<3)anim();else{dot.style.opacity=0;finish(r,sample);running=false;$("run").disabled=false;}}}
     requestAnimationFrame(frame);
-  }
-  anim();
+  })();
 }
 function finish(r,sample){
-  setVerdict(r,true);
-  sound(r.reverts?"revert":(r.net>0?"profit":"neg"));
+  setVerdict(r);sound(r.reverts?"revert":(r.net>0?"profit":"neg"));
   if(sample){N++;if(r.net>0)WINS++;const pct=N?Math.round(WINS/N*100):0;
     $("tN").textContent=N;$("tWin").textContent=WINS;$("tPct").textContent=pct+"%";$("tBar").style.width=pct+"%";}
 }
 
-/* ---------- sound (Web Audio · Baleia palette · self-contained) ---------- */
+/* ---------- tooltips ---------- */
+const TIPS={
+  product:"The three pool prices multiplied. It must beat ~1.009 to clear the fee wall — before slippage and gas.",
+  feewall:"Three 0.3% pool fees compound to about 0.9%, lost before you start.",
+  back:"What you'd hold in USDC after the three swaps. Below your input means a loss.",
+  gross:"Back minus what you put in, before fee and gas.",
+  fee:"A cut of profit only (never your principal), capped at half.",
+  gas:"Paid on every attempt — including the ones that revert.",
+  net:"What you actually keep. On a revert you lose only gas; principal is returned. Red means behind.",
+  volume:"How much you commit per cycle. Bigger means more slippage.",
+  price:"This pool's rate — drag the node or the slider.",
+  depth:"How deep the pool is. Deeper means less slippage.",
+  comp:"How much of every edge the searchers and the priority-fee auction take. 0% is you alone (the pure math); ~85% is the documented reality — and it decides your long run.",
+};
+let tipOpen=null;
+function closeTip(){$("tipPop").classList.remove("on");if(tipOpen)tipOpen.setAttribute("aria-expanded","false");tipOpen=null;}
+function openTip(btn){
+  const key=btn.getAttribute("data-tip"),pop=$("tipPop");
+  if(tipOpen===btn){closeTip();return;}
+  pop.textContent=TIPS[key]||"";pop.classList.add("on");
+  const rc=btn.getBoundingClientRect();let x=rc.left,y=rc.bottom+8;
+  pop.style.left="0px";pop.style.top="0px";const pw=pop.offsetWidth;
+  if(x+pw>window.innerWidth-10)x=window.innerWidth-pw-10;
+  pop.style.left=Math.max(10,x)+"px";pop.style.top=y+"px";
+  btn.setAttribute("aria-expanded","true");tipOpen=btn;
+}
+document.querySelectorAll(".tip").forEach(b=>{b.setAttribute("aria-expanded","false");
+  b.addEventListener("click",e=>{e.stopPropagation();openTip(b);});
+  b.addEventListener("focus",()=>openTip(b));});
+document.addEventListener("click",closeTip);
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeTip();});
+
+/* ---------- sound (Web Audio · self-contained) ---------- */
 let AC=null,muted=localStorage.getItem("triviu-mute")==="1",lastDrag=0;
-function updateMuteBtn(){$("mute").textContent=muted?"🔇 Muted":"🔈 Sound";$("mute").setAttribute("aria-pressed",String(muted));}
+function updateMuteBtn(){
+  const spk=`<svg class="bic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/>`;
+  $("mute").innerHTML = muted
+    ? spk+`<line x1="16" y1="9" x2="21" y2="15"/><line x1="21" y1="9" x2="16" y2="15"/></svg>Muted`
+    : spk+`<path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>Sound`;
+  $("mute").setAttribute("aria-pressed",String(muted));
+}
 function sound(name){
   if(muted||reduce)return;
-  if(name==="drag"){const now=performance.now();if(now-lastDrag<30)return;lastDrag=now;} // rate-limit per Baleia spec
+  if(name==="drag"){const now=performance.now();if(now-lastDrag<30)return;lastDrag=now;}
   try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
   if(AC.state==="suspended")AC.resume();
-  const t=AC.currentTime, master=AC.createGain();master.gain.value=0.5;
-  const lp=AC.createBiquadFilter();lp.type="lowpass";lp.frequency.value=4000;lp.Q.value=0.7;
-  master.connect(lp);lp.connect(AC.destination);
+  const t=AC.currentTime,master=AC.createGain();master.gain.value=0.5;
+  const lp=AC.createBiquadFilter();lp.type="lowpass";lp.frequency.value=4000;lp.Q.value=0.7;master.connect(lp);lp.connect(AC.destination);
   const tone=(type,f0,f1,peak,a,d,s,r,at)=>{const o=AC.createOscillator(),g=AC.createGain();o.type=type;
     o.frequency.setValueAtTime(f0,at);if(f1!==f0)o.frequency.linearRampToValueAtTime(f1,at+(a+d+r)/1000);
-    g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(peak,at+a/1000);
-    g.gain.linearRampToValueAtTime(peak*s,at+(a+d)/1000);g.gain.linearRampToValueAtTime(0,at+(a+d+r)/1000);
+    g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(peak,at+a/1000);g.gain.linearRampToValueAtTime(peak*s,at+(a+d)/1000);g.gain.linearRampToValueAtTime(0,at+(a+d+r)/1000);
     o.connect(g);g.connect(master);o.start(at);o.stop(at+(a+d+r)/1000+0.02);};
-  if(name==="drag") tone("sine",880,880,0.035,1,8,0,20,t);
-  else if(name==="whoosh") tone("triangle",200,560,0.06,30,150,0.2,200,t);
-  else if(name==="hop") tone("sine",520,520,0.03,1,40,0,40,t);
+  if(name==="drag")tone("sine",880,880,0.035,1,8,0,20,t);
+  else if(name==="whoosh")tone("triangle",200,560,0.06,30,150,0.2,200,t);
+  else if(name==="hop")tone("sine",520,520,0.03,1,40,0,40,t);
   else if(name==="profit"){tone("sine",528,528,0.07,5,120,0.3,240,t);tone("sine",660,660,0.07,5,120,0.3,240,t+0.12);}
-  else if(name==="revert") tone("sine",130,92,0.08,2,90,0,180,t);
-  else if(name==="neg") tone("sine",300,300,0.05,5,60,0.2,160,t);
+  else if(name==="revert")tone("sine",130,92,0.08,2,90,0,180,t);
+  else if(name==="neg")tone("sine",300,300,0.05,5,60,0.2,160,t);
+}
+
+/* ---------- The long run (honest Monte-Carlo · decay, not yield) ---------- */
+function clampP(p){return Math.max(0.9,Math.min(1.1,p));}
+function project(){
+  const s=state();
+  const cap=Math.max(10,+$("lrCap").value||1000),pd=Math.max(1,+$("lrPd").value||1),days=Math.max(1,+$("lrDays").value||1);
+  let Nc=Math.round(pd*days);Nc=Math.max(1,Math.min(1500,Nc));
+  // The one lever that decides your long run: how much of every edge the
+  // searchers + priority-fee auction take. 0% = you're the only player (pure
+  // math); ~85% = the documented reality (whitepaper §8). You set it, you see it.
+  const comp=Math.max(0,Math.min(1,(+$("lrComp").value||0)/100)),pWin=1-comp,keep=1-comp;
+  const TR=150,SAMP=60,step=Math.max(1,Math.floor(Nc/SAMP));
+  const idx=[];for(let i=0;i<=Nc;i+=step)idx.push(i);if(idx[idx.length-1]!==Nc)idx.push(Nc);
+  const bal=new Array(TR).fill(cap),rec=idx.map(()=>new Float64Array(TR));let si=0;
+  for(let c=0;c<=Nc;c++){
+    if(idx[si]===c){for(let t=0;t<TR;t++)rec[si][t]=bal[t];si++;}
+    if(c===Nc)break;
+    for(let t=0;t<TR;t++){
+      if(bal[t]<=s.gas)continue; // wiped out — can't pay gas
+      const V=Math.min(s.V,bal[t]);
+      const mk={V,p1:clampP(1+gauss()*0.012),p2:clampP(1+gauss()*0.012),p3:clampP(1+gauss()*0.012),L:s.L,gas:s.gas,feeR:s.feeR};
+      const r=compute(mk);
+      let ch;
+      if(r.reverts){ ch=-s.gas; }                       // no edge / stale → revert, only gas
+      else if(Math.random()<pWin){                       // you win the race (1 − competition)
+        const kept=(r.a-mk.V)*keep;                      // you keep (1 − competition) of the edge
+        ch=kept-(kept>0?kept*s.feeR:0)-s.gas;
+      } else { ch=-s.gas; }                              // a searcher took it first → your tx reverts
+      bal[t]=Math.max(0,bal[t]+ch);
+    }
+  }
+  // per-sample stats
+  const mean=[],p10=[],p90=[];
+  for(let i=0;i<rec.length;i++){const a=Array.from(rec[i]).sort((x,y)=>x-y);
+    mean.push(a.reduce((s2,v)=>s2+v,0)/TR);p10.push(a[Math.floor(0.1*TR)]);p90.push(a[Math.floor(0.9*TR)]);}
+  const ahead=Array.from(bal).filter(v=>v>cap).length,pah=Math.round(ahead/TR*100);
+  const finalMean=mean[mean.length-1],pct=(finalMean-cap)/cap*100;
+  drawLR(idx,mean,p10,p90,cap,Nc);
+  $("lrBal").innerHTML=`Expected balance after ${Nc.toLocaleString("en-US")} cycles: <span style="color:${finalMean<cap?'var(--lacre)':'var(--tinta)'}">${fmt(finalMean)} USDC</span> (${pct>=0?'+':''}${pct.toFixed(1)}%)`;
+  $("lrPah").textContent=`Chance you end ahead: ${pah}% — and it falls the longer you go.`;
+}
+function drawLR(idx,mean,p10,p90,cap,Nc){
+  const W=480,H=220,pl=8,pr=8,pt=14,pb=22,iw=W-pl-pr,ih=H-pt-pb;
+  const all=p10.concat(p90).concat([cap]);let lo=Math.min(...all),hi=Math.max(...all);const pad=(hi-lo)*0.12||cap*0.1;lo-=pad;hi+=pad;lo=Math.max(0,lo);
+  const X=i=>pl+iw*(idx[i]/Nc),Y=v=>pt+ih*(1-(v-lo)/(hi-lo));
+  const path=arr=>arr.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ");
+  const band=p90.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ")+" "+p10.slice().reverse().map((v,i)=>`L${X(p10.length-1-i).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ")+" Z";
+  const y0=Y(cap);
+  $("lrchart").innerHTML=
+    `<path d="${band}" fill="var(--acafrao)" opacity="0.14"/>`+
+    `<line x1="${pl}" y1="${y0.toFixed(1)}" x2="${W-pr}" y2="${y0.toFixed(1)}" stroke="var(--grafite)" stroke-width="1" stroke-dasharray="3 3"/>`+
+    `<text x="${W-pr}" y="${(y0-4).toFixed(1)}" text-anchor="end" font-family="var(--fm)" font-size="9" fill="var(--grafite)">start ${fmt(cap,0)}</text>`+
+    `<path d="${path(p10)}" fill="none" stroke="var(--grafite)" stroke-width="0.8" opacity="0.4"/>`+
+    `<path d="${path(p90)}" fill="none" stroke="var(--acafrao)" stroke-width="0.8" opacity="0.6"/>`+
+    `<path d="${path(mean)}" fill="none" stroke="${mean[mean.length-1]<cap?'var(--lacre)':'var(--tinta)'}" stroke-width="2.4"/>`+
+    `<text x="${pl}" y="${(H-6)}" font-family="var(--fm)" font-size="9" fill="var(--grafite)">0 cycles</text>`+
+    `<text x="${W-pr}" y="${(H-6)}" text-anchor="end" font-family="var(--fm)" font-size="9" fill="var(--grafite)">${Nc.toLocaleString('en-US')} cycles · expected (line) · luck band</text>`;
 }
 
 /* ---------- wiring ---------- */
@@ -297,8 +430,11 @@ function sound(name){
 $("run").addEventListener("click",()=>run(false));
 $("mute").addEventListener("click",()=>{muted=!muted;localStorage.setItem("triviu-mute",muted?"1":"0");updateMuteBtn();});
 $("rand").addEventListener("click",()=>{for(const p of ["p1","p2","p3"]){let r=1+gauss()*0.012;r=Math.max(0.9,Math.min(1.1,r));$(p).value=r.toFixed(4);}run(true);});
+$("project").addEventListener("click",project);
+$("lrComp").addEventListener("input",()=>{$("lrCv").textContent=$("lrComp").value+"%";});
+$("lrComp").addEventListener("change",project);
 function gauss(){let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
-buildNodes();updateMuteBtn();refresh(false);
+buildNodes();updateMuteBtn();refresh(false);project();
 </script>
 </body>
 </html>
