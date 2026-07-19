@@ -15,6 +15,10 @@ external call, preventing reentrancy. The Gas-Tank withdraw follows it.
 
 **DEX** — decentralized exchange. Triviu operates over DEX liquidity pools.
 
+**Fee wall** — the three 0.3% pool fees compound to `0.997³ ≈ 0.991`: about 0.9%
+lost before slippage or gas. A cycle's price product must beat ~1.009 just to break
+even. Watch it in the [simulator](https://triviu.vercel.app/simulate).
+
 **Gas-Tank** — a non-custodial, per-user gas-safety reserve; see
 [Section 6](06-gas-tank.md). Not protocol revenue.
 
@@ -27,6 +31,19 @@ tends to zero.
 
 **Non-custody** — the property that the protocol never holds a user's funds
 between transactions. Triviu's executor is stateless and proven so.
+
+**Price impact (slippage)** — trading against a constant-product pool moves its
+price against you; the larger the trade relative to the pool, the worse. It is why
+an edge that profits at small size reverts when oversized.
+
+**Revert** — the atomic, all-or-nothing ending: if the final balance is below
+`principal + minProfit`, the whole transaction unwinds and only gas is spent. The
+most common outcome — published, not hidden. Run a few in the
+[simulator](https://triviu.vercel.app/simulate).
+
+**Simulator** — a client-side model of one A→B→C→A cycle that runs the exact
+execution math, no wallet and no chain. Live at
+[triviu.vercel.app/simulate](https://triviu.vercel.app/simulate).
 
 **Stateless contract** — a contract that keeps no balance or state between
 transactions. Triviu's executor is stateless, which makes non-custody
