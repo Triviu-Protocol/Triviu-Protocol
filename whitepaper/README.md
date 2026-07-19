@@ -6,7 +6,7 @@ description: >-
 
 # Triviu Whitepaper
 
-> **Version:** whitepaper v1 (draft) · built on litepaper v0.1
+> **Version:** whitepaper v1 · July 2026
 > **Network:** Polygon PoS · **Code:** AGPL-3.0 · **Brand:** CC BY 4.0
 > **Status:** pre-mainnet, not yet deployed
 
@@ -45,8 +45,7 @@ honesty is not a disclaimer bolted on at the end; it is the product.
 
 ## How this document is organized
 
-This whitepaper expands the [litepaper v0.1](../docs/triviu-litepaper-v0.1.md)
-into a complete reference. [Motivation](01-motivation.md) and
+This whitepaper is the complete reference. [Motivation](01-motivation.md) and
 [Principles](02-principles.md) state what Triviu is and refuses to be. The
 [arbitrage mathematics](03-triangular-arbitrage.md) — derived from first
 principles with primary sources — the [architecture](04-architecture.md), the

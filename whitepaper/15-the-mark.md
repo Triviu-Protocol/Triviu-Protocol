@@ -13,7 +13,7 @@ Three equal nodes joined by directional arcs, rotated so **no side rests on the
 ground** and **no node sits on top**. A pyramid is static hierarchy — someone
 above, many below; the very silhouette a financial-pyramid scam wears. This is
 the opposite: a **cycle** that ends where it began, three peers and a flow, no
-apex to receive and no base to sustain. The form is the litepaper's argument in a
+apex to receive and no base to sustain. The form is the whitepaper's argument in a
 single figure.
 
 ## Three readings, one mark

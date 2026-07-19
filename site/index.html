@@ -243,7 +243,7 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
       <p class="sub" data-i18n="hero_sub">Triviu is an open, non-custodial protocol for atomic triangular arbitrage on Polygon — built to be read, audited and run by you. Educational infrastructure, with every rule public and every limit documented.</p>
       <div class="cta-row">
         <a class="btn btn-prim" href="#verify" data-i18n="hero_cta1">Read the code</a>
-        <a class="btn btn-sec" href="#verify" data-i18n="hero_cta2">Read the litepaper</a>
+        <a class="btn btn-sec" href="/whitepaper" data-i18n="hero_cta2">Read the whitepaper</a>
       </div>
       <div class="hero-meta">
         <span data-i18n="hero_m1"><b>AGPL-3.0</b> code · <b>CC BY 4.0</b> brand · signed releases</span><br>
@@ -354,7 +354,7 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
     <div class="pilares">
       <div class="pilar"><div><h3 data-i18n="e1_t">AMMs from zero</h3><p data-i18n="e1_p">How pools set prices, and why that creates the discrepancies arbitrage closes.</p></div></div>
       <div class="pilar"><div><h3 data-i18n="e2_t">Anatomy of a real cycle</h3><p data-i18n="e2_p">Gas, slippage, competition — the numbers of one real transaction, block by block.</p></div></div>
-      <div class="pilar"><div><h3 data-i18n="e3_t">Run it yourself</h3><p data-i18n="e3_p">Read the code with the persona and execute it on a fork and testnet, where mistakes are free.</p></div></div>
+      <div class="pilar"><div><h3 data-i18n="e3_t">Run it yourself</h3><p data-i18n="e3_p">Read the code with the persona and execute it on a fork, where mistakes are free.</p></div></div>
       <div class="pilar"><div><h3 data-i18n="e4_t">Wallet &amp; MEV literacy</h3><p data-i18n="e4_p">Key safety, approvals hygiene, and how professional searchers actually win.</p></div></div>
     </div>
     <p style="margin-top:28px"><span class="badge">AI-GENERATED</span> &nbsp;<span style="font-size:13.5px;color:var(--grafite)" data-i18n="e_badge">— the badge every piece of persona content carries, by rule.</span></p>
@@ -384,14 +384,14 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
     <h2 data-i18n="v_h2">Everything we claim, you can check.</h2>
     <table>
       <tr><th data-i18n="v_th1">What</th><th data-i18n="v_th2">Where</th></tr>
-      <tr><td data-i18n="v_r1">Litepaper — the founding document</td><td class="mono">github.com/triviu — /docs</td></tr>
-      <tr><td data-i18n="v_r2">Contracts, v0 — unaudited, fork/testnet only</td><td class="mono">github.com/triviu — /contracts</td></tr>
-      <tr><td data-i18n="v_r3">Decisions and their costs (Tradeoff Records)</td><td class="mono">github.com/triviu — /decisions</td></tr>
-      <tr><td data-i18n="v_r4">Verified addresses on Polygonscan</td><td class="mono" data-i18n="v_soon1">to be published at first testnet deploy</td></tr>
-      <tr><td data-i18n="v_r5">Public dashboard — failures included</td><td class="mono" data-i18n="v_soon2">Dune, to be published</td></tr>
+      <tr><td data-i18n="v_r1">Whitepaper — the founding document</td><td class="mono"><a href="/whitepaper">triviu.vercel.app/whitepaper</a></td></tr>
+      <tr><td data-i18n="v_r2">Contracts, v0 — tested, external audit pending</td><td class="mono">github.com/Triviu-Protocol — /contracts</td></tr>
+      <tr><td data-i18n="v_r3">Decisions and their costs (Tradeoff Records)</td><td class="mono">github.com/Triviu-Protocol — /decisions</td></tr>
+      <tr><td data-i18n="v_r4">Verified addresses on Polygonscan</td><td class="mono" data-i18n="v_soon1">at mainnet deploy, after the external audit</td></tr>
+      <tr><td data-i18n="v_r5">Public dashboard — failures included</td><td class="mono"><a href="/dashboard">triviu.vercel.app/dashboard</a></td></tr>
     </table>
     <div class="metricas">
-      <div class="metrica"><div class="lbl" data-i18n="mt1_l">Executions · incl. reverts</div><div class="val">—</div><div class="nt" data-i18n="mt_n">after first testnet deploy</div></div>
+      <div class="metrica"><div class="lbl" data-i18n="mt1_l">Executions · incl. reverts</div><div class="val">—</div><div class="nt" data-i18n="mt_n">after mainnet deploy</div></div>
       <div class="metrica"><div class="lbl" data-i18n="mt2_l">Revert rate · 30d</div><div class="val">—</div><div class="nt" data-i18n="mt_n2">the real number, good or bad</div></div>
       <div class="metrica"><div class="lbl" data-i18n="mt3_l">Gas spent vs. net result</div><div class="val">—</div><div class="nt" data-i18n="mt_n3">failures included, always</div></div>
     </div>
@@ -406,8 +406,8 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
     <h2 data-i18n="r_h2">Intent, not deadlines.</h2>
     <p class="lead" data-i18n="r_lead">Consistent with the no-promises principle: the roadmap states direction, and every milestone below the audit gate stays off mainnet.</p>
     <div class="road">
-      <div class="mile"><span class="md" style="background:var(--ultramar)"></span><div class="mv">v0 · NOW</div><h3 data-i18n="rm1_t">Public foundation</h3><p data-i18n="rm1_p">Litepaper, open repository, fork simulator, testnet execution.</p></div>
-      <div class="mile"><span class="md" style="background:var(--acafrao)"></span><div class="mv">v0.2</div><h3 data-i18n="rm2_t">Testnet + dashboard</h3><p data-i18n="rm2_p">Minimal whitelist on Amoy; public Dune dashboard with reverts included.</p></div>
+      <div class="mile"><span class="md" style="background:var(--ultramar)"></span><div class="mv">v0 · NOW</div><h3 data-i18n="rm1_t">Public foundation</h3><p data-i18n="rm1_p">Whitepaper, open repository, fork simulator, tested v0 contracts.</p></div>
+      <div class="mile"><span class="md" style="background:var(--acafrao)"></span><div class="mv">v0.2</div><h3 data-i18n="rm2_t">Contract hardening</h3><p data-i18n="rm2_p">Balance-delta accounting and typed swap adapters; public dashboard fills with on-chain data.</p></div>
       <div class="mile"><span class="md" style="background:var(--lacre)"></span><div class="mv" data-i18n="rm3_v">GATE</div><h3 data-i18n="rm3_t">External audit</h3><p data-i18n="rm3_p">Independent review of Executor and Registry. Nothing touches mainnet before this.</p></div>
       <div class="mile"><span class="md" style="background:var(--tinta)"></span><div class="mv">v1</div><h3 data-i18n="rm4_t">Mainnet + curriculum</h3><p data-i18n="rm4_p">Timelocked Registry, full educational curriculum, second audit.</p></div>
     </div>
@@ -456,7 +456,7 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
   </div>
 </footer>
 
-<noscript><div class="wrap" style="padding:24px"><p>This page works without JavaScript too — the 3D scene and the language toggle simply stay off. Repository and litepaper: github.com/triviu</p></div></noscript>
+<noscript><div class="wrap" style="padding:24px"><p>This page works without JavaScript too — the 3D scene and the language toggle simply stay off. Repository and whitepaper: github.com/Triviu-Protocol</p></div></noscript>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" onerror="document.body.classList.add('no3d')"></script>
 <script>
@@ -468,7 +468,7 @@ en:{
  hero_eyebrow:"Open protocol · Polygon PoS · no token",
  hero_h1:"Don't trust.<br>Verify.",
  hero_sub:"Triviu is an open, non-custodial protocol for atomic triangular arbitrage on Polygon — built to be read, audited and run by you. Educational infrastructure, with every rule public and every limit documented.",
- hero_cta1:"Read the code",hero_cta2:"Read the litepaper",
+ hero_cta1:"Read the code",hero_cta2:"Read the whitepaper",
  hero_m1:"<b>AGPL-3.0</b> code · <b>CC BY 4.0</b> brand · signed releases",
  hero_m2:"stateless executor · parameters via public PR · audit before mainnet",
  hero_scroll:"Scroll — the risk notice comes first",
@@ -504,7 +504,7 @@ en:{
  e_lead:"A public curriculum, with any AI-generated content labeled as AI in every video and every piece — always. The editorial rule is non-negotiable: show technology, never income.",
  e1_t:"AMMs from zero",e1_p:"How pools set prices, and why that creates the discrepancies arbitrage closes.",
  e2_t:"Anatomy of a real cycle",e2_p:"Gas, slippage, competition — the numbers of one real transaction, block by block.",
- e3_t:"Run it yourself",e3_p:"Read the code with the persona and execute it on a fork and testnet, where mistakes are free.",
+ e3_t:"Run it yourself",e3_p:"Read the code with the persona and execute it on a fork, where mistakes are free.",
  e4_t:"Wallet & MEV literacy",e4_p:"Key safety, approvals hygiene, and how professional searchers actually win.",
  e_badge:"— the badge every piece of persona content carries, by rule.",
  n_eyebrow:"06 · Read this twice",n_h2:"What Triviu is not.",
@@ -515,14 +515,14 @@ en:{
  n_nota:"If anyone offers any of these things in Triviu's name, it is a scam — report it. The only official surfaces are this site and the public repository.",
  v_eyebrow:"07 · Don't trust: verify",v_h2:"Everything we claim, you can check.",
  v_th1:"What",v_th2:"Where",
- v_r1:"Litepaper — the founding document",v_r2:"Contracts, v0 — unaudited, fork/testnet only",v_r3:"Decisions and their costs (Tradeoff Records)",v_r4:"Verified addresses on Polygonscan",v_r5:"Public dashboard — failures included",
- v_soon1:"to be published at first testnet deploy",v_soon2:"Dune, to be published",
+ v_r1:"Whitepaper — the founding document",v_r2:"Contracts, v0 — tested, external audit pending",v_r3:"Decisions and their costs (Tradeoff Records)",v_r4:"Verified addresses on Polygonscan",v_r5:"Public dashboard — failures included",
+ v_soon1:"at mainnet deploy, after the external audit",v_soon2:"live · triviu.vercel.app/dashboard",
  mt1_l:"Executions · incl. reverts",mt2_l:"Revert rate · 30d",mt3_l:"Gas spent vs. net result",
- mt_n:"after first testnet deploy",mt_n2:"the real number, good or bad",mt_n3:"failures included, always",
+ mt_n:"after mainnet deploy",mt_n2:"the real number, good or bad",mt_n3:"failures included, always",
  r_eyebrow:"08 · Roadmap",r_h2:"Intent, not deadlines.",
  r_lead:"Consistent with the no-promises principle: the roadmap states direction, and every milestone below the audit gate stays off mainnet.",
- rm1_t:"Public foundation",rm1_p:"Litepaper, open repository, fork simulator, testnet execution.",
- rm2_t:"Testnet + dashboard",rm2_p:"Minimal whitelist on Amoy; public Dune dashboard with reverts included.",
+ rm1_t:"Public foundation",rm1_p:"Whitepaper, open repository, fork simulator, tested v0 contracts.",
+ rm2_t:"Contract hardening",rm2_p:"Balance-delta accounting and typed swap adapters; public dashboard fills with on-chain data.",
  rm3_v:"GATE",rm3_t:"External audit",rm3_p:"Independent review of Executor and Registry. Nothing touches mainnet before this.",
  rm4_t:"Mainnet + curriculum",rm4_p:"Timelocked Registry, full educational curriculum, second audit.",
  f_h2:"Straight answers.",
@@ -544,7 +544,7 @@ es:{
  hero_eyebrow:"Protocolo abierto · Polygon PoS · sin token",
  hero_h1:"No confíes.<br>Verifica.",
  hero_sub:"Triviu es un protocolo abierto y sin custodia para arbitraje triangular atómico en Polygon — hecho para que tú lo leas, lo audites y lo ejecutes. Infraestructura educativa, con cada regla pública y cada límite documentado.",
- hero_cta1:"Leer el código",hero_cta2:"Leer el litepaper",
+ hero_cta1:"Leer el código",hero_cta2:"Leer el whitepaper",
  hero_m1:"Código <b>AGPL-3.0</b> · Marca <b>CC BY 4.0</b> · releases firmadas",
  hero_m2:"ejecutor stateless · parámetros vía PR público · auditoría antes de mainnet",
  hero_scroll:"Desplázate — el aviso de riesgo va primero",
@@ -580,7 +580,7 @@ es:{
  e_lead:"Un currículo público, enseñado por una persona sintética identificada como IA en cada video y cada biografía — siempre. La regla editorial no se negocia: mostrar tecnología, nunca ingresos.",
  e1_t:"AMMs desde cero",e1_p:"Cómo los pools fijan precios, y por qué eso crea las discrepancias que el arbitraje cierra.",
  e2_t:"Anatomía de un ciclo real",e2_p:"Gas, slippage, competencia — los números de una transacción real, bloque a bloque.",
- e3_t:"Ejecútalo tú mismo",e3_p:"Lee el código con la persona y ejecútalo en fork y testnet, donde equivocarse es gratis.",
+ e3_t:"Ejecútalo tú mismo",e3_p:"Lee el código con la persona y ejecútalo en un fork, donde equivocarse es gratis.",
  e4_t:"Billetera y MEV",e4_p:"Seguridad de llaves, higiene de approvals y cómo ganan de verdad los searchers profesionales.",
  e_badge:"— la insignia que lleva todo contenido de la persona, por regla.",
  n_eyebrow:"06 · Léelo dos veces",n_h2:"Lo que Triviu no es.",
@@ -591,14 +591,14 @@ es:{
  n_nota:"Si alguien ofrece cualquiera de estas cosas en nombre de Triviu, es una estafa — denúnciala. Las únicas superficies oficiales son este sitio y el repositorio público.",
  v_eyebrow:"07 · No confíes: verifica",v_h2:"Todo lo que afirmamos, lo puedes comprobar.",
  v_th1:"Qué",v_th2:"Dónde",
- v_r1:"Litepaper — el documento fundador",v_r2:"Contratos, v0 — sin auditar, solo fork/testnet",v_r3:"Decisiones y sus costos (Fichas de Tradeoff)",v_r4:"Direcciones verificadas en Polygonscan",v_r5:"Dashboard público — fallos incluidos",
- v_soon1:"se publicará en el primer deploy en testnet",v_soon2:"Dune, por publicar",
+ v_r1:"Whitepaper — el documento fundador",v_r2:"Contratos, v0 — probados, auditoría externa pendiente",v_r3:"Decisiones y sus costos (Fichas de Tradeoff)",v_r4:"Direcciones verificadas en Polygonscan",v_r5:"Dashboard público — fallos incluidos",
+ v_soon1:"en el deploy a mainnet, tras la auditoría externa",v_soon2:"en vivo · triviu.vercel.app/dashboard",
  mt1_l:"Ejecuciones · incl. reverts",mt2_l:"Tasa de reversión · 30d",mt3_l:"Gas gastado vs. resultado neto",
- mt_n:"tras el primer deploy en testnet",mt_n2:"el número real, bueno o malo",mt_n3:"fallos incluidos, siempre",
+ mt_n:"tras el deploy a mainnet",mt_n2:"el número real, bueno o malo",mt_n3:"fallos incluidos, siempre",
  r_eyebrow:"08 · Hoja de ruta",r_h2:"Intención, no plazos.",
  r_lead:"Coherente con el principio de no prometer: la hoja de ruta declara dirección, y todo hito antes de la puerta de auditoría queda fuera de mainnet.",
- rm1_t:"Fundación pública",rm1_p:"Litepaper, repositorio abierto, simulador en fork, ejecución en testnet.",
- rm2_t:"Testnet + dashboard",rm2_p:"Whitelist mínima en Amoy; dashboard público en Dune con reverts incluidos.",
+ rm1_t:"Fundación pública",rm1_p:"Whitepaper, repositorio abierto, simulador en fork, contratos v0 probados.",
+ rm2_t:"Endurecimiento del contrato",rm2_p:"Contabilidad por delta de saldo y adaptadores de swap tipados; el dashboard público se llena con datos on-chain.",
  rm3_v:"PUERTA",rm3_t:"Auditoría externa",rm3_p:"Revisión independiente del Ejecutor y del Registro. Nada toca mainnet antes de esto.",
  rm4_t:"Mainnet + currículo",rm4_p:"Registro con timelock, currículo educativo completo, segunda auditoría.",
  f_h2:"Respuestas directas.",
