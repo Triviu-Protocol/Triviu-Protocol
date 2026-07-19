@@ -40,8 +40,9 @@ DISABLED (no treasury); whitelists start EMPTY.
       Confirm `registry.owner() == multisig` and `registry.pendingOwner() == 0`.
 - [ ] **Set whitelists via Registry PRs.** Each `setToken`/`setTarget` records its
       PR URL on-chain (forum → Git → block). Add only the vetted token/router set.
-- [ ] **Verify all three contracts on Polygonscan** (`--verify` handles it; confirm
-      the green checkmark and matching bytecode).
+- [ ] **Verify all three contracts on Polygonscan** (`--verify` needs
+      `ETHERSCAN_API_KEY` set to a Polygonscan key; confirm the green checkmark and
+      matching bytecode).
 - [ ] **Fee stays off** until a deliberate `setTreasury` + `setFeeBps` PR.
 
 ## 3 · Wire the public surfaces

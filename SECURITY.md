@@ -3,8 +3,10 @@
 **Current status: pre-mainnet. Not yet deployed.**
 No mainnet deployment before the Predators Protocol audit (external, independent
 provider · Náutilo Audit-as-a-Service) clears the final review at the closing
-commit. Audit reports are public in [`docs/audits/`](docs/audits/) — don't trust,
-verify.
+commit, plus — for third-party value on mainnet — an independent external audit
+firm and this bug bounty. Audit reports are public in
+[`docs/audits/`](docs/audits/) — don't trust, verify. The current D2 report is
+[`2026-07-18-nautilo-d2-laudo-v0.2.md`](docs/audits/2026-07-18-nautilo-d2-laudo-v0.2.md).
 
 ## Responsible disclosure
 
@@ -13,12 +15,49 @@ Write to: security@triviu.org (placeholder — configure before launch) with
 reproduction steps. We respond within 72h and coordinate the fix and public
 disclosure with credit to the researcher.
 
-Bug bounty: **to be defined**. Consistent with principle 4, we do not promise
-amounts before funds and rules are published.
+## Bug bounty — scope (rewards set at funding)
 
-## Scope
+Consistent with the no-promises principle, we do **not** promise amounts before
+the funds and rules are published. The reward table is set when the bounty is
+funded, before mainnet; this section defines the scope and how findings are
+classified so a researcher knows exactly what is worth reporting.
 
-- `contracts/` (Executor, Registry)
-- `engine/` (only flaws that cause loss of the operator's funds)
+### Severity classification (mirrors the audit scale)
 
-Out of scope: third-party RPCs, fork front-ends, social engineering.
+| Severity | What it means |
+|---|---|
+| CRITICAL | Direct, externally-triggerable loss of caller funds, or takeover of the Registry owner without the two-step handoff. |
+| HIGH | Loss of funds under a rare-but-reachable precondition; reentrancy that survives the guard. |
+| MEDIUM | Loss/lock under a costly precondition; a broken invariant without direct theft. |
+| LOW / INFO | Best-practice violation; hypothetical-only exploit. |
+
+### Target invariants — break one and it's in scope
+
+1. The executor holds **no caller funds** between transactions (only donations,
+   and those are never handed to a caller).
+2. A cycle **never returns less than `principal`** to the caller — it settles
+   with `profit ≥ minProfit` or the whole transaction reverts.
+3. The success fee **never exceeds 50% of profit** and never touches principal.
+4. `executeCycle` is **non-reentrant**; no whitelisted token/router can re-enter.
+5. **GasTank**: only the balance owner can move it; no cross-user reach; no
+   double-spend.
+6. **Registry**: only the current owner changes parameters; ownership moves only
+   via the two-step `transferOwner` → `acceptOwner`.
+
+### In scope
+
+- `contracts/src/` — `TriviuExecutor`, `ParameterRegistry`, `GasTank`.
+- `engine/` — only flaws that cause loss of the operator's own funds (the engine
+  is off-chain and non-custodial).
+
+### Out of scope
+
+- Third-party RPCs, DEX routers and tokens (a malicious *whitelisted* target that
+  only griefs via revert is a known, disclosed property — the atomic gate makes
+  it gas-only, never a loss).
+- Governance/centralization risk that the audit already discloses (owner EOA
+  before the multisig handoff, token-whitelist policy) — see the D2 laudo.
+- Fork front-ends, social engineering, spam/DoS of public RPCs.
+
+Final assurance rests with whoever signs the deployment. No audit or bounty
+guarantees the absence of vulnerabilities.
