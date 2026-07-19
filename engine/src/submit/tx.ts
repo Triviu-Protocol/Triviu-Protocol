@@ -67,6 +67,12 @@ export async function submitCycle(args: SubmitCycleArgs): Promise<`0x${string}`>
   const key = args.env["TRIVIU_PRIVATE_KEY"];
   if (!key) throw new Error("TRIVIU_PRIVATE_KEY not set");
 
+  // Defense-in-depth: submitDecision already gated the caller, but this is the
+  // ONLY function that can spend, so it re-asserts the mainnet risk ack itself.
+  if (args.chainId === MAINNET_CHAIN_ID && args.env["TRIVIU_I_ACCEPT_THE_RISK"] !== "yes") {
+    throw new Error("mainnet submit refused: TRIVIU_I_ACCEPT_THE_RISK is not set");
+  }
+
   const account = privateKeyToAccount(key as `0x${string}`);
   const chain = defineChain({
     id: args.chainId,

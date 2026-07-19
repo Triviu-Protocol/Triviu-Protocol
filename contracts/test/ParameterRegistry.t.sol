@@ -103,20 +103,48 @@ contract ParameterRegistryTest is Test {
         assertEq(registry.feeBps(), 0);
     }
 
-    function test_TransferOwner_RotatesAuthority() public {
+    function test_TransferOwner_TwoStep_RotatesAuthority() public {
         address multisig = makeAddr("multisig");
 
+        // Step 1 — start: owner does NOT change yet, only pendingOwner is set.
         vm.expectEmit(true, true, false, false, address(registry));
-        emit ParameterRegistry.OwnerTransferred(address(this), multisig);
+        emit ParameterRegistry.OwnershipTransferStarted(address(this), multisig);
         registry.transferOwner(multisig);
-        assertEq(registry.owner(), multisig);
+        assertEq(registry.owner(), address(this), "owner unchanged until accepted");
+        assertEq(registry.pendingOwner(), multisig);
 
-        // The previous owner is a stranger now.
+        // The pending owner cannot act until it accepts.
+        vm.prank(multisig);
         vm.expectRevert(ParameterRegistry.NotOwner.selector);
         registry.setToken(address(0xA11CE), true, PR);
 
+        // Step 2 — accept: only the pending owner can finish the handoff.
+        vm.expectEmit(true, true, false, false, address(registry));
+        emit ParameterRegistry.OwnerTransferred(address(this), multisig);
+        vm.prank(multisig);
+        registry.acceptOwner();
+        assertEq(registry.owner(), multisig);
+        assertEq(registry.pendingOwner(), address(0));
+
+        // Old owner is a stranger; new owner can act.
+        vm.expectRevert(ParameterRegistry.NotOwner.selector);
+        registry.setToken(address(0xA11CE), true, PR);
         vm.prank(multisig);
         registry.setToken(address(0xA11CE), true, PR);
         assertTrue(registry.isAllowedToken(address(0xA11CE)));
+    }
+
+    function test_TransferOwner_RejectsZeroAddress() public {
+        // A fat-finger to address(0) must not brick governance forever.
+        vm.expectRevert(ParameterRegistry.ZeroAddress.selector);
+        registry.transferOwner(address(0));
+    }
+
+    function test_AcceptOwner_OnlyPendingOwner() public {
+        address multisig = makeAddr("multisig");
+        registry.transferOwner(multisig);
+        vm.prank(stranger);
+        vm.expectRevert(ParameterRegistry.NotPendingOwner.selector);
+        registry.acceptOwner();
     }
 }

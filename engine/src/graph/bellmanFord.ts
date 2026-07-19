@@ -1,5 +1,5 @@
 /**
- * Profitable-cycle detection — the mathematical core of litepaper §3.
+ * Profitable-cycle detection — the mathematical core of whitepaper §3.
  *
  * Idea: a cycle A→B→C→A is profitable (before gas) when the product of
  * effective rates exceeds 1:
@@ -109,7 +109,7 @@ function reconstructCycle(
 }
 
 /**
- * The full execution condition from litepaper §3, now with costs:
+ * The full execution condition from whitepaper §3, now with costs:
  *   grossProfit = V · (grossFactor − 1)
  *   execute ⇔ grossProfit − G ≥ minProfit
  */

@@ -17,5 +17,7 @@ export const triviuExecutorAbi = parseAbi([
   "error BrokenChain(uint256 index)",
   "error UnprofitableCycle(uint256 realizedDelta, uint256 required)",
   "error Reentrancy()",
+  "error TransferFailed(address token)",
+  "error ZeroPrincipal()",
   "event CycleExecuted(address indexed caller, address indexed asset, uint256 principal, uint256 profit, uint256 fee)",
 ]);

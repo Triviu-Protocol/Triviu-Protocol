@@ -129,6 +129,7 @@ contract TriviuExecutor {
     error UnprofitableCycle(uint256 realizedDelta, uint256 required);
     error Reentrancy();
     error TransferFailed(address token);
+    error ZeroPrincipal();
 
     /// @notice Emitted on every successful cycle. `profit` is what the caller
     ///         keeps (net of fee); `fee` is what went to the treasury. The
@@ -166,6 +167,7 @@ contract TriviuExecutor {
         Leg[] calldata legs
     ) external nonReentrant {
         if (!registry.isAllowedToken(asset)) revert TokenNotAllowed(asset);
+        if (principal == 0) revert ZeroPrincipal();
         uint256 len = legs.length;
         if (len == 0) revert NoLegs();
         // The cycle MUST open and close on `asset` — no leg can leave value
@@ -217,8 +219,11 @@ contract TriviuExecutor {
             uint16 bps = registry.feeBps();
             if (bps > MAX_FEE_BPS) bps = MAX_FEE_BPS;
             fee = (profit * bps) / 10_000;
-            if (fee != 0) {
-                _safeTransfer(asset, treasury, fee);
+            // A broken or blacklisting treasury must never block the caller's
+            // payout: if the fee transfer fails, skip the fee (the caller gets
+            // the full delta) instead of reverting the whole cycle.
+            if (fee != 0 && !_trySafeTransfer(asset, treasury, fee)) {
+                fee = 0;
             }
         }
 
@@ -287,6 +292,17 @@ contract TriviuExecutor {
         } else if (token.code.length == 0) {
             revert TransferFailed(token);
         }
+    }
+
+    /// @dev Non-reverting transfer used ONLY for the success fee: returns false
+    ///      instead of reverting, so a broken or blacklisting treasury cannot
+    ///      block the caller's payout. The payout itself still uses the
+    ///      reverting `_safeTransfer` — the caller must be paid or the tx reverts.
+    function _trySafeTransfer(address token, address to, uint256 value) private returns (bool) {
+        (bool ok, bytes memory ret) = token.call(abi.encodeCall(IERC20.transfer, (to, value)));
+        if (!ok) return false;
+        if (ret.length != 0) return abi.decode(ret, (bool));
+        return token.code.length != 0;
     }
 
     /*//////////////////////////////////////////////////////////////////////

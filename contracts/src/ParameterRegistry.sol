@@ -7,19 +7,28 @@ pragma solidity ^0.8.24;
 ///         whitelists, slippage caps and default minProfit. Every change here
 ///         MUST originate from a public pull request — and the event records
 ///         the PR URL, creating the forum → Git → block audit trail.
-/// @dev    v0, NOT AUDITED. `owner` starts as the deployer and will be
-///         transferred to a timelocked multisig before any mainnet
-///         (litepaper §4.2).
+/// @dev    v0, NOT AUDITED. `owner` starts as the deployer and, per the
+///         whitepaper's governance chapter, is handed off (two-step) to a
+///         timelocked multisig before any mainnet deployment.
 contract ParameterRegistry {
     address public owner;
+
+    /// @notice Pending owner in a two-step handoff (0 when none is in flight).
+    address public pendingOwner;
 
     mapping(address => bool) public isAllowedToken;
     mapping(address => bool) public isAllowedTarget;
 
-    /// @notice Slippage cap in basis points (1% = 100 bps).
+    /// @notice Advisory slippage cap in basis points (1% = 100 bps). ENGINE HINT
+    ///         ONLY — the Executor does NOT read this. On-chain slippage
+    ///         protection is the caller-supplied per-leg `amountOutMin` plus the
+    ///         terminal `minProfit` gate. Published here so the engine and UIs
+    ///         share one source, not to imply an on-chain cap.
     uint16 public maxSlippageBps;
 
-    /// @notice Suggested default minProfit (reference-asset units).
+    /// @notice Suggested default minProfit (reference-asset units). ENGINE HINT
+    ///         ONLY — the Executor takes `minProfit` as a call argument and does
+    ///         not read this default.
     uint256 public defaultMinProfit;
 
     /// @notice Success-fee rate in basis points, applied to a cycle's PROFIT
@@ -31,6 +40,7 @@ contract ParameterRegistry {
     address public treasury;
 
     event OwnerTransferred(address indexed previousOwner, address indexed newOwner);
+    event OwnershipTransferStarted(address indexed previousOwner, address indexed newOwner);
     event TokenAllowed(address indexed token, bool allowed, string prUrl);
     event TargetAllowed(address indexed target, bool allowed, string prUrl);
     event MaxSlippageSet(uint16 bps, string prUrl);
@@ -40,6 +50,8 @@ contract ParameterRegistry {
 
     error NotOwner();
     error EmptyPrUrl();
+    error ZeroAddress();
+    error NotPendingOwner();
 
     modifier onlyOwner() {
         if (msg.sender != owner) revert NotOwner();
@@ -59,9 +71,22 @@ contract ParameterRegistry {
         defaultMinProfit = _defaultMinProfit;
     }
 
+    /// @notice Start a two-step ownership handoff. The new owner must call
+    ///         `acceptOwner` to finish it, so a mistyped address cannot brick
+    ///         governance; address(0) is rejected outright. This matters because
+    ///         the planned handoff is to a high-value timelocked multisig.
     function transferOwner(address newOwner) external onlyOwner {
-        emit OwnerTransferred(owner, newOwner);
-        owner = newOwner;
+        if (newOwner == address(0)) revert ZeroAddress();
+        pendingOwner = newOwner;
+        emit OwnershipTransferStarted(owner, newOwner);
+    }
+
+    /// @notice Finish the handoff. Only the pending owner can call this.
+    function acceptOwner() external {
+        if (msg.sender != pendingOwner) revert NotPendingOwner();
+        emit OwnerTransferred(owner, pendingOwner);
+        owner = pendingOwner;
+        pendingOwner = address(0);
     }
 
     function setToken(address token, bool allowed, string calldata prUrl)

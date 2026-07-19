@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import { findNegativeCycle, meetsExecutionCondition, type Edge } from "./bellmanFord.js";
 
-describe("findNegativeCycle — litepaper §3 worked examples", () => {
+describe("findNegativeCycle — whitepaper §3 worked examples", () => {
   it("detects a profitable triangle (rate product > 1)", () => {
     // Product = 1.02 · 1.03 · 0.97 = 1.019082 > 1 ⇒ gross profit exists.
     const edges: Edge[] = [

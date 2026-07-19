@@ -77,7 +77,7 @@ async function main() {
     found.grossFactor.toFixed(6)
   );
 
-  // Floating-point PREVIEW of the litepaper §3 condition (gas still unknown).
+  // Floating-point PREVIEW of the whitepaper §3 condition (gas still unknown).
   // The BINDING check is the contract's require, exercised by the simulation.
   const principal = Number(params.execution.principalWei) / 1e18;
   const preview = meetsExecutionCondition({
@@ -113,6 +113,17 @@ async function main() {
     return;
   }
 
+  // A parallel-pool 2-cycle (A→B→A) is a legitimate detector result but not a
+  // triangular route — skip it instead of crashing the run.
+  if (path.length < 4) {
+    console.log(`Detected cycle is not triangular (${path.length - 1} hops) — skipping, not submitting.`);
+    return;
+  }
+
+  // v0 LIMITATION: the shipped path builds single-router, all-UniV2 legs. The
+  // executor's UniV3 adapter and per-hop routing exist but are reached only by
+  // explicit callers; carrying pool/dex/fee per hop from the detector is a
+  // scheduled engine item (audit finding C1).
   const asset = path[0]!;
   const legs = buildTriangularCycleLegs({
     router: params.router.univ2,

@@ -338,6 +338,28 @@ contract TriviuExecutorTest is Test {
         executor.executeCycle(address(tA), 100e18, 10e18, _legsV2());
     }
 
+    /// A donation of an INTERMEDIATE token (tB) is also preserved: the cycle
+    /// chains by measured output, so it never swaps the donated tB.
+    function test_Donation_IntermediateTokenPreserved() public {
+        uint256 donation = 7e18;
+        tB.mint(address(executor), donation);
+        _setResultV2(10e18);
+
+        vm.prank(alice);
+        executor.executeCycle(address(tA), 100e18, 10e18, _legsV2());
+
+        assertEq(tA.balanceOf(alice), 1_010e18, "cycle settles normally");
+        assertEq(tB.balanceOf(address(executor)), donation, "intermediate-token donation preserved");
+    }
+
+    function test_RevertWhen_ZeroPrincipal() public {
+        // A zero-principal cycle is a no-op that would only spam the event
+        // stream — rejected outright.
+        vm.prank(alice);
+        vm.expectRevert(TriviuExecutor.ZeroPrincipal.selector);
+        executor.executeCycle(address(tA), 0, 0, _legsV2());
+    }
+
     /*//////////////////////////////////////////////////////////////////////
                                 SUCCESS FEE
     //////////////////////////////////////////////////////////////////////*/
@@ -688,5 +710,117 @@ contract TriviuExecutorInvariantTest is Test {
         assertEq(tA.balanceOf(address(executor)), handler.totalDonated());
         assertEq(tB.balanceOf(address(executor)), 0);
         assertEq(tC.balanceOf(address(executor)), 0);
+    }
+}
+
+/*//////////////////////////////////////////////////////////////////////////
+    SafeERC20 + broken-treasury edge tokens (audit findings E1, O-1).
+//////////////////////////////////////////////////////////////////////////*/
+
+/// transferFrom returns false WITHOUT reverting — the classic silent failure a
+/// naive `token.transferFrom(...)` would ignore.
+contract FalseReturningToken {
+    mapping(address => uint256) public balanceOf;
+    function mint(address to, uint256 a) external { balanceOf[to] += a; }
+    function approve(address, uint256) external pure returns (bool) { return true; }
+    function transfer(address, uint256) external pure returns (bool) { return false; }
+    function transferFrom(address, address, uint256) external pure returns (bool) { return false; }
+}
+
+/// Reverts when transferring to a blacklisted address (models USDC-style
+/// blacklisting of, say, the treasury).
+contract BlacklistingToken {
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+    address public blacklisted;
+    function setBlacklist(address a) external { blacklisted = a; }
+    function mint(address to, uint256 a) external { balanceOf[to] += a; }
+    function approve(address s, uint256 a) external returns (bool) { allowance[msg.sender][s] = a; return true; }
+    function transferFrom(address f, address t, uint256 a) external returns (bool) {
+        uint256 al = allowance[f][msg.sender];
+        if (al != type(uint256).max) allowance[f][msg.sender] = al - a;
+        balanceOf[f] -= a; balanceOf[t] += a; return true;
+    }
+    function transfer(address to, uint256 a) external returns (bool) {
+        require(to != blacklisted, "blacklisted");
+        balanceOf[msg.sender] -= a; balanceOf[to] += a; return true;
+    }
+}
+
+/// Minimal self-cycle router (token→token) for the edge-token tests.
+contract SelfSwapRouter {
+    address public token;
+    int256 public delta;
+    function set(address t, int256 d) external { token = t; delta = d; }
+    function swapExactTokensForTokens(uint256 amountIn, uint256, address[] calldata, address to, uint256)
+        external returns (uint256[] memory amounts)
+    {
+        BlacklistingToken(token).transferFrom(msg.sender, address(this), amountIn);
+        uint256 out = delta >= 0 ? amountIn + uint256(delta) : amountIn - uint256(-delta);
+        BlacklistingToken(token).transfer(to, out);
+        amounts = new uint256[](2);
+    }
+}
+
+contract TriviuExecutorSafeTransferTest is Test {
+    string constant PR = "https://github.com/Triviu-Protocol/Triviu-Protocol/pull/1";
+
+    ParameterRegistry registry;
+    TriviuExecutor executor;
+    address alice;
+
+    function setUp() public {
+        registry = new ParameterRegistry(30, 0);
+        executor = new TriviuExecutor(address(registry));
+        alice = makeAddr("alice");
+    }
+
+    function _selfLeg(address token, address router)
+        internal
+        pure
+        returns (TriviuExecutor.Leg[] memory legs)
+    {
+        legs = new TriviuExecutor.Leg[](1);
+        legs[0] = TriviuExecutor.Leg(TriviuExecutor.Dex.UniV2, router, token, token, 0, 0);
+    }
+
+    /// E1: a token whose transferFrom returns false is rejected, not silently
+    /// accepted — the SafeERC20 wrapper turns it into TransferFailed.
+    function test_SafeERC20_RejectsFalseReturnOnPull() public {
+        FalseReturningToken bad = new FalseReturningToken();
+        registry.setToken(address(bad), true, PR);
+        registry.setTarget(address(0xBEEF), true, PR);
+        bad.mint(alice, 100e18);
+
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(TriviuExecutor.TransferFailed.selector, address(bad)));
+        executor.executeCycle(address(bad), 100e18, 0, _selfLeg(address(bad), address(0xBEEF)));
+    }
+
+    /// O-1: a broken/blacklisting treasury must NEVER block the caller's payout.
+    /// The fee is skipped (caller gets the full delta) and the cycle settles.
+    function test_Fee_SkippedWhenTreasuryTransferReverts() public {
+        BlacklistingToken token = new BlacklistingToken();
+        SelfSwapRouter router = new SelfSwapRouter();
+        address treasury = makeAddr("badTreasury");
+
+        router.set(address(token), 10e18);  // 10 profit on the self-cycle
+        token.setBlacklist(treasury);        // the token reverts transfers to treasury
+        registry.setToken(address(token), true, PR);
+        registry.setTarget(address(router), true, PR);
+        registry.setTreasury(treasury, PR);
+        registry.setFeeBps(3000, PR);
+
+        token.mint(alice, 1_000e18);
+        token.mint(address(router), 1_000e18);
+        vm.prank(alice);
+        token.approve(address(executor), type(uint256).max);
+
+        vm.prank(alice);
+        executor.executeCycle(address(token), 100e18, 1, _selfLeg(address(token), address(router)));
+
+        assertEq(token.balanceOf(treasury), 0, "fee skipped - a bad treasury never gets paid");
+        assertEq(token.balanceOf(alice), 1_010e18, "caller receives the FULL delta, unblocked");
+        assertEq(token.balanceOf(address(executor)), 0, "executor ends empty");
     }
 }

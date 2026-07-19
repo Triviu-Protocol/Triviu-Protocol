@@ -75,9 +75,15 @@ export async function simulateCycle(
 
   try {
     await client.simulateContract(call);
-    const gasUsed = client.estimateContractGas ? await client.estimateContractGas(call) : undefined;
-    return gasUsed === undefined ? { ok: true } : { ok: true, gasUsed };
   } catch (err) {
     return { ok: false, reason: explainRevert(err) };
+  }
+  // The route is valid. A gas-estimation hiccup must NOT be reported as a
+  // revert — keep the two calls separate so a successful sim is never masked.
+  if (!client.estimateContractGas) return { ok: true };
+  try {
+    return { ok: true, gasUsed: await client.estimateContractGas(call) };
+  } catch {
+    return { ok: true };
   }
 }
