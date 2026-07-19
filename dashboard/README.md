@@ -3,10 +3,13 @@
 Principle: a metric without its failure context is marketing; a metric with
 failures included is evidence.
 
-- **[`index.html`](index.html)** — the public dashboard frontend (single file,
-  zero build, brand-token styled). It shows the three metrics in an honest
-  "no data yet" state until the first deployment; no numbers are invented.
-- **`queries/`** — the versioned SQL that will feed it, live from day one.
+- **The served frontend is [`site/dashboard/index.html`](../site/dashboard/index.html)**
+  — published at `triviu.vercel.app/dashboard`. Single file, zero build, brand-token
+  styled, multi-chain, theme-aware. It shows the three metrics in an honest
+  "no data yet · after deploy, per chain" state until the first deployment; no
+  numbers are invented.
+- **`queries/`** — the versioned SQL that will feed it, per chain via `{{chain}}`,
+  live from day one.
 
 The frontend and queries are written now and parameterized; they fill in with
 real on-chain data (and get linked from the root README) at the first mainnet
@@ -22,8 +25,8 @@ deployment, when the executor address exists.
 
 ## Placeholders (resolved at deployment)
 
-- `{{executor_address}}` — TriviuExecutor address, verified on Polygonscan
-- `{{chain}}` — Dune table prefix (e.g. `polygon`)
+- `{{executor_address}}` — TriviuExecutor address, verified on the chain's explorer (Polygonscan / Arbiscan / BscScan)
+- `{{chain}}` — Dune table prefix, per chain (e.g. `polygon` / `arbitrum` / `bnb`)
 - `{{cycle_executed_topic}}` — `keccak256("CycleExecuted(address,address,uint256,uint256)")`
 
 Reverts are counted as attempts to the executor carrying the `executeCycle`

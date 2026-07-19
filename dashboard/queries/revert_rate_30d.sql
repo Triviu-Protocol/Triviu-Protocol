@@ -4,8 +4,9 @@
 -- reverted attempts, so the published number is the honest one.
 --
 -- Placeholders resolved at first testnet/mainnet deployment:
---   {{executor_address}} · TriviuExecutor address (verified on Polygonscan)
---   {{chain}}            · Dune table prefix, e.g. polygon
+--   {{executor_address}} · TriviuExecutor address (verified on the chain's explorer:
+--                          Polygonscan / Arbiscan / BscScan)
+--   {{chain}}            · Dune table prefix per chain, e.g. polygon / arbitrum / bnb
 --
 -- Success = a CycleExecuted event. Attempt = any transaction whose `to` is the
 -- executor and whose input selector is executeCycle (0x26485409). Reverts are

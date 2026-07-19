@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triviu · Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M40 25.36 Q76 32.3 100 60' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M100 60 Q76 87.7 40 94.64' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M40 94.64 Q28 60 40 25.36' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='40' cy='25.36' r='11' fill='%232743C7'/%3E%3Ccircle cx='100' cy='60' r='11' fill='%23C13327'/%3E%3Ccircle cx='40' cy='94.64' r='11' fill='%23E8B23A'/%3E%3C/svg%3E">
+<meta name="description" content="Triviu's public execution dashboard — every execution, failures included. Pre-mainnet: no data is deployed yet on any chain, and Triviu invents no numbers. The metrics fill in from public on-chain data at the first deployment, per chain. Don't trust — read the SQL.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
+  --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
+  --verde:#1E7A46;
+  --fd:"Libre Caslon Text",Georgia,serif;--ft:"Public Sans",system-ui,sans-serif;--fm:"IBM Plex Mono",ui-monospace,monospace;
+  --r-m:6px;--r-l:10px;
+}
+@media(prefers-color-scheme:dark){:root{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}}
+:root[data-theme="dark"]{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}
+:root[data-theme="light"]{--papel:#FAFAF7;--tinta:#16181D;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-fundo:#FBF3DF;--acafrao-texto:#8A6414;--verde:#1E7A46;}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--papel);color:var(--tinta);font-family:var(--ft);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--ultramar);text-decoration:none}a:hover{text-decoration:underline}
+.mono{font-family:var(--fm)}
+.top{position:sticky;top:0;z-index:20;background:var(--papel);border-bottom:1px solid var(--fio);padding:14px 22px;display:flex;align-items:center;gap:12px}
+.top svg.lg{width:26px;height:26px}.top b{font-size:15px}.top .spacer{flex:1}
+.top a.nav{font-family:var(--fm);font-size:12px;color:var(--grafite)}
+.themebtn{width:30px;height:30px;padding:0;border:1px solid var(--fio);background:transparent;color:var(--grafite);border-radius:var(--r-m);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.themebtn:hover{color:var(--tinta);border-color:var(--tinta)}.themebtn svg{width:16px;height:16px}
+.wrap{max-width:1000px;margin:0 auto;padding:52px 24px 72px}
+.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--grafite);margin-bottom:14px}
+h1{font-family:var(--fd);font-size:36px;line-height:1.12;letter-spacing:-.01em;margin-bottom:16px}
+@media(max-width:640px){h1{font-size:28px}}
+.lead{font-size:16px;color:var(--grafite);max-width:72ch;margin-bottom:24px}
+.aviso{background:var(--acafrao-fundo);border:1px solid var(--acafrao);border-radius:var(--r-m);padding:14px 18px;margin-bottom:32px;max-width:82ch}
+.aviso b{font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:var(--acafrao-texto);display:block;margin-bottom:5px}
+.aviso p{font-size:13.5px;margin:0}
+.chains{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px}
+.cpill{font-family:var(--fm);font-size:11px;border:1px solid var(--fio);border-radius:999px;padding:5px 12px;color:var(--grafite);display:inline-flex;align-items:center;gap:6px}
+.cpill .d{width:8px;height:8px;border-radius:50%;display:inline-block}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:36px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.metric{border:1px solid var(--fio);border-radius:var(--r-l);padding:20px 20px 18px;background:var(--papel);border-top:3px solid var(--ac)}
+.metric .lbl{font-family:var(--fm);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--grafite);margin-bottom:10px}
+.metric .val{font-family:var(--fm);font-size:30px;font-weight:500;display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.metric .pill{font-family:var(--fm);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--grafite);color:var(--grafite);border-radius:999px;padding:3px 9px}
+.metric .note{font-size:12.5px;color:var(--grafite)}
+.status{border:1px solid var(--fio);border-radius:var(--r-l);padding:22px;background:var(--nevoa);margin-bottom:36px}
+.status h2{font-family:var(--fd);font-size:20px;margin-bottom:8px}
+.status p{font-size:14px;color:var(--tinta);margin-bottom:10px;max-width:78ch}
+.status .q{font-family:var(--fm);font-size:12.5px;margin-top:8px}
+.vt{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:8px}
+.vt td{padding:9px 0;border-bottom:1px solid var(--fio)}
+.vt td:last-child{text-align:right;font-family:var(--fm);font-size:12px;color:var(--grafite)}
+footer{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:1.9}
+</style>
+</head>
+<body>
+<header class="top">
+  <svg class="lg" viewBox="0 0 120 120" aria-label="Triviu"><path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="25.36" r="8.5" fill="#2743C7"/><circle cx="100" cy="60" r="8.5" fill="#C13327"/><circle cx="40" cy="94.64" r="8.5" fill="#E8B23A"/></svg>
+  <b>Triviu</b><span class="mono" style="font-size:12px;color:var(--grafite)">· Dashboard</span>
+  <span class="spacer"></span>
+  <button class="themebtn" id="theme" aria-label="Toggle light or dark theme" title="Theme"></button>
+  <a class="nav" href="/">Home</a><a class="nav" href="/simulate">Simulate</a><a class="nav" href="/chains">Chains</a><a class="nav" href="/learn">Learn</a><a class="nav" href="/whitepaper">Whitepaper</a>
+</header>
+<div class="wrap">
+  <div class="eyebrow">Every execution · failures included</div>
+  <h1>The public record, failures included.</h1>
+  <p class="lead">A metric without its failure context is marketing; a metric with
+  failures included is evidence. This dashboard will publish <b>every</b> execution —
+  the reverts and the losses alongside the wins — because that is the only honest way
+  to show what atomic arbitrage actually does.</p>
+
+  <div class="aviso">
+    <b>Where this stands</b>
+    <p>Nothing is deployed on any chain yet, so there is nothing honest to plot — and
+    Triviu invents no numbers. The moment the Executor is deployed and verified, this
+    dashboard fills in from public on-chain data, per chain, with failures included
+    from the first block. Reverted transactions still pay gas.</p>
+  </div>
+
+  <div class="chains">
+    <span class="cpill"><span class="d" style="background:var(--acafrao)"></span>Polygon · first</span>
+    <span class="cpill"><span class="d" style="background:var(--ultramar)"></span>Arbitrum · after its gate</span>
+    <span class="cpill"><span class="d" style="background:var(--lacre)"></span>BSC · after its gate</span>
+  </div>
+
+  <div class="grid">
+    <div class="metric" style="--ac:var(--ultramar)">
+      <div class="lbl">Executions · 30 days</div>
+      <div class="val">— <span class="pill">no data yet</span></div>
+      <div class="note">Attempts to the executor, reverts included — never only the successes.</div>
+    </div>
+    <div class="metric" style="--ac:var(--lacre)">
+      <div class="lbl">Revert rate · 30 days</div>
+      <div class="val">— <span class="pill">no data yet</span></div>
+      <div class="note">The real number, good or bad. Published from day one, per chain.</div>
+    </div>
+    <div class="metric" style="--ac:var(--acafrao)">
+      <div class="lbl">Gas spent vs net result</div>
+      <div class="val">— <span class="pill">no data yet</span></div>
+      <div class="note">Gas burned across all attempts — reverts still pay gas.</div>
+    </div>
+  </div>
+
+  <div class="status">
+    <h2>It goes live with the first deployment — per chain.</h2>
+    <p>There is no on-chain deployment yet (see the <a href="/chains">chains</a> and the
+    <a href="/whitepaper">roadmap</a>), so the numbers stay empty on purpose. When a
+    chain's Executor is deployed and verified, its metrics fill in here from public
+    on-chain data — Polygon first, then Arbitrum and BSC, each after its own gate.</p>
+    <p class="q">The SQL that will feed it is already public and versioned — don't trust, read it:
+    <a href="https://github.com/Triviu-Protocol/Triviu-Protocol/blob/main/dashboard/queries/revert_rate_30d.sql">revert rate</a> ·
+    <a href="https://github.com/Triviu-Protocol/Triviu-Protocol/blob/main/dashboard/queries/executions_by_route.sql">executions by route</a> ·
+    <a href="https://github.com/Triviu-Protocol/Triviu-Protocol/blob/main/dashboard/queries/gas_vs_net_result.sql">gas vs net result</a>.</p>
+  </div>
+
+  <h2 style="font-family:var(--fd);font-size:20px;margin-bottom:12px">Don't trust — verify</h2>
+  <table class="vt">
+    <tr><td>Whitepaper — the founding document</td><td><a href="/whitepaper">/whitepaper</a></td></tr>
+    <tr><td>Contracts, v0 — tested, external audit pending</td><td><a href="https://github.com/Triviu-Protocol/Triviu-Protocol">github · /contracts</a></td></tr>
+    <tr><td>Decisions and their costs (Tradeoff Records)</td><td><a href="https://github.com/Triviu-Protocol/Triviu-Protocol/tree/main/decisions">github · /decisions</a></td></tr>
+    <tr><td>Verified addresses — each chain's explorer</td><td>at mainnet deploy, per chain</td></tr>
+    <tr><td>The chains and what each costs</td><td><a href="/chains">/chains</a></td></tr>
+  </table>
+
+  <footer>Triviu · Open source. Verifiable math. No promises.<br>
+    Education, not income · failures included, always. Don't trust this; verify it in
+    <a href="/whitepaper">the whitepaper</a> and the public repository.</footer>
+</div>
+<script>
+const SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+function curTheme(){const s=localStorage.getItem("triviu-theme");if(s)return s;return window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}
+function applyTheme(t){document.documentElement.setAttribute("data-theme",t);const b=document.getElementById("theme");if(b)b.innerHTML=t==="dark"?SUN:MOON;}
+applyTheme(curTheme());
+document.getElementById("theme").addEventListener("click",function(){const next=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";localStorage.setItem("triviu-theme",next);applyTheme(next);});
+</script>
+</body>
+</html>
