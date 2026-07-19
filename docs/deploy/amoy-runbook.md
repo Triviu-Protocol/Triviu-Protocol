@@ -93,5 +93,5 @@ failures included from day one.
 
 ---
 **Not on this runbook:** mainnet. That step waits on the external audit
-(litepaper §10) and the resolution of the two documented MEDIUM findings
+(whitepaper §9 · security and audits) and the resolution of the two documented MEDIUM findings
 (F-01, F-02). The engine also refuses chain 137 unless `TRIVIU_I_ACCEPT_THE_RISK=yes`.

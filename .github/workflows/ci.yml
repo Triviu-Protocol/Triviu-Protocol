@@ -28,6 +28,16 @@ jobs:
       - run: npm test
         working-directory: engine
 
+  # Multi-chain honesty sentinel: no public surface may claim a chain is "live"
+  # (nothing is deployed) or assert single-chain exclusivity. Fails on regression.
+  surfaces:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: node scripts/check-multichain-honesty.mjs
+
   # Static analysis of the contracts. Fails the build only on HIGH findings;
   # the MEDIUM/INFO items are already triaged in docs/audits (Medusa report).
   slither:

@@ -13,11 +13,19 @@ negative cycle in the `−ln(rate)` graph).
 **CEI (Checks-Effects-Interactions)** — a pattern that updates state before any
 external call, preventing reentrancy. The Gas-Tank withdraw follows it.
 
+**Chain-agnostic (EVM)** — the contracts are EVM-equivalent, so the same audited
+code runs on any EVM chain by configuration. Polygon is the default; Arbitrum and
+BSC ship with example configs and are modelled in the
+[simulator](https://triviu.vercel.app/simulate). Each chain has its own Tradeoff
+Record in `/decisions` and its own deploy gate — none is "live" until that gate
+clears. Solana is not EVM and is a deferred sibling protocol, not a config.
+
 **DEX** — decentralized exchange. Triviu operates over DEX liquidity pools.
 
-**Fee wall** — the three 0.3% pool fees compound to `0.997³ ≈ 0.991`: about 0.9%
-lost before slippage or gas. A cycle's price product must beat ~1.009 just to break
-even. Watch it in the [simulator](https://triviu.vercel.app/simulate).
+**Fee wall** — the pool fees compound over the cycle: for N hops at 0.3% each,
+`0.997^N` (three hops ≈ 0.991, about 0.9% lost before slippage or gas). More hops
+means a taller wall, not more chances. The rate is per-pool — PancakeSwap V2 on BSC
+is 0.25%, not 0.3%. Watch it scale in the [simulator](https://triviu.vercel.app/simulate).
 
 **Gas-Tank** — a non-custodial, per-user gas-safety reserve; see
 [Section 6](06-gas-tank.md). Not protocol revenue.

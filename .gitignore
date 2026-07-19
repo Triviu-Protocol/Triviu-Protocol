@@ -12,3 +12,5 @@ engine/config/params.toml
 /adm/
 /docs/internal/
 /docs/architecture/
+
+.vercel

@@ -1,0 +1,49 @@
+# Triviu engine parameters — BNB SMART CHAIN (BSC). Copy to params.toml and adjust.
+# The Solidity contracts are the SAME as Polygon (EVM); only this config differs.
+# On-chain deployment is a MAINNET action gated by docs/mainnet-deploy-runbook.md
+# and the Deploy.s.sol guard — Web2 first, on-chain last. Your params.toml copy is
+# PERSONAL and gitignored (rpc_url often embeds a provider API key).
+
+[network]
+chain_id = 56            # BNB Smart Chain
+rpc_url = "http://127.0.0.1:8545"  # default: local fork. Prefer a self-hosted RPC in production.
+
+[execution]
+dry_run = true           # default: NEVER sends a transaction. Change deliberately.
+min_profit_wei = "5000000000000000"   # teaching example; calibrate via simulation
+principal_wei = "1000000000000000000" # volume V for the cycle (wei of the start asset)
+max_slippage_bps = 30
+
+[assets]
+# BSC — bytecode presence verified on-chain 2026-07-19 via public RPC.
+# Don't trust, verify: re-check every address on bscscan.com before using.
+# NOTE: BSC USDT and USDC use 18 decimals (not 6 like on Polygon/Ethereum).
+wbnb = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+usdt = "0x55d398326f99059fF775485246999027B3197955"
+usdc = "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"
+dai  = "0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3"
+busd = "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56"  # honorable mention — BUSD is being wound down; verify liquidity
+cake = "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"
+
+[router]
+# PancakeSwap V2 (UniV2-compatible, flat 0.25% fee). Router → factory() → the pool
+# below all verified consistent on-chain 2026-07-19.
+# NOTE: PancakeSwap V2 fee is 0.25% (fee_bps = 25), NOT 0.30%. The engine reads
+# fee_bps per pool — do not assume 0.3% on BSC.
+univ2 = "0x10ED43C718714eb63d5aA57B78B54704E256024E"
+
+[contracts]
+# TriviuExecutor address — empty until your own deploy (local fork first).
+executor = ""
+
+# Pool the monitor reads. token0/token1 order MUST match the pair contract.
+# Verified on-chain 2026-07-19: getPair(WBNB,USDT) on PancakeSwap factory returns
+# this pair, token0() = USDT, token1() = WBNB — re-verify yourself on bscscan.com.
+[[pools]]
+kind = "univ2"
+address = "0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE" # PancakeSwap WBNB/USDT
+token0 = "usdt"
+token1 = "wbnb"
+decimals0 = 18
+decimals1 = 18
+fee_bps = 25

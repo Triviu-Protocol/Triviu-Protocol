@@ -1,0 +1,48 @@
+# Triviu engine parameters — ARBITRUM ONE. Copy to params.toml and adjust.
+# The Solidity contracts are the SAME as Polygon (EVM); only this config differs.
+# On-chain deployment is a MAINNET action gated by docs/mainnet-deploy-runbook.md
+# and the Deploy.s.sol guard — Web2 first, on-chain last. Your params.toml copy is
+# PERSONAL and gitignored (rpc_url often embeds a provider API key).
+
+[network]
+chain_id = 42161         # Arbitrum One
+rpc_url = "http://127.0.0.1:8545"  # default: local fork. Prefer a self-hosted RPC in production.
+
+[execution]
+dry_run = true           # default: NEVER sends a transaction. Change deliberately.
+min_profit_wei = "1000000000000000"   # teaching example; calibrate via simulation
+principal_wei = "1000000000000000000" # volume V for the cycle (wei of the start asset)
+max_slippage_bps = 30
+
+[assets]
+# Arbitrum One — bytecode presence verified on-chain 2026-07-19 via public RPC.
+# Don't trust, verify: re-check every address on arbiscan.io before using.
+weth = "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1"
+usdc = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"  # native USDC (6 decimals)
+usdt = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9"
+dai  = "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1"
+arb  = "0x912CE59144191C1204E64559FE8253a0e49E6548"
+
+[router]
+# SushiSwap V2 (UniV2-compatible, flat 0.30% fee — matches the 0.997 constant).
+# Router → factory() → the pool below all verified consistent on-chain 2026-07-19.
+# NOTE: Camelot is the larger native Arbitrum DEX, but its v2 pairs use DYNAMIC
+# directional fees, so they are NOT modeled by the flat-0.3% UniV2 math. Use a
+# constant-fee venue (SushiSwap) with this engine, or extend the adapter first.
+univ2 = "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506"
+
+[contracts]
+# TriviuExecutor address — empty until your own deploy (local fork first).
+executor = ""
+
+# Pool the monitor reads. token0/token1 order MUST match the pair contract.
+# Verified on-chain 2026-07-19: getPair(WETH,USDC) on SushiSwap factory returns
+# this pair, token0() = WETH, token1() = USDC — re-verify yourself on arbiscan.io.
+[[pools]]
+kind = "univ2"
+address = "0x57b85FEf094e10b5eeCDF350Af688299E9553378" # SushiSwap WETH/USDC
+token0 = "weth"
+token1 = "usdc"
+decimals0 = 18
+decimals1 = 6
+fee_bps = 30

@@ -1,10 +1,16 @@
 # Triviu
 
+> **⚠ SUPERSEDED.** This Litepaper v0.1 is kept for history only. The canonical,
+> current document is the **[Whitepaper](../whitepaper/README.md)** (16 sections),
+> which also covers the multi-chain reality — Polygon first, with the same audited
+> contracts designed for Arbitrum and BSC, and Solana as a deferred sibling. Where
+> this file and the whitepaper disagree, the whitepaper wins.
+
 **An open protocol for atomic arbitrage and educational infrastructure in DeFi**
 
-Litepaper v0.1 — July 2026
-Network: Polygon PoS · Code license: AGPL-3.0 · Authors: Triviu Contributors
-*Canonical version (English). This is the source of truth for the protocol.*
+Litepaper v0.1 — July 2026 · **superseded by the Whitepaper**
+Network: Polygon PoS (first) · Code license: AGPL-3.0 · Authors: Triviu Contributors
+*Historical draft (English). No longer the source of truth — see the Whitepaper.*
 
 ---
 

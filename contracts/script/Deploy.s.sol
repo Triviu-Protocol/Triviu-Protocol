@@ -17,7 +17,10 @@ import {GasTank} from "../src/GasTank.sol";
 ///           forge script script/Deploy.s.sol --rpc-url http://127.0.0.1:8545 \
 ///             --broadcast --private-key $DEPLOYER_KEY
 ///
-///         Mainnet (only after the runbook gates in docs/mainnet-deploy-runbook.md):
+///         Mainnet (only after the runbook gates in docs/mainnet-deploy-runbook.md).
+///         The SAME contracts serve every supported EVM chain — Polygon (137),
+///         Arbitrum One (42161), BSC (56); the operator's --rpc-url picks which.
+///         --verify needs that chain's explorer key (Polygonscan/Arbiscan/BscScan):
 ///           TRIVIU_OWNER_MULTISIG=0x... TRIVIU_MAINNET_ACK=audit-and-trust-gates-done \
 ///           forge script script/Deploy.s.sol --rpc-url $POLYGON_RPC \
 ///             --broadcast --verify --private-key $DEPLOYER_KEY
@@ -32,7 +35,11 @@ import {GasTank} from "../src/GasTank.sol";
 ///         `acceptOwner()` to finish it. Deploying without it leaves the
 ///         deployer EOA as owner — flagged loudly, and forbidden on mainnet.
 contract Deploy is Script {
-    uint256 internal constant POLYGON_MAINNET = 137;
+    // Local rehearsal chain ids (anvil / hardhat). EVERY other chain id is treated
+    // as a real network and must pass the mainnet gate — so a newly-supported chain
+    // (Arbitrum, BSC, or any future one) can never slip through ungated by default.
+    uint256 internal constant ANVIL = 31337;
+    uint256 internal constant HARDHAT = 1337;
 
     function run()
         external
@@ -44,9 +51,12 @@ contract Deploy is Script {
 
         address ownerMultisig = vm.envOr("TRIVIU_OWNER_MULTISIG", address(0));
 
-        // Mainnet gate: a real deployment must be explicitly acknowledged AND
-        // hand ownership to a multisig from block one — never to a bare EOA.
-        if (block.chainid == POLYGON_MAINNET) {
+        // Mainnet gate: any chain that is NOT a local rehearsal fork is a real
+        // deployment — it must be explicitly acknowledged AND hand ownership to a
+        // multisig from block one, never to a bare EOA. Fail-safe by default:
+        // unknown/new chain ids are gated, not waved through.
+        bool isLocal = block.chainid == ANVIL || block.chainid == HARDHAT;
+        if (!isLocal) {
             string memory ack = vm.envOr("TRIVIU_MAINNET_ACK", string(""));
             require(
                 keccak256(bytes(ack)) == keccak256("audit-and-trust-gates-done"),

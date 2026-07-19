@@ -7,8 +7,12 @@ gain.
 
 ## Arbitrage is a closed professional game
 
-Atomic arbitrage on Polygon is not an open field. Independent academic study of
-the FastLane/Atlas auction flow (223,356 opportunity transactions, Dec 2024 –
+Atomic arbitrage is not an open field — on **any** chain. The evidence below is
+from Polygon (the most-studied case and Triviu's default), but the dynamic is
+chain-general: wherever atomic backrunning is profitable, a small professional
+population captures it, and adding Arbitrum or BSC changes the venue, not the
+economics. Independent academic study of the FastLane/Atlas auction flow on Polygon
+(223,356 opportunity transactions, Dec 2024 –
 Sep 2025) found a searcher population that **never exceeded ~15 entities in any
 week, with only 17 unique searchers across the entire ten-month period and
 typically just 5–8 active at a time.** [1]

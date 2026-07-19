@@ -9,10 +9,13 @@ cycle is profitable — and why, for an individual, it usually is not.
 
 ## 3.1 The swap primitive
 
-On a constant-product AMM (Uniswap v2, QuickSwap v2), a pool of reserves `(x, y)`
+On a constant-product AMM (Uniswap v2, QuickSwap v2 on Polygon, SushiSwap on
+Arbitrum, PancakeSwap V2 on BSC), a pool of reserves `(x, y)`
 enforces the invariant `x · y = k`. For an input `Δx` of the first token, the
 output of the second is the exact on-chain `getAmountOut` — the fee is applied by
-shrinking the *effective* input, not by taxing the output:
+shrinking the *effective* input, not by taxing the output. The fee rate is a
+per-pool parameter, not a constant: 0.30% on QuickSwap/SushiSwap, but **0.25% on
+PancakeSwap V2** — the engine reads it per pool rather than assuming 0.3%:
 
 ```
           γ · Δx · y

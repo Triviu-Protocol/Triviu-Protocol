@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Triviu · Simulator</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M40 25.36 Q76 32.3 100 60' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M100 60 Q76 87.7 40 94.64' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M40 94.64 Q28 60 40 25.36' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='40' cy='25.36' r='11' fill='%232743C7'/%3E%3Ccircle cx='100' cy='60' r='11' fill='%23C13327'/%3E%3Ccircle cx='40' cy='94.64' r='11' fill='%23E8B23A'/%3E%3C/svg%3E">
-<meta name="description" content="Simulate a triangular arbitrage cycle on Triviu — real tokens, live sound, and an honest 'long run' projection. No wallet, no money, just the math.">
+<meta name="description" content="Simulate a triangular — or multi-hop — arbitrage cycle on Triviu across Polygon, Arbitrum or BSC. Pick your stablecoin, add hops, hear it, and see the honest long run. No wallet, no money.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -27,34 +27,39 @@ a{color:var(--ultramar);text-decoration:none}a:hover{text-decoration:underline}
 .top{position:sticky;top:0;z-index:20;background:var(--papel);border-bottom:1px solid var(--fio);padding:14px 22px;display:flex;align-items:center;gap:12px}
 .top svg{width:26px;height:26px}.top b{font-size:15px}.top .spacer{flex:1}
 .top a.nav{font-family:var(--fm);font-size:12px;color:var(--grafite)}
+.themebtn{width:30px;height:30px;padding:0;border:1px solid var(--fio);background:transparent;color:var(--grafite);border-radius:var(--r-m);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.themebtn:hover{color:var(--tinta);border-color:var(--tinta)}.themebtn svg{width:16px;height:16px}
 .wrap{max-width:1020px;margin:0 auto;padding:var(--s-6) var(--s-5) var(--s-7)}
 h1{font-family:var(--fd);font-size:30px;letter-spacing:-.01em;margin-bottom:10px}
 .lead{font-size:16px;color:var(--grafite);max-width:66ch;margin-bottom:var(--s-5)}
 .aviso{background:var(--acafrao-fundo);border:1px solid var(--acafrao);border-radius:var(--r-m);padding:14px 18px;margin-bottom:var(--s-6)}
 .aviso b{font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:var(--acafrao-texto);display:block;margin-bottom:5px}
 .aviso p{font-size:13.5px;margin:0}
+.selrow{display:flex;gap:var(--s-4);flex-wrap:wrap;margin-bottom:var(--s-5)}
+.sel{display:flex;flex-direction:column;gap:5px}
+.sel label{font-family:var(--fm);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--grafite)}
+select{font-family:var(--ft);font-size:14px;padding:8px 10px;border:1px solid var(--fio);border-radius:var(--r-m);background:var(--papel);color:var(--tinta)}
 .stage{display:grid;grid-template-columns:1.05fr .95fr;gap:var(--s-6);align-items:start}
 @media(max-width:800px){.stage{grid-template-columns:1fr}}
 .markwrap{border:1px solid var(--fio);border-radius:var(--r-l);background:var(--papel);padding:var(--s-4)}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
-button{font-family:var(--ft);font-size:14px;font-weight:500;padding:9px 16px;border-radius:var(--r-m);border:1px solid var(--tinta);background:var(--tinta);color:var(--papel);cursor:pointer}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+button{font-family:var(--ft);font-size:14px;font-weight:500;padding:9px 14px;border-radius:var(--r-m);border:1px solid var(--tinta);background:var(--tinta);color:var(--papel);cursor:pointer}
 button.sec{background:transparent;color:var(--tinta);border-color:var(--fio)}
+button.on{background:var(--ultramar);border-color:var(--ultramar);color:#fff}
 button:disabled{opacity:.5;cursor:default}
 button:hover:not(:disabled){opacity:.9}
 .bic{width:1em;height:1em;vertical-align:-0.13em;margin-right:6px;flex:none}
 .toolbar button{display:inline-flex;align-items:center}
 .markwrap svg.cyc{width:100%;height:auto;display:block;touch-action:none;overflow:visible}
-.arc{fill:none;stroke:var(--grafite);stroke-width:5.2;stroke-linecap:round;opacity:.6}
+.arc{fill:none;stroke:var(--grafite);stroke-width:4.6;stroke-linecap:round;opacity:.55}
 .arc.flow{stroke-dasharray:6 9;animation:march 2.4s linear infinite}
 @keyframes march{to{stroke-dashoffset:-30}}
 .node{cursor:grab;transition:r .12s ease}
-.node:active{cursor:grabbing}
-.node:focus{outline:none}
+.node:active{cursor:grabbing}.node:focus{outline:none}
 .node-ring{fill:none;stroke:var(--ultramar);stroke-width:2;opacity:0;transition:opacity .15s}
 .node:focus-visible+.node-ring,.dragging .node-ring{opacity:.9}
-.tokl{font-family:var(--fm);font-size:8px;fill:var(--tinta);font-weight:600;pointer-events:none}
+.tokl{font-family:var(--fm);font-size:7px;fill:var(--tinta);font-weight:600;pointer-events:none}
 .dot{fill:var(--ultramar);opacity:0}
-.guide{stroke:var(--fio);stroke-width:1;stroke-dasharray:2 3;opacity:0;transition:opacity .2s}
 .card{border:1px solid var(--fio);border-radius:var(--r-l);padding:var(--s-5);background:var(--papel)}
 .ctrl{margin-bottom:14px}
 .ctrl label{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:6px}
@@ -82,19 +87,16 @@ table.res td.big{font-size:16px;font-weight:600;border-bottom:none;padding-top:1
 .bar>i{display:block;height:100%;background:var(--verde);transition:width .3s}
 .note{font-size:12.5px;color:var(--grafite);margin-top:var(--s-4)}
 .hint{font-size:12px;color:var(--grafite);text-align:center;margin-top:6px}
-.cap{font-family:var(--fm);font-size:11px;color:var(--grafite);text-align:center;margin-top:2px}
+.cap{font-family:var(--fm);font-size:10.5px;color:var(--grafite);text-align:center;margin-top:2px}
 .lr{margin-top:var(--s-7);border:1px solid var(--fio);border-radius:var(--r-l);padding:var(--s-6) var(--s-5)}
 .lr h2{font-family:var(--fd);font-size:24px;margin-bottom:4px}
 .lr .sub{color:var(--grafite);font-size:14px;margin-bottom:var(--s-5);max-width:64ch}
 .lr-grid{display:grid;grid-template-columns:260px 1fr;gap:var(--s-6);align-items:start}
 @media(max-width:760px){.lr-grid{grid-template-columns:1fr}}
-.lr-in{margin-bottom:14px}
-.lr-in label{display:flex;align-items:center;gap:5px;font-size:13px;margin-bottom:5px}
+.lr-in{margin-bottom:14px}.lr-in label{display:flex;align-items:center;gap:5px;font-size:13px;margin-bottom:5px}
 .lrchart{width:100%;height:auto;display:block;border:1px solid var(--fio);border-radius:var(--r-m);background:var(--papel)}
-.lr-read{margin-top:var(--s-4)}
-.lr-read .big{font-family:var(--fm);font-size:22px;font-weight:500}
-.lr-read .ins{font-size:13.5px;color:var(--grafite);margin-top:8px;max-width:62ch}
-.lr-read .pah{font-family:var(--fm);font-size:13px;margin-top:10px}
+.lr-read{margin-top:var(--s-4)}.lr-read .big{font-family:var(--fm);font-size:22px;font-weight:500}
+.lr-read .ins{font-size:13.5px;color:var(--grafite);margin-top:8px;max-width:62ch}.lr-read .pah{font-family:var(--fm);font-size:13px;margin-top:10px}
 footer{border-top:1px solid var(--fio);margin-top:var(--s-7);padding-top:var(--s-5);font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:1.9}
 @media(prefers-reduced-motion:reduce){.arc.flow{animation:none}}
 </style>
@@ -104,63 +106,66 @@ footer{border-top:1px solid var(--fio);margin-top:var(--s-7);padding-top:var(--s
   <svg viewBox="0 0 120 120" aria-label="Triviu"><path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="25.36" r="8.5" fill="#2743C7"/><circle cx="100" cy="60" r="8.5" fill="#C13327"/><circle cx="40" cy="94.64" r="8.5" fill="#E8B23A"/></svg>
   <b>Triviu</b><span class="mono" style="font-size:12px;color:var(--grafite)">· Simulator</span>
   <span class="spacer"></span>
+  <button class="themebtn" id="theme" aria-label="Toggle light or dark theme" title="Theme"></button>
   <a class="nav" href="/">Home</a><a class="nav" href="/whitepaper">Whitepaper</a><a class="nav" href="/dashboard">Dashboard</a>
 </header>
 <div class="wrap">
-  <h1>Drag the mark. Run the cycle. Hear it.</h1>
-  <p class="lead">The three nodes are three real Polygon pools — USDC, WETH, WMATIC.
-  Drag one to change its price, watch the token flow and shrink as fees eat it, then
-  scroll to <em>The long run</em> to see what doing this over time does to your balance.
-  No wallet, no money, no chain.</p>
+  <h1>Pick a chain. Pick a stable. Run the cycle.</h1>
+  <p class="lead">A cycle starts and ends on your stablecoin and passes through real
+  pools on Polygon, Arbitrum or BSC. Add hops if you want — but each hop is another
+  0.3% fee to beat. Drag a node, hear it, then see the honest long run. No wallet,
+  no money, no chain.</p>
 
   <div class="aviso">
     <b>Read this first</b>
-    <p>Most atomic-arbitrage opportunities on Polygon are captured by professional
-    operators in the same block. This tool exists to let you feel <em>why</em>: the
-    fee wall, slippage and gas usually turn a "profit on paper" into a revert.
-    Possibility is not probability.</p>
+    <p>Most atomic-arbitrage opportunities are captured by professional operators in
+    the same block, on every chain. This tool lets you feel <em>why</em>: fees,
+    slippage and gas usually turn a "profit on paper" into a revert. A winning
+    market exists — but it is rare, and the searchers get there first. Possibility
+    is not probability.</p>
+  </div>
+
+  <div class="selrow">
+    <div class="sel"><label>Chain</label><select id="chain"></select></div>
+    <div class="sel"><label>Your stablecoin</label><select id="stable"></select></div>
+    <div class="sel"><label>Hops</label><select id="hops"><option value="3">3 · triangular</option><option value="4">4 hops</option><option value="5">5 hops</option></select></div>
   </div>
 
   <div class="stage">
     <div class="markwrap">
       <div class="toolbar">
-        <button id="run"><svg class="bic" viewBox="0 0 12 12" aria-hidden="true"><path d="M3.5 2.4 L9.6 6 L3.5 9.6 Z" fill="currentColor"/></svg>Run the cycle</button>
-        <button class="sec" id="rand"><svg class="bic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><polyline points="21 3 21 8 16 8"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><polyline points="3 21 3 16 8 16"/></svg>New market</button>
+        <button id="run"><svg class="bic" viewBox="0 0 12 12" aria-hidden="true"><path d="M3.5 2.4 L9.6 6 L3.5 9.6 Z" fill="currentColor"/></svg>Run</button>
+        <button class="sec on" id="pWin" data-preset="win">Winning</button>
+        <button class="sec" id="pFair" data-preset="fair">Fair</button>
+        <button class="sec" id="pRand" data-preset="rand"><svg class="bic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><polyline points="21 3 21 8 16 8"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><polyline points="3 21 3 16 8 16"/></svg>Random</button>
         <button class="sec" id="mute" aria-pressed="false" title="Sound"></button>
       </div>
-      <svg class="cyc" viewBox="-16 -10 152 140" role="group" aria-label="The cycle: three pools USDC, WETH, WMATIC. Drag a node to set its price.">
-        <line class="guide" id="gd0"/><line class="guide" id="gd1"/><line class="guide" id="gd2"/>
-        <path class="arc flow" id="arc0"/><path class="arc flow" id="arc1"/><path class="arc flow" id="arc2"/>
-        <circle class="dot" id="dot" r="7"/>
-        <g id="nodes"></g>
+      <svg class="cyc" viewBox="-18 -12 156 144" role="group" aria-label="The cycle. Drag a node to set that pool's price.">
+        <g id="arcs"></g><circle class="dot" id="dot" r="6"/><g id="nodes"></g>
       </svg>
-      <div class="cap">USDC → WETH → WMATIC → USDC · example pools on Polygon (QuickSwap)</div>
-      <div class="hint mono">drag a node · or use the sliders · ← → to nudge</div>
+      <div class="cap" id="cap">—</div>
+      <div class="hint mono">drag a node · Winning/Fair/Random presets · arrows on a focused node</div>
     </div>
 
     <div>
       <div class="card" style="margin-bottom:var(--s-5)">
         <span class="verdict v-revert" id="verdict">—</span>
         <table class="res">
-          <tr><td><span class="tcell">Price product (before fees) <button class="tip" data-tip="product" aria-label="What is price product?">?</button></span></td><td id="oProd">—</td></tr>
-          <tr><td><span class="tcell">Fee wall (0.997³) <button class="tip" data-tip="feewall" aria-label="What is the fee wall?">?</button></span></td><td>0.9910</td></tr>
-          <tr><td><span class="tcell">USDC back after 3 hops <button class="tip" data-tip="back" aria-label="What is back after 3 hops?">?</button></span></td><td id="oBack">—</td></tr>
-          <tr><td><span class="tcell">Gross result <button class="tip" data-tip="gross" aria-label="What is gross result?">?</button></span></td><td id="oGross">—</td></tr>
-          <tr><td><span class="tcell">Success fee <button class="tip" data-tip="fee" aria-label="What is the success fee?">?</button></span></td><td id="oFee">—</td></tr>
-          <tr><td><span class="tcell">Gas <button class="tip" data-tip="gas" aria-label="What is gas?">?</button></span></td><td id="oGas">—</td></tr>
-          <tr><td class="big"><span class="tcell">Net to you <button class="tip" data-tip="net" aria-label="What is net to you?">?</button></span></td><td class="big" id="oNet">—</td></tr>
+          <tr><td><span class="tcell">Price product <button class="tip" data-tip="product" aria-label="?">?</button></span></td><td id="oProd">—</td></tr>
+          <tr><td><span class="tcell" id="wallLbl">Fee wall <button class="tip" data-tip="feewall" aria-label="?">?</button></span></td><td id="oWall">—</td></tr>
+          <tr><td><span class="tcell"><span id="backLbl">back</span> after the cycle <button class="tip" data-tip="back" aria-label="?">?</button></span></td><td id="oBack">—</td></tr>
+          <tr><td><span class="tcell">Gross result <button class="tip" data-tip="gross" aria-label="?">?</button></span></td><td id="oGross">—</td></tr>
+          <tr><td><span class="tcell">Success fee <button class="tip" data-tip="fee" aria-label="?">?</button></span></td><td id="oFee">—</td></tr>
+          <tr><td><span class="tcell">Gas <button class="tip" data-tip="gas" aria-label="?">?</button></span></td><td id="oGas">—</td></tr>
+          <tr><td class="big"><span class="tcell">Net to you <button class="tip" data-tip="net" aria-label="?">?</button></span></td><td class="big" id="oNet">—</td></tr>
         </table>
-        <p class="note" id="explain">Drag a node or hit Run. If the cycle doesn't clear a profit, the whole transaction reverts — you only pay gas.</p>
+        <p class="note" id="explain">A winning market is loaded. Notice the RARE tag — and that adding hops raises the fee wall.</p>
       </div>
-
       <div class="card">
-        <div class="ctrl"><label><span class="lbl">Volume V (USDC) <button class="tip" data-tip="volume" aria-label="What is volume?">?</button></span><span class="v" id="vV">1,000</span></label><input type="range" id="V" min="50" max="100000" step="50" value="1000"></div>
-        <div class="ctrl"><label><span class="lbl">USDC→WETH price <button class="tip" data-tip="price" aria-label="What is pool price?">?</button></span><span class="v" id="vp1">1.0000</span></label><input type="range" id="p1" min="0.90" max="1.10" step="0.0005" value="1.0000"></div>
-        <div class="ctrl"><label><span class="lbl">WETH→WMATIC price</span><span class="v" id="vp2">1.0000</span></label><input type="range" id="p2" min="0.90" max="1.10" step="0.0005" value="1.0000"></div>
-        <div class="ctrl"><label><span class="lbl">WMATIC→USDC price</span><span class="v" id="vp3">1.0000</span></label><input type="range" id="p3" min="0.90" max="1.10" step="0.0005" value="1.0000"></div>
-        <div class="ctrl"><label><span class="lbl">Pool liquidity depth <button class="tip" data-tip="depth" aria-label="What is liquidity depth?">?</button></span><span class="v" id="vL">250,000</span></label><input type="range" id="L" min="20000" max="5000000" step="10000" value="250000"></div>
-        <div class="ctrl"><label><span class="lbl">Gas (USDC) <button class="tip" data-tip="gas" aria-label="What is gas?">?</button></span><span class="v" id="vg">0.05</span></label><input type="range" id="g" min="0" max="5" step="0.01" value="0.05"></div>
-        <div class="ctrl"><label><span class="lbl">Success fee on profit <button class="tip" data-tip="fee" aria-label="What is the success fee?">?</button></span><span class="v" id="vf">30%</span></label><input type="range" id="f" min="0" max="50" step="5" value="30"></div>
+        <div class="ctrl"><label><span class="lbl">Volume V <button class="tip" data-tip="volume" aria-label="?">?</button></span><span class="v" id="vV">1,000</span></label><input type="range" id="V" min="50" max="100000" step="50" value="1000"></div>
+        <div class="ctrl"><label><span class="lbl">Pool liquidity depth <button class="tip" data-tip="depth" aria-label="?">?</button></span><span class="v" id="vL">250,000</span></label><input type="range" id="L" min="20000" max="5000000" step="10000" value="250000"></div>
+        <div class="ctrl"><label><span class="lbl">Gas <button class="tip" data-tip="gas" aria-label="?">?</button></span><span class="v" id="vg">0.05</span></label><input type="range" id="g" min="0" max="5" step="0.01" value="0.05"></div>
+        <div class="ctrl"><label><span class="lbl">Success fee on profit <button class="tip" data-tip="fee" aria-label="?">?</button></span><span class="v" id="vf">30%</span></label><input type="range" id="f" min="0" max="50" step="5" value="30"></div>
       </div>
     </div>
   </div>
@@ -173,268 +178,217 @@ footer{border-top:1px solid var(--fio);margin-top:var(--s-7);padding-top:var(--s
 
   <section class="lr">
     <h2>The long run</h2>
-    <p class="sub">What running this over time does to your balance — modeled over random markets at your current settings. This is a decay, not a yield.</p>
+    <p class="sub">What running this over time does to your balance. This is a decay, not a yield — the searchers, not the math, decide it.</p>
     <div class="lr-grid">
       <div>
-        <div class="lr-in"><label>Starting capital (USDC)</label><input type="number" id="lrCap" value="1000" min="10" step="10"></div>
+        <div class="lr-in"><label>Starting capital</label><input type="number" id="lrCap" value="1000" min="10" step="10"></div>
         <div class="lr-in"><label>Cycles per day</label><input type="number" id="lrPd" value="20" min="1" step="1"></div>
         <div class="lr-in"><label>Days</label><input type="number" id="lrDays" value="30" min="1" step="1"></div>
-        <div class="lr-in"><label><span class="lbl">Searcher competition <button class="tip" data-tip="comp" aria-label="What is searcher competition?">?</button></span><span id="lrCv" class="mono" style="color:var(--ultramar)">85%</span></label><input type="range" id="lrComp" min="0" max="100" step="5" value="85"></div>
+        <div class="lr-in"><label><span class="lbl">Searcher competition <button class="tip" data-tip="comp" aria-label="?">?</button></span><span id="lrCv" class="mono" style="color:var(--ultramar)">85%</span></label><input type="range" id="lrComp" min="0" max="100" step="5" value="85"></div>
         <button id="project" style="width:100%;margin-top:6px">Project the long run</button>
-        <p class="note" style="margin-top:12px">Searcher competition is the whole story. At <b>0%</b> you're the only player and every edge is yours — the pure math, and it can grow. At the realistic <b>~85%</b> (whitepaper <a href="/whitepaper">§8</a>), searchers win most races and take most of your edge, and it decays. Drag it and see. Models random markets, not a forecast of your account.</p>
+        <p class="note" style="margin-top:12px">Searcher competition is the whole story. At <b>0%</b> you're the only player and the pure math can grow. At the realistic <b>~85%</b> (whitepaper <a href="/whitepaper">§8</a>), searchers win most races and take most of your edge, and it decays. Drag it. Models random markets, not a forecast.</p>
       </div>
       <div>
         <svg class="lrchart" id="lrchart" viewBox="0 0 480 220" role="img" aria-label="Expected balance over time — a decay, with a luck band."></svg>
-        <div class="lr-read">
-          <div class="big" id="lrBal">—</div>
-          <div class="pah" id="lrPah">Project to see how the odds converge.</div>
-          <div class="ins" id="lrIns">Every attempt pays gas; the wins are too rare to beat the fee wall and the searchers. The more you run, the more certain the loss — the law of large numbers works against you. The band is luck; the trend is math.</div>
-        </div>
+        <div class="lr-read"><div class="big" id="lrBal">—</div><div class="pah" id="lrPah">Project to see how the odds converge.</div>
+        <div class="ins">Every attempt pays gas; the wins are too rare to beat the fee wall and the searchers. The more you run, the more certain the loss — the law of large numbers works against you. The band is luck; the trend is math.</div></div>
       </div>
     </div>
   </section>
 
-  <footer>
-    Triviu · Open source. Verifiable math. No promises.<br>
-    Education, not income. The real engine and contract are in the
-    <a href="/whitepaper">whitepaper</a> and the public repository — read them, don't trust this.
-  </footer>
+  <footer>Triviu · Open source. Verifiable math. No promises.<br>
+    Education, not income. Read the <a href="/whitepaper">whitepaper</a> and the public repository — don't trust this.</footer>
 </div>
 <div class="tip-pop" id="tipPop" role="tooltip"></div>
 <script>
 const $=id=>document.getElementById(id);
 const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const CX=60,CY=60,REST=40;
-const NODES=[
-  {p:"p1",x:40,y:25.36,c:"#2743C7",tok:"USDC"},
-  {p:"p2",x:100,y:60,c:"#C13327",tok:"WETH"},
-  {p:"p3",x:40,y:94.64,c:"#E8B23A",tok:"WMATIC"},
-];
-NODES.forEach(n=>{const dx=n.x-CX,dy=n.y-CY,d=Math.hypot(dx,dy);n.ux=dx/d;n.uy=dy/d;});
-let N=0,WINS=0,running=false;
+/* theme toggle — user choice wins over prefers-color-scheme, persisted */
+const SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+function curTheme(){const s=localStorage.getItem("triviu-theme");if(s)return s;return window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}
+function applyTheme(t){document.documentElement.setAttribute("data-theme",t);const b=document.getElementById("theme");if(b)b.innerHTML=t==="dark"?SUN:MOON;}
+applyTheme(curTheme());
+document.getElementById("theme").addEventListener("click",()=>{const next=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";localStorage.setItem("triviu-theme",next);applyTheme(next);});
+const CX=60,CY=60,REST=38,FEE=0.997;
+const PAL=["#2743C7","#C13327","#E8B23A","#1E7A46","#52575D"];
+// Real tokens, verified on-chain 2026-07-19 (getCode). Re-verify on each explorer before any on-chain use.
+const CHAINS={
+  polygon:{name:"Polygon",gas:0.05,router:"QuickSwap",stables:["USDC","USDT","DAI"],inter:["WETH","WMATIC","WBTC","LINK"]},
+  arbitrum:{name:"Arbitrum",gas:0.02,router:"SushiSwap",stables:["USDC","USDT","DAI"],inter:["WETH","ARB","WBTC","GMX"]},
+  bsc:{name:"BSC",gas:0.10,router:"PancakeSwap",stables:["USDT","USDC","DAI","BUSD"],inter:["WBNB","CAKE","ETH","BTCB"]},
+};
+let CH="polygon",STABLE="USDC",HOPS=3,PRICES=[],preset="win",N=0,WINS=0;
 
-/* ---------- honest math (identical to the audited engine) ---------- */
-function amountOut(x,rin,rout){const a=x*0.997;return a*rout/(rin+a);}
+function amountOut(x,rin,rout){const a=x*FEE;return a*rout/(rin+a);}
 const fmt=(n,d=2)=>n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
-function state(){return {V:+$("V").value,p1:+$("p1").value,p2:+$("p2").value,p3:+$("p3").value,L:+$("L").value,gas:+$("g").value,feeR:+$("f").value/100};}
+function tokens(){const c=CHAINS[CH];return [STABLE,...c.inter.slice(0,HOPS-1)];}
+function state(){return {V:+$("V").value,L:+$("L").value,gas:+$("g").value,feeR:+$("f").value/100,prices:PRICES.slice()};}
 function compute(s){
-  const b=amountOut(s.V,s.L,s.L*s.p1),c=amountOut(b,s.L,s.L*s.p2),a=amountOut(c,s.L,s.L*s.p3);
-  const prod=s.p1*s.p2*s.p3,reverts=a<s.V+1e-9;
-  const gross=a-s.V,fee=gross>0?gross*s.feeR:0;
-  // realized net: a revert unwinds the swaps — you only lose gas, principal intact.
-  const net=reverts? -s.gas : gross-fee-s.gas;
-  return {b,c,a,prod,gross,fee,net,reverts,amts:[s.V,b,c,a]};
+  let amt=s.V;const amts=[s.V];for(let i=0;i<s.prices.length;i++){amt=amountOut(amt,s.L,s.L*s.prices[i]);amts.push(amt);}
+  const a=amt,prod=s.prices.reduce((x,y)=>x*y,1),reverts=a<s.V+1e-9,gross=a-s.V,fee=gross>0?gross*s.feeR:0;
+  const net=reverts?-s.gas:gross-fee-s.gas; // revert unwinds the swaps — you only lose gas
+  return {a,prod,gross,fee,net,reverts,amts};
 }
+/* preset markets */
+function winningPrices(){ // solve the equal per-pool price that yields a small, believable positive net at the CURRENT N/V/L/gas/fee — so a win exists at ANY hop count (slippage grows with N, so this needs a bigger edge for more hops: the honest cost of multi-hop)
+  const V=+$("V").value,L=+$("L").value,gas=+$("g").value,feeR=+$("f").value/100;
+  const targetNet=V*0.005; // aim ~ +0.5% of V, net of fee and gas
+  let lo=1,hi=1.6; // product multiplier bounds; per-price = mid^(1/N)
+  for(let i=0;i<44;i++){const mid=(lo+hi)/2,per=Math.pow(mid,1/HOPS);
+    let amt=V;for(let k=0;k<HOPS;k++)amt=amountOut(amt,L,L*per);
+    const gross=amt-V,fee=gross>0?gross*feeR:0,net=gross-fee-gas;
+    if(net<targetNet)lo=mid;else hi=mid;}
+  return Array(HOPS).fill(Math.min(1.10,Math.max(0.90,Math.pow((lo+hi)/2,1/HOPS))));
+}
+function fairPrices(){return Array(HOPS).fill(1);}
+function randomPrices(){return Array.from({length:HOPS},()=>Math.max(0.9,Math.min(1.1,1+gauss()*0.012)));}
+function applyPreset(p){preset=p;PRICES = p==="win"?winningPrices():p==="fair"?fairPrices():randomPrices();
+  ["pWin","pFair","pRand"].forEach(id=>$(id).classList.toggle("on",$(id).dataset.preset===p));}
 
-/* ---------- the living mark ---------- */
-function priceToDist(p){return REST+(p-1)*160;}
-function nodePos(n){const d=priceToDist(+$(n.p).value);return[CX+n.ux*d,CY+n.uy*d];}
+/* N-gon mark */
+function angle(k){return -Math.PI/2 + k*2*Math.PI/HOPS;}
+function priceToDist(pr){return REST+(pr-1)*140;}
+function nodePos(k){const d=priceToDist(PRICES[k]),ang=angle(k);return[CX+Math.cos(ang)*d,CY+Math.sin(ang)*d];}
 function bez(p0,pc,p1,t){const u=1-t;return[u*u*p0[0]+2*u*t*pc[0]+t*t*p1[0],u*u*p0[1]+2*u*t*pc[1]+t*t*p1[1]];}
-function control(p0,p1){const m=[(p0[0]+p1[0])/2,(p0[1]+p1[1])/2];return[m[0]+(m[0]-CX)*0.55,m[1]+(m[1]-CY)*0.55];}
-function arcData(i){const A=nodePos(NODES[i]),B=nodePos(NODES[(i+1)%3]),c=control(A,B);return{A,B,c,d:`M${A[0]} ${A[1]} Q${c[0]} ${c[1]} ${B[0]} ${B[1]}`};}
-function drawMark(){
-  for(let i=0;i<3;i++){$("arc"+i).setAttribute("d",arcData(i).d);
-    const g=$("gd"+i);g.setAttribute("x1",CX);g.setAttribute("y1",CY);g.setAttribute("x2",NODES[i].x+NODES[i].ux*20);g.setAttribute("y2",NODES[i].y+NODES[i].uy*20);}
-  document.querySelectorAll(".nodeg").forEach((g,i)=>{const[x,y]=nodePos(NODES[i]);g.setAttribute("transform",`translate(${x} ${y})`);
-    g.querySelector(".node").setAttribute("aria-valuenow",(+$(NODES[i].p).value).toFixed(4));
-    const tl=g.querySelector(".tokl");tl.setAttribute("x",NODES[i].ux*15);tl.setAttribute("y",NODES[i].uy*15+3);});
-}
-function buildNodes(){
-  const wrap=$("nodes");
-  NODES.forEach((n,i)=>{
-    const g=document.createElementNS("http://www.w3.org/2000/svg","g");g.setAttribute("class","nodeg");
-    g.innerHTML=`<circle class="node-ring" r="13"/><circle class="node" r="8.5" fill="${n.c}" tabindex="0" role="slider"
-      aria-label="${n.tok} pool price" aria-valuemin="0.90" aria-valuemax="1.10" aria-valuenow="1.0000"></circle>
-      <text class="tokl" text-anchor="middle">${n.tok}</text>`;
-    wrap.appendChild(g);
-    const circle=g.querySelector(".node");
-    const down=e=>{e.preventDefault();g.classList.add("dragging");$("gd"+i).style.opacity=.6;
-      const svg=$("run").closest(".markwrap").querySelector("svg");
-      const move=ev=>{const pt=svgPoint(svg,ev);const rel=[pt[0]-CX,pt[1]-CY];
-        let d=rel[0]*n.ux+rel[1]*n.uy;d=Math.max(24,Math.min(56,d));setPrice(n.p,1+(d-REST)/160);};
-      const up=()=>{g.classList.remove("dragging");$("gd"+i).style.opacity=0;document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",up);};
-      document.addEventListener("pointermove",move);document.addEventListener("pointerup",up);};
-    circle.addEventListener("pointerdown",down);
-    circle.addEventListener("keydown",e=>{const step=e.shiftKey?0.01:0.002;
-      if(e.key==="ArrowRight"||e.key==="ArrowUp"){setPrice(n.p,+$(n.p).value+step);e.preventDefault();}
-      if(e.key==="ArrowLeft"||e.key==="ArrowDown"){setPrice(n.p,+$(n.p).value-step);e.preventDefault();}});
-  });
-}
-function svgPoint(svg,e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const p=pt.matrixTransform(svg.getScreenCTM().inverse());return[p.x,p.y];}
-function setPrice(id,price){price=Math.max(0.90,Math.min(1.10,price));$(id).value=price.toFixed(4);sound("drag");refresh(false);}
-
-/* ---------- refresh + verdict ---------- */
-function refresh(fromRun){
-  const s=state(),r=compute(s);
-  $("vV").textContent=s.V.toLocaleString("en-US");$("vp1").textContent=s.p1.toFixed(4);$("vp2").textContent=s.p2.toFixed(4);$("vp3").textContent=s.p3.toFixed(4);
-  $("vL").textContent=s.L.toLocaleString("en-US");$("vg").textContent=s.gas.toFixed(2);$("vf").textContent=(s.feeR*100).toFixed(0)+"%";
-  $("oProd").textContent=r.prod.toFixed(4);$("oBack").textContent=fmt(r.a)+" USDC";
-  $("oGross").textContent=(r.gross>=0?"+":"")+fmt(r.gross)+" USDC";$("oFee").textContent="−"+fmt(r.fee)+" USDC";$("oGas").textContent="−"+fmt(s.gas)+" USDC";
-  $("oNet").textContent=(r.net>=0?"+":"")+fmt(r.net)+" USDC";$("oNet").style.color=r.net>0?"var(--verde)":(r.net<0?"var(--lacre)":"var(--grafite)");
+function ctrl(p0,p1){const m=[(p0[0]+p1[0])/2,(p0[1]+p1[1])/2];return[m[0]+(m[0]-CX)*0.5,m[1]+(m[1]-CY)*0.5];}
+function arcOf(k){const A=nodePos(k),B=nodePos((k+1)%HOPS),c=ctrl(A,B);return{A,B,c,d:`M${A[0]} ${A[1]} Q${c[0]} ${c[1]} ${B[0]} ${B[1]}`};}
+function buildMark(){
+  const tk=tokens();
+  $("arcs").innerHTML=Array.from({length:HOPS},(_,k)=>`<path class="arc flow" id="arc${k}"/>`).join("");
+  $("nodes").innerHTML=tk.map((t,k)=>`<g class="nodeg" data-k="${k}"><circle class="node-ring" r="12"/>`+
+    `<circle class="node" r="8" fill="${PAL[k%PAL.length]}" tabindex="0" role="slider" aria-label="${t} pool price" aria-valuemin="0.90" aria-valuemax="1.10" aria-valuenow="1"></circle>`+
+    `<text class="tokl" text-anchor="middle">${t}</text></g>`).join("");
+  document.querySelectorAll(".nodeg").forEach(g=>{const k=+g.dataset.k,circle=g.querySelector(".node");
+    circle.addEventListener("pointerdown",e=>startDrag(e,g,k));
+    circle.addEventListener("keydown",e=>{const st=e.shiftKey?0.01:0.002;
+      if(e.key==="ArrowRight"||e.key==="ArrowUp"){setPrice(k,PRICES[k]+st);e.preventDefault();}
+      if(e.key==="ArrowLeft"||e.key==="ArrowDown"){setPrice(k,PRICES[k]-st);e.preventDefault();}});});
+  $("cap").textContent=tk.join(" → ")+" → "+STABLE+" · example pools on "+CHAINS[CH].name+" ("+CHAINS[CH].router+")";
   drawMark();
-  if(!fromRun) setVerdict(r);
-  return r;
 }
-function setVerdict(r){
-  const vd=$("verdict");
+function startDrag(e,g,k){e.preventDefault();g.classList.add("dragging");const svg=$("run").closest(".markwrap").querySelector("svg");
+  const ang=angle(k),ux=Math.cos(ang),uy=Math.sin(ang);
+  const move=ev=>{const pt=svgPoint(svg,ev);let d=(pt[0]-CX)*ux+(pt[1]-CY)*uy;d=Math.max(24,Math.min(52,d));setPrice(k,1+(d-REST)/140);};
+  const up=()=>{g.classList.remove("dragging");document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",up);};
+  document.addEventListener("pointermove",move);document.addEventListener("pointerup",up);}
+function svgPoint(svg,e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const p=pt.matrixTransform(svg.getScreenCTM().inverse());return[p.x,p.y];}
+function setPrice(k,pr){PRICES[k]=Math.max(0.90,Math.min(1.10,pr));preset="custom";["pWin","pFair","pRand"].forEach(id=>$(id).classList.remove("on"));sound("drag");refresh(false);}
+function drawMark(){
+  for(let k=0;k<HOPS;k++){$("arc"+k).setAttribute("d",arcOf(k).d);}
+  document.querySelectorAll(".nodeg").forEach(g=>{const k=+g.dataset.k,[x,y]=nodePos(k);g.setAttribute("transform",`translate(${x} ${y})`);
+    const ang=angle(k);g.querySelector(".tokl").setAttribute("x",Math.cos(ang)*15);g.querySelector(".tokl").setAttribute("y",Math.sin(ang)*15+3);
+    g.querySelector(".node").setAttribute("aria-valuenow",PRICES[k].toFixed(4));});
+}
+/* refresh + verdict */
+function refresh(fromRun){
+  const s=state(),r=compute(s);const tk=tokens();
+  $("vV").textContent=s.V.toLocaleString("en-US");$("vL").textContent=s.L.toLocaleString("en-US");$("vg").textContent=s.gas.toFixed(2);$("vf").textContent=(s.feeR*100).toFixed(0)+"%";
+  $("wallLbl").firstChild.textContent=`Fee wall (0.997^${HOPS}) `;$("oWall").textContent=Math.pow(FEE,HOPS).toFixed(4);
+  $("backLbl").textContent=STABLE;
+  $("oProd").textContent=r.prod.toFixed(4);$("oBack").textContent=fmt(r.a)+" "+STABLE;
+  $("oGross").textContent=(r.gross>=0?"+":"")+fmt(r.gross)+" "+STABLE;$("oFee").textContent="−"+fmt(r.fee)+" "+STABLE;$("oGas").textContent="−"+fmt(s.gas)+" "+STABLE;
+  $("oNet").textContent=(r.net>=0?"+":"")+fmt(r.net)+" "+STABLE;$("oNet").style.color=r.net>0?"var(--verde)":(r.net<0?"var(--lacre)":"var(--grafite)");
+  drawMark();if(!fromRun)setVerdict(r);return r;
+}
+function setVerdict(r){const vd=$("verdict");
   if(r.reverts){vd.className="verdict v-revert";vd.textContent="Reverts · you pay gas, get nothing";
-    $("explain").textContent="The cycle doesn't return the principal, so the on-chain condition fails and the whole transaction reverts. Your principal is intact — you only paid the gas. A real, common outcome.";}
+    $("explain").textContent="The cycle doesn't return the principal, so the on-chain condition fails and the whole transaction reverts. Your principal is intact — you only paid gas. The most common outcome.";}
   else if(r.net>0){vd.className="verdict v-profit";vd.innerHTML="Profit after fees + gas <span class='rare'>RARE</span>";
-    $("explain").textContent="Rare — and in a real block a professional searcher likely takes it first. This is the exception the risk notice is about, not the expectation.";}
+    $("explain").textContent="A win exists — and adding hops raises the fee wall (0.997^N). In a real block a searcher likely takes it first. The exception, not the expectation.";}
   else{vd.className="verdict v-loss";vd.textContent="Settles, but net negative";
     $("explain").textContent="It returns more than principal, so it wouldn't revert on a zero floor — but after gas and the fee you end up behind.";}
 }
-
-/* ---------- run animation ---------- */
-function run(sample){
-  if(running)return;const r=refresh(true);
-  const dot=$("dot"),base=7,seg=[[0,1],[1,2],[2,0]];
+/* run animation */
+let runGen=0;
+function run(sample){const gen=++runGen;const r=refresh(true);const dot=$("dot"),base=6; // ++runGen supersedes any in-flight run (rapid preset clicks resolve to the LAST one)
   const radius=amt=>base*Math.max(0.28,Math.sqrt(Math.max(amt,0)/r.amts[0]));
   if(reduce){finish(r,sample);return;}
-  running=true;$("run").disabled=true;dot.style.opacity=1;sound("whoosh");
-  let hop=0;
-  (function anim(){
-    const i=seg[hop][0],ad=arcData(i);const r0=radius(r.amts[hop]),r1=radius(r.amts[hop+1]);const dur=380;let t0=null;
-    function frame(ts){if(!t0)t0=ts;const t=Math.min(1,(ts-t0)/dur);const p=bez(ad.A,ad.c,ad.B,t);
-      dot.setAttribute("cx",p[0]);dot.setAttribute("cy",p[1]);dot.setAttribute("r",r0+(r1-r0)*t);
-      if(t<1)requestAnimationFrame(frame);else{sound("hop");hop++;if(hop<3)anim();else{dot.style.opacity=0;finish(r,sample);running=false;$("run").disabled=false;}}}
-    requestAnimationFrame(frame);
-  })();
+  $("run").disabled=true;dot.style.opacity=1;sound("whoosh");let hop=0;
+  (function anim(){const ad=arcOf(hop);const r0=radius(r.amts[hop]),r1=radius(r.amts[hop+1]);const dur=Math.max(240,340-HOPS*20);let t0=null;
+    function frame(ts){if(gen!==runGen)return; // a newer run took over — abort this one silently
+      if(!t0)t0=ts;const t=Math.min(1,(ts-t0)/dur);const p=bez(ad.A,ad.c,ad.B,t);dot.setAttribute("cx",p[0]);dot.setAttribute("cy",p[1]);dot.setAttribute("r",r0+(r1-r0)*t);
+      if(t<1)requestAnimationFrame(frame);else{sound("hop");hop++;if(hop<HOPS)anim();else{if(gen!==runGen)return;dot.style.opacity=0;finish(r,sample);$("run").disabled=false;}}}
+    requestAnimationFrame(frame);})();
 }
-function finish(r,sample){
-  setVerdict(r);sound(r.reverts?"revert":(r.net>0?"profit":"neg"));
-  if(sample){N++;if(r.net>0)WINS++;const pct=N?Math.round(WINS/N*100):0;
-    $("tN").textContent=N;$("tWin").textContent=WINS;$("tPct").textContent=pct+"%";$("tBar").style.width=pct+"%";}
+function finish(r,sample){setVerdict(r);sound(r.reverts?"revert":(r.net>0?"profit":"neg"));
+  if(sample){N++;if(r.net>0)WINS++;const pct=N?Math.round(WINS/N*100):0;$("tN").textContent=N;$("tWin").textContent=WINS;$("tPct").textContent=pct+"%";$("tBar").style.width=pct+"%";}
 }
-
-/* ---------- tooltips ---------- */
-const TIPS={
-  product:"The three pool prices multiplied. It must beat ~1.009 to clear the fee wall — before slippage and gas.",
-  feewall:"Three 0.3% pool fees compound to about 0.9%, lost before you start.",
-  back:"What you'd hold in USDC after the three swaps. Below your input means a loss.",
-  gross:"Back minus what you put in, before fee and gas.",
-  fee:"A cut of profit only (never your principal), capped at half.",
-  gas:"Paid on every attempt — including the ones that revert.",
-  net:"What you actually keep. On a revert you lose only gas; principal is returned. Red means behind.",
-  volume:"How much you commit per cycle. Bigger means more slippage.",
-  price:"This pool's rate — drag the node or the slider.",
-  depth:"How deep the pool is. Deeper means less slippage.",
-  comp:"How much of every edge the searchers and the priority-fee auction take. 0% is you alone (the pure math); ~85% is the documented reality — and it decides your long run.",
-};
-let tipOpen=null;
-function closeTip(){$("tipPop").classList.remove("on");if(tipOpen)tipOpen.setAttribute("aria-expanded","false");tipOpen=null;}
-function openTip(btn){
-  const key=btn.getAttribute("data-tip"),pop=$("tipPop");
-  if(tipOpen===btn){closeTip();return;}
-  pop.textContent=TIPS[key]||"";pop.classList.add("on");
-  const rc=btn.getBoundingClientRect();let x=rc.left,y=rc.bottom+8;
-  pop.style.left="0px";pop.style.top="0px";const pw=pop.offsetWidth;
-  if(x+pw>window.innerWidth-10)x=window.innerWidth-pw-10;
-  pop.style.left=Math.max(10,x)+"px";pop.style.top=y+"px";
-  btn.setAttribute("aria-expanded","true");tipOpen=btn;
-}
-document.querySelectorAll(".tip").forEach(b=>{b.setAttribute("aria-expanded","false");
-  b.addEventListener("click",e=>{e.stopPropagation();openTip(b);});
-  b.addEventListener("focus",()=>openTip(b));});
-document.addEventListener("click",closeTip);
-document.addEventListener("keydown",e=>{if(e.key==="Escape")closeTip();});
-
-/* ---------- sound (Web Audio · self-contained) ---------- */
+/* tooltips */
+const TIPS={product:"Every pool price multiplied. It must beat 1/0.997^N (the fee wall for N hops) to break even — before slippage and gas.",
+ feewall:"Each hop charges 0.3%. N hops compound to 0.997^N — more hops means a taller wall to beat, not more chances.",
+ back:"What you'd hold in your stablecoin after the whole cycle. Below your input means a loss.",
+ gross:"Back minus what you put in, before fee and gas.",fee:"A cut of profit only (never your principal), capped at half.",
+ gas:"Paid on every attempt — including the ones that revert. Higher on BSC, lower on Arbitrum.",
+ net:"What you actually keep. On a revert you lose only gas; principal is returned. Red means behind.",
+ volume:"How much you commit per cycle. Bigger means more slippage.",depth:"How deep the pool is. Deeper means less slippage.",
+ comp:"How much of every edge the searchers and the priority-fee auction take. 0% is you alone (the pure math); ~85% is the documented reality — and it decides your long run."};
+let tipOpen=null;function closeTip(){$("tipPop").classList.remove("on");if(tipOpen)tipOpen.setAttribute("aria-expanded","false");tipOpen=null;}
+function openTip(btn){const pop=$("tipPop");if(tipOpen===btn){closeTip();return;}pop.textContent=TIPS[btn.dataset.tip]||"";pop.classList.add("on");
+  const rc=btn.getBoundingClientRect();pop.style.left="0";pop.style.top="0";const pw=pop.offsetWidth;let x=rc.left;if(x+pw>window.innerWidth-10)x=window.innerWidth-pw-10;
+  pop.style.left=Math.max(10,x)+"px";pop.style.top=(rc.bottom+8)+"px";btn.setAttribute("aria-expanded","true");tipOpen=btn;}
+function wireTips(){document.querySelectorAll(".tip").forEach(b=>{b.setAttribute("aria-expanded","false");
+  b.addEventListener("click",e=>{e.stopPropagation();openTip(b);});b.addEventListener("focus",()=>openTip(b));});}
+document.addEventListener("click",closeTip);document.addEventListener("keydown",e=>{if(e.key==="Escape")closeTip();});
+/* sound */
 let AC=null,muted=localStorage.getItem("triviu-mute")==="1",lastDrag=0;
-function updateMuteBtn(){
-  const spk=`<svg class="bic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/>`;
-  $("mute").innerHTML = muted
-    ? spk+`<line x1="16" y1="9" x2="21" y2="15"/><line x1="21" y1="9" x2="16" y2="15"/></svg>Muted`
-    : spk+`<path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>Sound`;
-  $("mute").setAttribute("aria-pressed",String(muted));
-}
-function sound(name){
-  if(muted||reduce)return;
-  if(name==="drag"){const now=performance.now();if(now-lastDrag<30)return;lastDrag=now;}
-  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
-  if(AC.state==="suspended")AC.resume();
-  const t=AC.currentTime,master=AC.createGain();master.gain.value=0.5;
-  const lp=AC.createBiquadFilter();lp.type="lowpass";lp.frequency.value=4000;lp.Q.value=0.7;master.connect(lp);lp.connect(AC.destination);
-  const tone=(type,f0,f1,peak,a,d,s,r,at)=>{const o=AC.createOscillator(),g=AC.createGain();o.type=type;
-    o.frequency.setValueAtTime(f0,at);if(f1!==f0)o.frequency.linearRampToValueAtTime(f1,at+(a+d+r)/1000);
-    g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(peak,at+a/1000);g.gain.linearRampToValueAtTime(peak*s,at+(a+d)/1000);g.gain.linearRampToValueAtTime(0,at+(a+d+r)/1000);
-    o.connect(g);g.connect(master);o.start(at);o.stop(at+(a+d+r)/1000+0.02);};
-  if(name==="drag")tone("sine",880,880,0.035,1,8,0,20,t);
-  else if(name==="whoosh")tone("triangle",200,560,0.06,30,150,0.2,200,t);
-  else if(name==="hop")tone("sine",520,520,0.03,1,40,0,40,t);
-  else if(name==="profit"){tone("sine",528,528,0.07,5,120,0.3,240,t);tone("sine",660,660,0.07,5,120,0.3,240,t+0.12);}
-  else if(name==="revert")tone("sine",130,92,0.08,2,90,0,180,t);
-  else if(name==="neg")tone("sine",300,300,0.05,5,60,0.2,160,t);
-}
-
-/* ---------- The long run (honest Monte-Carlo · decay, not yield) ---------- */
+function updateMuteBtn(){const spk=`<svg class="bic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/>`;
+  $("mute").innerHTML=muted?spk+`<line x1="16" y1="9" x2="21" y2="15"/><line x1="21" y1="9" x2="16" y2="15"/></svg>Muted`:spk+`<path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg>Sound`;$("mute").setAttribute("aria-pressed",String(muted));}
+function sound(name){if(muted||reduce)return;if(name==="drag"){const now=performance.now();if(now-lastDrag<30)return;lastDrag=now;}
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}if(AC.state==="suspended")AC.resume();
+  const t=AC.currentTime,master=AC.createGain();master.gain.value=0.5;const lp=AC.createBiquadFilter();lp.type="lowpass";lp.frequency.value=4000;lp.Q.value=0.7;master.connect(lp);lp.connect(AC.destination);
+  const tone=(ty,f0,f1,peak,a,d,s,r,at)=>{const o=AC.createOscillator(),g=AC.createGain();o.type=ty;o.frequency.setValueAtTime(f0,at);if(f1!==f0)o.frequency.linearRampToValueAtTime(f1,at+(a+d+r)/1000);
+    g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(peak,at+a/1000);g.gain.linearRampToValueAtTime(peak*s,at+(a+d)/1000);g.gain.linearRampToValueAtTime(0,at+(a+d+r)/1000);o.connect(g);g.connect(master);o.start(at);o.stop(at+(a+d+r)/1000+0.02);};
+  if(name==="drag")tone("sine",880,880,0.035,1,8,0,20,t);else if(name==="whoosh")tone("triangle",200,560,0.06,30,150,0.2,200,t);
+  else if(name==="hop")tone("sine",520,520,0.03,1,40,0,40,t);else if(name==="profit"){tone("sine",528,528,0.07,5,120,0.3,240,t);tone("sine",660,660,0.07,5,120,0.3,240,t+0.12);}
+  else if(name==="revert")tone("sine",130,92,0.08,2,90,0,180,t);else if(name==="neg")tone("sine",300,300,0.05,5,60,0.2,160,t);}
+/* long run */
 function clampP(p){return Math.max(0.9,Math.min(1.1,p));}
-function project(){
-  const s=state();
-  const cap=Math.max(10,+$("lrCap").value||1000),pd=Math.max(1,+$("lrPd").value||1),days=Math.max(1,+$("lrDays").value||1);
+function project(){const s=state();const cap=Math.max(10,+$("lrCap").value||1000),pd=Math.max(1,+$("lrPd").value||1),days=Math.max(1,+$("lrDays").value||1);
   let Nc=Math.round(pd*days);Nc=Math.max(1,Math.min(1500,Nc));
-  // The one lever that decides your long run: how much of every edge the
-  // searchers + priority-fee auction take. 0% = you're the only player (pure
-  // math); ~85% = the documented reality (whitepaper §8). You set it, you see it.
   const comp=Math.max(0,Math.min(1,(+$("lrComp").value||0)/100)),pWin=1-comp,keep=1-comp;
-  const TR=150,SAMP=60,step=Math.max(1,Math.floor(Nc/SAMP));
-  const idx=[];for(let i=0;i<=Nc;i+=step)idx.push(i);if(idx[idx.length-1]!==Nc)idx.push(Nc);
+  const TR=150,SAMP=60,step=Math.max(1,Math.floor(Nc/SAMP));const idx=[];for(let i=0;i<=Nc;i+=step)idx.push(i);if(idx[idx.length-1]!==Nc)idx.push(Nc);
   const bal=new Array(TR).fill(cap),rec=idx.map(()=>new Float64Array(TR));let si=0;
-  for(let c=0;c<=Nc;c++){
-    if(idx[si]===c){for(let t=0;t<TR;t++)rec[si][t]=bal[t];si++;}
-    if(c===Nc)break;
-    for(let t=0;t<TR;t++){
-      if(bal[t]<=s.gas)continue; // wiped out — can't pay gas
-      const V=Math.min(s.V,bal[t]);
-      const mk={V,p1:clampP(1+gauss()*0.012),p2:clampP(1+gauss()*0.012),p3:clampP(1+gauss()*0.012),L:s.L,gas:s.gas,feeR:s.feeR};
-      const r=compute(mk);
-      let ch;
-      if(r.reverts){ ch=-s.gas; }                       // no edge / stale → revert, only gas
-      else if(Math.random()<pWin){                       // you win the race (1 − competition)
-        const kept=(r.a-mk.V)*keep;                      // you keep (1 − competition) of the edge
-        ch=kept-(kept>0?kept*s.feeR:0)-s.gas;
-      } else { ch=-s.gas; }                              // a searcher took it first → your tx reverts
-      bal[t]=Math.max(0,bal[t]+ch);
-    }
-  }
-  // per-sample stats
-  const mean=[],p10=[],p90=[];
-  for(let i=0;i<rec.length;i++){const a=Array.from(rec[i]).sort((x,y)=>x-y);
-    mean.push(a.reduce((s2,v)=>s2+v,0)/TR);p10.push(a[Math.floor(0.1*TR)]);p90.push(a[Math.floor(0.9*TR)]);}
-  const ahead=Array.from(bal).filter(v=>v>cap).length,pah=Math.round(ahead/TR*100);
-  const finalMean=mean[mean.length-1],pct=(finalMean-cap)/cap*100;
+  for(let c=0;c<=Nc;c++){if(idx[si]===c){for(let t=0;t<TR;t++)rec[si][t]=bal[t];si++;}if(c===Nc)break;
+    for(let t=0;t<TR;t++){if(bal[t]<=s.gas)continue;const V=Math.min(s.V,bal[t]);
+      const mk={V,L:s.L,gas:s.gas,feeR:s.feeR,prices:Array.from({length:HOPS},()=>clampP(1+gauss()*0.012))};const r=compute(mk);let ch;
+      if(r.reverts)ch=-s.gas;else if(Math.random()<pWin){const kept=(r.a-mk.V)*keep;ch=kept-(kept>0?kept*s.feeR:0)-s.gas;}else ch=-s.gas;
+      bal[t]=Math.max(0,bal[t]+ch);}}
+  const mean=[],p10=[],p90=[];for(let i=0;i<rec.length;i++){const a=Array.from(rec[i]).sort((x,y)=>x-y);mean.push(a.reduce((s2,v)=>s2+v,0)/TR);p10.push(a[Math.floor(0.1*TR)]);p90.push(a[Math.floor(0.9*TR)]);}
+  const ahead=Array.from(bal).filter(v=>v>cap).length,pah=Math.round(ahead/TR*100),finalMean=mean[mean.length-1],pct=(finalMean-cap)/cap*100;
   drawLR(idx,mean,p10,p90,cap,Nc);
-  $("lrBal").innerHTML=`Expected balance after ${Nc.toLocaleString("en-US")} cycles: <span style="color:${finalMean<cap?'var(--lacre)':'var(--tinta)'}">${fmt(finalMean)} USDC</span> (${pct>=0?'+':''}${pct.toFixed(1)}%)`;
+  $("lrBal").innerHTML=`Expected balance after ${Nc.toLocaleString("en-US")} cycles: <span style="color:${finalMean<cap?'var(--lacre)':'var(--tinta)'}">${fmt(finalMean)} ${STABLE}</span> (${pct>=0?'+':''}${pct.toFixed(1)}%)`;
   $("lrPah").textContent=`Chance you end ahead: ${pah}% — and it falls the longer you go.`;
 }
-function drawLR(idx,mean,p10,p90,cap,Nc){
-  const W=480,H=220,pl=8,pr=8,pt=14,pb=22,iw=W-pl-pr,ih=H-pt-pb;
+function drawLR(idx,mean,p10,p90,cap,Nc){const W=480,H=220,pl=8,pr=8,pt=14,pb=22,iw=W-pl-pr,ih=H-pt-pb;
   const all=p10.concat(p90).concat([cap]);let lo=Math.min(...all),hi=Math.max(...all);const pad=(hi-lo)*0.12||cap*0.1;lo-=pad;hi+=pad;lo=Math.max(0,lo);
-  const X=i=>pl+iw*(idx[i]/Nc),Y=v=>pt+ih*(1-(v-lo)/(hi-lo));
-  const path=arr=>arr.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ");
-  const band=p90.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ")+" "+p10.slice().reverse().map((v,i)=>`L${X(p10.length-1-i).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ")+" Z";
-  const y0=Y(cap);
-  $("lrchart").innerHTML=
-    `<path d="${band}" fill="var(--acafrao)" opacity="0.14"/>`+
-    `<line x1="${pl}" y1="${y0.toFixed(1)}" x2="${W-pr}" y2="${y0.toFixed(1)}" stroke="var(--grafite)" stroke-width="1" stroke-dasharray="3 3"/>`+
+  const X=i=>pl+iw*(idx[i]/Nc),Y=v=>pt+ih*(1-(v-lo)/(hi-lo));const path=arr=>arr.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ");
+  const band=p90.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ")+" "+p10.slice().reverse().map((v,i)=>`L${X(p10.length-1-i).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ")+" Z";const y0=Y(cap);
+  $("lrchart").innerHTML=`<path d="${band}" fill="var(--acafrao)" opacity="0.14"/><line x1="${pl}" y1="${y0.toFixed(1)}" x2="${W-pr}" y2="${y0.toFixed(1)}" stroke="var(--grafite)" stroke-width="1" stroke-dasharray="3 3"/>`+
     `<text x="${W-pr}" y="${(y0-4).toFixed(1)}" text-anchor="end" font-family="var(--fm)" font-size="9" fill="var(--grafite)">start ${fmt(cap,0)}</text>`+
-    `<path d="${path(p10)}" fill="none" stroke="var(--grafite)" stroke-width="0.8" opacity="0.4"/>`+
-    `<path d="${path(p90)}" fill="none" stroke="var(--acafrao)" stroke-width="0.8" opacity="0.6"/>`+
+    `<path d="${path(p90)}" fill="none" stroke="var(--acafrao)" stroke-width="0.8" opacity="0.6"/><path d="${path(p10)}" fill="none" stroke="var(--grafite)" stroke-width="0.8" opacity="0.4"/>`+
     `<path d="${path(mean)}" fill="none" stroke="${mean[mean.length-1]<cap?'var(--lacre)':'var(--tinta)'}" stroke-width="2.4"/>`+
-    `<text x="${pl}" y="${(H-6)}" font-family="var(--fm)" font-size="9" fill="var(--grafite)">0 cycles</text>`+
-    `<text x="${W-pr}" y="${(H-6)}" text-anchor="end" font-family="var(--fm)" font-size="9" fill="var(--grafite)">${Nc.toLocaleString('en-US')} cycles · expected (line) · luck band</text>`;
+    `<text x="${pl}" y="${H-6}" font-family="var(--fm)" font-size="9" fill="var(--grafite)">0</text><text x="${W-pr}" y="${H-6}" text-anchor="end" font-family="var(--fm)" font-size="9" fill="var(--grafite)">${Nc.toLocaleString('en-US')} cycles · expected + luck band</text>`;
 }
-
-/* ---------- wiring ---------- */
-["V","p1","p2","p3","L","g","f"].forEach(id=>$(id).addEventListener("input",()=>refresh(false)));
+function gauss(){let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+/* selectors + init */
+function fillSelect(el,arr,val){el.innerHTML=arr.map(o=>`<option value="${o.v||o}"${(o.v||o)===val?" selected":""}>${o.t||o}</option>`).join("");}
+function onChainChange(){CH=$("chain").value;const st=CHAINS[CH].stables;if(!st.includes(STABLE))STABLE=st[0];$("g").value=CHAINS[CH].gas;
+  fillSelect($("stable"),st,STABLE);applyPreset(preset==="custom"?"win":preset);buildMark();wireTips();refresh(false);project();}
+function rebuild(){applyPreset(preset==="custom"?"win":preset);buildMark();wireTips();refresh(false);project();}
+["V","L","g","f"].forEach(id=>$(id).addEventListener("input",()=>refresh(false)));
 $("run").addEventListener("click",()=>run(false));
+["pWin","pFair","pRand"].forEach(id=>$(id).addEventListener("click",()=>{applyPreset($(id).dataset.preset);run($(id).dataset.preset==="rand");}));
 $("mute").addEventListener("click",()=>{muted=!muted;localStorage.setItem("triviu-mute",muted?"1":"0");updateMuteBtn();});
-$("rand").addEventListener("click",()=>{for(const p of ["p1","p2","p3"]){let r=1+gauss()*0.012;r=Math.max(0.9,Math.min(1.1,r));$(p).value=r.toFixed(4);}run(true);});
+$("chain").addEventListener("change",onChainChange);
+$("stable").addEventListener("change",()=>{STABLE=$("stable").value;buildMark();wireTips();refresh(false);project();});
+$("hops").addEventListener("change",()=>{HOPS=+$("hops").value;rebuild();});
 $("project").addEventListener("click",project);
 $("lrComp").addEventListener("input",()=>{$("lrCv").textContent=$("lrComp").value+"%";});
 $("lrComp").addEventListener("change",project);
-function gauss(){let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
-buildNodes();updateMuteBtn();refresh(false);project();
+fillSelect($("chain"),Object.keys(CHAINS).map(k=>({v:k,t:CHAINS[k].name})),CH);
+fillSelect($("stable"),CHAINS[CH].stables,STABLE);
+applyPreset("win");buildMark();wireTips();updateMuteBtn();refresh(false);project();
 </script>
 </body>
 </html>

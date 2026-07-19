@@ -41,7 +41,7 @@ exposed to a compromised owner).
 
 ## Consequences
 
-The litepaper §6 becomes precise on both sides: "the expected result for the
+The whitepaper (§5 success fee) becomes precise on both sides: "the expected result for the
 individual user tends toward zero or negative after gas AND fee; the protocol
 sustains itself through the success fee on the cycles that do profit." §8 adds
 the success fee to the sustainability list; none of its bans (paid signals,

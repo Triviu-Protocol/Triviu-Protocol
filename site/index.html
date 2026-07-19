@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Triviu · Open source. Verifiable math. No promises.</title>
-<meta name="description" content="Triviu is an open, non-custodial protocol for atomic triangular arbitrage on Polygon — built to be read, audited and run by you. Educational infrastructure. No token. No promises.">
+<meta name="description" content="Triviu is an open, non-custodial protocol for atomic triangular arbitrage on Polygon, with the same audited contracts designed for Arbitrum and BSC — built to be read, audited and run by you. Educational infrastructure. No token. No promises.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -224,6 +224,7 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
       <a href="#trilemma" data-i18n="nav_trilemma">Trilemma</a>
       <a href="#education" data-i18n="nav_education">Education</a>
       <a href="/simulate" data-i18n="nav_sim">Simulate</a>
+      <a href="/chains" data-i18n="nav_chains">Chains</a>
       <a href="#verify" data-i18n="nav_verify">Verify</a>
       <a href="#roadmap" data-i18n="nav_road">Roadmap</a>
       <a href="#faq">FAQ</a>
@@ -239,9 +240,9 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
 <header class="hero" id="top">
   <div class="wrap hero-grid">
     <div class="hero-copy">
-      <div class="eyebrow" data-i18n="hero_eyebrow">Open protocol · Polygon PoS · no token</div>
+      <div class="eyebrow" data-i18n="hero_eyebrow">Open protocol · EVM · Polygon first · no token</div>
       <h1 data-i18n="hero_h1">Don't trust.<br>Verify.</h1>
-      <p class="sub" data-i18n="hero_sub">Triviu is an open, non-custodial protocol for atomic triangular arbitrage on Polygon — built to be read, audited and run by you. Educational infrastructure, with every rule public and every limit documented.</p>
+      <p class="sub" data-i18n="hero_sub">Triviu is an open, non-custodial protocol for atomic triangular arbitrage on Polygon, with the same audited contracts designed for Arbitrum and BSC — built to be read, audited and run by you. Educational infrastructure, with every rule public and every limit documented.</p>
       <div class="cta-row">
         <a class="btn btn-prim" href="#verify" data-i18n="hero_cta1">Read the code</a>
         <a class="btn btn-sec" href="/whitepaper" data-i18n="hero_cta2">Read the whitepaper</a>
@@ -268,7 +269,7 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
 <div class="risk" role="note">
   <div class="wrap">
     <b data-i18n="risk_t">⚠ RISK NOTICE — REQUIRED READING</b>
-    <p data-i18n="risk_p">Most atomic-arbitrage opportunities on Polygon are captured by professional operators. For most individual users, the expected result after gas costs tends toward zero or negative. Triviu is educational infrastructure — it is not a source of income. Reverted transactions still pay gas.</p>
+    <p data-i18n="risk_p">Most atomic-arbitrage opportunities — on any chain — are captured by professional operators. For most individual users, the expected result after gas costs tends toward zero or negative. Triviu is educational infrastructure — it is not a source of income. Reverted transactions still pay gas.</p>
   </div>
 </div>
 
@@ -283,7 +284,7 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
     <div class="cards">
       <div class="card"><span class="dot" style="background:var(--ultramar)"></span><h3 data-i18n="c1_t">Atomic executor</h3><p data-i18n="c1_p">Stateless, verified contract. Pulls the principal from the caller, runs the legs, returns everything in the same transaction — or reverts it all.</p></div>
       <div class="card"><span class="dot" style="background:var(--lacre)"></span><h3 data-i18n="c2_t">Parameter registry</h3><p data-i18n="c2_p">Whitelists and caps on-chain. Every change records the URL of its public pull request: forum → Git → block.</p></div>
-      <div class="card"><span class="dot" style="background:var(--acafrao)"></span><h3 data-i18n="c3_t">Fork simulator</h3><p data-i18n="c3_p">Every route runs on a local Polygon fork before anything else. Mistakes there are free — and that is the point.</p></div>
+      <div class="card"><span class="dot" style="background:var(--acafrao)"></span><h3 data-i18n="c3_t">Fork simulator</h3><p data-i18n="c3_p">Every route runs on a local fork of the target chain before anything else. Mistakes there are free — and that is the point.</p></div>
       <div class="card"><span class="dot" style="background:var(--grafite)"></span><h3 data-i18n="c4_t">Open engine</h3><p data-i18n="c4_p">Cycle detection with Bellman–Ford over −log(rates), written to be read. dry-run by default; mainnet requires an explicit risk acknowledgment.</p></div>
     </div>
     <div class="readings">
@@ -304,7 +305,7 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
     <div class="steps">
       <div class="step"><div class="n">STEP 01</div><h3 data-i18n="s1_t">Detect</h3><p data-i18n="s1_p">The open engine watches whitelisted pools and searches for negative cycles over −log(rates) — Bellman–Ford, in readable code.</p><span class="tag" data-i18n="s1_g">off-chain · open source</span></div>
       <div class="step-arrow">→</div>
-      <div class="step"><div class="n">STEP 02</div><h3 data-i18n="s2_t">Simulate</h3><p data-i18n="s2_p">Every candidate route runs on a local Polygon fork first. Gas, slippage and revert reasons — measured where mistakes cost nothing.</p><span class="tag" data-i18n="s2_g">fork · mandatory</span></div>
+      <div class="step"><div class="n">STEP 02</div><h3 data-i18n="s2_t">Simulate</h3><p data-i18n="s2_p">Every candidate route runs on a local fork of the target chain first. Gas, slippage and revert reasons — measured where mistakes cost nothing.</p><span class="tag" data-i18n="s2_g">fork · mandatory</span></div>
       <div class="step-arrow">→</div>
       <div class="step"><div class="n">STEP 03</div><h3 data-i18n="s3_t">Execute — or revert</h3><p data-i18n="s3_p">On-chain, the contract enforces the profit condition. Met: everything returns to your wallet. Not met: the whole transaction reverts. Both outcomes go on the public dashboard.</p><span class="tag" data-i18n="s3_g">atomic · non-custodial</span></div>
     </div>
@@ -355,6 +356,7 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
       <div class="frow"><span class="dot" style="background:var(--lacre)"></span><b data-i18n="t_ax2">Security<span class="chip">HOLDS</span></b><p data-i18n="t_r2">Atomicity removes leg exposure; contract risk remains — external audit before v1.</p></div>
       <div class="frow"><span class="dot" style="background:var(--ultramar)"></span><b data-i18n="t_ax3">Decentralization<span class="chip">COSTS</span></b><p data-i18n="t_r3">We inherit Polygon's validator set. Mitigation: verified contracts, local simulation, self-hosted RPC.</p></div>
     </div>
+    <p style="font-size:13.5px;color:var(--grafite);margin-top:18px;max-width:64ch" data-i18n="t_more">Polygon is the founding record. The same EVM contracts extend to <b>Arbitrum</b> (Record 0004) and <b>BSC</b> (0005) — each pays a different price; BSC is the most centralized of the three, and we say so. <b>Solana</b> is not EVM: a deferred sibling protocol (0006), not a config. Nothing is "live" until its own gate clears. <a href="/chains">See the expansion records →</a></p>
     <span class="enter" data-i18n="enter3">Scroll to enter · Education</span>
   </div>
 </section>
@@ -401,7 +403,7 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
       <tr><td data-i18n="v_r1">Whitepaper — the founding document</td><td class="mono"><a href="/whitepaper">triviu.vercel.app/whitepaper</a></td></tr>
       <tr><td data-i18n="v_r2">Contracts, v0 — tested, external audit pending</td><td class="mono">github.com/Triviu-Protocol — /contracts</td></tr>
       <tr><td data-i18n="v_r3">Decisions and their costs (Tradeoff Records)</td><td class="mono">github.com/Triviu-Protocol — /decisions</td></tr>
-      <tr><td data-i18n="v_r4">Verified addresses on Polygonscan</td><td class="mono" data-i18n="v_soon1">at mainnet deploy, after the external audit</td></tr>
+      <tr><td data-i18n="v_r4">Verified addresses on each chain's explorer</td><td class="mono" data-i18n="v_soon1">at mainnet deploy, after the external audit</td></tr>
       <tr><td data-i18n="v_r5">Public dashboard — failures included</td><td class="mono"><a href="/dashboard">triviu.vercel.app/dashboard</a></td></tr>
     </table>
     <div class="metricas">
@@ -423,7 +425,7 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
       <div class="mile"><span class="md" style="background:var(--ultramar)"></span><div class="mv">v0 · NOW</div><h3 data-i18n="rm1_t">Public foundation</h3><p data-i18n="rm1_p">Whitepaper, open repository, fork simulator, tested v0 contracts.</p></div>
       <div class="mile"><span class="md" style="background:var(--acafrao)"></span><div class="mv">v0.2</div><h3 data-i18n="rm2_t">Contract hardening</h3><p data-i18n="rm2_p">Balance-delta accounting and typed swap adapters; public dashboard fills with on-chain data.</p></div>
       <div class="mile"><span class="md" style="background:var(--lacre)"></span><div class="mv" data-i18n="rm3_v">GATE</div><h3 data-i18n="rm3_t">External audit</h3><p data-i18n="rm3_p">Independent review of Executor and Registry. Nothing touches mainnet before this.</p></div>
-      <div class="mile"><span class="md" style="background:var(--tinta)"></span><div class="mv">v1</div><h3 data-i18n="rm4_t">Mainnet + curriculum</h3><p data-i18n="rm4_p">Timelocked Registry, full educational curriculum, second audit.</p></div>
+      <div class="mile"><span class="md" style="background:var(--tinta)"></span><div class="mv">v1</div><h3 data-i18n="rm4_t">Mainnet + curriculum</h3><p data-i18n="rm4_p">Polygon mainnet first; the same contracts then extend to Arbitrum and BSC, each behind its own gate. Timelocked Registry, full curriculum, second audit.</p></div>
     </div>
     <span class="enter" data-i18n="enter6">Scroll to enter · FAQ</span>
   </div>
@@ -437,7 +439,7 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
     <details><summary data-i18n="f1_q">Is this an investment?</summary><p data-i18n="f1_a">No. Triviu is educational infrastructure and open-source tooling. It takes no deposits, manages no capital and promises no returns.</p></details>
     <details><summary data-i18n="f2_q">Is there a token or presale?</summary><p data-i18n="f2_a">No — and none is planned. Anyone selling a "Triviu token" is running a scam. Report it.</p></details>
     <details><summary data-i18n="f3_q">Will I make money running the bot?</summary><p data-i18n="f3_a">Probably not. Most opportunities are captured by professional operators with dedicated infrastructure; after gas, expected results tend toward zero or negative. That is why the risk notice sits at the top of this page.</p></details>
-    <details><summary data-i18n="f4_q">Why Polygon?</summary><p data-i18n="f4_a">Because low gas makes learning cheap. What that choice costs — in decentralization — is documented in Tradeoff Record No. 0001, in the open.</p></details>
+    <details><summary data-i18n="f4_q">Why Polygon?</summary><p data-i18n="f4_a">Because low gas makes learning cheap — so Polygon is the default and reference chain. The same audited contracts are EVM-equivalent and extend to Arbitrum and BSC by configuration, each with its own Tradeoff Record (0001, 0004, 0005). What each chain costs — in decentralization — is documented in the open; none is "live" until its own audit gate clears.</p></details>
     <details><summary data-i18n="f5_q">Who is behind Triviu?</summary><p data-i18n="f5_a">Triviu Contributors. Code, parameters, decisions and their costs are all public in the repository — judge the work, not the names.</p></details>
   </div>
 </section>
@@ -478,22 +480,22 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
 var LANG="en";
 var T={
 en:{
- nav_protocol:"Protocol",nav_how:"How it works",nav_math:"The math",nav_trilemma:"Trilemma",nav_education:"Education",nav_sim:"Simulate",nav_verify:"Verify",nav_road:"Roadmap",nav_code:"Read the code",
- hero_eyebrow:"Open protocol · Polygon PoS · no token",
+ nav_protocol:"Protocol",nav_how:"How it works",nav_math:"The math",nav_trilemma:"Trilemma",nav_education:"Education",nav_sim:"Simulate",nav_chains:"Chains",nav_verify:"Verify",nav_road:"Roadmap",nav_code:"Read the code",
+ hero_eyebrow:"Open protocol · EVM · Polygon first · no token",
  hero_h1:"Don't trust.<br>Verify.",
- hero_sub:"Triviu is an open, non-custodial protocol for atomic triangular arbitrage on Polygon — built to be read, audited and run by you. Educational infrastructure, with every rule public and every limit documented.",
+ hero_sub:"Triviu is an open, non-custodial protocol for atomic triangular arbitrage on Polygon, with the same audited contracts designed for Arbitrum and BSC — built to be read, audited and run by you. Educational infrastructure, with every rule public and every limit documented.",
  hero_cta1:"Read the code",hero_cta2:"Read the whitepaper",
  hero_m1:"<b>AGPL-3.0</b> code · <b>CC BY 4.0</b> brand · signed releases",
  hero_m2:"stateless executor · parameters via public PR · audit before mainnet",
  hero_scroll:"Scroll — the risk notice comes first",
  hero_drag:"Drag · turn the cycle · tap a node",
  risk_t:"⚠ RISK NOTICE — REQUIRED READING",
- risk_p:"Most atomic-arbitrage opportunities on Polygon are captured by professional operators. For most individual users, the expected result after gas costs tends toward zero or negative. Triviu is educational infrastructure — it is not a source of income. Reverted transactions still pay gas.",
+ risk_p:"Most atomic-arbitrage opportunities — on any chain — are captured by professional operators. For most individual users, the expected result after gas costs tends toward zero or negative. Triviu is educational infrastructure — it is not a source of income. Reverted transactions still pay gas.",
  p_eyebrow:"01 · The protocol",p_h2:"One transaction. Three legs. Zero custody.",
  p_lead:"A triangular cycle A→B→C→A runs inside a single atomic transaction: either it closes with the minimum profit, or everything reverts and no leg is left exposed. Your keys and your funds never touch us — the executor is stateless by construction.",
  c1_t:"Atomic executor",c1_p:"Stateless, verified contract. Pulls the principal from the caller, runs the legs, returns everything in the same transaction — or reverts it all.",
  c2_t:"Parameter registry",c2_p:"Whitelists and caps on-chain. Every change records the URL of its public pull request: forum → Git → block.",
- c3_t:"Fork simulator",c3_p:"Every route runs on a local Polygon fork before anything else. Mistakes there are free — and that is the point.",
+ c3_t:"Fork simulator",c3_p:"Every route runs on a local fork of the target chain before anything else. Mistakes there are free — and that is the point.",
  c4_t:"Open engine",c4_p:"Cycle detection with Bellman–Ford over −log(rates), written to be read. dry-run by default; mainnet requires an explicit risk acknowledgment.",
  rd1_l:"Reading I · the name",rd1_t:"The trivium",rd1_p:"Latin for the meeting of three roads — and the classical curriculum that founded education.",
  rd2_l:"Reading II · the product",rd2_t:"The route",rd2_p:"Three pools in one closed, atomic loop. It ends where it began, or it never happened.",
@@ -502,7 +504,7 @@ en:{
  h_eyebrow:"02 · How it works",h_h2:"Detect. Simulate. Execute — or revert.",
  h_lead:"Three moves, always in this order. The third one has two honest endings, and both are published.",
  s1_t:"Detect",s1_p:"The open engine watches whitelisted pools and searches for negative cycles over −log(rates) — Bellman–Ford, in readable code.",s1_g:"off-chain · open source",
- s2_t:"Simulate",s2_p:"Every candidate route runs on a local Polygon fork first. Gas, slippage and revert reasons — measured where mistakes cost nothing.",s2_g:"fork · mandatory",
+ s2_t:"Simulate",s2_p:"Every candidate route runs on a local fork of the target chain first. Gas, slippage and revert reasons — measured where mistakes cost nothing.",s2_g:"fork · mandatory",
  s3_t:"Execute — or revert",s3_p:"On-chain, the contract enforces the profit condition. Met: everything returns to your wallet. Not met: the whole transaction reverts. Both outcomes go on the public dashboard.",s3_g:"atomic · non-custodial",
  m_eyebrow:"03 · The math",m_h2:"The whole strategy fits in one condition.",
  m_lead:"For volume V in asset A, effective rates r and pool fees φ, the contract enforces exactly this — and reverts when it fails. No discretion, no dashboard magic: a formula you can check.",
@@ -521,6 +523,7 @@ en:{
  t_ax1:"Scalability<span class='chip'>GAINS</span>",t_r1:"Low gas makes small cycles executable and mistakes cheap — the prerequisite of hands-on education.",
  t_ax2:"Security<span class='chip'>HOLDS</span>",t_r2:"Atomicity removes leg exposure; contract risk remains — external audit before v1.",
  t_ax3:"Decentralization<span class='chip'>COSTS</span>",t_r3:"We inherit Polygon's validator set. Mitigation: verified contracts, local simulation, self-hosted RPC.",
+ t_more:"Polygon is the founding record. The same EVM contracts extend to <b>Arbitrum</b> (Record 0004) and <b>BSC</b> (0005) — each pays a different price; BSC is the most centralized of the three, and we say so. <b>Solana</b> is not EVM: a deferred sibling protocol (0006), not a config. Nothing is \"live\" until its own gate clears. <a href=\"/chains\">See the expansion records →</a>",
  e_eyebrow:"05 · Education",e_h2:"Learn it before you run it.",
  e_lead:"A public curriculum, with any AI-generated content labeled as AI in every video and every piece — always. The editorial rule is non-negotiable: show technology, never income.",
  e1_t:"AMMs from zero",e1_p:"How pools set prices, and why that creates the discrepancies arbitrage closes.",
@@ -536,7 +539,7 @@ en:{
  n_nota:"If anyone offers any of these things in Triviu's name, it is a scam — report it. The only official surfaces are this site and the public repository.",
  v_eyebrow:"07 · Don't trust: verify",v_h2:"Everything we claim, you can check.",
  v_th1:"What",v_th2:"Where",
- v_r1:"Whitepaper — the founding document",v_r2:"Contracts, v0 — tested, external audit pending",v_r3:"Decisions and their costs (Tradeoff Records)",v_r4:"Verified addresses on Polygonscan",v_r5:"Public dashboard — failures included",
+ v_r1:"Whitepaper — the founding document",v_r2:"Contracts, v0 — tested, external audit pending",v_r3:"Decisions and their costs (Tradeoff Records)",v_r4:"Verified addresses on each chain's explorer",v_r5:"Public dashboard — failures included",
  v_soon1:"at mainnet deploy, after the external audit",v_soon2:"live · triviu.vercel.app/dashboard",
  mt1_l:"Executions · incl. reverts",mt2_l:"Revert rate · 30d",mt3_l:"Gas spent vs. net result",
  mt_n:"after mainnet deploy",mt_n2:"the real number, good or bad",mt_n3:"failures included, always",
@@ -545,12 +548,12 @@ en:{
  rm1_t:"Public foundation",rm1_p:"Whitepaper, open repository, fork simulator, tested v0 contracts.",
  rm2_t:"Contract hardening",rm2_p:"Balance-delta accounting and typed swap adapters; public dashboard fills with on-chain data.",
  rm3_v:"GATE",rm3_t:"External audit",rm3_p:"Independent review of Executor and Registry. Nothing touches mainnet before this.",
- rm4_t:"Mainnet + curriculum",rm4_p:"Timelocked Registry, full educational curriculum, second audit.",
+ rm4_t:"Mainnet + curriculum",rm4_p:"Polygon mainnet first; the same contracts then extend to Arbitrum and BSC, each behind its own gate. Timelocked Registry, full curriculum, second audit.",
  f_h2:"Straight answers.",
  f1_q:"Is this an investment?",f1_a:"No. Triviu is educational infrastructure and open-source tooling. It takes no deposits, manages no capital and promises no returns.",
  f2_q:"Is there a token or presale?",f2_a:"No — and none is planned. Anyone selling a \u201cTriviu token\u201d is running a scam. Report it.",
  f3_q:"Will I make money running the bot?",f3_a:"Probably not. Most opportunities are captured by professional operators with dedicated infrastructure; after gas, expected results tend toward zero or negative. That is why the risk notice sits at the top of this page.",
- f4_q:"Why Polygon?",f4_a:"Because low gas makes learning cheap. What that choice costs — in decentralization — is documented in Tradeoff Record No. 0001, in the open.",
+ f4_q:"Why Polygon?",f4_a:"Because low gas makes learning cheap — so Polygon is the default and reference chain. The same audited contracts are EVM-equivalent and extend to Arbitrum and BSC by configuration, each with its own Tradeoff Record (0001, 0004, 0005). What each chain costs — in decentralization — is documented in the open; none is \"live\" until its own audit gate clears.",
  f5_q:"Who is behind Triviu?",f5_a:"Triviu Contributors. Code, parameters, decisions and their costs are all public in the repository — judge the work, not the names.",
  cta_h2:"Start on a fork. Mistakes there are free.",cta_b1:"Open the fork guide",cta_b2:"Browse the repository",
  foot_lic:"AGPL-3.0 code · CC BY 4.0 brand · no token · no tracking",
@@ -561,22 +564,22 @@ en:{
  title:"Triviu · Open source. Verifiable math. No promises."
 },
 es:{
- nav_protocol:"Protocolo",nav_how:"Cómo funciona",nav_math:"La matemática",nav_trilemma:"Trilema",nav_education:"Educación",nav_sim:"Simular",nav_verify:"Verificar",nav_road:"Hoja de ruta",nav_code:"Leer el código",
- hero_eyebrow:"Protocolo abierto · Polygon PoS · sin token",
+ nav_protocol:"Protocolo",nav_how:"Cómo funciona",nav_math:"La matemática",nav_trilemma:"Trilema",nav_education:"Educación",nav_sim:"Simular",nav_chains:"Cadenas",nav_verify:"Verificar",nav_road:"Hoja de ruta",nav_code:"Leer el código",
+ hero_eyebrow:"Protocolo abierto · EVM · Polygon primero · sin token",
  hero_h1:"No confíes.<br>Verifica.",
- hero_sub:"Triviu es un protocolo abierto y sin custodia para arbitraje triangular atómico en Polygon — hecho para que tú lo leas, lo audites y lo ejecutes. Infraestructura educativa, con cada regla pública y cada límite documentado.",
+ hero_sub:"Triviu es un protocolo abierto y sin custodia para arbitraje triangular atómico en Polygon, con los mismos contratos auditados diseñados para Arbitrum y BSC — hecho para que tú lo leas, lo audites y lo ejecutes. Infraestructura educativa, con cada regla pública y cada límite documentado.",
  hero_cta1:"Leer el código",hero_cta2:"Leer el whitepaper",
  hero_m1:"Código <b>AGPL-3.0</b> · Marca <b>CC BY 4.0</b> · releases firmadas",
  hero_m2:"ejecutor stateless · parámetros vía PR público · auditoría antes de mainnet",
  hero_scroll:"Desplázate — el aviso de riesgo va primero",
  hero_drag:"Arrastra · gira el ciclo · toca un nodo",
  risk_t:"⚠ AVISO DE RIESGO — LECTURA OBLIGATORIA",
- risk_p:"La mayoría de las oportunidades de arbitraje atómico en Polygon son capturadas por operadores profesionales. Para la mayoría de los usuarios individuales, el resultado esperado después del gas tiende a cero o negativo. Triviu es infraestructura educativa — no es una fuente de ingresos. Las transacciones revertidas igual pagan gas.",
+ risk_p:"La mayoría de las oportunidades de arbitraje atómico — en cualquier cadena — son capturadas por operadores profesionales. Para la mayoría de los usuarios individuales, el resultado esperado después del gas tiende a cero o negativo. Triviu es infraestructura educativa — no es una fuente de ingresos. Las transacciones revertidas igual pagan gas.",
  p_eyebrow:"01 · El protocolo",p_h2:"Una transacción. Tres tramos. Cero custodia.",
  p_lead:"Un ciclo triangular A→B→C→A corre dentro de una sola transacción atómica: o cierra con la ganancia mínima, o todo se revierte y ningún tramo queda expuesto. Tus llaves y tus fondos nunca nos tocan — el ejecutor es stateless por construcción.",
  c1_t:"Ejecutor atómico",c1_p:"Contrato stateless y verificado. Toma el principal del llamador, ejecuta los tramos y devuelve todo en la misma transacción — o revierte todo.",
  c2_t:"Registro de parámetros",c2_p:"Whitelists y topes on-chain. Cada cambio graba la URL de su pull request público: foro → Git → bloque.",
- c3_t:"Simulador en fork",c3_p:"Toda ruta corre primero en un fork local de Polygon. Equivocarse ahí es gratis — y esa es la idea.",
+ c3_t:"Simulador en fork",c3_p:"Toda ruta corre primero en un fork local de la cadena objetivo. Equivocarse ahí es gratis — y esa es la idea.",
  c4_t:"Motor abierto",c4_p:"Detección de ciclos con Bellman–Ford sobre −log(tasas), escrito para ser leído. dry-run por defecto; mainnet exige aceptar el riesgo explícitamente.",
  rd1_l:"Lectura I · el nombre",rd1_t:"El trivium",rd1_p:"Latín para el encuentro de tres caminos — y el currículo clásico que fundó la educación.",
  rd2_l:"Lectura II · el producto",rd2_t:"La ruta",rd2_p:"Tres pools en un solo bucle cerrado y atómico. Termina donde empezó, o nunca ocurrió.",
@@ -585,7 +588,7 @@ es:{
  h_eyebrow:"02 · Cómo funciona",h_h2:"Detectar. Simular. Ejecutar — o revertir.",
  h_lead:"Tres movimientos, siempre en este orden. El tercero tiene dos finales honestos, y ambos se publican.",
  s1_t:"Detectar",s1_p:"El motor abierto vigila pools de la whitelist y busca ciclos negativos sobre −log(tasas) — Bellman–Ford, en código legible.",s1_g:"off-chain · código abierto",
- s2_t:"Simular",s2_p:"Toda ruta candidata corre primero en un fork local de Polygon. Gas, slippage y motivos de revert — medidos donde equivocarse no cuesta nada.",s2_g:"fork · obligatorio",
+ s2_t:"Simular",s2_p:"Toda ruta candidata corre primero en un fork local de la cadena objetivo. Gas, slippage y motivos de revert — medidos donde equivocarse no cuesta nada.",s2_g:"fork · obligatorio",
  s3_t:"Ejecutar — o revertir",s3_p:"On-chain, el contrato impone la condición de ganancia. Se cumple: todo vuelve a tu billetera. No se cumple: toda la transacción revierte. Ambos resultados van al dashboard público.",s3_g:"atómico · sin custodia",
  m_eyebrow:"03 · La matemática",m_h2:"Toda la estrategia cabe en una condición.",
  m_lead:"Para un volumen V en el activo A, tasas efectivas r y comisiones φ, el contrato impone exactamente esto — y revierte cuando falla. Sin discreción, sin magia de dashboard: una fórmula que puedes comprobar.",
@@ -604,6 +607,7 @@ es:{
  t_ax1:"Escalabilidad<span class='chip'>GANA</span>",t_r1:"El gas bajo hace ejecutables los ciclos pequeños y abarata el error — prerrequisito de la educación práctica.",
  t_ax2:"Seguridad<span class='chip'>MANTIENE</span>",t_r2:"La atomicidad elimina la exposición por tramo; el riesgo de contrato permanece — auditoría externa antes de la v1.",
  t_ax3:"Descentralización<span class='chip'>CUESTA</span>",t_r3:"Heredamos el conjunto de validadores de Polygon. Mitigación: contratos verificados, simulación local, RPC propio.",
+ t_more:"Polygon es la ficha fundacional. Los mismos contratos EVM se extienden a <b>Arbitrum</b> (Ficha 0004) y <b>BSC</b> (0005) — cada una paga un precio distinto; BSC es la más centralizada de las tres, y lo decimos. <b>Solana</b> no es EVM: un protocolo hermano diferido (0006), no una configuración. Nada está \"en vivo\" hasta que pase su propia puerta. <a href=\"/chains\">Ver las fichas de expansión →</a>",
  e_eyebrow:"05 · Educación",e_h2:"Apréndelo antes de ejecutarlo.",
  e_lead:"Un currículo público, enseñado por una persona sintética identificada como IA en cada video y cada biografía — siempre. La regla editorial no se negocia: mostrar tecnología, nunca ingresos.",
  e1_t:"AMMs desde cero",e1_p:"Cómo los pools fijan precios, y por qué eso crea las discrepancias que el arbitraje cierra.",
@@ -619,7 +623,7 @@ es:{
  n_nota:"Si alguien ofrece cualquiera de estas cosas en nombre de Triviu, es una estafa — denúnciala. Las únicas superficies oficiales son este sitio y el repositorio público.",
  v_eyebrow:"07 · No confíes: verifica",v_h2:"Todo lo que afirmamos, lo puedes comprobar.",
  v_th1:"Qué",v_th2:"Dónde",
- v_r1:"Whitepaper — el documento fundador",v_r2:"Contratos, v0 — probados, auditoría externa pendiente",v_r3:"Decisiones y sus costos (Fichas de Tradeoff)",v_r4:"Direcciones verificadas en Polygonscan",v_r5:"Dashboard público — fallos incluidos",
+ v_r1:"Whitepaper — el documento fundador",v_r2:"Contratos, v0 — probados, auditoría externa pendiente",v_r3:"Decisiones y sus costos (Fichas de Tradeoff)",v_r4:"Direcciones verificadas en el explorador de cada cadena",v_r5:"Dashboard público — fallos incluidos",
  v_soon1:"en el deploy a mainnet, tras la auditoría externa",v_soon2:"en vivo · triviu.vercel.app/dashboard",
  mt1_l:"Ejecuciones · incl. reverts",mt2_l:"Tasa de reversión · 30d",mt3_l:"Gas gastado vs. resultado neto",
  mt_n:"tras el deploy a mainnet",mt_n2:"el número real, bueno o malo",mt_n3:"fallos incluidos, siempre",
@@ -628,12 +632,12 @@ es:{
  rm1_t:"Fundación pública",rm1_p:"Whitepaper, repositorio abierto, simulador en fork, contratos v0 probados.",
  rm2_t:"Endurecimiento del contrato",rm2_p:"Contabilidad por delta de saldo y adaptadores de swap tipados; el dashboard público se llena con datos on-chain.",
  rm3_v:"PUERTA",rm3_t:"Auditoría externa",rm3_p:"Revisión independiente del Ejecutor y del Registro. Nada toca mainnet antes de esto.",
- rm4_t:"Mainnet + currículo",rm4_p:"Registro con timelock, currículo educativo completo, segunda auditoría.",
+ rm4_t:"Mainnet + currículo",rm4_p:"Polygon mainnet primero; los mismos contratos luego se extienden a Arbitrum y BSC, cada una tras su propia puerta. Registro con timelock, currículo completo, segunda auditoría.",
  f_h2:"Respuestas directas.",
  f1_q:"¿Esto es una inversión?",f1_a:"No. Triviu es infraestructura educativa y herramientas de código abierto. No recibe depósitos, no gestiona capital y no promete rendimientos.",
  f2_q:"¿Hay token o preventa?",f2_a:"No — y no hay planes. Quien venda un \u201ctoken de Triviu\u201d está montando una estafa. Denúncialo.",
  f3_q:"¿Ganaré dinero ejecutando el bot?",f3_a:"Probablemente no. La mayoría de las oportunidades las capturan operadores profesionales con infraestructura dedicada; después del gas, el resultado esperado tiende a cero o negativo. Por eso el aviso de riesgo está en la parte superior de esta página.",
- f4_q:"¿Por qué Polygon?",f4_a:"Porque el gas bajo abarata el aprendizaje. Lo que esa elección cuesta — en descentralización — está documentado en la Ficha de Tradeoff N.º 0001, a la vista.",
+ f4_q:"¿Por qué Polygon?",f4_a:"Porque el gas bajo abarata el aprendizaje — por eso Polygon es la cadena por defecto y de referencia. Los mismos contratos auditados son equivalentes a EVM y se extienden a Arbitrum y BSC por configuración, cada una con su Ficha de Tradeoff (0001, 0004, 0005). Lo que cada cadena cuesta — en descentralización — está documentado a la vista; ninguna está \"en vivo\" hasta que pase su propia puerta de auditoría.",
  f5_q:"¿Quién está detrás de Triviu?",f5_a:"Triviu Contributors. Código, parámetros, decisiones y sus costos son públicos en el repositorio — juzga el trabajo, no los nombres.",
  cta_h2:"Empieza en un fork. Equivocarse ahí es gratis.",cta_b1:"Abrir la guía de fork",cta_b2:"Explorar el repositorio",
  foot_lic:"Código AGPL-3.0 · Marca CC BY 4.0 · sin token · sin rastreo",

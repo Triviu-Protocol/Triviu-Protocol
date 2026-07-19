@@ -37,10 +37,12 @@ by construction.
 
 ## 4.3 Flash loans (optional)
 
-Integration with established Polygon providers allows execution without idle
-capital of one's own. Aave v3 charges a 0.05% premium and enforces
-repay-or-revert atomicity within the same transaction; Balancer's Vault currently
-charges no protocol fee (a governance parameter). Gas is still paid by the
+Integration with established providers on the target chain allows execution
+without idle capital of one's own. Aave v3 (available on Polygon, Arbitrum and
+BSC) charges a 0.05% premium and enforces repay-or-revert atomicity within the
+same transaction; Balancer's Vault (Polygon and Arbitrum) currently
+charges no protocol fee (a governance parameter). Availability differs per chain —
+the engine selects the provider from the chain configuration. Gas is still paid by the
 caller: if the cycle is not profitable, the transaction reverts and only the gas
 is lost — and the flash-loan premium is itself part of the cost the
 profitability condition ([Section 3](03-triangular-arbitrage.md)) must clear.
@@ -48,9 +50,11 @@ profitability condition ([Section 3](03-triangular-arbitrage.md)) must clear.
 ## 4.4 Off-chain engine (open source)
 
 Monitors pools via multicall, detects cycles (Bellman–Ford), **simulates every
-route on a local Polygon fork before any submission**, and sends transactions
-signed by the user's own key, which never leaves their machine. `dry_run` is the
-default; mainnet requires an explicit environment acknowledgement.
+route on a local fork of the target chain before any submission**, and sends
+transactions signed by the user's own key, which never leaves their machine. The
+same engine reads any EVM chain from configuration (Polygon by default; Arbitrum
+and BSC ship with example configs). `dry_run` is the default; mainnet requires an
+explicit environment acknowledgement.
 
 ## 4.5 Simulator and backtester
 
