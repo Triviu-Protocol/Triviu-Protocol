@@ -1,11 +1,16 @@
-# Public dashboard (Dune)
+# Public dashboard
 
 Principle: a metric without its failure context is marketing; a metric with
 failures included is evidence.
 
-This directory versions the public dashboard's SQL queries. They are written now
-and parameterized; they go live (and get linked from the root README) at the
-first testnet/mainnet deployment, when the executor address exists.
+- **[`index.html`](index.html)** — the public dashboard frontend (single file,
+  zero build, brand-token styled). It shows the three metrics in an honest
+  "no data yet" state until the first deployment; no numbers are invented.
+- **`queries/`** — the versioned SQL that will feed it, live from day one.
+
+The frontend and queries are written now and parameterized; they fill in with
+real on-chain data (and get linked from the root README) at the first mainnet
+deployment, when the executor address exists.
 
 ## Queries
 
