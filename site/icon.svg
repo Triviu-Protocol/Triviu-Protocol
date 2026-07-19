@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="Triviu">
+  <path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="#52575D" stroke-width="7" stroke-linecap="round"/>
+  <path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="#52575D" stroke-width="7" stroke-linecap="round"/>
+  <path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="#52575D" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="40" cy="25.36" r="12" fill="#2743C7"/>
+  <circle cx="100" cy="60" r="12" fill="#C13327"/>
+  <circle cx="40" cy="94.64" r="12" fill="#E8B23A"/>
+</svg>

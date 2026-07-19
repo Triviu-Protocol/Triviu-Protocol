@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 120" width="340" height="120" role="img" aria-label="Triviu">
+  <g transform="translate(6,0)">
+    <path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="#52575D" stroke-width="7" stroke-linecap="round"/>
+    <path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="#52575D" stroke-width="7" stroke-linecap="round"/>
+    <path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="#52575D" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="40" cy="25.36" r="11" fill="#2743C7"/>
+    <circle cx="100" cy="60" r="11" fill="#C13327"/>
+    <circle cx="40" cy="94.64" r="11" fill="#E8B23A"/>
+  </g>
+  <text x="132" y="76" font-family="'Libre Caslon Text', Georgia, serif" font-size="52" font-weight="700" fill="#16181D">Triviu</text>
+</svg>
