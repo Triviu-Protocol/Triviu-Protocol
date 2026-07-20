@@ -76,7 +76,7 @@ In the infinitesimal limit `Δ₀ → 0`, price impact vanishes and `Δ_out/Δ�
 ```
 
 For 0.30% pools (`γ = 0.997`), that means the product of the three spot rates must
-exceed `1 / 0.997³ ≈ 1.00903` — the raw mispricing has to clear roughly **0.9% of
+exceed `1 / 0.997³ ≈ 1.00905` — the raw mispricing has to clear roughly **0.9% of
 cumulative fees before a single unit of gas or price impact is paid** [W1]. This
 number is the first honest wall: most transient discrepancies are smaller than it.
 

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triviu · Lesson 02 — The fee wall and the math</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M40 25.36 Q76 32.3 100 60' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M100 60 Q76 87.7 40 94.64' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M40 94.64 Q28 60 40 25.36' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='40' cy='25.36' r='11' fill='%232743C7'/%3E%3Ccircle cx='100' cy='60' r='11' fill='%23C13327'/%3E%3Ccircle cx='40' cy='94.64' r='11' fill='%23E8B23A'/%3E%3C/svg%3E">
+<meta name="description" content="Lesson 02 — each swap charges a fee on the input, so over N hops it compounds to 0.997^N. A three-hop cycle loses about 0.9% to fees before it starts. Worked numbers, and why more hops is a taller wall, not more chances. Education, not income.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://triviu.vercel.app/learn/fee-wall">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Triviu">
+<meta property="og:title" content="Lesson 02 — The fee wall and the math · Triviu">
+<meta property="og:description" content="Over N hops the fee compounds to 0.997^N. A three-hop cycle loses ~0.9% before it starts; the price product must clear that wall plus slippage plus gas, or it reverts.">
+<meta property="og:url" content="https://triviu.vercel.app/learn/fee-wall">
+<meta property="og:image" content="https://triviu.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://triviu.vercel.app/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
+  --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
+  --verde:#1E7A46;
+  --fd:"Libre Caslon Text",Georgia,serif;--ft:"Public Sans",system-ui,sans-serif;--fm:"IBM Plex Mono",ui-monospace,monospace;
+  --r-m:6px;--r-l:10px;
+}
+@media(prefers-color-scheme:dark){:root{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}}
+:root[data-theme="dark"]{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}
+:root[data-theme="light"]{--papel:#FAFAF7;--tinta:#16181D;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-fundo:#FBF3DF;--acafrao-texto:#8A6414;--verde:#1E7A46;}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--papel);color:var(--tinta);font-family:var(--ft);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--ultramar);text-decoration:none}a:hover{text-decoration:underline}
+.mono{font-family:var(--fm)}
+.top{position:sticky;top:0;z-index:20;background:var(--papel);border-bottom:1px solid var(--fio);padding:14px 22px;display:flex;align-items:center;gap:12px}
+.top svg.lg{width:26px;height:26px}.top b{font-size:15px}.top .spacer{flex:1}
+.top a.nav{font-family:var(--fm);font-size:12px;color:var(--grafite)}
+.themebtn{width:30px;height:30px;padding:0;border:1px solid var(--fio);background:transparent;color:var(--grafite);border-radius:var(--r-m);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.themebtn:hover{color:var(--tinta);border-color:var(--tinta)}.themebtn svg{width:16px;height:16px}
+.wrap{max-width:760px;margin:0 auto;padding:44px 24px 72px}
+.crumb{font-family:var(--fm);font-size:12px;color:var(--grafite);margin-bottom:20px}
+.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--lacre);margin-bottom:12px}
+h1{font-family:var(--fd);font-size:34px;line-height:1.14;letter-spacing:-.01em;margin-bottom:16px}
+@media(max-width:640px){h1{font-size:27px}}
+h2{font-family:var(--fd);font-size:22px;margin:38px 0 12px}
+p{margin-bottom:16px;max-width:68ch}
+.lead{font-size:17px;color:var(--grafite);max-width:68ch;margin-bottom:24px}
+b{font-weight:600}
+.seal{border:1px solid var(--fio);background:var(--nevoa);border-radius:var(--r-m);padding:12px 16px;margin-bottom:34px;font-size:13px;color:var(--grafite)}
+.seal .chip{font-family:var(--fm);font-size:9px;letter-spacing:.09em;border:1px solid currentColor;border-radius:999px;padding:2px 7px;white-space:nowrap}
+.formula{font-family:var(--fm);font-size:15px;background:var(--nevoa);border:1px solid var(--fio);border-radius:var(--r-m);padding:14px 18px;margin:0 0 16px;overflow-x:auto;text-align:center}
+.work{border:1px solid var(--fio);border-left:3px solid var(--lacre);border-radius:var(--r-m);padding:16px 18px;margin:0 0 20px;background:var(--papel)}
+.work .wl{font-family:var(--fm);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--lacre);margin-bottom:10px}
+.work table{border-collapse:collapse;width:100%;font-family:var(--fm);font-size:13.5px}
+.work td,.work th{padding:5px 12px 5px 0;vertical-align:top;text-align:left}
+.work th{font-weight:500;color:var(--grafite);border-bottom:1px solid var(--fio)}
+.work td.k{color:var(--grafite);white-space:nowrap}
+.tryit{border:1px solid var(--fio);border-left:3px solid var(--ultramar);border-radius:var(--r-m);padding:14px 18px;margin:26px 0;font-size:14px}
+.tryit b{display:block;margin-bottom:4px}
+.lnav{display:flex;justify-content:space-between;gap:16px;margin-top:44px;border-top:1px solid var(--fio);padding-top:22px;flex-wrap:wrap}
+.lnav a{font-size:14px}
+.lnav .nx{margin-left:auto;text-align:right}
+.lnav .lb{font-family:var(--fm);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--grafite);display:block}
+footer{border-top:1px solid var(--fio);margin-top:40px;padding-top:22px;font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:1.9}
+</style>
+</head>
+<body>
+<header class="top">
+  <svg class="lg" viewBox="0 0 120 120" aria-label="Triviu"><path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="25.36" r="8.5" fill="#2743C7"/><circle cx="100" cy="60" r="8.5" fill="#C13327"/><circle cx="40" cy="94.64" r="8.5" fill="#E8B23A"/></svg>
+  <b>Triviu</b><span class="mono" style="font-size:12px;color:var(--grafite)">· Learn</span>
+  <span class="spacer"></span>
+  <button class="themebtn" id="theme" aria-label="Toggle light or dark theme" title="Theme"></button>
+  <a class="nav" href="/learn">Course</a><a class="nav" href="/simulate">Simulate</a><a class="nav" href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">Whitepaper</a>
+</header>
+<div class="wrap">
+  <div class="crumb"><a href="/learn">Course</a> / Lesson 02</div>
+  <div class="eyebrow">Lesson 02 · The fee wall</div>
+  <h1>Before profit, there is a wall. It is made of fees.</h1>
+  <p class="lead">A cycle does not start at zero. Each swap takes a cut, and three swaps
+  compound into a wall the mispricing has to clear before a single unit of gas is paid.
+  This is the number that quietly decides most cycles — so we compute it in the open.</p>
+
+  <div class="seal"><span class="chip">AI-GENERATED</span> &nbsp; Written to be checked, not trusted.
+  The wall below is <span class="mono">1 / 0.997³ ≈ 1.009</span> — arithmetic from
+  <a href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">whitepaper §3</a>, watchable in the
+  <a href="/simulate">simulator</a>. Possibility is not probability.</div>
+
+  <h2>The fee compounds: 0.997 to the N</h2>
+  <p>From <a href="/learn/amm">Lesson 01</a>: a 0.30% pool keeps 99.7% of your effective input,
+  so <span class="mono">γ = 0.997</span>. A triangular cycle is three swaps in a row, so the
+  fee applies three times — it compounds.</p>
+  <div class="formula">fee survival over N hops = γ<sup>N</sup> = 0.997<sup>N</sup></div>
+  <p>For three hops, <span class="mono">0.997³ = 0.99103</span>. You keep about 99.1% and lose
+  roughly <b>0.9% to fees alone</b> — before slippage, before gas, before anyone competes with
+  you. Turned around, the raw mispricing you are chasing has to be at least that big just to
+  break even on fees:</p>
+  <div class="formula">γ³ · P<sub>AB</sub> · P<sub>BC</sub> · P<sub>CA</sub> &gt; 1 &nbsp;&nbsp;⟹&nbsp;&nbsp; product of the three rates &gt; 1 / 0.997³ ≈ 1.009</div>
+  <p>That <b>0.9%</b> is the first honest wall. Most transient discrepancies across liquid
+  pools are smaller than it — which is exactly why they never make it into a profitable
+  transaction.</p>
+
+  <h2>More hops is a taller wall, not more chances</h2>
+  <p>It is tempting to think that adding hops adds opportunities. It adds fees. Each extra
+  swap multiplies survival by another <span class="mono">0.997</span>, so the wall you must
+  clear grows with every leg:</p>
+  <div class="work">
+    <div class="wl">The wall by cycle length (0.30% pools)</div>
+    <table>
+      <tr><th>Hops</th><th>γ<sup>N</sup> survives</th><th>Lost to fees</th><th>Must clear</th></tr>
+      <tr><td>3</td><td>0.99103</td><td>≈ 0.90%</td><td>≈ 1.009×</td></tr>
+      <tr><td>4</td><td>0.98805</td><td>≈ 1.19%</td><td>≈ 1.012×</td></tr>
+      <tr><td>5</td><td>0.98509</td><td>≈ 1.49%</td><td>≈ 1.015×</td></tr>
+    </table>
+  </div>
+  <p>A five-hop cycle has to find a mispricing over <b>1.5%</b> before it does anything but
+  lose money. Longer paths look like more ways to win; the arithmetic makes them harder.</p>
+
+  <h2>Then slippage and gas, on top</h2>
+  <p>The wall is only the fees. On top of it sit two more costs. <b>Slippage</b> — from
+  Lesson 01, your own trade moves each pool's price against you, worse the more you send,
+  which is why an edge cannot simply be scaled up. And <b>gas</b> — a flat cost in the chain's
+  native token that the profit has to cover regardless of size. The cycle runs on-chain only
+  if the output clears principal <b>plus</b> a <span class="mono">minProfit</span> set above
+  gas; otherwise the whole transaction reverts and you lose only the gas.</p>
+  <div class="formula">execute only if &nbsp; Δ<sub>out</sub> ≥ Δ<sub>0</sub> + minProfit &nbsp; (minProfit ≥ gas)</div>
+  <p>Stack the three together — the ~0.9% fee wall, slippage that caps your size, and a gas
+  floor — and you have, before competition is even mentioned, why the expected result for an
+  individual tends toward zero. Add professional searchers and sub-second auctions
+  (<a href="/learn">Lesson 04</a>) and the picture is complete. None of this is discouragement;
+  it is the filter the math forces, published so you can run it yourself.</p>
+
+  <div class="tryit">
+    <b>Try it</b>
+    In the <a href="/simulate">simulator</a>, switch the cycle from 3 hops to 5 and watch the
+    break-even mispricing climb exactly as the table predicts. Then run the long-run projector
+    and see the fee wall decide the average outcome.
+  </div>
+
+  <div class="lnav">
+    <a href="/learn/amm"><span class="lb">Previous</span>← 01 · AMMs from zero</a>
+    <a class="nx" href="/learn"><span class="lb">Back to</span>The course →</a>
+  </div>
+
+  <footer>Triviu · Open source. Verifiable math. No promises.<br>
+    Education, not income — nothing here is financial advice, and no number is a forecast.
+    Don't trust this; verify it in <a href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">the whitepaper</a>.</footer>
+</div>
+<script>
+const SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+function curTheme(){const s=localStorage.getItem("triviu-theme");if(s)return s;return window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}
+function applyTheme(t){document.documentElement.setAttribute("data-theme",t);const b=document.getElementById("theme");if(b)b.innerHTML=t==="dark"?SUN:MOON;}
+applyTheme(curTheme());
+document.getElementById("theme").addEventListener("click",function(){const next=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";localStorage.setItem("triviu-theme",next);applyTheme(next);});
+</script>
+</body>
+</html>
