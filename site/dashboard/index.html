@@ -115,6 +115,11 @@ footer{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;font-fam
       <div class="val">— <span class="pill">no data yet</span></div>
       <div class="note">Gas burned across all attempts — reverts still pay gas.</div>
     </div>
+    <div class="metric" style="--ac:var(--verde)">
+      <div class="lbl">Treasury balance</div>
+      <div class="val">— <span class="pill">no data yet</span></div>
+      <div class="note">The public treasury address and the fee actually taken — verifiable on the explorer.</div>
+    </div>
   </div>
 
   <div class="status">
@@ -126,7 +131,9 @@ footer{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;font-fam
     <p class="q">The SQL that will feed it is already public and versioned — don't trust, read it:
     <a href="https://github.com/Triviu-Protocol/Triviu-Protocol/blob/main/dashboard/queries/revert_rate_30d.sql">revert rate</a> ·
     <a href="https://github.com/Triviu-Protocol/Triviu-Protocol/blob/main/dashboard/queries/executions_by_route.sql">executions by route</a> ·
-    <a href="https://github.com/Triviu-Protocol/Triviu-Protocol/blob/main/dashboard/queries/gas_vs_net_result.sql">gas vs net result</a>.</p>
+    <a href="https://github.com/Triviu-Protocol/Triviu-Protocol/blob/main/dashboard/queries/gas_vs_net_result.sql">gas vs net result</a> ·
+    <a href="https://github.com/Triviu-Protocol/Triviu-Protocol/blob/main/dashboard/queries/treasury_balance.sql">treasury balance</a>.
+    The full <a href="https://github.com/Triviu-Protocol/Triviu-Protocol/blob/main/dashboard/SPEC.md">dashboard spec</a> — panels, rules, timing — is public too.</p>
   </div>
 
   <h2 style="font-family:var(--fd);font-size:20px;margin-bottom:12px">Don't trust — verify</h2>

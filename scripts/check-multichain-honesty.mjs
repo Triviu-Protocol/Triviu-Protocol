@@ -23,13 +23,18 @@ const INCLUDE_FILES = ["README.md"];
 const EXCLUDE = [/node_modules/, /\.vercel/, /triviu-litepaper/, /docs[\\/]audits/];
 const EXT = new Set([".html", ".md", ".txt"]);
 
-// Each rule: a pattern that must NOT appear, and why.
+// Each rule: a pattern that must NOT appear, and why. `except` skips paths where the
+// pattern is legitimate. The single-chain-exclusivity rules skip decisions/ because a
+// Tradeoff Record is exactly where deploy scope is set (0007 locks v0.2 to one chain)
+// and where expansion is documented (0004/0005/0006) — a scope decision there is honest,
+// not a regression. The false-deploy-claim rules apply EVERYWHERE, decisions/ included.
+const DECISIONS = /decisions[\\/]/;
 const BANNED = [
   { re: /\b(is )?live on (polygon|arbitrum|bsc|bnb)/i, why: 'false "live on <chain>" claim (nothing is deployed)' },
   { re: /\bruns on (polygon|arbitrum|bsc|bnb)\b/i, why: 'false "runs on <chain>" claim (use "designed for / simulated")' },
   { re: /\bdeployed on (polygon|arbitrum|bsc|bnb)\b/i, why: 'false "deployed on <chain>" claim (deploy is gated, per chain)' },
-  { re: /(polygon|arbitrum|bsc)[- ]only\b/i, why: 'single-chain exclusivity — expansion is on the record (0004/0005)' },
-  { re: /\bonly on polygon\b/i, why: "single-chain exclusivity regression" },
+  { re: /(polygon|arbitrum|bsc)[- ]only\b/i, except: DECISIONS, why: 'single-chain exclusivity on a user surface — expansion is on the record (0004/0005)' },
+  { re: /\bonly on polygon\b/i, except: DECISIONS, why: "single-chain exclusivity regression on a user surface" },
   { re: /litepaper[^.\n]{0,40}(canonical|source of truth)/i, why: "litepaper is superseded — the whitepaper is canonical" },
 ];
 
@@ -55,6 +60,7 @@ for (const file of files) {
   try { text = readFileSync(file, "utf8"); } catch { continue; }
   text.split(/\r?\n/).forEach((line, i) => {
     for (const rule of BANNED) {
+      if (rule.except && rule.except.test(file)) continue;
       if (rule.re.test(line)) violations.push({ file, line: i + 1, why: rule.why, text: line.trim().slice(0, 100) });
     }
   });
