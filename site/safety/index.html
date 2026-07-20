@@ -167,14 +167,38 @@ async function check(token){
     const w=i=>BigInt("0x"+sim.result.slice(2+i*64,2+(i+1)*64));
     sellable=true; recovery=w(0)>0n?Number(w(2)*10000n/w(0))/100:0;
   }
-  // 4. verdict
-  const liqUSD=best.liqUSD; let verdict, reason;
+  // 4. contract red-flags (heuristic: selector present in bytecode + live owner)
+  const bc=((await rpc("eth_getCode",[token,"latest"])).result||"0x").toLowerCase();
+  const flags=[];
+  if(bc.includes("40c10f19"))flags.push("mint");
+  if(bc.includes("8456cb59"))flags.push("pause");
+  if(bc.includes("f9f92be4")||bc.includes("fe575a87"))flags.push("blacklist");
+  const ow=await rpc("eth_call",[{to:token,data:"0x8da5cb5b"},"latest"]);
+  if(!ow.error && ow.result && ow.result.length>=66){ const owner="0x"+ow.result.slice(26); if(!/^0x0+$/.test(owner)) flags.push("owner-active"); }
+  // 5. transfer TAX = how much worse than the route's fee-only cost. This removes the
+  // route-length bias: a 2-hop route naturally loses more to fees than a 1-hop one.
+  const swaps=(buyPath.length-1)+(sellPath.length-1);
+  const expected=Math.pow(0.997,swaps)*100;
+  const tax=sellable?Math.max(0,expected-recovery):0;
+  // 6. risk score 0–100
+  const liqUSD=best.liqUSD; let score;
+  if(!sellable){ score=0; }
+  else{
+    score=100; score-=Math.round(tax*3);
+    if(liqUSD<2000)score-=20; else if(liqUSD<10000)score-=10;
+    if(flags.includes("owner-active"))score-=12;
+    if(flags.includes("mint"))score-=12;
+    if(flags.includes("pause"))score-=10;
+    if(flags.includes("blacklist"))score-=15;
+    score=Math.max(0,Math.min(100,score));
+  }
+  // 7. verdict from the score
+  let verdict, reason;
   if(!sellable){ verdict="trap"; reason="You can buy this token but the SELL reverts — a classic honeypot. Do not buy."; }
-  else if(recovery<50){ verdict="trap"; reason="Selling returns under 50% of what you put in — a heavy tax or a near-trap."; }
-  else if(recovery<90){ verdict="caution"; reason=`Sellable, but a round trip loses ~${(100-recovery).toFixed(1)}% — a transfer tax or thin liquidity. Size down.`; }
-  else if(liqUSD<2000){ verdict="caution"; reason=`Sell works (round trip ~${(100-recovery).toFixed(1)}%), but liquidity is thin (~$${Math.round(liqUSD).toLocaleString()}) — easy to rug or move.`; }
-  else { verdict="safe"; reason=`Buy and sell both work; a round trip costs ~${(100-recovery).toFixed(1)}% (the normal swap fees).`; }
-  return {verdict, reason, pair:best.pair, liqUSD, sellable, recovery};
+  else if(score<45){ verdict="trap"; reason=`Risk ${score}/100 — red flags stack up${flags.length?" ("+flags.join(", ")+")":""}. Treat as unsafe.`; }
+  else if(score<75){ verdict="caution"; reason=`Risk ${score}/100 — sellable, but ${flags.length?flags.join(", ")+"; ":""}${tax>1?"~"+tax.toFixed(1)+"% transfer tax; ":""}${liqUSD<10000?"thin liquidity; ":""}size down.`; }
+  else{ verdict="safe"; reason=`Risk ${score}/100 — buy and sell both work, only ~${tax.toFixed(1)}% tax over normal fees, no major red flags.`; }
+  return {verdict, reason, pair:best.pair, liqUSD, sellable, recovery, tax, score, flags};
 }
 
 const ICON={
@@ -198,9 +222,11 @@ async function run(){
     $("vicon").innerHTML=ICON[r.verdict]; $("vt").textContent=TITLE[r.verdict]; $("vs").textContent=r.reason;
     const rows=[["Token",`<a href="https://polygonscan.com/token/${token}" target="_blank" rel="noreferrer">${token.slice(0,10)}…${token.slice(-6)}</a>`]];
     if(r.pair){
+      if(r.score!==undefined) rows.push(["Risk score", `<b>${r.score} / 100</b>`]);
       rows.push(["Sell works?", r.sellable?"yes — sell did not revert":"NO — sell reverts (honeypot)"]);
-      rows.push(["Round-trip recovery", r.sellable?r.recovery.toFixed(1)+"%":"—"]);
-      rows.push(["WMATIC liquidity", "≈ $"+Math.round(r.liqUSD).toLocaleString()]);
+      rows.push(["Transfer tax", r.sellable?(r.tax<0.5?"none (~0%)":"~"+r.tax.toFixed(1)+"%"):"—"]);
+      rows.push(["Contract flags", r.flags&&r.flags.length?r.flags.join(" · "):"none detected"]);
+      rows.push(["Liquidity", "≈ $"+Math.round(r.liqUSD).toLocaleString()]);
     }
     $("checks").innerHTML=rows.map(([k,v])=>`<div class="chk"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("");
   }catch(e){
