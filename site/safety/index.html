@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triviu · Token safety check</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M40 25.36 Q76 32.3 100 60' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M100 60 Q76 87.7 40 94.64' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M40 94.64 Q28 60 40 25.36' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='40' cy='25.36' r='11' fill='%232743C7'/%3E%3Ccircle cx='100' cy='60' r='11' fill='%23C13327'/%3E%3Ccircle cx='40' cy='94.64' r='11' fill='%23E8B23A'/%3E%3C/svg%3E">
+<meta name="description" content="Paste a Polygon token address and see, right now, whether you can actually SELL it — a real on-chain buy→sell simulation that catches honeypots and transfer taxes. Runs in your browser, sends no transaction. A heuristic screen, not a guarantee. Don't trust, verify.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://triviu.vercel.app/safety">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Triviu">
+<meta property="og:title" content="Token safety check · Triviu">
+<meta property="og:description" content="Can you actually sell this token? A real on-chain buy→sell simulation that catches honeypots — in your browser, no transaction. Heuristic screen, not a guarantee.">
+<meta property="og:url" content="https://triviu.vercel.app/safety">
+<meta property="og:image" content="https://triviu.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://triviu.vercel.app/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
+  --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
+  --verde:#1E7A46;--verde-fundo:#E6F2EB;--lacre-fundo:#FBEAE8;
+  --fd:"Libre Caslon Text",Georgia,serif;--ft:"Public Sans",system-ui,sans-serif;--fm:"IBM Plex Mono",ui-monospace,monospace;
+  --r-m:6px;--r-l:10px;
+}
+@media(prefers-color-scheme:dark){:root{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;--verde-fundo:#152A20;--lacre-fundo:#33201E;}}
+:root[data-theme="dark"]{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;--verde-fundo:#152A20;--lacre-fundo:#33201E;}
+:root[data-theme="light"]{--papel:#FAFAF7;--tinta:#16181D;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-fundo:#FBF3DF;--acafrao-texto:#8A6414;--verde:#1E7A46;--verde-fundo:#E6F2EB;--lacre-fundo:#FBEAE8;}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--papel);color:var(--tinta);font-family:var(--ft);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--ultramar);text-decoration:none}a:hover{text-decoration:underline}
+.mono{font-family:var(--fm)}
+.top{position:sticky;top:0;z-index:20;background:var(--papel);border-bottom:1px solid var(--fio);padding:14px 22px;display:flex;align-items:center;gap:12px}
+.top svg.lg{width:26px;height:26px}.top b{font-size:15px}.top .spacer{flex:1}
+.top a.nav{font-family:var(--fm);font-size:12px;color:var(--grafite)}
+.themebtn{width:30px;height:30px;padding:0;border:1px solid var(--fio);background:transparent;color:var(--grafite);border-radius:var(--r-m);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.themebtn:hover{color:var(--tinta);border-color:var(--tinta)}.themebtn svg{width:16px;height:16px}
+.wrap{max-width:720px;margin:0 auto;padding:44px 24px 72px}
+.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--grafite);margin-bottom:12px}
+h1{font-family:var(--fd);font-size:32px;line-height:1.14;letter-spacing:-.01em;margin-bottom:14px}
+@media(max-width:640px){h1{font-size:26px}}
+.lead{font-size:16px;color:var(--grafite);max-width:64ch;margin-bottom:26px}
+.form{display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+#addr{flex:1;min-width:240px;padding:13px 15px;border:1px solid var(--fio);border-radius:var(--r-m);background:var(--papel);color:var(--tinta);font-family:var(--fm);font-size:14px}
+#addr:focus{outline:2px solid var(--ultramar);outline-offset:1px;border-color:var(--ultramar)}
+#go{padding:13px 24px;border:none;border-radius:var(--r-m);background:var(--ultramar);color:#fff;font-weight:600;font-size:15px;cursor:pointer}
+#go:disabled{opacity:.55;cursor:not-allowed}
+.hint{font-size:12.5px;color:var(--grafite);margin-bottom:28px}
+.hint a{cursor:pointer}
+.card{border:1px solid var(--fio);border-radius:var(--r-l);overflow:hidden;margin-bottom:24px;display:none}
+.card.show{display:block}
+.verdict{padding:22px 24px;display:flex;align-items:center;gap:16px}
+.verdict .icon{width:40px;height:40px;flex:none}
+.verdict .vt{font-family:var(--fd);font-size:24px;line-height:1.1}
+.verdict .vs{font-size:13.5px;color:var(--grafite);margin-top:3px}
+.v-safe{background:var(--verde-fundo)} .v-safe .vt{color:var(--verde)}
+.v-caution{background:var(--acafrao-fundo)} .v-caution .vt{color:var(--acafrao-texto)}
+.v-trap{background:var(--lacre-fundo)} .v-trap .vt{color:var(--lacre)}
+.checks{border-top:1px solid var(--fio);padding:6px 24px 18px}
+.chk{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--fio);font-size:14px}
+.chk:last-child{border-bottom:none}
+.chk .k{color:var(--grafite)} .chk .v{font-family:var(--fm);font-size:13px;text-align:right;word-break:break-all}
+.disclaimer{border:1px solid var(--fio);border-left:3px solid var(--acafrao);border-radius:var(--r-m);padding:14px 16px;font-size:13px;color:var(--grafite);margin-bottom:26px}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px}
+@keyframes s{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spin{animation:none}}
+footer{border-top:1px solid var(--fio);margin-top:32px;padding-top:20px;font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:1.9}
+</style>
+</head>
+<body>
+<header class="top">
+  <svg class="lg" viewBox="0 0 120 120" aria-label="Triviu"><path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="25.36" r="8.5" fill="#2743C7"/><circle cx="100" cy="60" r="8.5" fill="#C13327"/><circle cx="40" cy="94.64" r="8.5" fill="#E8B23A"/></svg>
+  <b>Triviu</b><span class="mono" style="font-size:12px;color:var(--grafite)">· Safety</span>
+  <span class="spacer"></span>
+  <button class="themebtn" id="theme" aria-label="Toggle light or dark theme" title="Theme"></button>
+  <a class="nav" href="/">Home</a><a class="nav" href="/learn">Learn</a><a class="nav" href="/simulate">Simulate</a>
+</header>
+<div class="wrap">
+  <div class="eyebrow">Polygon · can you sell it?</div>
+  <h1>Token safety check</h1>
+  <p class="lead">Paste a Polygon token address. Triviu runs a real on-chain
+  <b>buy → sell</b> simulation and tells you whether you could actually get your money
+  back out — the single most common trap is a token you can buy but cannot sell.
+  It runs in your browser and <b>sends no transaction</b>.</p>
+
+  <div class="form">
+    <input id="addr" placeholder="0x… token address" spellcheck="false" autocomplete="off" aria-label="Token address">
+    <button id="go">Check</button>
+  </div>
+  <div class="hint">Try: <a data-fill="0x7ceb23fd6bc0add59e62ac25578270cff1b9f619">WETH (safe)</a> · paste any Polygon token traded against WMATIC on QuickSwap.</div>
+
+  <div class="card" id="card">
+    <div class="verdict" id="verdict"><div class="icon" id="vicon"></div><div><div class="vt" id="vt"></div><div class="vs" id="vs"></div></div></div>
+    <div class="checks" id="checks"></div>
+  </div>
+
+  <div class="disclaimer">
+    This is a <b>heuristic on-chain screen, not a guarantee</b>. It simulates a buy and
+    a sell against QuickSwap right now — it catches honeypots and transfer taxes, but it
+    cannot know if the owner will change the rules later, nor does it audit the contract.
+    A pass here is not "safe forever." Don't trust this — verify it yourself.
+  </div>
+
+  <footer>Triviu · Open source. Verifiable on-chain. No promises.<br>
+    The same simulation is public in the repo (<span class="mono">contracts/tools/HoneypotChecker.sol</span>).
+    Education, not income — nothing here is financial advice.</footer>
+</div>
+<script>
+const RPC="https://polygon.drpc.org";
+const SEL="4c1dc25a";
+const ROUTER="0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff";
+const QFAC="0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32";
+const WMATIC="0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270";
+const CHK="0x00000000000000000000000000000000DeaDBeef";
+const CODE="0x608060405260043610610020575f3560e01c80634c1dc25a1461002b575f80fd5b3661002757005b5f80fd5b61003e610039366004610309565b610064565b604080519485526020850193909352918301521515606082015260800160405180910390f35b6040516370a0823160e01b815230600482015234905f908190819081906001600160a01b038b16906370a0823190602401602060405180830381865afa1580156100b0573d5f803e3d5ffd5b505050506040513d601f19601f820116820180604052508101906100d49190610394565b90508a6001600160a01b031663b6f9de95345f8c8c30426040518763ffffffff1660e01b815260040161010b9594939291906103f0565b5f604051808303818588803b158015610122575f80fd5b505af1158015610134573d5f803e3d5ffd5b50506040516370a0823160e01b81523060048201528493506001600160a01b038e1692506370a082319150602401602060405180830381865afa15801561017d573d5f803e3d5ffd5b505050506040513d601f19601f820116820180604052508101906101a19190610394565b6101ab9190610426565b60405163095ea7b360e01b81526001600160a01b038d8116600483015260248201839052919550908b169063095ea7b3906044016020604051808303815f875af11580156101fb573d5f803e3d5ffd5b505050506040513d601f19601f8201168201806040525081019061021f919061044b565b5060405163791ac94760e01b815247906001600160a01b038d169063791ac947906102589088905f908d908d9030904290600401610471565b5f604051808303815f87803b15801561026f575f80fd5b505af1158015610281573d5f803e3d5ffd5b5050505080476102919190610426565b93506001925050509650965096509692505050565b80356001600160a01b03811681146102bc575f80fd5b919050565b5f8083601f8401126102d1575f80fd5b50813567ffffffffffffffff8111156102e8575f80fd5b6020830191508360208260051b8501011115610302575f80fd5b9250929050565b5f805f805f806080878903121561031e575f80fd5b610327876102a6565b9550610335602088016102a6565b9450604087013567ffffffffffffffff80821115610351575f80fd5b61035d8a838b016102c1565b90965094506060890135915080821115610375575f80fd5b5061038289828a016102c1565b979a9699509497509295939492505050565b5f602082840312156103a4575f80fd5b5051919050565b8183525f60208085019450825f5b858110156103e5576001600160a01b036103d2836102a6565b16875295820195908201906001016103b9565b509495945050505050565b858152608060208201525f6104096080830186886103ab565b6001600160a01b0394909416604083015250606001529392505050565b8181038181111561044557634e487b7160e01b5f52601160045260245ffd5b92915050565b5f6020828403121561045b575f80fd5b8151801515811461046a575f80fd5b9392505050565b86815285602082015260a060408201525f61049060a0830186886103ab565b6001600160a01b03949094166060830152506080015294935050505056fea2646970667358221220b6a1bb6933f8ff0183d80e493648167ffd5fb433b8d753ec2734951b034651a164736f6c63430008180033";
+// Quote tokens we can price + route through: addr -> [usdPrice, decimals]
+const QUOTES={
+  "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270":[0.2,18], // WMATIC
+  "0x2791bca1f2de4661ed88a30c99a7a9449aa84174":[1,6],    // USDC.e
+  "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359":[1,6],    // USDC
+  "0xc2132d05d31c914a87c6611c10748aeb04b58e8f":[1,6],    // USDT
+  "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619":[1900,18],// WETH
+  "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063":[1,18],   // DAI
+};
+let rid=0;
+const rpc=(m,p)=>fetch(RPC,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",id:++rid,method:m,params:p})}).then(r=>r.json());
+const word=a=>a.replace("0x","").toLowerCase().padStart(64,"0");
+const ec=(to,data)=>rpc("eth_call",[{to,data},"latest"]).then(r=>r.result||"0x");
+const isAddr=a=>/^0x[0-9a-fA-F]{40}$/.test(a);
+const nonZero=w=>w&&w!=="0x"&&!/^0x0+$/.test(w);
+
+function encodePath(path){ let o=word("0x"+path.length.toString(16)); for(const a of path)o+=word(a); return o; }
+function encodeCheck(router,token,buyPath,sellPath){
+  const buyEnc=encodePath(buyPath);
+  const offBuy=128, offSell=128+buyEnc.length/2;
+  return "0x"+SEL+word(router)+word(token)+word("0x"+offBuy.toString(16))+word("0x"+offSell.toString(16))+buyEnc+encodePath(sellPath);
+}
+
+async function check(token){
+  // 1. find the token's deepest quote pool on QuickSwap
+  let best=null;
+  for(const [q,[price,dec]] of Object.entries(QUOTES)){
+    if(q===token) continue;
+    const pr=await ec(QFAC,"0xe6a43905"+word(token)+word(q));
+    const pair="0x"+pr.slice(26);
+    if(!nonZero(pr)||/^0x0+$/.test(pair)) continue;
+    const bal=await ec(q,"0x70a08231"+word(pair));
+    const liqUSD=Number(BigInt(bal))/10**dec*price;
+    if(!best||liqUSD>best.liqUSD) best={quote:q,pair,liqUSD};
+  }
+  if(!best) return {verdict:"unknown", reason:"No pool found against a known quote token (WMATIC/USDC/USDT/WETH/DAI) on QuickSwap."};
+  // 2. build the route: native → WMATIC → [quote] → token, and back
+  const q=best.quote;
+  const buyPath = q===WMATIC ? [WMATIC,token] : [WMATIC,q,token];
+  const sellPath = q===WMATIC ? [token,WMATIC] : [token,q,WMATIC];
+  // 3. buy → sell simulation via state override (no transaction sent)
+  const v=5n*10n**17n;
+  const sim=await rpc("eth_call",[{from:CHK,to:CHK,data:encodeCheck(ROUTER,token,buyPath,sellPath),value:"0x"+v.toString(16)},"latest",{[CHK]:{code:CODE,balance:"0x"+(v*4n).toString(16)}}]);
+  let sellable=false, recovery=0;
+  if(!sim.error && sim.result && sim.result.length>=194){
+    const w=i=>BigInt("0x"+sim.result.slice(2+i*64,2+(i+1)*64));
+    sellable=true; recovery=w(0)>0n?Number(w(2)*10000n/w(0))/100:0;
+  }
+  // 4. verdict
+  const liqUSD=best.liqUSD; let verdict, reason;
+  if(!sellable){ verdict="trap"; reason="You can buy this token but the SELL reverts — a classic honeypot. Do not buy."; }
+  else if(recovery<50){ verdict="trap"; reason="Selling returns under 50% of what you put in — a heavy tax or a near-trap."; }
+  else if(recovery<90){ verdict="caution"; reason=`Sellable, but a round trip loses ~${(100-recovery).toFixed(1)}% — a transfer tax or thin liquidity. Size down.`; }
+  else if(liqUSD<2000){ verdict="caution"; reason=`Sell works (round trip ~${(100-recovery).toFixed(1)}%), but liquidity is thin (~$${Math.round(liqUSD).toLocaleString()}) — easy to rug or move.`; }
+  else { verdict="safe"; reason=`Buy and sell both work; a round trip costs ~${(100-recovery).toFixed(1)}% (the normal swap fees).`; }
+  return {verdict, reason, pair:best.pair, liqUSD, sellable, recovery};
+}
+
+const ICON={
+  safe:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--verde)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>',
+  caution:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--acafrao-texto)" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+  trap:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--lacre)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>',
+  unknown:'<svg viewBox="0 0 24 24" fill="none" stroke="var(--grafite)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>'};
+const TITLE={safe:"SAFE to sell",caution:"CAUTION",trap:"TRAP — do not buy",unknown:"Can't check"};
+
+const $=id=>document.getElementById(id);
+async function run(){
+  const token=$("addr").value.trim().toLowerCase();
+  if(!isAddr(token)){ $("addr").focus(); $("addr").style.borderColor="var(--lacre)"; return; }
+  $("addr").style.borderColor="";
+  $("go").disabled=true; $("go").innerHTML='<span class="spin"></span>';
+  $("card").classList.add("show");
+  $("verdict").className="verdict"; $("vicon").innerHTML=ICON.unknown; $("vt").textContent="Checking…"; $("vs").textContent="Simulating a buy and a sell on-chain."; $("checks").innerHTML="";
+  try{
+    const r=await check(token);
+    $("verdict").className="verdict v-"+r.verdict;
+    $("vicon").innerHTML=ICON[r.verdict]; $("vt").textContent=TITLE[r.verdict]; $("vs").textContent=r.reason;
+    const rows=[["Token",`<a href="https://polygonscan.com/token/${token}" target="_blank" rel="noreferrer">${token.slice(0,10)}…${token.slice(-6)}</a>`]];
+    if(r.pair){
+      rows.push(["Sell works?", r.sellable?"yes — sell did not revert":"NO — sell reverts (honeypot)"]);
+      rows.push(["Round-trip recovery", r.sellable?r.recovery.toFixed(1)+"%":"—"]);
+      rows.push(["WMATIC liquidity", "≈ $"+Math.round(r.liqUSD).toLocaleString()]);
+    }
+    $("checks").innerHTML=rows.map(([k,v])=>`<div class="chk"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("");
+  }catch(e){
+    $("verdict").className="verdict"; $("vicon").innerHTML=ICON.unknown; $("vt").textContent="Check failed"; $("vs").textContent="Couldn't reach the chain. Try again.";
+  }
+  $("go").disabled=false; $("go").textContent="Check";
+}
+$("go").addEventListener("click",run);
+$("addr").addEventListener("keydown",e=>{if(e.key==="Enter")run();});
+document.querySelectorAll("[data-fill]").forEach(a=>a.addEventListener("click",()=>{$("addr").value=a.dataset.fill;run();}));
+
+const SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+function curTheme(){const s=localStorage.getItem("triviu-theme");if(s)return s;return window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}
+function applyTheme(t){document.documentElement.setAttribute("data-theme",t);const b=$("theme");if(b)b.innerHTML=t==="dark"?SUN:MOON;}
+applyTheme(curTheme());
+$("theme").addEventListener("click",function(){const n=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";localStorage.setItem("triviu-theme",n);applyTheme(n);});
+</script>
+</body>
+</html>

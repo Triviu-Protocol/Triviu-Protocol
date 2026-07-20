@@ -24,8 +24,11 @@ const RPC = process.env.BACKTEST_RPC || "https://polygon.drpc.org";
 const FACTORY = "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32"; // QuickSwap V2
 const ROUTER = "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff";
 const CHK = "0x00000000000000000000000000000000DeaDBeef";
-const SELECTOR = "b3154db0"; // check(address,address) — from HoneypotChecker
+const SELECTOR = "4c1dc25a"; // check(address,address,address[],address[]) — HoneypotChecker
 const CODE = readFileSync(new URL("./honeypot-checker.deployed.txt", import.meta.url), "utf8").trim();
+const WMATIC_ = "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270";
+function encodePath(path) { let o = p32("0x" + path.length.toString(16)); for (const a of path) o += p32(a); return o; }
+function encodeCheck(token) { const buy = encodePath([WMATIC_, token]); return "0x" + SELECTOR + p32(ROUTER) + p32(token) + p32("0x80") + p32("0x" + (128 + buy.length / 2).toString(16)) + buy + encodePath([token, WMATIC_]); }
 const SCAN = Number(process.env.SCAN || 250);  // how many newest pairs to walk
 const MAX_CHECK = Number(process.env.MAX_CHECK || 24); // how many to honeypot-sim
 const MIN_LIQ_USD = Number(process.env.MIN_LIQ || 500);
@@ -48,7 +51,7 @@ const ec = (to, data) => rpc("eth_call", [{ to, data }, "latest"]).then((r) => r
 async function honeypot(token) {
   const v = 5n * 10n ** 17n; // simulate a 0.5 MATIC buy
   const r = await rpc("eth_call", [
-    { from: CHK, to: CHK, data: "0x" + SELECTOR + p32(ROUTER) + p32(token), value: "0x" + v.toString(16) },
+    { from: CHK, to: CHK, data: encodeCheck(token), value: "0x" + v.toString(16) },
     "latest",
     { [CHK]: { code: CODE, balance: "0x" + (v * 4n).toString(16) } },
   ]);
