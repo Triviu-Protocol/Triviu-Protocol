@@ -11,9 +11,18 @@ owner; token-whitelist policy) are in place. Audit reports are public in
 ## Responsible disclosure
 
 Found a vulnerability? Do not open a public issue.
-Write to: security@triviu.org (placeholder — configure before launch) with
-reproduction steps. We respond within 72h and coordinate the fix and public
-disclosure with credit to the researcher.
+
+Report it privately through **GitHub private vulnerability reporting** on this
+repository — the **Security** tab → *Report a vulnerability*. This channel is
+active now and needs no email setup, so disclosure is never blocked.
+
+Once the project's domain is live, **security@\<domain\>** becomes an additional
+inbox. The domain is chosen and propagated from a single source
+([`site/domain.config.json`](site/domain.config.json) · see [`DOMAIN.md`](DOMAIN.md)),
+so no address is claimed here before the mailbox exists.
+
+Include reproduction steps. We respond within 72h and coordinate the fix and
+public disclosure with credit to the researcher.
 
 ## Bug bounty — scope (rewards set at funding)
 

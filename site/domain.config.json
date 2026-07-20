@@ -1,0 +1,8 @@
+{
+  "_note": "SINGLE SOURCE OF TRUTH for the Triviu public domain. To change the domain: edit `domain` below, then run `node scripts/set-domain.mjs --apply` from the repo root. Never find-and-replace a domain by hand. The GitBook whitepaper host (triviu-protocol.gitbook.io) is a different service and is intentionally NOT touched by the script.",
+  "domain": "triviu.vercel.app",
+  "knownHosts": [
+    "triviu.vercel.app",
+    "triviu-protocol.vercel.app"
+  ]
+}
