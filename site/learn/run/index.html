@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Triviu · Lesson 02 — The fee wall and the math</title>
+<title>Triviu · Lesson 06 — Run it yourself</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M40 25.36 Q76 32.3 100 60' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M100 60 Q76 87.7 40 94.64' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M40 94.64 Q28 60 40 25.36' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='40' cy='25.36' r='11' fill='%232743C7'/%3E%3Ccircle cx='100' cy='60' r='11' fill='%23C13327'/%3E%3Ccircle cx='40' cy='94.64' r='11' fill='%23E8B23A'/%3E%3C/svg%3E">
-<meta name="description" content="Lesson 02 — each swap charges a fee on the input, so over N hops it compounds to 0.997^N. A three-hop cycle loses about 0.9% to fees before it starts. Worked numbers, and why more hops is a taller wall, not more chances. Education, not income.">
+<meta name="description" content="Lesson 06 — run it yourself in the order that makes mistakes free: the simulator with no wallet, then the open code, then a local fork where dry-run is the default, and only then mainnet behind an explicit acknowledgement. Possibility is not probability. Education, not income.">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://triviu.vercel.app/learn/fee-wall">
+<link rel="canonical" href="https://triviu.vercel.app/learn/run">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Triviu">
-<meta property="og:title" content="Lesson 02 — The fee wall and the math · Triviu">
-<meta property="og:description" content="Over N hops the fee compounds to 0.997^N. A three-hop cycle loses ~0.9% before it starts; the price product must clear that wall plus slippage plus gas, or it reverts.">
-<meta property="og:url" content="https://triviu.vercel.app/learn/fee-wall">
+<meta property="og:title" content="Lesson 06 — Run it yourself · Triviu">
+<meta property="og:description" content="Simulator → read the code → local fork (dry-run by default) → only then mainnet. The simulator shows possibility and long-run reality side by side. Possibility is not probability.">
+<meta property="og:url" content="https://triviu.vercel.app/learn/run">
 <meta property="og:image" content="https://triviu.vercel.app/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -43,7 +43,7 @@ a{color:var(--ultramar);text-decoration:none}a:hover{text-decoration:underline}
 .themebtn:hover{color:var(--tinta);border-color:var(--tinta)}.themebtn svg{width:16px;height:16px}
 .wrap{max-width:760px;margin:0 auto;padding:44px 24px 72px}
 .crumb{font-family:var(--fm);font-size:12px;color:var(--grafite);margin-bottom:20px}
-.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--lacre);margin-bottom:12px}
+.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ultramar);margin-bottom:12px}
 h1{font-family:var(--fd);font-size:34px;line-height:1.14;letter-spacing:-.01em;margin-bottom:16px}
 @media(max-width:640px){h1{font-size:27px}}
 h2{font-family:var(--fd);font-size:22px;margin:38px 0 12px}
@@ -52,13 +52,13 @@ p{margin-bottom:16px;max-width:68ch}
 b{font-weight:600}
 .seal{border:1px solid var(--fio);background:var(--nevoa);border-radius:var(--r-m);padding:12px 16px;margin-bottom:34px;font-size:13px;color:var(--grafite)}
 .seal .chip{font-family:var(--fm);font-size:9px;letter-spacing:.09em;border:1px solid currentColor;border-radius:999px;padding:2px 7px;white-space:nowrap}
-.formula{font-family:var(--fm);font-size:15px;background:var(--nevoa);border:1px solid var(--fio);border-radius:var(--r-m);padding:14px 18px;margin:0 0 16px;overflow-x:auto;text-align:center}
-.work{border:1px solid var(--fio);border-left:3px solid var(--lacre);border-radius:var(--r-m);padding:16px 18px;margin:0 0 20px;background:var(--papel)}
-.work .wl{font-family:var(--fm);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--lacre);margin-bottom:10px}
-.work table{border-collapse:collapse;width:100%;font-family:var(--fm);font-size:13.5px}
-.work td,.work th{padding:5px 12px 5px 0;vertical-align:top;text-align:left}
-.work th{font-weight:500;color:var(--grafite);border-bottom:1px solid var(--fio)}
-.work td.k{color:var(--grafite);white-space:nowrap}
+.path{list-style:none;margin:0 0 20px;padding:0;counter-reset:step}
+.path li{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--fio)}
+.path li:last-child{border-bottom:none}
+.path .n{font-family:var(--fm);font-size:13px;color:#fff;background:var(--ultramar);width:24px;height:24px;border-radius:999px;flex:none;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.path .t{font-weight:600;font-size:15px;margin-bottom:3px}
+.path .x{font-size:13.5px;color:var(--grafite)}
+.path .free{font-family:var(--fm);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--verde);border:1px solid var(--verde);border-radius:999px;padding:1px 7px;margin-left:8px;white-space:nowrap}
 .tryit{border:1px solid var(--fio);border-left:3px solid var(--ultramar);border-radius:var(--r-m);padding:14px 18px;margin:26px 0;font-size:14px}
 .tryit b{display:block;margin-bottom:4px}
 .lnav{display:flex;justify-content:space-between;gap:16px;margin-top:44px;border-top:1px solid var(--fio);padding-top:22px;flex-wrap:wrap}
@@ -77,72 +77,54 @@ footer{border-top:1px solid var(--fio);margin-top:40px;padding-top:22px;font-fam
   <a class="nav" href="/learn">Course</a><a class="nav" href="/simulate">Simulate</a><a class="nav" href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">Whitepaper</a>
 </header>
 <div class="wrap">
-  <div class="crumb"><a href="/learn">Course</a> / Lesson 02</div>
-  <div class="eyebrow">Lesson 02 · The fee wall</div>
-  <h1>Before profit, there is a wall. It is made of fees.</h1>
-  <p class="lead">A cycle does not start at zero. Each swap takes a cut, and three swaps
-  compound into a wall the mispricing has to clear before a single unit of gas is paid.
-  This is the number that quietly decides most cycles — so we compute it in the open.</p>
+  <div class="crumb"><a href="/learn">Course</a> / Lesson 06</div>
+  <div class="eyebrow">Lesson 06 · Run it yourself</div>
+  <h1>Now do it — in the order that makes mistakes free.</h1>
+  <p class="lead">Everything in this course was so you could reach this lesson honestly.
+  You know the pricing, the fee wall, the anatomy, and who is on the other side. So here is
+  the path from curiosity to a real transaction, arranged so every mistake happens where it
+  costs nothing.</p>
 
   <div class="seal"><span class="chip">AI-GENERATED</span> &nbsp; Written to be checked, not trusted.
-  The wall below is <span class="mono">1 / 0.997³ ≈ 1.009</span> — arithmetic from
-  <a href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">whitepaper §3</a>, watchable in the
-  <a href="/simulate">simulator</a>. Possibility is not probability.</div>
+  The path mirrors <a href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">whitepaper §4</a>
+  and §14. Possibility is not probability.</div>
 
-  <h2>The fee compounds: 0.997 to the N</h2>
-  <p>From <a href="/learn/amm">Lesson 01</a>: a 0.30% pool keeps 99.7% of your effective input,
-  so <span class="mono">γ = 0.997</span>. A triangular cycle is three swaps in a row, so the
-  fee applies three times — it compounds.</p>
-  <div class="formula">fee survival over N hops = γ<sup>N</sup> = 0.997<sup>N</sup></div>
-  <p>For three hops, <span class="mono">0.997³ = 0.99103</span>. You keep about 99.1% and lose
-  roughly <b>0.9% to fees alone</b> — before slippage, before gas, before anyone competes with
-  you. Turned around, the raw mispricing you are chasing has to be at least that big just to
-  break even on fees:</p>
-  <div class="formula">γ³ · P<sub>AB</sub> · P<sub>BC</sub> · P<sub>CA</sub> &gt; 1 &nbsp;&nbsp;⟹&nbsp;&nbsp; product of the three rates &gt; 1 / 0.997³ ≈ 1.009</div>
-  <p>That <b>0.9%</b> is the first honest wall. Most transient discrepancies across liquid
-  pools are smaller than it — which is exactly why they never make it into a profitable
-  transaction.</p>
+  <h2>The path</h2>
+  <ol class="path">
+    <li><span class="n">1</span><div><div class="t">The simulator<span class="free">free</span></div><div class="x">No wallet, no money. Drag the pools, size a cycle, switch the chain and the hop count. Build the intuition from Lessons 01–03 with your own hands.</div></div></li>
+    <li><span class="n">2</span><div><div class="t">Read the code</div><div class="x">The engine and contracts are open. The cycle detector ships with worked examples you can run; the executor is the one condition from Lesson 03. Read it, or read someone's review of it.</div></div></li>
+    <li><span class="n">3</span><div><div class="t">A local fork<span class="free">free</span></div><div class="x">Run the engine against a fork of the real chain. <span class="mono">dry_run</span> is the default — it computes and simulates and sends nothing. Mistakes here cost nothing; that is the point.</div></div></li>
+    <li><span class="n">4</span><div><div class="t">Only then, mainnet</div><div class="x">Real money runs only behind an explicit environment acknowledgement — never by accident. By the time you get here, you have already seen the outcome on a fork.</div></div></li>
+  </ol>
 
-  <h2>More hops is a taller wall, not more chances</h2>
-  <p>It is tempting to think that adding hops adds opportunities. It adds fees. Each extra
-  swap multiplies survival by another <span class="mono">0.997</span>, so the wall you must
-  clear grows with every leg:</p>
-  <div class="work">
-    <div class="wl">The wall by cycle length (0.30% pools)</div>
-    <table>
-      <tr><th>Hops</th><th>γ<sup>N</sup> survives</th><th>Lost to fees</th><th>Must clear</th></tr>
-      <tr><td>3</td><td>0.99103</td><td>≈ 0.90%</td><td>≈ 1.009×</td></tr>
-      <tr><td>4</td><td>0.98805</td><td>≈ 1.19%</td><td>≈ 1.012×</td></tr>
-      <tr><td>5</td><td>0.98509</td><td>≈ 1.49%</td><td>≈ 1.015×</td></tr>
-    </table>
-  </div>
-  <p>A five-hop cycle has to find a mispricing over <b>1.5%</b> before it does anything but
-  lose money. Longer paths look like more ways to win; the arithmetic makes them harder.</p>
+  <h2>The simulator shows both sides</h2>
+  <p>It puts the <b>possibility</b> — a single cycle that clears and profits — next to the
+  <b>long-run reality</b> — the average outcome once the fee wall, slippage and competition
+  are applied over many attempts. Both are true at once, and that is the honest picture:
+  a win can exist while the expected result is still zero. Possibility is not probability.</p>
 
-  <h2>Then slippage and gas, on top</h2>
-  <p>The wall is only the fees. On top of it sit two more costs. <b>Slippage</b> — from
-  Lesson 01, your own trade moves each pool's price against you, worse the more you send,
-  which is why an edge cannot simply be scaled up. And <b>gas</b> — a flat cost in the chain's
-  native token that the profit has to cover regardless of size. The cycle runs on-chain only
-  if the output clears principal <b>plus</b> a <span class="mono">minProfit</span> set above
-  gas; otherwise the whole transaction reverts and you lose only the gas.</p>
-  <div class="formula">execute only if &nbsp; Δ<sub>out</sub> ≥ Δ<sub>0</sub> + minProfit &nbsp; (minProfit ≥ gas)</div>
-  <p>Stack the three together — the ~0.9% fee wall, slippage that caps your size, and a gas
-  floor — and you have, before competition is even mentioned, why the expected result for an
-  individual tends toward zero. Add professional searchers and sub-second auctions
-  (<a href="/learn">Lesson 04</a>) and the picture is complete. None of this is discouragement;
-  it is the filter the math forces, published so you can run it yourself.</p>
+  <h2>Running without idle capital</h2>
+  <p>You don't need your own float to run a cycle: a <b>flash loan</b> borrows and repays
+  inside the same atomic transaction. On the target chains, Aave v3 charges a 0.05% premium
+  with repay-or-revert atomicity; Balancer's Vault currently charges no protocol fee. Useful —
+  but the premium is not free money: it is one more cost added to the fee wall the cycle has
+  to clear. It changes who provides the capital, not whether the edge exists.</p>
+
+  <h2>That was the whole point</h2>
+  <p>Triviu never promised you a profit. It promised you could <b>verify</b> — the math, the
+  code, the odds — and decide for yourself. You now know why the honest expected result for an
+  individual is usually zero, and you can prove every step of that yourself, from public data.
+  That capability, not a number, is the product.</p>
 
   <div class="tryit">
-    <b>Try it</b>
-    In the <a href="/simulate">simulator</a>, switch the cycle from 3 hops to 5 and watch the
-    break-even mispricing climb exactly as the table predicts. Then run the long-run projector
-    and see the fee wall decide the average outcome.
+    <b>Start here</b>
+    Open the <a href="/simulate">simulator</a> and run a cycle to a profit, then run the
+    long-run projector and watch the average settle. No wallet, no money.
   </div>
 
   <div class="lnav">
-    <a href="/learn/amm"><span class="lb">Previous</span>← 01 · AMMs from zero</a>
-    <a class="nx" href="/learn/cycle"><span class="lb">Next lesson</span>03 · Anatomy of a cycle →</a>
+    <a href="/learn/safety"><span class="lb">Previous</span>← 05 · Wallet &amp; key safety</a>
+    <a class="nx" href="/learn"><span class="lb">Course complete</span>Back to all lessons →</a>
   </div>
 
   <footer>Triviu · Open source. Verifiable math. No promises.<br>
