@@ -1,0 +1,1065 @@
+{
+  "generatedAgainst": "https://polygon.drpc.org",
+  "latestBlock": 90545759,
+  "samples": 150,
+  "step": 5000,
+  "blocksRead": 150,
+  "gas": {
+    "units": "250000",
+    "gweiPrice": "50"
+  },
+  "edgeAfterGas": 0,
+  "edgeAfterFee": 0,
+  "rows": [
+    {
+      "block": 90545759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90540759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90535759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90530759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90525759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90520759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90515759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90510759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90505759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90500759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90495759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90490759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90485759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90480759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90475759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90470759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90465759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90460759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90455759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90450759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90445759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90440759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90435759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90430759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90425759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90420759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90415759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90410759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90405759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90400759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90395759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90390759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90385759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90380759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90375759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90370759,
+      "dir": "rev",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90365759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90360759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90355759,
+      "dir": "rev",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90350759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90345759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90340759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90335759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90330759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90325759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90320759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90315759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90310759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90305759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90300759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90295759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90290759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90285759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90280759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90275759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90270759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90265759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90260759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90255759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90250759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90245759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90240759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90235759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90230759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90225759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90220759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90215759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90210759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90205759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90200759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90195759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90190759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90185759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90180759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90175759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90170759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90165759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90160759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90155759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90150759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90145759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90140759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90135759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90130759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90125759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90120759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90115759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90110759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90105759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90100759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90095759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90090759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90085759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90080759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90075759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90070759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90065759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90060759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90055759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90050759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90045759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90040759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90035759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90030759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90025759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90020759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90015759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90010759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90005759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 90000759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 89995759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 89990759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 89985759,
+      "dir": "rev",
+      "grossWmatic": "-403465741071",
+      "netAfterGas": "-12500403465741071",
+      "netAfterFee": "-12500403465741071"
+    },
+    {
+      "block": 89980759,
+      "dir": "rev",
+      "grossWmatic": "-441625953098",
+      "netAfterGas": "-12500441625953098",
+      "netAfterFee": "-12500441625953098"
+    },
+    {
+      "block": 89975759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 89970759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 89965759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 89960759,
+      "dir": "rev",
+      "grossWmatic": "-391659688591",
+      "netAfterGas": "-12500391659688591",
+      "netAfterFee": "-12500391659688591"
+    },
+    {
+      "block": 89955759,
+      "dir": "rev",
+      "grossWmatic": "-372462180328",
+      "netAfterGas": "-12500372462180328",
+      "netAfterFee": "-12500372462180328"
+    },
+    {
+      "block": 89950759,
+      "dir": "rev",
+      "grossWmatic": "-312473645869",
+      "netAfterGas": "-12500312473645869",
+      "netAfterFee": "-12500312473645869"
+    },
+    {
+      "block": 89945759,
+      "dir": "rev",
+      "grossWmatic": "-354177380633",
+      "netAfterGas": "-12500354177380633",
+      "netAfterFee": "-12500354177380633"
+    },
+    {
+      "block": 89940759,
+      "dir": "rev",
+      "grossWmatic": "-306767944743",
+      "netAfterGas": "-12500306767944743",
+      "netAfterFee": "-12500306767944743"
+    },
+    {
+      "block": 89935759,
+      "dir": "rev",
+      "grossWmatic": "-375219456034",
+      "netAfterGas": "-12500375219456034",
+      "netAfterFee": "-12500375219456034"
+    },
+    {
+      "block": 89930759,
+      "dir": "rev",
+      "grossWmatic": "-381937181793",
+      "netAfterGas": "-12500381937181793",
+      "netAfterFee": "-12500381937181793"
+    },
+    {
+      "block": 89925759,
+      "dir": "rev",
+      "grossWmatic": "-359275222919",
+      "netAfterGas": "-12500359275222919",
+      "netAfterFee": "-12500359275222919"
+    },
+    {
+      "block": 89920759,
+      "dir": "rev",
+      "grossWmatic": "-347977871779",
+      "netAfterGas": "-12500347977871779",
+      "netAfterFee": "-12500347977871779"
+    },
+    {
+      "block": 89915759,
+      "dir": "rev",
+      "grossWmatic": "-397099326645",
+      "netAfterGas": "-12500397099326645",
+      "netAfterFee": "-12500397099326645"
+    },
+    {
+      "block": 89910759,
+      "dir": "rev",
+      "grossWmatic": "-301545099727",
+      "netAfterGas": "-12500301545099727",
+      "netAfterFee": "-12500301545099727"
+    },
+    {
+      "block": 89905759,
+      "dir": "rev",
+      "grossWmatic": "-339353413406",
+      "netAfterGas": "-12500339353413406",
+      "netAfterFee": "-12500339353413406"
+    },
+    {
+      "block": 89900759,
+      "dir": "rev",
+      "grossWmatic": "-377778619342",
+      "netAfterGas": "-12500377778619342",
+      "netAfterFee": "-12500377778619342"
+    },
+    {
+      "block": 89895759,
+      "dir": "rev",
+      "grossWmatic": "-363898455232",
+      "netAfterGas": "-12500363898455232",
+      "netAfterFee": "-12500363898455232"
+    },
+    {
+      "block": 89890759,
+      "dir": "rev",
+      "grossWmatic": "-274219332129",
+      "netAfterGas": "-12500274219332129",
+      "netAfterFee": "-12500274219332129"
+    },
+    {
+      "block": 89885759,
+      "dir": "rev",
+      "grossWmatic": "-350257526710",
+      "netAfterGas": "-12500350257526710",
+      "netAfterFee": "-12500350257526710"
+    },
+    {
+      "block": 89880759,
+      "dir": "rev",
+      "grossWmatic": "-327141789391",
+      "netAfterGas": "-12500327141789391",
+      "netAfterFee": "-12500327141789391"
+    },
+    {
+      "block": 89875759,
+      "dir": "rev",
+      "grossWmatic": "-147701301515",
+      "netAfterGas": "-12500147701301515",
+      "netAfterFee": "-12500147701301515"
+    },
+    {
+      "block": 89870759,
+      "dir": "rev",
+      "grossWmatic": "-421394937836",
+      "netAfterGas": "-12500421394937836",
+      "netAfterFee": "-12500421394937836"
+    },
+    {
+      "block": 89865759,
+      "dir": "rev",
+      "grossWmatic": "-195936926036",
+      "netAfterGas": "-12500195936926036",
+      "netAfterFee": "-12500195936926036"
+    },
+    {
+      "block": 89860759,
+      "dir": "rev",
+      "grossWmatic": "-377600475211",
+      "netAfterGas": "-12500377600475211",
+      "netAfterFee": "-12500377600475211"
+    },
+    {
+      "block": 89855759,
+      "dir": "rev",
+      "grossWmatic": "-424171378833",
+      "netAfterGas": "-12500424171378833",
+      "netAfterFee": "-12500424171378833"
+    },
+    {
+      "block": 89850759,
+      "dir": "rev",
+      "grossWmatic": "-375081148802",
+      "netAfterGas": "-12500375081148802",
+      "netAfterFee": "-12500375081148802"
+    },
+    {
+      "block": 89845759,
+      "dir": "rev",
+      "grossWmatic": "-463597198383",
+      "netAfterGas": "-12500463597198383",
+      "netAfterFee": "-12500463597198383"
+    },
+    {
+      "block": 89840759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    },
+    {
+      "block": 89835759,
+      "dir": "rev",
+      "grossWmatic": "-432025231328",
+      "netAfterGas": "-12500432025231328",
+      "netAfterFee": "-12500432025231328"
+    },
+    {
+      "block": 89830759,
+      "dir": "rev",
+      "grossWmatic": "-308622542401",
+      "netAfterGas": "-12500308622542401",
+      "netAfterFee": "-12500308622542401"
+    },
+    {
+      "block": 89825759,
+      "dir": "rev",
+      "grossWmatic": "-286159225150",
+      "netAfterGas": "-12500286159225150",
+      "netAfterFee": "-12500286159225150"
+    },
+    {
+      "block": 89820759,
+      "dir": "rev",
+      "grossWmatic": "-206686263675",
+      "netAfterGas": "-12500206686263675",
+      "netAfterFee": "-12500206686263675"
+    },
+    {
+      "block": 89815759,
+      "dir": "rev",
+      "grossWmatic": "-222640967434",
+      "netAfterGas": "-12500222640967434",
+      "netAfterFee": "-12500222640967434"
+    },
+    {
+      "block": 89810759,
+      "dir": "rev",
+      "grossWmatic": "-272079557685",
+      "netAfterGas": "-12500272079557685",
+      "netAfterFee": "-12500272079557685"
+    },
+    {
+      "block": 89805759,
+      "dir": "rev",
+      "grossWmatic": "-150233415565",
+      "netAfterGas": "-12500150233415565",
+      "netAfterFee": "-12500150233415565"
+    },
+    {
+      "block": 89800759,
+      "dir": "fwd",
+      "grossWmatic": "-500000000000",
+      "netAfterGas": "-12500500000000000",
+      "netAfterFee": "-12500500000000000"
+    }
+  ]
+}
