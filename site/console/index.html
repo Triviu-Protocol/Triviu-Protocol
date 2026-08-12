@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triviu · Console · read, encode, do not send</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M40 25.36 Q76 32.3 100 60' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M100 60 Q76 87.7 40 94.64' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M40 94.64 Q28 60 40 25.36' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='40' cy='25.36' r='11' fill='%232743C7'/%3E%3Ccircle cx='100' cy='60' r='11' fill='%23C13327'/%3E%3Ccircle cx='40' cy='94.64' r='11' fill='%23E8B23A'/%3E%3C/svg%3E">
+<meta name="description" content="Connect a wallet, read the Triviu contracts on chain 137, and see the exact calldata each step would ask you to sign — selector, target, decoded arguments and estimated gas. This page sends nothing: it has no transaction method available to it.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://triviu.vercel.app/console/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Triviu">
+<meta property="og:title" content="Console · the calldata, before the signature · Triviu">
+<meta property="og:description" content="The exact bytes each step would ask you to sign, with the four-byte selector, the target contract and the gas it costs — read from the chain, signed by nobody.">
+<meta property="og:url" content="https://triviu.vercel.app/console/">
+<meta property="og:image" content="https://triviu.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://triviu.vercel.app/og.png">
+
+<!--
+  ============================================================================
+  NO WEBFONT ON THIS PAGE, AND THAT IS THE POINT
+  ============================================================================
+  Every other page here pulls Libre Caslon Text, Public Sans and IBM Plex Mono
+  from fonts.googleapis.com. This one does not, and the reason is the third of
+  the three gates: the page that will one day ask for a signature should not
+  share its origin with a third party. Closing the script channel was done for
+  the whole site (script-src 'self'); Google Fonts is CSS, not script, so it
+  survived that pass and stayed on 13 pages as a stated residual.
+
+  It does not survive here. The font stacks below fall through to Georgia,
+  system-ui and ui-monospace, which every target platform already has. The cost
+  is real and is stated rather than hidden: this page is set in slightly
+  different type from the rest of the site. That is the price of an origin with
+  no third party on it, and on the page that will hold a signature the price is
+  worth paying.
+
+  ============================================================================
+  WHAT THIS PAGE IS ALLOWED TO DO
+  ============================================================================
+  It READS the chain and it ENCODES calldata. It does not send. That is not a
+  promise in a comment — /js/console.js carries two allowlists that throw, the
+  wallet one containing exactly eth_accounts, eth_requestAccounts and
+  eth_chainId, and scripts/check-console-abi.mjs fails CI if a write method
+  appears in that file at all. The step that signs opens in a later wave, after
+  the security gates are audited on the public URL. Until then the buttons here
+  produce bytes on screen and nothing else.
+
+  ============================================================================
+  ADDRESSES AND FUNCTION NAMES · neither is typed here
+  ============================================================================
+  Addresses come from /enderecos.js and pass exigirVivo(), which throws on the
+  four orphaned deploys, on a swapped role and on an unknown address. The
+  Uniswap V3 position manager is not in that ledger and is not typed either: it
+  is read off the live TriviuLPVault.
+
+  Function names and four-byte selectors come from /js/abi-console.js, which is
+  GENERATED from contracts/out — the artefacts forge produced from the code that
+  was deployed. This matters because the previous console, in adm/, named a user
+  registry, a per-user triad, a referral vault and a "fence", and the deployed
+  contracts have none of them. A name typed onto a screen has nothing holding it
+  to the contract. These are held by a generator and a check.
+-->
+
+<style>
+:root{
+  --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
+  --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
+  --verde:#1E7A46;
+  --fd:Georgia,"Times New Roman",serif;--ft:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --fm:ui-monospace,"Cascadia Mono","Segoe UI Mono",Menlo,Consolas,monospace;
+  --r-m:6px;--r-l:10px;
+}
+@media(prefers-color-scheme:dark){:root{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}}
+:root[data-theme="dark"]{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}
+:root[data-theme="light"]{--papel:#FAFAF7;--tinta:#16181D;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-fundo:#FBF3DF;--acafrao-texto:#8A6414;--verde:#1E7A46;}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{background:var(--papel);color:var(--tinta);font-family:var(--ft);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--ultramar);text-decoration:none}a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--ultramar);outline-offset:2px;border-radius:2px}
+/* <main> carries tabindex="-1" so the skip link MOVES focus and does not merely
+   scroll — Safari and older WebKit scroll to a fragment without focusing it, and
+   the next Tab then goes back to the header the reader just skipped. The ring is
+   suppressed only for the programmatic case: :focus-visible still paints on real
+   keyboard navigation, so no indicator is lost. */
+main:focus:not(:focus-visible){outline:none}
+/* WCAG 1.4.11, and this pair FAILED before it was written. --ultramar #2743C7 on
+   the code block's #16181D measures 2.29:1 in the light theme, under the 3.0
+   minimum: in light mode a keyboard user landing on a scrollable code block saw
+   a ring they could not find. currentColor inside .cod is #E8EAE6 — 14.67:1 on
+   #16181D (light) and 15.96:1 on #0C0E11 (dark). The offset is NEGATIVE so the
+   ring is drawn in the block's own padding, on the dark surface it was measured
+   against, rather than 2px outside it on --papel. */
+.cod:focus-visible{outline:2px solid currentColor;outline-offset:-4px}
+.mono{font-family:var(--fm)}
+/* 3.3.1 Error Identification. Measured, sRGB, W3C formula:
+     --lacre #C13327 on --papel #FAFAF7 = 5.33:1  light  (min 4.5)
+     --lacre #E4736A on --papel #131519 = 6.06:1  dark   (min 4.5)
+   Never colour alone: every refusal also sets aria-invalid on the field, moves
+   focus there, and is read out by aria-describedby. */
+.erro{color:var(--lacre)}
+.erro:empty{display:none}
+.campoerro{display:block;font-family:var(--ft);font-size:12.5px;color:var(--lacre);margin-top:6px;text-transform:none;letter-spacing:0}
+.campoerro:empty{display:none}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.pular{position:absolute;top:0;left:0;z-index:100;transform:translateY(-120%);
+  background:var(--tinta);color:var(--papel);font-family:var(--fm);font-size:13px;
+  padding:10px 16px;border-bottom-right-radius:var(--r-m);text-decoration:none}
+.pular:focus{transform:translateY(0)}
+.top{position:sticky;top:0;z-index:20;background:var(--papel);border-bottom:1px solid var(--fio);padding:14px 22px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top svg.lg{width:26px;height:26px}.top b{font-size:15px}.top .spacer{flex:1}
+.top nav{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top a.nav{font-family:var(--fm);font-size:12px;color:var(--grafite)}
+.themebtn{width:30px;height:30px;padding:0;border:1px solid var(--fio);background:transparent;color:var(--grafite);border-radius:var(--r-m);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.themebtn:hover{color:var(--tinta);border-color:var(--tinta)}.themebtn svg{width:16px;height:16px}
+.wrap{max-width:1000px;margin:0 auto;padding:52px 24px 0}
+.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--grafite);margin-bottom:14px}
+h1{font-family:var(--fd);font-size:36px;line-height:1.12;letter-spacing:-.01em;margin-bottom:16px}
+@media(max-width:640px){h1{font-size:28px}}
+h2{font-family:var(--fd);font-size:20px;margin-bottom:12px}
+h3{font-family:var(--fd);font-size:17px;margin-bottom:8px}
+.lead{font-size:16px;color:var(--grafite);max-width:72ch;margin-bottom:24px}
+.aviso{background:var(--acafrao-fundo);border:1px solid var(--acafrao);border-radius:var(--r-m);padding:14px 18px;margin-bottom:28px;max-width:82ch}
+.aviso .rot{font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:var(--acafrao-texto);display:block;margin-bottom:5px}
+.aviso p{font-size:13.5px;margin:0}.aviso p+p{margin-top:8px}
+.alerta{background:var(--nevoa);border:1px solid var(--lacre);border-radius:var(--r-m);padding:14px 18px;margin-bottom:28px;max-width:82ch;font-size:13.5px}
+.alerta .rot{font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:var(--lacre);display:block;margin-bottom:5px}
+.alerta p+p{margin-top:8px}
+.painel{border:1px solid var(--fio);border-radius:var(--r-l);padding:22px;background:var(--papel);margin-bottom:28px}
+.form{display:grid;grid-template-columns:1fr;gap:14px;align-items:end}
+@media(min-width:760px){.form.f3{grid-template-columns:1.3fr 1fr auto}.form.f4{grid-template-columns:1fr 1fr 1fr auto}}
+.campo label{display:block;font-family:var(--fm);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--grafite);margin-bottom:6px}
+.campo input,.campo select{width:100%;font-family:var(--fm);font-size:13px;color:var(--tinta);background:var(--papel);border:1px solid var(--grafite);border-radius:var(--r-m);padding:10px 12px}
+.campo input:focus,.campo select:focus{border-color:var(--ultramar)}
+.campo input[aria-invalid="true"]{border-color:var(--lacre)}
+button.act{font-family:var(--ft);font-weight:600;font-size:14px;padding:11px 18px;border-radius:var(--r-m);border:1.5px solid var(--tinta);background:var(--tinta);color:var(--papel);cursor:pointer;white-space:nowrap}
+button.act:hover{background:#000}
+:root[data-theme="dark"] button.act:hover{background:#fff}
+button.act.ghost{background:transparent;color:var(--tinta)}
+button.act.ghost:hover{background:var(--nevoa)}
+button.act[disabled]{opacity:.5;cursor:not-allowed}
+.hint{font-size:12.5px;color:var(--grafite);margin-top:12px;max-width:82ch}
+.estado{font-family:var(--fm);font-size:12.5px;color:var(--grafite);margin-bottom:0}
+.prog{color:var(--grafite)}
+.vt{width:100%;border-collapse:collapse;font-size:14px}
+.vt td,.vt th{padding:9px 0;border-bottom:1px solid var(--fio);vertical-align:top;text-align:left}
+.vt th{font-weight:400}
+.vt td.v,.vt th.v{text-align:right;font-family:var(--fm);font-size:12px;color:var(--grafite);word-break:break-all}
+.tabrol{width:100%;border-collapse:collapse;font-size:13px}
+.tabrol th,.tabrol td{padding:8px 10px 8px 0;border-bottom:1px solid var(--fio);text-align:left;vertical-align:top}
+.tabrol thead th{font-family:var(--fm);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--grafite);font-weight:400}
+.tabrol td.m,.tabrol th.m{font-family:var(--fm);font-size:12px;word-break:break-all}
+.rolagem{overflow-x:auto}
+.pill{font-family:var(--fm);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--grafite);color:var(--grafite);border-radius:999px;padding:3px 9px;white-space:nowrap}
+.pill.lido{border-color:var(--verde);color:var(--verde)}
+.pill.vazio{border-color:var(--lacre);color:var(--lacre)}
+.pill.calc{border-color:var(--acafrao-texto);color:var(--acafrao-texto)}
+.passo{border:1px solid var(--fio);border-radius:var(--r-l);padding:20px;background:var(--papel);margin-bottom:16px;border-top:3px solid var(--ultramar)}
+.passo.morto{border-top-color:var(--lacre)}
+.passo .cab{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.passo .num{font-family:var(--fm);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--grafite)}
+.cod{background:var(--tinta);color:#E8EAE6;border-radius:var(--r-m);padding:14px 16px;font-family:var(--fm);font-size:12px;line-height:1.75;overflow-x:auto;margin-top:12px;white-space:pre-wrap;word-break:break-all}
+:root[data-theme="dark"] .cod{background:#0C0E11}
+/* Os argumentos deixaram de ser um bloco de texto com quebras de linha e viram
+   uma <dl>: "address spender" e um termo, o valor e a nota sao a sua definicao.
+   E semantica de HTML resolvendo o que ARIA nao precisava resolver — NVDA anuncia
+   "lista de 2 itens" e le termo/definicao aos pares, em vez de despejar 300
+   caracteres corridos. white-space volta a normal porque agora quem separa os
+   campos sao elementos, nao espacos. Cor: nenhuma nova. O termo e a nota se
+   distinguem por peso e recuo, nunca por cor sozinha. */
+.args{white-space:normal;word-break:normal}
+.args dt{font-weight:600}
+.args dd{margin:0 0 10px 14px;word-break:break-all}
+.args dd:last-child{margin-bottom:0}
+.args .notaarg{display:block;font-family:var(--ft);font-size:12px;font-weight:400;word-break:normal;margin-top:2px;opacity:.92}
+/* <figure> + <figcaption>: a legenda nomeia o bloco ANTES dele, e o nome do
+   figure sai da legenda sem uma linha de ARIA. Nao e landmark — tres blocos de
+   calldata como landmark inchariam a lista de regioes da pagina sem que nenhum
+   deles seja uma secao da pagina. */
+.calldataf{margin-top:14px}
+.calldataf figcaption{font-family:var(--fm);font-size:11px;letter-spacing:.06em;color:var(--grafite);margin-bottom:0}
+.calldataf .cod{margin-top:6px}
+.regra{border:1px solid var(--fio);border-left:3px solid var(--tinta);border-radius:var(--r-m);padding:20px 22px;margin-bottom:22px;background:var(--nevoa)}
+.regra .t{font-family:var(--fm);font-size:11px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--grafite);margin-bottom:8px}
+.regra p{font-size:14px;max-width:82ch}.regra p+p{margin-top:10px}
+.nao{list-style:none;margin-top:14px;max-width:82ch}
+.nao li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--fio);font-size:14px}
+.nao li::before{content:"x";font-family:var(--fm);color:var(--lacre);flex:none;font-weight:600}
+footer{max-width:1000px;margin:0 auto;padding:0 24px 72px}
+footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:1.9}
+</style>
+</head>
+<body>
+<a class="pular" href="#conteudo">Skip to the console</a>
+<header class="top">
+  <svg class="lg" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="25.36" r="8.5" fill="#2743C7"/><circle cx="100" cy="60" r="8.5" fill="#C13327"/><circle cx="40" cy="94.64" r="8.5" fill="#E8B23A"/></svg>
+  <b translate="no">Triviu</b><span class="mono" translate="no" style="font-size:12px;color:var(--grafite)">&middot; Console</span>
+  <span class="spacer"></span>
+  <button class="themebtn" id="theme" type="button" aria-label="Switch to dark theme" title="Theme"></button>
+  <nav aria-label="Site">
+    <a class="nav" href="/">Home</a><a class="nav" href="/positions/">Positions</a><a class="nav" href="/dashboard">Dashboard</a><a class="nav" href="/simulate">Simulate</a><a class="nav" href="/safety">Safety</a><a class="nav" href="/learn">Learn</a>
+  </nav>
+</header>
+
+<main class="wrap" id="conteudo" tabindex="-1">
+  <div class="eyebrow">Chain 137 &middot; reads and encodes &middot; sends nothing</div>
+  <h1>The bytes you would be asked to sign &mdash; before anyone asks.</h1>
+  <p class="lead">Connect a wallet and this page reads the four Triviu contracts on chain 137, then
+  builds the <b>exact calldata</b> each step of the cycle would put in front of your wallet: the
+  four-byte selector, the contract it goes to, every argument decoded, and what the gas costs at the
+  price the network is charging right now. <b>Nothing is sent.</b> The signing step opens in a later
+  wave; this one exists so the bytes are readable before they matter.</p>
+
+  <div class="aviso" role="note" aria-labelledby="h-aviso">
+    <h2 class="rot" id="h-aviso">This page encodes. It does not sign, and it cannot.</h2>
+    <p>The wallet is touched by exactly three methods, all of which only return something you already
+    control: <span class="mono" translate="no">eth_accounts</span>, <span class="mono" translate="no">eth_requestAccounts</span> and
+    <span class="mono" translate="no">eth_chainId</span>. There is no fourth. That is enforced by an allowlist that
+    throws in <span class="mono" translate="no">/js/console.js</span>, and by a check that fails the build if a write
+    method so much as appears in that file &mdash; not by this paragraph.</p>
+    <p>The reason the send is not here is written down and is not ours to waive: a page that asks for a
+    signature has to pass three gates first &mdash; a Content-Security-Policy whose
+    <span class="mono" translate="no">script-src</span> is this domain, no third-party script on the origin, and the 3D
+    library served from here rather than a CDN. Those were closed on 2026-08-12 and have not yet been
+    audited on the public URL. Ordering matters more than speed: signing first and auditing after is how
+    a drainer gets a page to work with.</p>
+  </div>
+
+  <div class="alerta" role="note" aria-labelledby="h-narracao">
+    <h2 class="rot" id="h-narracao">What the old console said, and what the contracts actually have</h2>
+    <p>An earlier console in this repository walked a user through <i>"Stage 1/3 &mdash; registration",
+    "Stage 2/3 &mdash; deploying your triad", "Stage 3/3 &mdash; the fence"</i>, and opened a wallet three
+    times. None of those three transactions existed: the wallet was a simulation inside the page, and
+    the contracts it named &mdash; a user registry, a vault and an executor <i>per user</i>, a referral
+    vault &mdash; are not among the four that are deployed. The narration was written before the
+    contracts and never reconciled with them.</p>
+    <p>So this page does the opposite by construction. Every function name and every selector it prints
+    is generated from <span class="mono" translate="no">contracts/out</span>, the artefacts the compiler produced from
+    the code that was deployed, and a check refuses the build if the screen names a function the
+    artefact does not have. The whole external surface of the three contracts with source here is
+    <b>22 functions</b>, listed at the bottom of this page. If a step below looks smaller than the
+    story you were told, the step is the true size.</p>
+  </div>
+
+  <div id="c-fatal" class="alerta" role="alert" hidden>
+    <h2 class="rot">This page is not reading anything</h2>
+    <p id="c-fatal-txt"></p>
+  </div>
+
+  <!-- ===================================================== wallet + chain -->
+  <section class="painel" aria-labelledby="h-carteira">
+    <h2 id="h-carteira">Your wallet, and which chain it is on</h2>
+    <div class="form f3">
+      <div class="campo">
+        <label for="c-endereco">Address</label>
+        <input id="c-endereco" type="text" inputmode="text" spellcheck="false" autocomplete="off"
+               autocapitalize="none" autocorrect="off" placeholder="0x&hellip; (40 hex characters)"
+               aria-describedby="c-endereco-help c-endereco-erro">
+        <!-- Empty and permanently referenced. A refusal fills it, and because the
+             refusal ALSO moves focus here, the reason is read out by the same
+             focus event that lands the caret — an assistive technology reads
+             label, "invalid entry", then the description. The message deliberately
+             does NOT go through a live region: an assertive announcement fired at
+             the same instant as a focus change is the announcement that gets cut
+             off, and this is the one sentence that must not be. -->
+        <span class="campoerro" id="c-endereco-erro"></span>
+      </div>
+      <div class="campo">
+        <label for="c-rpc">JSON-RPC endpoint (chain 137)</label>
+        <select id="c-rpc" aria-describedby="c-rpc-help"></select>
+      </div>
+      <div class="campo"><button class="act ghost" id="c-conectar" type="button">Connect wallet</button></div>
+    </div>
+    <p class="hint"><span id="c-endereco-help">Typing an address works with no wallet installed, and reads any
+    address you can name. The connect button exists so you do not have to copy your own by hand.</span>
+    <span id="c-rpc-help">The endpoint is a fixed list rather than a free field, and the reason is this
+    origin's Content-Security-Policy: <span class="mono" translate="no">connect-src</span> names these three hosts and
+    the browser blocks the rest. A text field would have accepted a fourth and then failed silently
+    in the browser, which is worse than not offering it.</span></p>
+    <!-- Duas vozes, e a diferenca entre elas e a politeness, nao o estilo.
+         #c-estado e role="status" (polite): comecou a ler, terminou de ler,
+         terminou de codificar. Nao interrompe.
+         #c-erro e role="alert" (assertive): a leitura PAROU e nao ha campo para
+         onde mandar o foco — endpoint fora do ar, carteira noutra chain, chamada
+         que nao respondeu. Interrompe, porque nada do que vier depois faz sentido.
+         Nunca falam juntas: escrever numa apaga a outra, por construcao, em
+         estado()/erro(). Erro DE CAMPO nao passa por nenhuma das duas — vai para
+         o span do proprio campo, via aria-describedby, junto com o foco.
+         #c-prog e aria-hidden: "token 7 de 12", doze vezes, enterra a frase que
+         importava. O mesmo fato chega uma vez, na mensagem de conclusao. -->
+    <p class="estado" style="margin-top:14px"><span id="c-estado" role="status" aria-live="polite">Nothing read yet.</span> <span class="erro" id="c-erro" role="alert"></span> <span class="prog" id="c-prog" aria-hidden="true"></span></p>
+
+    <div id="c-chain-alerta" class="alerta" role="alert" style="margin-top:16px;margin-bottom:0" hidden>
+      <h3 class="rot">Wrong chain</h3>
+      <p id="c-chain-txt"></p>
+    </div>
+
+    <table class="vt" style="margin-top:18px">
+      <caption class="sr-only">What the wallet answered</caption>
+      <tbody>
+        <tr><th scope="row">Address in use &mdash; typed, or returned by the wallet</th><td class="v" translate="no" id="c-w-conta">&mdash;</td></tr>
+        <tr><th scope="row">Chain the wallet reports, from <span class="mono" translate="no">eth_chainId</span></th><td class="v" translate="no" id="c-w-chain">&mdash;</td></tr>
+        <tr><th scope="row">Chain the endpoint reports, read separately &mdash; the two are asked apart on purpose</th><td class="v" translate="no" id="c-w-rpcchain">&mdash;</td></tr>
+        <tr><th scope="row">Native balance of that address, <span class="mono" translate="no">eth_getBalance</span> &mdash; gas is paid from here</th><td class="v" translate="no" id="c-w-saldo">&mdash;</td></tr>
+      </tbody>
+    </table>
+    <p class="hint">Read is what the button does. <button class="act" id="c-ler" type="button">Read the chain</button></p>
+  </section>
+
+  <!-- ========================================================= contratos -->
+  <section class="painel" aria-labelledby="h-contratos">
+    <h2 id="h-contratos">The contracts, and proof each one has code</h2>
+    <!-- .rolagem e overflow-x:auto, e uma regiao que rola tem de ser alcancavel
+         pelo teclado (WCAG 2.1.1) — sem isto, quem nao usa mouse nao ve a ponta
+         direita de uma tabela de 5 colunas num telefone.
+
+         O tabindex e o role NAO estao escritos aqui, e a razao foi medida nesta
+         pagina: com o container em 1000px, scrollWidth == clientWidth nas quatro
+         tabelas — nenhuma rola, e quatro paradas de tabulacao que nao rolam sao
+         quatro paradas mortas. Com o container em 360px, duas passam a rolar
+         (287 > 266 e 277 > 266). Rolar e condicao de largura, nao propriedade do
+         elemento; entao quem poe e tira o tabindex e ajustarRolagem(), em
+         /js/console.js, na carga, no resize e depois de cada tabela redesenhada.
+         O aria-labelledby fica aqui porque e o nome — sai da <caption> que ja
+         existia — e passa a valer no instante em que o role e posto. -->
+    <div class="rolagem" aria-labelledby="cap-contratos">
+      <table class="tabrol">
+        <caption class="sr-only" id="cap-contratos">Each contract, its address from the ledger, and the size of its deployed code</caption>
+        <thead><tr><th scope="col">Contract</th><th scope="col">Address</th><th scope="col">Deployed code</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">ParameterRegistry &mdash; whitelists, fee rate, treasury</th><td class="m" translate="no" id="c-a-registry">&mdash;</td><td class="m" translate="no" id="c-c-registry">&mdash;</td></tr>
+          <tr><th scope="row">TriviuExecutor &mdash; runs a cycle in one transaction</th><td class="m" translate="no" id="c-a-executor">&mdash;</td><td class="m" translate="no" id="c-c-executor">&mdash;</td></tr>
+          <tr><th scope="row">GasTank &mdash; your own gas reserve, withdrawable by you</th><td class="m" translate="no" id="c-a-gastank">&mdash;</td><td class="m" translate="no" id="c-c-gastank">&mdash;</td></tr>
+          <tr><th scope="row">TriviuLPVault &mdash; shared LP router, not a vault per user</th><td class="m" translate="no" id="c-a-lpvault">&mdash;</td><td class="m" translate="no" id="c-c-lpvault">&mdash;</td></tr>
+          <tr><th scope="row">Uniswap V3 position manager &mdash; not in the ledger and not typed here: read from the vault's <span class="mono" translate="no">positionManager()</span></th><td class="m" translate="no" id="c-a-npm">&mdash;</td><td class="m" translate="no" id="c-c-npm">&mdash;</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="hint" id="c-integridade">The Executor's <span class="mono" translate="no">registry()</span> is read live and
+    compared against the ledger; the result appears here after a read. It matters because two orphaned
+    Registries from failed deploy runs sit on this chain with byte-identical state to the real one.</p>
+  </section>
+
+  <!-- ============================================================ estado -->
+  <section class="painel" aria-labelledby="h-estado">
+    <h2 id="h-estado">Protocol state, read from the Registry</h2>
+    <table class="vt">
+      <caption class="sr-only">Live parameter values read from the ParameterRegistry</caption>
+      <tbody>
+        <tr><th scope="row"><span class="mono" translate="no">feeBps</span> &mdash; the success fee, in basis points of the <b>profit</b>. Never of the principal, and nothing on a loss.</th><td class="v" translate="no" id="c-feebps">&mdash;</td></tr>
+        <tr><th scope="row"><span class="mono" translate="no">MAX_FEE_BPS</span> &mdash; the Executor's own hardcoded ceiling. A Registry value above this is clamped in bytecode, not trusted.</th><td class="v" translate="no" id="c-maxfee">&mdash;</td></tr>
+        <tr><th scope="row"><span class="mono" translate="no">treasury</span> &mdash; where the fee goes. Address zero would disable the fee entirely.</th><td class="v" translate="no" id="c-treasury">&mdash;</td></tr>
+        <tr><th scope="row"><span class="mono" translate="no">owner</span> &mdash; the only account that can change any of this</th><td class="v" translate="no" id="c-owner">&mdash;</td></tr>
+        <tr><th scope="row"><span class="mono" translate="no">pendingOwner</span> &mdash; a two-step handoff in flight, if any</th><td class="v" translate="no" id="c-pendente">&mdash;</td></tr>
+        <tr><th scope="row"><span class="mono" translate="no">maxSlippageBps</span> &mdash; published for the engine and for screens. The Executor does <b>not</b> read it; the source says so in as many words.</th><td class="v" translate="no" id="c-slippage">&mdash;</td></tr>
+        <tr><th scope="row"><span class="mono" translate="no">defaultMinProfit</span> &mdash; a suggestion, in reference-asset units. The Executor takes <span class="mono" translate="no">minProfit</span> as a call argument and ignores this.</th><td class="v" translate="no" id="c-minprofit">&mdash;</td></tr>
+      </tbody>
+    </table>
+    <p class="hint" id="c-lp-nota">One row is missing on purpose, and the gap is worth a sentence:
+    <b>TriviuLPVault has no source in this repository.</b> Its bytecode contains the four bytes of
+    <span class="mono" translate="no">feeBps()</span>, and calling it still reverts &mdash; the vault <i>calls</i> that
+    function on the Registry, it does not <i>have</i> it. That is measured live below, and it is exactly
+    why this page will not name a function it did not read out of a compiled artefact.
+    <span class="mono" translate="no" id="c-lp-feebps">&mdash;</span></p>
+  </section>
+
+  <!-- ============================================================ tokens -->
+  <section class="painel" aria-labelledby="h-tokens">
+    <h2 id="h-tokens">Tokens the Registry allows, and what you hold of each</h2>
+    <p class="hint" style="margin-top:0">The Registry keeps a mapping, and a mapping cannot be listed:
+    there is no getter that returns every allowed token. So the candidates come from the
+    <span class="mono" translate="no">TokenAllowed</span> events the Registry emitted, and each candidate is then
+    confirmed by a live <span class="mono" translate="no">isAllowedToken</span> call &mdash; the event is how they are
+    found, the call is what decides. Symbol and decimals are read from each token, never labelled here.</p>
+    <div class="rolagem" aria-labelledby="cap-tokens">
+      <table class="tabrol">
+        <caption class="sr-only" id="cap-tokens">Allowed tokens with their live whitelist status and your balance</caption>
+        <thead><tr><th scope="col">Symbol</th><th scope="col">Address</th><th scope="col">Decimals</th><th scope="col">Allowed now</th><th scope="col">Your balance</th></tr></thead>
+        <tbody id="c-tokens"><tr><td colspan="5" class="m" translate="no">&mdash; nothing read yet</td></tr></tbody>
+      </table>
+    </div>
+    <p class="hint" id="c-tokens-faixa">The scanned block range appears here after a read, so the edge of
+    what was looked at is visible rather than implied.</p>
+  </section>
+
+  <!-- =========================================================== routers -->
+  <section class="painel" aria-labelledby="h-alvos">
+    <h2 id="h-alvos">Routers the Registry allows &mdash; and what follows from the answer</h2>
+    <p class="hint" style="margin-top:0">Every leg of a cycle is a swap on a router, and
+    <span class="mono" translate="no">executeCycle</span> checks <span class="mono" translate="no">isAllowedTarget(leg.router)</span>
+    before each one. Found the same way as the tokens: <span class="mono" translate="no">TargetAllowed</span> events,
+    confirmed live.</p>
+    <div class="rolagem" aria-labelledby="cap-alvos">
+      <table class="tabrol">
+        <caption class="sr-only" id="cap-alvos">Allowed routers with their live whitelist status</caption>
+        <thead><tr><th scope="col">Address</th><th scope="col">Allowed now</th><th scope="col">Has code</th></tr></thead>
+        <tbody id="c-alvos"><tr><td colspan="3" class="m" translate="no">&mdash; nothing read yet</td></tr></tbody>
+      </table>
+    </div>
+    <p class="hint" id="c-alvos-resumo">The consequence of the answer is spelled out here after a read,
+    because an empty list is not a blank screen &mdash; it is a fact about what the contract will do.</p>
+  </section>
+
+  <!-- ========================================================== posicoes -->
+  <section class="painel" aria-labelledby="h-posicoes">
+    <h2 id="h-posicoes">Uniswap V3 positions held by this address</h2>
+    <table class="vt">
+      <caption class="sr-only">Position counts read from the Uniswap V3 position manager</caption>
+      <tbody>
+        <tr><th scope="row">Positions the address owns &mdash; <span class="mono" translate="no">balanceOf</span> on the position manager</th><td class="v" translate="no" id="c-pos-conta">&mdash;</td></tr>
+        <tr><th scope="row">Positions held by the shared router itself &mdash; it should hold none, and the number says so rather than a sentence</th><td class="v" translate="no" id="c-pos-vault">&mdash;</td></tr>
+      </tbody>
+    </table>
+    <p class="hint">The pair, range, liquidity and checkpointed fees of each one are read on
+    <a href="/positions/">/positions</a>, which already does that job. This page counts and links
+    instead of growing a second copy of the same screen.</p>
+  </section>
+
+  <!-- ============================================================ fluxo -->
+  <section aria-labelledby="h-fluxo">
+    <h2 id="h-fluxo" style="margin-top:38px">The flow, and the exact bytes of each step</h2>
+    <p class="lead">Pick the asset the cycle opens and closes on, and the volume. Everything below is
+    then encoded exactly as the wallet would receive it &mdash; and handed to
+    <span class="mono" translate="no">eth_estimateGas</span>, which runs the call against current state without
+    signing anything. When the estimate reverts, the revert is what is shown, decoded by its four-byte
+    error selector. A revert is a reading, not a failure to read.</p>
+
+    <div class="painel">
+      <div class="form f4">
+        <div class="campo">
+          <label for="c-ativo">Asset &mdash; the cycle opens and closes here</label>
+          <select id="c-ativo" aria-describedby="c-fluxo-help c-ativo-erro"><option value="">read the chain first</option></select>
+          <span class="campoerro" id="c-ativo-erro"></span>
+        </div>
+        <div class="campo">
+          <label for="c-principal">Principal, in that token</label>
+          <input id="c-principal" type="text" inputmode="decimal" spellcheck="false" autocomplete="off"
+                 placeholder="e.g. 100" aria-describedby="c-fluxo-help c-principal-erro">
+          <span class="campoerro" id="c-principal-erro"></span>
+        </div>
+        <div class="campo">
+          <label for="c-lucro">minProfit, in that token</label>
+          <input id="c-lucro" type="text" inputmode="decimal" spellcheck="false" autocomplete="off"
+                 value="0" aria-describedby="c-fluxo-help c-lucro-erro">
+          <span class="campoerro" id="c-lucro-erro"></span>
+        </div>
+        <div class="campo"><button class="act" id="c-montar" type="button">Encode the calldata</button></div>
+      </div>
+      <p class="hint" id="c-fluxo-help">Both amounts are scaled by the decimals read from the token
+      itself, with integer arithmetic &mdash; no floating point touches a token amount here. A
+      <span class="mono" translate="no">minProfit</span> of zero means the cycle only has to come back whole; the
+      Executor still reverts the entire transaction if it comes back short.</p>
+      <!-- Uma segunda linha de estado, e a razao e de distancia: a linha do painel
+           da carteira fica tres telas acima deste botao. Quem clica "Encode the
+           calldata" aqui recebia a resposta la em cima, fora da vista e fora do
+           foco. As duas nunca falam ao mesmo tempo — sao acionadas por botoes
+           diferentes, e cada funcao escreve so na sua. -->
+      <p class="estado" style="margin-top:14px"><span id="c-fluxo-estado" role="status" aria-live="polite">Nothing encoded yet.</span> <span class="erro" id="c-fluxo-erro" role="alert"></span></p>
+    </div>
+
+    <div id="c-passos" aria-busy="false"></div>
+  </section>
+
+  <section class="regra" aria-labelledby="h-porta">
+    <h2 class="t" id="h-porta">The gate that makes the second step safe to sign, one day</h2>
+    <p><b>The Executor reverts unless it ends up with more than it started with.</b> In its own terms:
+    the final balance of the asset must be at least the starting balance plus the principal plus
+    <span class="mono" translate="no">minProfit</span>, or the whole transaction reverts and no leg is left exposed.
+    Your principal is pulled at the start and returned at the end of the same transaction; the contract
+    holds nothing of yours between transactions.</p>
+    <p>The fee follows the same rule and cannot escape it: it is a percentage of the <b>profit</b>,
+    computed after that check passed, capped in bytecode at <span class="mono" translate="no">MAX_FEE_BPS</span>, and
+    it is zero on a revert and zero on a break-even. What it costs you when there is no profit is the
+    gas, which is why the estimate is on this page and not in the small print.</p>
+  </section>
+
+  <section class="painel" aria-labelledby="h-nao">
+    <h2 id="h-nao">What this page does not do</h2>
+    <ul class="nao" role="list">
+      <li>It does not send a transaction. <span class="mono" translate="no">eth_sendTransaction</span> is not in its
+          wallet allowlist, and a check fails the build if the string appears in its script at all.</li>
+      <li>It does not ask for a signature of any kind &mdash; no <span class="mono" translate="no">personal_sign</span>,
+          no typed-data signature, no permit.</li>
+      <li>It does not submit the approval it encodes. The bytes are shown; putting them in front of a
+          wallet is the next wave's job, after the gates are audited on the public URL.</li>
+      <li>It does not invent a route. No router is chosen for you, and where a route is missing the
+          calldata says so instead of filling the gap with a plausible one.</li>
+      <li>It does not read a private key, a seed phrase or a password &mdash; it has no field for one.</li>
+      <li>It stores nothing: no cookie, no analytics, no server of its own. The address goes only to the
+          endpoint selected in the form.</li>
+    </ul>
+  </section>
+
+  <section class="painel" aria-labelledby="h-verificar">
+    <h2 id="h-verificar">Read the same thing yourself</h2>
+    <p class="hint" style="margin-top:0">Every selector on this page was computed from the function
+    signature by a keccak-256 that is itself checked, on every build, against the selectors the Solidity
+    compiler wrote into the artefacts. The full surface of the three contracts whose source is in this
+    repository is below &mdash; generated, not typed.</p>
+    <div class="rolagem" aria-labelledby="cap-superficie">
+      <table class="tabrol">
+        <caption class="sr-only" id="cap-superficie">Every external function of the contracts with source in this repository</caption>
+        <thead><tr><th scope="col">Selector</th><th scope="col">Signature</th><th scope="col">Contract</th><th scope="col">Mutability</th></tr></thead>
+        <tbody id="c-superficie"><tr><td colspan="4" class="m" translate="no">&mdash;</td></tr></tbody>
+      </table>
+    </div>
+    <table class="vt" style="margin-top:18px">
+      <caption class="sr-only">Sources and endpoints</caption>
+      <tbody>
+        <tr><th scope="row">The address ledger, single source</th><td class="v" translate="no"><a href="/enderecos.js">/enderecos.js</a></td></tr>
+        <tr><th scope="row">The selector table, generated from the compiled artefacts</th><td class="v" translate="no"><a href="/js/abi-console.js">/js/abi-console.js</a></td></tr>
+        <tr><th scope="row">The script that reads and encodes, allowlists included</th><td class="v" translate="no"><a href="/js/console.js">/js/console.js</a></td></tr>
+        <tr><th scope="row">Positions in detail, and the protocol's own record</th><td class="v" translate="no"><a href="/positions/">/positions</a> &middot; <a href="/dashboard">/dashboard</a></td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<footer>
+  <div class="rod">Triviu &middot; Open source. Verifiable math. No promises.<br>
+    This screen reads and encodes. It signs nothing and sends nothing. A dash means it did not read that
+    field &mdash; it does not mean zero.</div>
+</footer>
+
+<script src="/enderecos.js"></script>
+<script src="/js/abi-console.js"></script>
+<script src="/js/console.js"></script>
+</body>
+</html>

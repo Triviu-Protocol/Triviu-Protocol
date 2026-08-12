@@ -18,3 +18,4 @@ engine/config/params.toml
 contracts/deploy/mainnet.env
 contracts/deploy/*.env
 !contracts/deploy/*.env.exemplo
+.env*
