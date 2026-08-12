@@ -106,12 +106,13 @@ footer{border-top:1px solid var(--fio);margin-top:40px;padding-top:22px;font-fam
   </div>
 
   <h2>Verify, don't trust</h2>
-  <p>The Executor, Registry and Gas-Tank are on Polygon and <b>their source is not published
-  on the block explorer yet</b>. The bytecode is there and you can compile this repository and
-  compare it yourself, but until verification is submitted the explorer shows you bytes rather
-  than Solidity. Said here plainly, because a page called "Verify, don't trust" that overstates
-  what you can verify is worse than no page. Addresses and current status are listed in
-  <code>contracts/deploy/enderecos.js</code>. Read the code, or read someone's
+  <p>The Executor, Registry and Gas-Tank are <b>verified on Polygonscan</b>: the explorer shows
+  you the Solidity that compiles to the exact deployed bytecode, not a description of it.
+  Compiler <code>v0.8.24</code>; the addresses are listed in
+  <code>contracts/deploy/enderecos.js</code>. This sentence was removed from this page for a
+  while and is back on purpose — the contracts went to mainnet unverified, this page kept
+  claiming otherwise, and a page called "Verify, don't trust" that overstates what you can
+  verify is worse than no page. Read the code, or read someone's
   review of it, before you run. And the honest caveat that belongs on this page: review
   reduces contract risk, it does not bring it to zero — the known limitations are documented
   openly in the audits and the Tradeoff Records. Nobody selling you certainty is telling the
