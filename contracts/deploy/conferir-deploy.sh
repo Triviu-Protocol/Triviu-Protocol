@@ -25,6 +25,7 @@ verde()    { printf '\033[32m%s\033[0m\n' "$*"; }
 amarelo()  { printf '\033[33m%s\033[0m\n' "$*"; }
 
 FALHAS=0
+PENDENCIAS=0
 falhou() { vermelho "  FALHA · $*"; FALHAS=$((FALHAS+1)); }
 passou() { verde    "  ok    · $*"; }
 
@@ -95,6 +96,7 @@ else
   amarelo "  PENDENTE · owner=$OWNER pendingOwner=$PEND"
   amarelo "            o acceptOwner() ainda nao foi assinado pelo Safe."
   amarelo "            Isto NAO conta como falha: e acao do fundador, nao da matilha."
+  PENDENCIAS=$((PENDENCIAS+1))
 fi
 
 # --------------------------------- 4 · a fonte esta publicada no explorador
@@ -135,5 +137,13 @@ for O in $ORFAOS; do
 done
 
 echo
-if [ "$FALHAS" -eq 0 ]; then verde "=== conferencia limpa ==="; exit 0
+if [ "$FALHAS" -eq 0 ] && [ "$PENDENCIAS" -eq 0 ]; then
+  verde "=== conferencia limpa · nada pendente ==="; exit 0
+elif [ "$FALHAS" -eq 0 ]; then
+  # Zero falhas NAO e o mesmo que zero pendencias. Dizer "limpa" aqui deixaria
+  # "nao ha nada errado" parecido com "acabou", e o acceptOwner continuaria
+  # aberto com a tela dizendo verde.
+  amarelo "=== zero falhas · $PENDENCIAS pendencia(s) do fundador AINDA ABERTA(S) ==="
+  amarelo "    A matilha nao tem o que consertar. Voce tem o que assinar."
+  exit 0
 else vermelho "=== $FALHAS conferencia(s) falharam ==="; exit 1; fi

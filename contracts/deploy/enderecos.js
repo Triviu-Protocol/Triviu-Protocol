@@ -28,7 +28,12 @@
   var VIVOS = {
     parameterRegistry: '0x1Adab61ef019d853BBcFaf65E929961b11897856',
     triviuExecutor:    '0xEdB5Aa01fd055B3755439cE41B92b575eea1d273',
-    gasTank:           '0xFF0Dc2fC461E28bbAC7964496535989311e93f56'
+    gasTank:           '0xFF0Dc2fC461E28bbAC7964496535989311e93f56',
+    // Implantado 2026-08-12. Roteador COMPARTILHADO, nao um cofre por usuario:
+    // a Factory instancia TriviuVault por dono e nao instancia LPVault nenhum.
+    // O usuario detem a posicao (o mint usa recipient msg.sender e este contrato
+    // nunca e ownerOf); o que e compartilhado e o roteador e a whitelist.
+    triviuLPVault:     '0xC52BaD280809672D8EC5D1fcF2d7eCa45a2a423E'
   };
 
   /* --------------------------------------------------------------- ORFAOS --
@@ -48,7 +53,14 @@
   var ORFAOS = [
     { endereco: '0x43DB0d57441Ee1F791989ED0EeC2C12eC76A2196', nonce: 1674, tipo: 'ParameterRegistry', estado: 'VAZIO' },
     { endereco: '0x41CbCd2C0C3564fBFA130C614d2c1F58dE8113D1', nonce: 1675, tipo: 'ParameterRegistry', estado: 'VAZIO' },
-    { endereco: '0x9ABa958EaC3649925378EfC7a7DBc573116E5d31', nonce: 1676, tipo: 'GasTank',           estado: 'VAZIO' }
+    { endereco: '0x9ABa958EaC3649925378EfC7a7DBc573116E5d31', nonce: 1676, tipo: 'GasTank',           estado: 'VAZIO' },
+    // 2026-08-12: o mesmo padrao outra vez, agora no LPVault. O deploy rodou
+    // DUAS vezes (nonces 1686 e 1687) e os dois contratos sao gemeos funcionais
+    // — mesmo registry, mesmo positionManager, mesmo MAX_FEE_BPS. So o
+    // broadcast/run-latest distingue: ele registra 0xC52BaD28 como o oficial.
+    // Aconteceu porque ninguem conferiu se o deploy ja havia rodado antes de
+    // rodar de novo. Fica escrito para nao virar folclore.
+    { endereco: '0xd224f7cE6f96c3D26737bD442B20F4f44992c440', nonce: 1686, tipo: 'TriviuLPVault',    estado: 'VAZIO' }
   ];
 
   /* -------------------------------------------------------------- CUSTODIA --
@@ -113,7 +125,13 @@
         ' do run de deploy que falhou (nonce ' + orfao.nonce + '). O estado dele e ' +
         'identico ao do verdadeiro, entao ele parece funcionar e nunca sera lido ' +
         'pelo Executor vivo. O ' + orfao.tipo + ' correto e ' +
-        (orfao.tipo === 'GasTank' ? VIVOS.gasTank : VIVOS.parameterRegistry) + '.'
+        // Mapa por tipo, e nao um ternario: com o ternario anterior o orfao do
+        // LPVault teria recebido "o ParameterRegistry correto e ...". Guarda que
+        // aponta o substituto errado e pior que guarda que nao aponta nenhum.
+        ({ GasTank: VIVOS.gasTank,
+           ParameterRegistry: VIVOS.parameterRegistry,
+           TriviuLPVault: VIVOS.triviuLPVault,
+           TriviuExecutor: VIVOS.triviuExecutor }[orfao.tipo] || '(nao mapeado)') + '.'
       );
     }
 
