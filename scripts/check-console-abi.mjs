@@ -1,5 +1,11 @@
 #!/usr/bin/env node
 /**
+ * ALVO: site/calldata/index.html — o leitor de bytes.
+ * Em 2026-08-12 o console DO PRODUTO (adm/console/triviu-console.html, 4100
+ * linhas, narrado e sem carteira) passou a ocupar /console/, e o leitor de
+ * bytes mudou para /calldata/. Esta guarda seguiu o leitor, que e o que ela
+ * sabe auditar. Ela NAO audita o console do produto — se um dia ele passar a
+ * assinar, precisa da sua propria.
  * Guardiao do console: a tela so pode nomear funcao que o contrato tem.
  *
  * O console anterior nomeava 16 funcoes que os contratos implantados nao
@@ -34,7 +40,7 @@ import { gerado, DESTINO } from "./gerar-abi-console.mjs";
 
 const RAIZ = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const JS = join(RAIZ, "site", "js", "console.js");
-const HTML = join(RAIZ, "site", "console", "index.html");
+const HTML = join(RAIZ, "site", "calldata", "index.html");
 
 const falhas = [];
 const falhar = (m) => falhas.push(m);
@@ -112,7 +118,7 @@ for (const m of js.matchAll(/0x[0-9a-fA-F]{8}(?![0-9a-fA-F])/g))
   falhar(`console.js contem o literal ${m[0]} — seletor vem de sig(), nunca digitado`);
 
 /* ---------------------------------------------------------------- item 4 -- */
-for (const [nome, texto] of [["console.js", js], ["console/index.html", html]])
+for (const [nome, texto] of [["console.js", js], ["calldata/index.html", html]])
   for (const m of texto.matchAll(/0x[0-9a-fA-F]{40}(?![0-9a-fA-F])/g))
     falhar(`${nome} contem o endereco ${m[0]} escrito a mao — use /enderecos.js`);
 
@@ -181,7 +187,7 @@ for (const proibido of ["eth_signTypedData", "personal_sign", "eth_sendRawTransa
 
 /* --------------------------------------------------------- ligacoes HTML -- */
 for (const src of ["/enderecos.js", "/js/abi-console.js", "/js/console.js"])
-  if (!html.includes(`src="${src}"`)) falhar(`console/index.html nao carrega ${src}`);
+  if (!html.includes(`src="${src}"`)) falhar(`calldata/index.html nao carrega ${src}`);
 
 /* ------------------------------------------------------------------ saida - */
 if (falhas.length) {
