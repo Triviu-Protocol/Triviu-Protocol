@@ -8,7 +8,7 @@ description: >-
 
 > **Version:** whitepaper v1 · July 2026
 > **Networks:** EVM · Polygon first (Arbitrum and BSC by the same contracts) · **Code:** AGPL-3.0 · **Brand:** CC BY 4.0
-> **Status:** pre-mainnet, not deployed on any chain
+> **Status:** live on Polygon (chain 137) since 2026-08-12; Arbitrum and BSC pending
 
 {% hint style="warning" %}
 **Risk notice — required reading.** Most atomic-arbitrage opportunities — on any

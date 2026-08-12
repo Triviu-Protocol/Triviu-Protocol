@@ -8,7 +8,7 @@ schedule commitment. There are no promised dates.
 
 - **v0 — pre-mainnet.** This whitepaper, the public repository, the verified
   contracts, the off-chain engine, and the local-fork simulator. Everything is
-  auditable from the code; nothing is deployed.
+  auditable from the code; Four contracts are live on Polygon (chain 137) since 2026-08-12: ParameterRegistry `0x1Adab61e…`, TriviuExecutor `0xEdB5Aa01…`, GasTank `0xFF0Dc2fC…` and TriviuLPVault `0xC52BaD28…`, owner and treasury held by the Safe `0x73e344Be…`, source verified on Polygonscan. Arbitrum and BSC are not deployed.
 - **Audit gate.** A final review by the Predators Protocol audit process at the
   closing commit, with the open findings (F-01, F-02) resolved. Mainnet is gated
   on this — no exceptions.

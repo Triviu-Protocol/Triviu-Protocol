@@ -2,7 +2,7 @@
 
 The on-chain layer is three small, verified contracts. They are the same audited
 Solidity across every supported EVM chain — Polygon first, Arbitrum and BSC by
-configuration. **Nothing is deployed on any chain yet;** each deploys only after its
+configuration. **Four contracts are live on Polygon (chain 137) since 2026-08-12: ParameterRegistry `0x1Adab61e…`, TriviuExecutor `0xEdB5Aa01…`, GasTank `0xFF0Dc2fC…` and TriviuLPVault `0xC52BaD28…`, owner and treasury held by the Safe `0x73e344Be…`, source verified on Polygonscan. Arbitrum and BSC are not deployed.** Each further chain deploys only after its
 own audit gate. Read the source, don't trust this page:
 [github.com/Triviu-Protocol/Triviu-Protocol](https://github.com/Triviu-Protocol/Triviu-Protocol/tree/main/contracts).
 

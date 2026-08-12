@@ -12,4 +12,5 @@
   <url><loc>https://triviu.vercel.app/simulate</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
   <url><loc>https://triviu.vercel.app/chains</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://triviu.vercel.app/dashboard</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://triviu.vercel.app/positions/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
 </urlset>

@@ -3,10 +3,30 @@
  * Guardian: multi-chain honesty + no single-chain regression.
  *
  * Triviu is chain-agnostic by design (Polygon first, Arbitrum and BSC by the same
- * contracts) but NOTHING is deployed on any chain yet. Public surfaces must say
- * that in the honest tense: "designed for / simulated / will deploy" — never
- * "runs on / live on / deployed on" a chain, and never claim single-chain
- * exclusivity now that expansion is on the record (decisions/0004, 0005).
+ * contracts). This guardian used to say "NOTHING is deployed on any chain yet"
+ * and banned every "deployed on <chain>" phrase. That was true when it was
+ * written and stopped being true on 2026-08-12.
+ *
+ * Measured on Polygon (chain 137) before this file changed:
+ *   ParameterRegistry 0x1Adab61ef019d853BBcFaf65E929961b11897856  2511 bytes
+ *   TriviuExecutor    0xEdB5Aa01fd055B3755439cE41B92b575eea1d273  5002 bytes
+ *   GasTank           0xFF0Dc2fC461E28bbAC7964496535989311e93f56   777 bytes
+ *   TriviuLPVault     0xC52BaD280809672D8EC5D1fcF2d7eCa45a2a423E  7954 bytes
+ *   owner + treasury = Safe 0x73e344Be… · feeBps 3000 · 8 tokens whitelisted
+ *   source verified on Polygonscan · https://triviu.vercel.app/dashboard/
+ *
+ * A guardian that enforces a claim reality has overtaken does worse than fail to
+ * guard: it BLOCKS the correction. Anyone fixing the site had to write around the
+ * banned phrases instead of stating the truth, and CI would have rejected the
+ * honest sentence. That is what this edit repairs.
+ *
+ * The rules are now per chain, because the fact is per chain:
+ *   POLYGON  — deployed. Saying so is required, not banned. Claiming the
+ *              opposite ("nothing is deployed") is now the violation.
+ *   ARBITRUM — not deployed. "live/runs/deployed on" stays banned.
+ *   BSC      — not deployed. Same.
+ * Single-chain EXCLUSIVITY stays banned everywhere: Polygon being the only chain
+ * live today is a fact about today, not a promise about the product.
  *
  * This scans the public, user-facing surfaces and exits non-zero on a violation,
  * so a regression fails CI instead of shipping. Run: node scripts/check-multichain-honesty.mjs
@@ -30,9 +50,20 @@ const EXT = new Set([".html", ".md", ".txt"]);
 // not a regression. The false-deploy-claim rules apply EVERYWHERE, decisions/ included.
 const DECISIONS = /decisions[\\/]/;
 const BANNED = [
-  { re: /\b(is )?live on (polygon|arbitrum|bsc|bnb)/i, why: 'false "live on <chain>" claim (nothing is deployed)' },
-  { re: /\bruns on (polygon|arbitrum|bsc|bnb)\b/i, why: 'false "runs on <chain>" claim (use "designed for / simulated")' },
-  { re: /\bdeployed on (polygon|arbitrum|bsc|bnb)\b/i, why: 'false "deployed on <chain>" claim (deploy is gated, per chain)' },
+  // Per chain, because the fact is per chain. Polygon dropped off these three
+  // lists on 2026-08-12: it IS deployed, and banning the sentence that says so
+  // was making CI enforce a falsehood.
+  { re: /\b(is )?live on (arbitrum|bsc|bnb)/i, why: 'false "live on <chain>" claim (only Polygon is deployed)' },
+  { re: /\bruns on (arbitrum|bsc|bnb)\b/i, why: 'false "runs on <chain>" claim (only Polygon is deployed)' },
+  { re: /\bdeployed on (arbitrum|bsc|bnb)\b/i, why: 'false "deployed on <chain>" claim (only Polygon is deployed)' },
+
+  // The inverse rule, and it is the one this file exists for now. Polygon is
+  // live; a public surface saying otherwise is the violation. Kept out of
+  // decisions/ because a Tradeoff Record written before the deploy is a
+  // point-in-time document, not a claim about today.
+  { re: /\bnothing is deployed\b/i, except: DECISIONS, why: 'FALSE: four contracts are live on Polygon (chain 137) since 2026-08-12' },
+  { re: /\bno contracts (are )?deployed\b/i, except: DECISIONS, why: 'FALSE: four contracts are live on Polygon (chain 137)' },
+  { re: /\bnot (yet )?deployed (on )?any(where| chain)\b/i, except: DECISIONS, why: 'FALSE: deployed on Polygon (chain 137)' },
   { re: /(polygon|arbitrum|bsc)[- ]only\b/i, except: DECISIONS, why: 'single-chain exclusivity on a user surface — expansion is on the record (0004/0005)' },
   { re: /\bonly on polygon\b/i, except: DECISIONS, why: "single-chain exclusivity regression on a user surface" },
   { re: /litepaper[^.\n]{0,40}(canonical|source of truth)/i, why: "litepaper is superseded — the whitepaper is canonical" },

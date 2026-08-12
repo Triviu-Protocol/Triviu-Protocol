@@ -18,6 +18,26 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://triviu.vercel.app/og.png">
+<!--
+  DECISION A-2 (wave ONDA-TRIVIU-F1-POSICOES-ONLINE, 2026-08-12) — recorded on
+  both screens so the boundary cannot quietly drift back into overlap.
+
+  This page was NOT converted into the LP-positions screen. It stays the
+  protocol-wide public record of the arbitrage executor: executions, revert
+  rate, gas vs net result, treasury — aggregate, no wallet, fed by public SQL.
+  The per-address screen was born separately at /positions.
+
+  Why, measured: this URL is indexed (robots index,follow), it is entry 12 of
+  site/sitemap.xml, and it is linked from site/index.html:434 and from the nav
+  of site/simulate/index.html:122. Converting it would have deleted a live
+  indexed page whose subject is still valid, and would have put a
+  wallet-connecting surface on the URL the site advertises as "the public
+  record". The two screens answer different questions, so the fix was naming,
+  not deletion: /dashboard is the protocol's record, /positions is your own.
+
+  The only edits made here by that wave are this comment, the nav link and one
+  row in the verify table below. Nothing else on this page was touched.
+-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -75,7 +95,7 @@ footer{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;font-fam
   <b>Triviu</b><span class="mono" style="font-size:12px;color:var(--grafite)">· Dashboard</span>
   <span class="spacer"></span>
   <button class="themebtn" id="theme" aria-label="Toggle light or dark theme" title="Theme"></button>
-  <a class="nav" href="/">Home</a><a class="nav" href="/simulate">Simulate</a><a class="nav" href="/chains">Chains</a><a class="nav" href="/learn">Learn</a><a class="nav" href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">Whitepaper</a>
+  <a class="nav" href="/">Home</a><a class="nav" href="/positions">Positions</a><a class="nav" href="/simulate">Simulate</a><a class="nav" href="/chains">Chains</a><a class="nav" href="/learn">Learn</a><a class="nav" href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">Whitepaper</a>
 </header>
 <div class="wrap">
   <div class="eyebrow">Every execution · failures included</div>
@@ -87,10 +107,14 @@ footer{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;font-fam
 
   <div class="aviso">
     <b>Where this stands</b>
-    <p>Nothing is deployed on any chain yet, so there is nothing honest to plot — and
-    Triviu invents no numbers. The moment the Executor is deployed and verified, this
-    dashboard fills in from public on-chain data, per chain, with failures included
-    from the first block. Reverted transactions still pay gas.</p>
+    <p>Four contracts are live on Polygon (chain 137) since 12 August 2026 — the
+    ParameterRegistry, the Executor, the Gas-Tank and the LP Vault — with ownership and
+    treasury held by a Safe, and the source verified on Polygonscan. Arbitrum and BSC are
+    not deployed. <b>This page still plots nothing, and here is the honest reason:</b> no
+    cycle has been executed yet. That is an empty history, not a missing chart. Triviu
+    invents no numbers, and a chart with plausible lines drawn over no data would be
+    exactly that invention. It fills in from public on-chain data, per chain, with
+    failures included from the first block. Reverted transactions still pay gas.</p>
   </div>
 
   <div class="chains">
@@ -143,6 +167,7 @@ footer{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;font-fam
     <tr><td>Decisions and their costs (Tradeoff Records)</td><td><a href="https://github.com/Triviu-Protocol/Triviu-Protocol/tree/main/decisions">github · /decisions</a></td></tr>
     <tr><td>Verified addresses — each chain's explorer</td><td>at mainnet deploy, per chain</td></tr>
     <tr><td>The chains and what each costs</td><td><a href="/chains">/chains</a></td></tr>
+    <tr><td>Your own LP positions — read-only, per address, not aggregated here</td><td><a href="/positions">/positions</a></td></tr>
   </table>
 
   <footer>Triviu · Open source. Verifiable math. No promises.<br>

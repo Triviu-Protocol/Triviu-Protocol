@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triviu · Your LP positions</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M40 25.36 Q76 32.3 100 60' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M100 60 Q76 87.7 40 94.64' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M40 94.64 Q28 60 40 25.36' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='40' cy='25.36' r='11' fill='%232743C7'/%3E%3Ccircle cx='100' cy='60' r='11' fill='%23C13327'/%3E%3Ccircle cx='40' cy='94.64' r='11' fill='%23E8B23A'/%3E%3C/svg%3E">
+<meta name="description" content="Read the Uniswap V3 LP positions an address owns on chain 137 — pair, range, liquidity and checkpointed fees, straight from the position manager. Read-only: this page never asks for a signature, an approval or a transaction. Anything it did not read shows as a dash, never a plausible number.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://triviu.vercel.app/positions">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Triviu">
+<meta property="og:title" content="Your LP positions · read-only · Triviu">
+<meta property="og:description" content="Pair, range, liquidity and checkpointed fees, read from the Uniswap V3 position manager. No signature, no approval, no transaction — this page only reads.">
+<meta property="og:url" content="https://triviu.vercel.app/positions">
+<meta property="og:image" content="https://triviu.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://triviu.vercel.app/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!--
+  ============================================================================
+  DECISION A-2 · why this page exists instead of the dashboard becoming it
+  ============================================================================
+  The wave asked for one of two things and forbade both at once: either
+  `site/dashboard/` becomes the positions screen, or a new page is born here and
+  the dashboard points at it. Two screens with the same purpose is a rejection.
+
+  Measured before deciding, not assumed:
+    - site/dashboard/index.html publishes PROTOCOL-WIDE aggregate about the
+      arbitrage executor: executions, revert rate, gas vs net result, treasury.
+      No wallet, no per-user data, four metrics fed by public SQL.
+    - It is an indexed public URL: robots index,follow; it is entry 12 of
+      site/sitemap.xml; it is linked from site/index.html:434 and it is a nav
+      item on site/simulate/index.html:122.
+    - This page publishes PER-ADDRESS data: the Uniswap V3 LP positions one
+      owner holds. Different subject, different reader, different privacy shape
+      (an address is typed in and shown on screen).
+
+  So the two are not the same screen wearing two names — they answer different
+  questions. Converting the dashboard would have deleted a live indexed page
+  whose subject is still valid, and moved a wallet-connecting surface onto a URL
+  the site advertises as "the public record". The ambiguity the wave warned
+  about was a NAMING problem, and naming is what fixes it: /dashboard is the
+  protocol's record, /positions is your position. The boundary is written on
+  both pages so it cannot drift back into overlap.
+
+  Cost of this choice, stated: one more page to keep honest, and one more entry
+  the publication step has to add to sitemap.xml. It is not free.
+
+  ============================================================================
+  WHAT THIS PAGE IS ALLOWED TO DO — the security contract, not a promise
+  ============================================================================
+  It is READ-ONLY. It never calls eth_sendTransaction, never asks for approve,
+  never builds calldata for a write. That is enforced below by an allowlist that
+  throws, not by this comment.
+
+  The reason is measured and it is about this site specifically: no page here
+  ships a Content-Security-Policy, and site/index.html:504 loads three.min.js
+  from cdnjs.cloudflare.com with no integrity attribute. Today that is a
+  defacement risk. The day this same origin asks for a signature, it becomes a
+  wallet-drainage vector. So this origin does not ask for signatures.
+
+  The wallet is touched by exactly two methods, both of which only return an
+  address the user already controls: eth_accounts and eth_requestAccounts.
+  Every chain read goes over plain HTTP JSON-RPC to an endpoint the reader can
+  change in the form. The wallet is never used as a transport.
+
+  ============================================================================
+  ADDRESSES · none is written here by hand
+  ============================================================================
+  The only address source is /enderecos.js, pulled in by the
+  script tag below, and every address taken from it passes exigirVivo(), which
+  throws on the orphans, on a swapped role and on an unknown address.
+
+  The Uniswap V3 position manager is not in that ledger, and it is NOT typed in
+  here either: it is read off the chain from the live vault's positionManager()
+  getter. No 40-hex address appears anywhere in this file, comments included, and
+  that is checked mechanically instead of trusted.
+
+  Measured against chain 137 on 2026-08-12, before this file was written:
+      eth_call TriviuLPVault.positionManager() (selector 0x791b98bc) answered
+      with an address; eth_getCode on it returned 24384 bytes and eth_call
+      symbol() on it decoded to "UNI-V3-POS", the Uniswap V3 position manager.
+      eth_call balanceOf(vault) on that manager returned 0.
+  So the address arrives derived from a ledger address, not asserted by a page,
+  and the N-1 finding arrives as a number the reader can re-read on the screen.
+
+  KNOWN GAP, written down instead of hidden: the published web root is `site/`
+  (DOMAIN.md, Cloudflare Pages section: "Output directory: site"), so
+  ../../contracts/... resolves ABOVE the web root once deployed and will 404
+  there. The page handles that out loud — it renders the whole screen dead with
+  a stated reason and reads nothing. It does not carry a copy of the addresses
+  as a fallback, because a second copy of the ledger is exactly what the ledger
+  forbids. Closing the gap is a publication decision, not a frontend one.
+-->
+
+<style>
+:root{
+  --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
+  --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
+  --verde:#1E7A46;
+  --fd:"Libre Caslon Text",Georgia,serif;--ft:"Public Sans",system-ui,sans-serif;--fm:"IBM Plex Mono",ui-monospace,monospace;
+  --r-m:6px;--r-l:10px;
+}
+@media(prefers-color-scheme:dark){:root{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}}
+:root[data-theme="dark"]{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}
+:root[data-theme="light"]{--papel:#FAFAF7;--tinta:#16181D;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-fundo:#FBF3DF;--acafrao-texto:#8A6414;--verde:#1E7A46;}
+*{margin:0;padding:0;box-sizing:border-box}
+/* WCAG 2.2 SC 2.4.11 Focus Not Obscured (Minimum, AA). The header is
+   position:sticky, so an in-page jump — the skip link, any #anchor — would land
+   its target underneath the bar. scroll-padding-top reserves the bar's height:
+   14+14 padding + 30px control + 1px border = 59px measured; 72 clears it with
+   room for the wrapped two-row header on a narrow screen. */
+html{scroll-padding-top:72px}
+body{background:var(--papel);color:var(--tinta);font-family:var(--ft);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--ultramar);text-decoration:none}a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--ultramar);outline-offset:2px;border-radius:2px}
+.mono{font-family:var(--fm)}
+/* Available to assistive technology, not to the eye. Used for table captions
+   that name a table a sighted reader already understands from the heading
+   above it. clip+1px, not display:none — display:none removes it from the
+   accessibility tree too, which would defeat the point. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+/* WCAG 2.4.1 Bypass Blocks. Seven header controls sit before the content on
+   every load; a keyboard or switch user should not have to walk them each time.
+   Hidden by transform rather than by display, so it stays in the tab order. */
+.pular{position:absolute;top:0;left:0;z-index:100;transform:translateY(-120%);
+  background:var(--tinta);color:var(--papel);font-family:var(--fm);font-size:13px;
+  padding:10px 16px;border-bottom-right-radius:var(--r-m);text-decoration:none}
+.pular:focus{transform:translateY(0)}
+.top{position:sticky;top:0;z-index:20;background:var(--papel);border-bottom:1px solid var(--fio);padding:14px 22px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top svg.lg{width:26px;height:26px}.top b{font-size:15px}.top .spacer{flex:1}
+.top nav{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top a.nav{font-family:var(--fm);font-size:12px;color:var(--grafite)}
+.themebtn{width:30px;height:30px;padding:0;border:1px solid var(--fio);background:transparent;color:var(--grafite);border-radius:var(--r-m);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.themebtn:hover{color:var(--tinta);border-color:var(--tinta)}.themebtn svg{width:16px;height:16px}
+/* padding-bottom moves to the footer, which is now a sibling of <main> rather
+   than a child of it: a <footer> inside <main> is not a contentinfo landmark
+   (HTML spec — the element only maps to contentinfo when its nearest ancestor
+   sectioning content is <body>). The box model is reproduced exactly on .rod
+   below, so the rule stays 952px wide and 44px below the last content. */
+.wrap{max-width:1000px;margin:0 auto;padding:52px 24px 0}
+.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--grafite);margin-bottom:14px}
+h1{font-family:var(--fd);font-size:36px;line-height:1.12;letter-spacing:-.01em;margin-bottom:16px}
+@media(max-width:640px){h1{font-size:28px}}
+h2{font-family:var(--fd);font-size:20px;margin-bottom:12px}
+.lead{font-size:16px;color:var(--grafite);max-width:72ch;margin-bottom:24px}
+.aviso{background:var(--acafrao-fundo);border:1px solid var(--acafrao);border-radius:var(--r-m);padding:14px 18px;margin-bottom:32px;max-width:82ch}
+/* .rot was <b>. It is a heading in the outline now, so it is an <h2 class="rot">;
+   the class carries the same declarations the <b> selector carried, and <b> and
+   <h2> are both font-weight:bold by user-agent default, so nothing moves. */
+.aviso .rot{font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:var(--acafrao-texto);display:block;margin-bottom:5px}
+.aviso p{font-size:13.5px;margin:0}.aviso p+p{margin-top:8px}
+.alerta{background:var(--nevoa);border:1px solid var(--lacre);border-radius:var(--r-m);padding:14px 18px;margin-bottom:28px;max-width:82ch;font-size:13.5px}
+.alerta .rot{font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:var(--lacre);display:block;margin-bottom:5px}
+.painel{border:1px solid var(--fio);border-radius:var(--r-l);padding:22px;background:var(--papel);margin-bottom:28px}
+.form{display:grid;grid-template-columns:1fr;gap:14px;align-items:end}
+@media(min-width:760px){.form{grid-template-columns:1.4fr 1fr auto auto}}
+.campo label{display:block;font-family:var(--fm);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--grafite);margin-bottom:6px}
+/* WCAG 1.4.11 Non-text Contrast (AA), and it is the one thing on this page that
+   measured a fail. The field's background is --papel, the same as the page, so
+   the border is the ONLY thing that says "this is a field" — which puts it
+   squarely inside 1.4.11's "visual information required to identify a user
+   interface component". Measured, sRGB, W3C formula:
+       --fio     #DDE0DA on #FAFAF7 = 1.28:1  light   FAIL (min 3.0)
+       --fio     #2A2E36 on #131519 = 1.34:1  dark    FAIL (min 3.0)
+       --grafite #52575D on #FAFAF7 = 6.97:1  light   PASS
+       --grafite #9BA1AC on #131519 = 7.04:1  dark    PASS
+   --grafite is an existing token of this palette, not a new colour: inventing a
+   token is design-system governance and belongs to the token owner, not here. */
+.campo input,.campo select{width:100%;font-family:var(--fm);font-size:13px;color:var(--tinta);background:var(--papel);border:1px solid var(--grafite);border-radius:var(--r-m);padding:10px 12px}
+.campo input:focus,.campo select:focus{border-color:var(--ultramar)}
+/* 3.3.1 Error Identification: the field that was refused says so on itself, not
+   only in the status line. Border AND the message — never colour alone. */
+.campo input[aria-invalid="true"]{border-color:var(--lacre)}
+button.act{font-family:var(--ft);font-weight:600;font-size:14px;padding:11px 18px;border-radius:var(--r-m);border:1.5px solid var(--tinta);background:var(--tinta);color:var(--papel);cursor:pointer;white-space:nowrap}
+button.act:hover{background:#000}
+button.act.ghost{background:transparent;color:var(--tinta)}
+button.act.ghost:hover{background:var(--nevoa)}
+button.act[disabled]{opacity:.5;cursor:not-allowed}
+.hint{font-size:12.5px;color:var(--grafite);margin-top:12px;max-width:82ch}
+.vt{width:100%;border-collapse:collapse;font-size:14px}
+/* The first cell of each row is now <th scope="row">, so th inherits every
+   declaration td had, plus the two user-agent defaults a th brings and this
+   layout never wanted (centred, bold). Appearance unchanged; semantics gained. */
+.vt td,.vt th{padding:9px 0;border-bottom:1px solid var(--fio);vertical-align:top}
+.vt th{text-align:left;font-weight:400}
+.vt td:last-child{text-align:right;font-family:var(--fm);font-size:12px;color:var(--grafite);word-break:break-all}
+.pos{border:1px solid var(--fio);border-radius:var(--r-l);padding:20px;background:var(--papel);margin-bottom:16px;border-top:3px solid var(--ultramar)}
+.pos .cab{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.pos .par{font-family:var(--fd);font-size:22px;font-weight:700}
+.pill{font-family:var(--fm);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--grafite);color:var(--grafite);border-radius:999px;padding:3px 9px}
+.pill.lido{border-color:var(--verde);color:var(--verde)}
+.pill.calc{border-color:var(--acafrao-texto);color:var(--acafrao-texto)}
+.pill.vazio{border-color:var(--lacre);color:var(--lacre)}
+.celas{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:700px){.celas{grid-template-columns:repeat(3,1fr)}}
+.cela .k{font-family:var(--fm);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--grafite);margin-bottom:5px}
+.cela .v{font-family:var(--fm);font-size:19px;font-weight:500;word-break:break-all}
+/* .n now sits inside the <dd>, so it would inherit the value's mono face, its
+   500 weight and its break-all. All three are cancelled here; the note renders
+   exactly as it did when it was a sibling. */
+.cela .n{font-size:12px;color:var(--grafite);margin-top:4px;font-family:var(--ft);font-weight:400;word-break:normal}
+.regra{border:1px solid var(--fio);border-left:3px solid var(--tinta);border-radius:var(--r-m);padding:20px 22px;margin-bottom:22px;background:var(--nevoa)}
+/* Was a <div>, is an <h2> — font-weight is pinned to 400 so the heading renders
+   byte-for-byte as the div did. A heading does not have to look like one. */
+.regra .t{font-family:var(--fm);font-size:11px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--grafite);margin-bottom:8px}
+.regra p{font-size:14px;max-width:82ch}.regra p+p{margin-top:10px}
+.nao{list-style:none;margin-top:14px;max-width:82ch}
+.nao li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--fio);font-size:14px}
+.nao li::before{content:"x";font-family:var(--fm);color:var(--lacre);flex:none;font-weight:600}
+.cod{background:var(--tinta);color:#E8EAE6;border-radius:var(--r-m);padding:16px 18px;font-family:var(--fm);font-size:12.5px;line-height:1.9;overflow-x:auto;margin-top:14px}
+:root[data-theme="dark"] .cod{background:#0C0E11}
+.estado{font-family:var(--fm);font-size:12.5px;color:var(--grafite);margin-bottom:18px}
+.prog{color:var(--grafite)}
+footer{max-width:1000px;margin:0 auto;padding:0 24px 72px}
+footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:1.9}
+</style>
+</head>
+<body>
+<a class="pular" href="#conteudo">Skip to the positions reader</a>
+<header class="top">
+  <!-- The mark is decorative: the word "Triviu" is right there in text. Labelling
+       it would make a screen reader say the brand twice for one logo. -->
+  <svg class="lg" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="25.36" r="8.5" fill="#2743C7"/><circle cx="100" cy="60" r="8.5" fill="#C13327"/><circle cx="40" cy="94.64" r="8.5" fill="#E8B23A"/></svg>
+  <b>Triviu</b><span class="mono" style="font-size:12px;color:var(--grafite)">&middot; Positions</span>
+  <span class="spacer"></span>
+  <button class="themebtn" id="theme" type="button" aria-label="Switch to dark theme" title="Theme"></button>
+  <nav aria-label="Site">
+    <a class="nav" href="/">Home</a><a class="nav" href="/dashboard">Dashboard</a><a class="nav" href="/simulate">Simulate</a><a class="nav" href="/chains">Chains</a><a class="nav" href="/learn">Learn</a><a class="nav" href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">Whitepaper</a>
+  </nav>
+</header>
+
+<main class="wrap" id="conteudo">
+  <div class="eyebrow">Read-only &middot; chain 137 &middot; no signature, ever</div>
+  <h1>Your LP positions, read from the chain.</h1>
+  <p class="lead">Type an address, or connect a wallet just long enough for this page to learn
+  which address it is. Everything below is read from the Uniswap V3 position manager over
+  public JSON-RPC. <b>Anything this page did not manage to read shows a dash</b> &mdash; never
+  a plausible number standing in for one.</p>
+
+  <div class="aviso" role="note" aria-labelledby="h-aviso">
+    <h2 class="rot" id="h-aviso">This page reads. It does not act.</h2>
+    <p>It never asks you to sign anything, never requests an approval, and never builds a
+    transaction. Opening a position, closing one and approving a token all happen somewhere
+    else &mdash; not here, and not on this domain.</p>
+    <p>The reason is specific to this site and worth saying plainly: no page here sends a
+    Content-Security-Policy header, and the home page loads a third-party 3D library from a
+    CDN with no integrity check. That is survivable while every page only reads. It stops
+    being survivable the moment a page on this origin asks for a signature. So this one does
+    not, and the restriction is enforced in code by a method allowlist that throws, not by
+    this paragraph.</p>
+  </div>
+
+  <!-- role="alert" so that if the ledger fails to load this reaches a screen
+       reader user without them having to go looking for it. It is assertive on
+       purpose: the page is dead, and every control below it is inert. -->
+  <div id="p-fatal" class="alerta" role="alert" hidden>
+    <h2 class="rot">This page is not reading anything</h2>
+    <span id="p-fatal-txt"></span>
+  </div>
+
+  <section class="painel" aria-labelledby="h-form">
+    <h2 id="h-form">Where to read from, and whose positions</h2>
+    <div class="form">
+      <!-- Deliberately NOT a <form>. A form would give Enter-to-submit for free,
+           but if the script ever fails to run, the browser's own submit would put
+           the address the reader typed into the URL — and from there into history,
+           into the Referer header, into anything watching. Enter is wired by hand
+           on both fields instead, which costs two listeners and leaks nothing. -->
+      <div class="campo">
+        <label for="p-owner">Owner address</label>
+        <input id="p-owner" type="text" inputmode="text" spellcheck="false" autocomplete="off"
+               autocapitalize="none" autocorrect="off"
+               placeholder="0x&hellip; (40 hex characters)" aria-describedby="p-owner-help">
+      </div>
+      <div class="campo">
+        <label for="p-rpc">JSON-RPC endpoint (chain 137)</label>
+        <input id="p-rpc" type="url" inputmode="url" spellcheck="false" autocomplete="off"
+               autocapitalize="none" autocorrect="off" aria-describedby="p-rpc-help">
+      </div>
+      <div class="campo"><button class="act ghost" id="p-connect" type="button">Use my wallet's address</button></div>
+      <div class="campo"><button class="act" id="p-read" type="button">Read the positions</button></div>
+    </div>
+    <!-- Each field is described by the sentence that is actually about it, not by
+         the whole paragraph: aria-describedby is read out on focus, and a field
+         that recites the other field's documentation trains people to skip it. -->
+    <p class="hint"><span id="p-owner-help">The address field is the whole point: this works with no wallet
+    installed, and it reads any address you can name, including one that is not yours. The wallet
+    button exists only so you do not have to copy your own address by hand &mdash; it calls
+    <span class="mono">eth_accounts</span>, then <span class="mono">eth_requestAccounts</span> if the
+    first returns nothing, and it calls nothing else, ever.</span> <span id="p-rpc-help">The endpoint is
+    editable because the default is a public one and public endpoints go down; three that answered chain id
+    <span class="mono">0x89</span> on 2026-08-12 are listed at the bottom of this page.</span></p>
+    <!-- One live region, and only one, so two of them cannot talk over each other.
+         #p-estado carries start, refusal, error and completion — the things a
+         reader who cannot see the screen needs pushed to them. #p-prog carries
+         "position 7 of 15", which is fifteen announcements of nothing, so it is
+         aria-hidden and lives OUTSIDE the status element; the same fact reaches
+         assistive technology once, as aria-busy on the list and as the count in
+         the completion message. -->
+    <p class="estado" style="margin-top:14px"><span id="p-estado" role="status" aria-live="polite">Nothing read yet.</span> <span class="prog" id="p-prog" aria-hidden="true"></span></p>
+  </section>
+
+  <section class="painel" aria-labelledby="h-contratos">
+    <h2 id="h-contratos">The contracts this page talks to</h2>
+    <!-- Two-column key/value: the row header is the first cell, so it is a
+         <th scope="row">. Without it a screen reader reads the second column as
+         a bare hex string with nothing saying which contract it belongs to —
+         and on this page, confusing one address for another is the whole risk. -->
+    <table class="vt">
+      <caption class="sr-only">Each contract this page reads from, and the address it resolved to</caption>
+      <tbody>
+        <tr><th scope="row">TriviuLPVault &mdash; from the address ledger, checked by <span class="mono">exigirVivo</span></th>
+            <td class="mono" id="p-addr-vault">&mdash;</td></tr>
+        <tr><th scope="row">Uniswap V3 position manager &mdash; not typed here; read from the vault's
+            <span class="mono">positionManager()</span>, and printed exactly as the call returned it,
+            in lower case. The mixed case you see on an explorer is a typing checksum, not a different
+            contract.</th>
+            <td class="mono" id="p-addr-npm">&mdash;</td></tr>
+        <tr><th scope="row">Positions held by the vault itself &mdash; <span class="mono">balanceOf(vault)</span>,
+            read live. It is the N-1 finding as a number rather than a sentence.</th>
+            <td class="mono" id="p-vault-bal">&mdash;</td></tr>
+      </tbody>
+    </table>
+    <p class="hint">No address is written into this page. The vault comes from
+    <span class="mono">/enderecos.js</span>, the single ledger, and passes through its
+    guard &mdash; which rejects the orphaned deploys, a swapped role and any unknown address. The
+    position manager is then read off the vault. If the ledger does not load, this page reads nothing
+    and says so; it carries no fallback copy of the addresses, because a second copy of the ledger is
+    the failure the ledger exists to prevent.</p>
+  </section>
+
+  <section aria-labelledby="h-pos">
+    <h2 id="h-pos" style="margin-top:38px">Positions</h2>
+    <p class="lead" id="p-resumo">No address read yet.</p>
+    <!-- aria-busy is how "still loading" reaches a screen reader without fifteen
+         spoken progress updates. Each card is an <article> with its own <h3>, so
+         the pairs become a heading list a reader can jump through. -->
+    <div id="p-lista" aria-busy="false"></div>
+  </section>
+
+  <section class="regra" aria-labelledby="h-taxa">
+    <h2 class="t" id="h-taxa">The fee on a position &mdash; the ratified rule</h2>
+    <p><b>The protocol is paid only if the position produced a result</b>, and never if it closed
+    below what went in. The check is <b>price-free</b>: it compares what comes out against what was
+    deposited, token by token, so a fee is never charged on a position that shrank. A position with
+    no deposit on record is charged <b>nothing</b> &mdash; an absent record is not a zero.</p>
+    <p class="mono" style="font-size:12.5px;color:var(--grafite)">This page does not compute that fee.
+    It reads what the position manager holds; the fee is settled where the position is closed. The rule
+    is written here because it governs the thing you are looking at, and a rule you only meet at the
+    moment it is charged is a rule you were not told.</p>
+  </section>
+
+  <section class="regra" aria-labelledby="h-n1">
+    <h2 class="t" id="h-n1">N-1 &middot; whose contract this is</h2>
+    <p><b>TriviuLPVault is a shared router, not a vault per user.</b> The position stays yours &mdash;
+    the mint uses <span class="mono">recipient msg.sender</span>, and the contract is never
+    <span class="mono">ownerOf</span> &mdash; but the router and its whitelist are shared with everyone
+    else using it.</p>
+    <p>So the sentence <b>"the contracts are yours"</b> describes the arbitrage triad and
+    <b>does not describe the LP</b>. That distinction is not decoration: it changes who can be affected
+    by a change to the router, and it is why the row above reads
+    <span class="mono">balanceOf(vault)</span> live instead of asking you to believe it.</p>
+  </section>
+
+  <section class="painel" aria-labelledby="h-nao">
+    <h2 id="h-nao">What this page does not do</h2>
+    <!-- role="list" is not redundant: Safari strips list semantics from a <ul>
+         whose list-style is none, and VoiceOver then stops announcing "6 items". -->
+    <ul class="nao" role="list">
+      <li>It does not open a position. There is no deposit path here.</li>
+      <li>It does not close a position and does not collect fees.</li>
+      <li>It does not ask for an approval, of any size, for any token.</li>
+      <li>It does not build calldata for a write, and never calls <span class="mono">eth_sendTransaction</span>.</li>
+      <li>It does not read a private key, a seed phrase or a password &mdash; it has no field for one.</li>
+      <li>It stores nothing: no cookie, no analytics, no server of its own. The address you type is
+          held in the tab and goes only to the RPC endpoint shown in the form.</li>
+    </ul>
+  </section>
+
+  <section class="painel" aria-labelledby="h-verificar">
+    <h2 id="h-verificar">Don't trust &mdash; read the same thing yourself</h2>
+    <p class="hint" style="margin-top:0">Every number above comes from one of these calls. The selectors
+    are the keccak-256 of the signature, first four bytes; they were computed and checked against the
+    chain before this page was written, not copied from memory.</p>
+    <!-- overflow-x:auto makes this a scrollable region, and WCAG 2.1.1 says a
+         scrollable region has to be reachable by keyboard — otherwise a reader
+         with no mouse cannot see the right-hand end of these lines. tabindex="0"
+         puts it in the tab order; the name says what they landed on. -->
+    <div class="cod" translate="no" tabindex="0" role="region" aria-label="The calls this page makes, with their four-byte selectors">
+positionManager()               0x791b98bc   on the vault, gives the manager<br>
+balanceOf(address)              0x70a08231   how many positions an owner holds<br>
+tokenOfOwnerByIndex(addr,uint)  0x2f745c59   the id of each one<br>
+positions(uint256)              0x99fbab88   12 words: token0, token1, fee,<br>
+&nbsp;                                            tickLower, tickUpper, liquidity,<br>
+&nbsp;                                            tokensOwed0, tokensOwed1<br>
+symbol() / decimals()           0x95d89b41 / 0x313ce567   on each token
+    </div>
+    <table class="vt" style="margin-top:18px">
+      <caption class="sr-only">Endpoints and sources, with what each one answered</caption>
+      <tbody>
+        <tr><th scope="row">Endpoints that answered <span class="mono">eth_chainId</span> = <span class="mono">0x89</span> on 2026-08-12</th>
+            <td class="mono">polygon-bor-rpc.publicnode.com<br>1rpc.io/matic<br>polygon.drpc.org</td></tr>
+        <tr><th scope="row">Endpoints that did not, the same day &mdash; listed so the default is not mistaken for the only one</th>
+            <td class="mono">polygon-rpc.com (403)<br>rpc.ankr.com/polygon (needs a key)</td></tr>
+        <tr><th scope="row">The address ledger, single source</th><td class="mono">/enderecos.js</td></tr>
+        <tr><th scope="row">The protocol's own record &mdash; executions, failures included</th><td><a href="/dashboard">/dashboard</a></td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<!-- Outside <main> on purpose: a <footer> nested in <main> is not a contentinfo
+     landmark, so it would vanish from the landmark list a screen reader user
+     navigates by. .rod reproduces the old box exactly. -->
+<footer>
+  <div class="rod">Triviu &middot; Open source. Verifiable math. No promises.<br>
+    This screen reads and reports. It signs nothing, holds nothing and promises nothing. A dash means
+    it did not read that field &mdash; it does not mean zero.</div>
+</footer>
+
+<!-- The single source of addresses. Relative on purpose: no address is duplicated
+     into this page. If this 404s, the boot code below renders the page dead. -->
+<script src="/enderecos.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  /* ---- theme, identical behaviour to /dashboard so the two feel like one site -- */
+  var SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+  var MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+  function curTheme(){var s=null;try{s=localStorage.getItem("triviu-theme");}catch(e){}
+    if(s)return s;return window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}
+  function applyTheme(t){document.documentElement.setAttribute("data-theme",t);
+    var b=document.getElementById("theme");if(!b)return;
+    b.innerHTML=t==="dark"?SUN:MOON;
+    /* The icon shows the state to the eye; the accessible name has to show it
+       too, and it has to name the ACTION, because the icon is the only other
+       clue and a screen reader user never sees it. */
+    b.setAttribute("aria-label", t==="dark" ? "Switch to light theme" : "Switch to dark theme");}
+  applyTheme(curTheme());
+  document.getElementById("theme").addEventListener("click",function(){
+    var next=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";
+    try{localStorage.setItem("triviu-theme",next);}catch(e){}
+    applyTheme(next);});
+
+  var $ = function(id){ return document.getElementById(id); };
+  var TRACO = "—";  /* the dash that means "not read". Never a number. */
+
+  /* ==================================================================== GATE ==
+     The read-only contract as a mechanism. Two allowlists, both of which throw.
+     A promise in prose can be edited by anyone; a throw has to be deleted, and
+     deleting it shows up in a diff.
+     ------------------------------------------------------------------------ */
+  var CARTEIRA_PERMITIDO = { eth_accounts:1, eth_requestAccounts:1 };
+  var RPC_PERMITIDO      = { eth_call:1, eth_getCode:1, eth_chainId:1 };
+
+  function pedirCarteira(metodo){
+    if (!CARTEIRA_PERMITIDO[metodo]) {
+      throw new Error("blocked: this page may only call " +
+        Object.keys(CARTEIRA_PERMITIDO).join(" / ") + " on a wallet. Refused: " + metodo);
+    }
+    if (!window.ethereum) throw new Error("no wallet provider in this browser");
+    return window.ethereum.request({ method: metodo });
+  }
+
+  var idRpc = 0;
+  function rpc(metodo, params){
+    if (!RPC_PERMITIDO[metodo]) {
+      throw new Error("blocked: this page may only call " +
+        Object.keys(RPC_PERMITIDO).join(" / ") + " over RPC. Refused: " + metodo);
+    }
+    var url = ($("p-rpc").value || "").trim();
+    if (!/^https:\/\//i.test(url)) return Promise.reject(new Error("the endpoint must be an https URL"));
+    idRpc += 1;
+    return fetch(url, { method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify({ jsonrpc:"2.0", id:idRpc, method:metodo, params:params }) })
+      .then(function(r){
+        if (!r.ok) throw new Error("the endpoint answered HTTP " + r.status);
+        return r.json(); })
+      .then(function(j){
+        if (j && j.error) throw new Error(j.error.message || "RPC error");
+        return j.result; });
+  }
+  var call = function(to, data){ return rpc("eth_call", [{ to:to, data:data }, "latest"]); };
+
+  /* ------------------------------------------------------------- ABI helpers --
+     Selectors are keccak-256 of the signature, first 4 bytes, computed before
+     this file was written and cross-checked against the chain. */
+  var SEL = {
+    positionManager:     "0x791b98bc",
+    balanceOf:           "0x70a08231",
+    tokenOfOwnerByIndex: "0x2f745c59",
+    positions:           "0x99fbab88",
+    symbol:              "0x95d89b41",
+    decimals:            "0x313ce567"
+  };
+  var END = /^0x[0-9a-fA-F]{40}$/;
+  function padEnd(a){ return "000000000000000000000000" + a.replace(/^0x/,"").toLowerCase(); }
+  function padNum(v){ return BigInt(v).toString(16).padStart(64,"0"); }
+  function palavra(hex, i){ var x = hex.replace(/^0x/,""); return x.slice(i*64, (i+1)*64); }
+  function paraEndereco(w){ return "0x" + w.slice(24); }
+  function u(w){ return BigInt("0x" + w); }
+  /* int24 lives right-aligned in a 32-byte word: take the last 6 nibbles and
+     sign-extend. Reading the whole word and sign-extending at 256 bits also
+     works, but only by accident of two's complement, and an accident is not a
+     reason. */
+  function i24(w){ var v = BigInt("0x" + w.slice(58)); return v >= (1n << 23n) ? v - (1n << 24n) : v; }
+
+  /* An ABI-encoded string: offset, length, bytes. Some very old tokens return a
+     raw bytes32 instead; that case is detected and shown as-is rather than
+     decoded into something confident and wrong. */
+  function decodeString(hex){
+    if (!hex || hex === "0x") return null;
+    var x = hex.replace(/^0x/,"");
+    if (x.length < 128) return null;
+    try {
+      var off = Number(BigInt("0x" + x.slice(0,64)));
+      if (off !== 32) return null;
+      var len = Number(BigInt("0x" + x.slice(64,128)));
+      if (!len || len > 64 || x.length < 128 + len*2) return null;
+      var out = "";
+      for (var i = 0; i < len; i++) {
+        var c = parseInt(x.slice(128 + i*2, 130 + i*2), 16);
+        if (c < 32 || c > 126) return null;   /* not printable ASCII: refuse */
+        out += String.fromCharCode(c);
+      }
+      return out;
+    } catch (e) { return null; }
+  }
+
+  /* Integer -> decimal string, exact, no floats. A float here would round a
+     token balance, and a rounded balance printed without saying so is the same
+     invention as a placeholder. */
+  function comCasas(valor, casas){
+    var s = valor.toString();
+    if (casas === 0) return s;
+    while (s.length <= casas) s = "0" + s;
+    var inteiro = s.slice(0, s.length - casas);
+    var frac = s.slice(s.length - casas).replace(/0+$/, "");
+    return frac ? inteiro + "." + frac.slice(0, 8) : inteiro;
+  }
+
+  /* Price from a tick. Labelled as computed everywhere it is shown, because it
+     is arithmetic on a number that was read, not a number that was read. */
+  function precoDoTick(tick, d0, d1){
+    var p = Math.pow(1.0001, Number(tick)) * Math.pow(10, d0 - d1);
+    if (!isFinite(p) || p <= 0) return null;
+    if (p >= 1000) return p.toFixed(2);
+    if (p >= 1) return p.toFixed(4);
+    return p.toPrecision(4);
+  }
+
+  /* ------------------------------------------------------------------- DOM ---
+     Everything below writes with textContent. Chain data and typed input never
+     reach innerHTML: a token can name itself anything, and a token that names
+     itself a script tag must land on screen as text. */
+  function txt(el, s){ el.textContent = s; }
+  function novo(tag, cls, conteudo){
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (conteudo !== undefined) e.textContent = conteudo;
+    return e;
+  }
+  /* dt/dd inside a <dl>, not three stacked divs. The tie between "liquidity" and
+     the number under it was carried by nothing but position on the screen, which
+     is 1.3.1 Info and Relationships: a relationship shown visually has to be in
+     the markup too. The note moves inside the <dd> because a div wrapper in a
+     <dl> may hold dt/dd and nothing else; the CSS below un-inherits the three
+     properties <dd> would otherwise have pushed onto it. */
+  function cela(rotulo, valor, nota, selo){
+    var c = novo("div","cela");
+    c.appendChild(novo("dt","k",rotulo));
+    var v = novo("dd","v", valor === null || valor === undefined ? TRACO : String(valor));
+    c.appendChild(v);
+    if (selo) { var p = novo("span","pill " + selo.cls, selo.txt); p.style.marginLeft="8px"; v.appendChild(p); }
+    if (nota) v.appendChild(novo("div","n",nota));
+    return c;
+  }
+  /* estado() is the live region: it speaks. progresso() is the counter beside
+     it: it is aria-hidden and it does not speak, because "position 7 of 15",
+     announced fifteen times, buries the one sentence that mattered. */
+  function estado(s){ txt($("p-estado"), s); }
+  function progresso(s){ txt($("p-prog"), s); }
+  function ocupado(v){ $("p-lista").setAttribute("aria-busy", v ? "true" : "false"); }
+  /* 3.3.1 Error Identification. The refusal is put on the field itself, not only
+     in the status line, and focus goes back to the field so a keyboard user is
+     already where the fix has to be typed. */
+  function recusar(campoId, msg){
+    var c = $(campoId);
+    c.setAttribute("aria-invalid","true");
+    estado(msg);
+    c.focus();
+  }
+  function limparRecusa(){
+    $("p-owner").removeAttribute("aria-invalid");
+    $("p-rpc").removeAttribute("aria-invalid");
+  }
+  function morrer(motivo){
+    $("p-fatal").hidden = false;
+    txt($("p-fatal-txt"), motivo);
+    $("p-read").disabled = true;
+    estado("Nothing can be read: the address ledger did not load. The reason is at the top of the page.");
+  }
+
+  /* ================================================================== BOOT ===
+     Default endpoint: measured 2026-08-12, answered eth_chainId 0x89. It is a
+     default, not a dependency; the field is editable and the page says why. */
+  $("p-rpc").value = "https://polygon-bor-rpc.publicnode.com";
+
+  var LEDGER = window.TRIVIU_ENDERECOS;
+  var VAULT = null;
+  if (!LEDGER || typeof LEDGER.exigirVivo !== "function") {
+    morrer("The address ledger (/enderecos.js) did not load, so this page has no " +
+           "address it is allowed to use. It does not keep a spare copy: a second copy of the ledger " +
+           "is exactly the failure the ledger exists to prevent. Nothing below will be read until the " +
+           "ledger is served next to this page.");
+  } else {
+    try {
+      VAULT = LEDGER.exigirVivo(LEDGER.VIVOS.triviuLPVault, "triviuLPVault");
+      txt($("p-addr-vault"), VAULT);
+    } catch (e) {
+      morrer("The address ledger rejected its own vault entry: " + e.message);
+    }
+  }
+
+  if (!window.ethereum) {
+    $("p-connect").disabled = true;
+    $("p-connect").title = "No wallet provider in this browser. Paste an address instead.";
+  }
+
+  $("p-connect").addEventListener("click", function(){
+    estado("Asking the wallet for an address. Nothing else is requested.");
+    Promise.resolve()
+      .then(function(){ return pedirCarteira("eth_accounts"); })
+      .then(function(contas){
+        if (contas && contas.length) return contas;
+        return pedirCarteira("eth_requestAccounts");
+      })
+      .then(function(contas){
+        if (!contas || !contas.length) { estado("The wallet returned no address."); return; }
+        $("p-owner").value = contas[0];
+        estado("Address taken from the wallet. Nothing was signed and nothing was approved.");
+      })
+      .catch(function(e){ estado("Wallet: " + e.message); });
+  });
+
+  $("p-read").addEventListener("click", function(){ ler(); });
+  /* Enter reads, from EITHER field. It used to work only in the address box, so
+     a keyboard user who corrected the endpoint and pressed Enter got silence —
+     WCAG 3.2.4, the same control behaving two ways in the same group. */
+  $("p-owner").addEventListener("keydown", function(ev){ if (ev.key === "Enter") { ev.preventDefault(); ler(); } });
+  $("p-rpc").addEventListener("keydown", function(ev){ if (ev.key === "Enter") { ev.preventDefault(); ler(); } });
+
+  /* ---------------------------------------------------------------- LEITURA --*/
+  var lendo = false;
+  var TETO = 40;   /* positions read per run; stated on screen when it bites */
+
+  function ler(){
+    /* A silent early return here would be a button that looks like it worked and
+       did nothing — the same lie as a placeholder number, told with a click
+       instead of a digit. So the refusal is announced. */
+    if (lendo) { estado("Still reading the previous address. This click did nothing."); return; }
+    limparRecusa();
+    var dono = ($("p-owner").value || "").trim();
+    if (!END.test(dono)) {
+      recusar("p-owner", "That is not a 40-hex-character address, so nothing was read. " +
+        "The address field is focused; it needs 0x followed by 40 hex characters.");
+      return;
+    }
+    if (!/^https:\/\//i.test(($("p-rpc").value || "").trim())) {
+      recusar("p-rpc", "The endpoint must be an https URL, so nothing was read. The endpoint field is focused.");
+      return;
+    }
+    if (!VAULT) { estado("No ledger, no read."); return; }
+
+    lendo = true;
+    $("p-read").disabled = true;
+    $("p-lista").innerHTML = "";
+    ocupado(true);
+    txt($("p-resumo"), "Reading...");
+    progresso("");
+    estado("Reading from " + $("p-rpc").value);
+
+    var NPM = null;
+
+    rpc("eth_chainId", [])
+      .then(function(cid){
+        if (BigInt(cid) !== 137n) {
+          throw new Error("that endpoint is chain " + BigInt(cid).toString() +
+            ", and these contracts are on 137. Nothing was read rather than reading the wrong chain.");
+        }
+        return call(VAULT, SEL.positionManager);
+      })
+      .then(function(res){
+        if (!res || res === "0x") throw new Error("the vault did not answer positionManager()");
+        var addr = paraEndereco(palavra(res, 0));
+        if (!END.test(addr) || /^0x0{40}$/.test(addr)) throw new Error("the vault returned an empty position manager");
+        /* Defence in depth: the ledger's own orphan list also applies to an
+           address that arrived from the chain, not only to one typed by hand. */
+        var baixo = addr.toLowerCase();
+        var orfaos = (LEDGER.ORFAOS || []);
+        for (var i = 0; i < orfaos.length; i++) {
+          if (String(orfaos[i].endereco).toLowerCase() === baixo) {
+            throw new Error("the vault pointed at " + addr + ", which the ledger lists as an orphan");
+          }
+        }
+        NPM = addr;
+        txt($("p-addr-npm"), NPM);
+        return rpc("eth_getCode", [NPM, "latest"]);
+      })
+      .then(function(code){
+        if (!code || code === "0x") throw new Error("there is no contract code at " + NPM);
+        return call(NPM, SEL.balanceOf + padEnd(VAULT));
+      })
+      .then(function(bal){
+        txt($("p-vault-bal"), bal && bal !== "0x" ? u(palavra(bal,0)).toString() : TRACO);
+        return call(NPM, SEL.balanceOf + padEnd(dono));
+      })
+      .then(function(bal){
+        if (!bal || bal === "0x") throw new Error("balanceOf returned nothing for that address");
+        var n = Number(u(palavra(bal, 0)));
+        if (n === 0) {
+          txt($("p-resumo"), "That address owns no Uniswap V3 position on chain 137. " +
+            "This is a read result, not a failure to read: balanceOf answered, and it answered zero.");
+          /* The live region carries the OUTCOME, not just "done". #p-resumo is
+             not a live region — one region announces, so it has to announce the
+             thing worth hearing. */
+          estado("Read complete. That address owns no Uniswap V3 position on chain 137: balanceOf answered zero.");
+          return null;
+        }
+        var quantos = Math.min(n, TETO);
+        txt($("p-resumo"), quantos < n
+          ? ("That address owns " + n + " positions. Reading the first " + quantos +
+             " — the rest are not shown, and not shown is not the same as not there.")
+          : ("That address owns " + n + (n === 1 ? " position." : " positions.")));
+        return emSerie(quantos, function(i){
+          progresso("position " + (i+1) + " of " + quantos);
+          return call(NPM, SEL.tokenOfOwnerByIndex + padEnd(dono) + padNum(i))
+            .then(function(r){ return u(palavra(r, 0)); })
+            .then(function(id){ return lerPosicao(NPM, id); })
+            .then(function(p){ $("p-lista").appendChild(cartao(p)); });
+        }).then(function(){
+          progresso("");
+          estado("Read complete. " + quantos + (quantos === 1 ? " position is" : " positions are") +
+            " listed below" + (quantos < n ? ", out of " + n + " that address owns" : "") +
+            ", each one a heading you can jump to.");
+        });
+      })
+      .catch(function(e){
+        txt($("p-resumo"), "Nothing was read.");
+        progresso("");
+        estado("Stopped: " + e.message);
+      })
+      .then(function(){ lendo = false; $("p-read").disabled = false; ocupado(false); });
+  }
+
+  /* Serial, not parallel. Public endpoints collapse under a burst and answer a
+     partial set, and a partial set that looks complete is worse than a slow one. */
+  function emSerie(n, fn){
+    var p = Promise.resolve();
+    for (var i = 0; i < n; i++) (function(k){ p = p.then(function(){ return fn(k); }); })(i);
+    return p;
+  }
+
+  var cacheToken = {};
+  function lerToken(addr){
+    var baixo = addr.toLowerCase();
+    if (cacheToken[baixo]) return cacheToken[baixo];
+    cacheToken[baixo] = Promise.all([
+      call(addr, SEL.symbol).catch(function(){ return null; }),
+      call(addr, SEL.decimals).catch(function(){ return null; })
+    ]).then(function(r){
+      var sim = decodeString(r[0]);
+      var dec = null;
+      try { if (r[1] && r[1] !== "0x") { var d = Number(u(palavra(r[1],0))); if (d >= 0 && d <= 36) dec = d; } } catch(e){}
+      return { endereco: addr, simbolo: sim, casas: dec };
+    });
+    return cacheToken[baixo];
+  }
+
+  function lerPosicao(npm, id){
+    return call(npm, SEL.positions + padNum(id)).then(function(hex){
+      if (!hex || hex === "0x") return { id:id, erro:"positions() returned nothing" };
+      var x = hex.replace(/^0x/,"");
+      if (x.length < 12*64) return { id:id, erro:"positions() returned " + (x.length/64|0) + " words, expected 12" };
+      var p = {
+        id: id,
+        token0: paraEndereco(palavra(hex,2)),
+        token1: paraEndereco(palavra(hex,3)),
+        fee: Number(u(palavra(hex,4))),
+        tickLower: i24(palavra(hex,5)),
+        tickUpper: i24(palavra(hex,6)),
+        liquidez: u(palavra(hex,7)),
+        owed0: u(palavra(hex,10)),
+        owed1: u(palavra(hex,11))
+      };
+      return Promise.all([lerToken(p.token0), lerToken(p.token1)]).then(function(t){
+        p.t0 = t[0]; p.t1 = t[1]; return p;
+      });
+    }).catch(function(e){ return { id:id, erro:e.message }; });
+  }
+
+  function quantia(valor, tok){
+    if (tok && tok.casas !== null) return comCasas(valor, tok.casas);
+    return valor.toString();
+  }
+  function nomeToken(tok){
+    if (tok && tok.simbolo) return tok.simbolo;
+    return tok && tok.endereco ? tok.endereco.slice(0,6) + "..." + tok.endereco.slice(-4) : TRACO;
+  }
+
+  function cartao(p){
+    /* <article> with its own <h3>: the pairs become a heading list, which is how
+       a screen reader user moves through fifteen cards without tabbing past
+       every cell in each of them. The id is the tokenId, unique by definition. */
+    var el = novo("article","pos");
+    var hid = "pos-h-" + p.id.toString();
+    el.setAttribute("aria-labelledby", hid);
+    var cab = novo("div","cab");
+
+    if (p.erro) {
+      var hErr = novo("h3","par","Position #" + p.id.toString() + " — not read");
+      hErr.id = hid;
+      cab.appendChild(hErr);
+      var badErr = novo("span","pill vazio","not read");
+      cab.appendChild(badErr);
+      el.appendChild(cab);
+      el.appendChild(novo("p","hint","This position was not read: " + p.erro +
+        ". Nothing is shown for it, because a field this page could not read is a dash, not a zero."));
+      return el;
+    }
+
+    var h = novo("h3","par", nomeToken(p.t0) + " / " + nomeToken(p.t1));
+    h.id = hid;
+    cab.appendChild(h);
+    cab.appendChild(novo("span","pill","#" + p.id.toString()));
+    cab.appendChild(novo("span","pill", (p.fee/10000).toString() + "% fee tier"));
+    if (p.liquidez === 0n) cab.appendChild(novo("span","pill vazio","no liquidity"));
+    el.appendChild(cab);
+
+    var g = novo("dl","celas");
+
+    g.appendChild(cela("liquidity", p.liquidez.toString(),
+      "Raw L from positions(). It is not a token amount and does not convert to one without the pool price, which this page does not read.",
+      { cls:"lido", txt:"read" }));
+
+    var faixa = p.tickLower.toString() + " → " + p.tickUpper.toString();
+    var nota = "Ticks, exactly as stored.";
+    if (p.t0 && p.t1 && p.t0.casas !== null && p.t1.casas !== null) {
+      var a = precoDoTick(p.tickLower, p.t0.casas, p.t1.casas);
+      var b = precoDoTick(p.tickUpper, p.t0.casas, p.t1.casas);
+      if (a && b) nota = "Ticks as stored. Computed, not read: " + a + " → " + b + " " +
+        nomeToken(p.t1) + " per " + nomeToken(p.t0) + " (1.0001^tick x 10^(d0−d1)).";
+    }
+    g.appendChild(cela("range", faixa, nota, { cls:"lido", txt:"read" }));
+
+    g.appendChild(cela("fee tier", (p.fee/10000).toString() + "%", "The pool's fee, in the position record.",
+      { cls:"lido", txt:"read" }));
+
+    g.appendChild(cela("tokensOwed0 · " + nomeToken(p.t0), quantia(p.owed0, p.t0),
+      p.t0 && p.t0.casas !== null ? "Scaled by decimals() read from the token." : "Raw units: decimals() was not read.",
+      { cls:"lido", txt:"read" }));
+
+    g.appendChild(cela("tokensOwed1 · " + nomeToken(p.t1), quantia(p.owed1, p.t1),
+      p.t1 && p.t1.casas !== null ? "Scaled by decimals() read from the token." : "Raw units: decimals() was not read.",
+      { cls:"lido", txt:"read" }));
+
+    g.appendChild(cela("pool", nomeToken(p.t0) + " / " + nomeToken(p.t1),
+      p.token0 + "  ·  " + p.token1, { cls:"lido", txt:"read" }));
+
+    el.appendChild(g);
+
+    /* The caveat that keeps tokensOwed from being read as something it is not.
+       It is stated on every position, not once at the top, because the number it
+       qualifies is on every position. */
+    el.appendChild(novo("p","hint",
+      "tokensOwed is what the position manager checkpointed at the last mint, burn or collect — " +
+      "it is not everything this position has earned. Fees accrued since that moment sit in the pool's " +
+      "fee growth and are not in this number. This page does not simulate a collect, so it does not " +
+      "claim the total; it shows the field it read and names it."));
+    return el;
+  }
+})();
+</script>
+</body>
+</html>
