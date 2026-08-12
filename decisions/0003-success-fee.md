@@ -30,7 +30,38 @@ nothing.
 |---|---|---|
 | Security | **HOLDS** | Fee is atomic and profit-only; the stateless invariant is re-proven with the fee active (invariant test, 128k calls, 0 violations). The hardcoded cap bounds owner power. |
 | Scalability | **HOLDS** | One extra transfer on profitable cycles only; negligible gas, none on reverts. |
-| Decentralization | **COSTS** | The fee rate and treasury are owner-controlled parameters (deployer now, timelocked multisig before mainnet). A user must trust that the rate — though capped at 50% and emitted on every cycle — is set fairly. Mitigation: hardcoded ceiling, on-chain PR provenance, event transparency, and the option to run the open-source engine against any executor. |
+| Decentralization | **COSTS** | The fee rate and treasury are owner-controlled parameters. A user must trust that the rate — though capped at 50% and emitted on every cycle — is set fairly. Mitigation: hardcoded ceiling, on-chain PR provenance, event transparency, and the option to run the open-source engine against any executor. **Custody as deployed — see the note below; it is not what an earlier revision of this row projected.** |
+
+### Custody as actually deployed (Polygon, 2026-08-11)
+
+An earlier revision of the row above said the owner would be a *"timelocked
+multisig before mainnet"*. Mainnet happened first. This note states what is on
+the chain, measured at block 91859211, and replaces that projection.
+
+- `ParameterRegistry` owner is still the **deployer EOA**
+  `0xb5Fb0CDaab5784cBE05CcB9D843DaFe4663883C5`. A two-step handoff to Safe
+  `0x73e344Be290c0D53Badbe528e45877296F6dAf6E` is *pending* — `transferOwner`
+  was called, `acceptOwner` has not been.
+- **That Safe is 1-of-1, and its only owner is the same deployer EOA.** Completing
+  the handoff will therefore **not** separate keys today. What it does buy is a
+  stable owner address: raising the threshold or adding a timelock later needs no
+  further ownership transfer.
+- **There is no timelock.**
+
+**What that owner can and cannot do.** The Executor's profit gate requires
+`finalBalance >= startBalance + principal + minProfit` in the same transaction, so
+a compromised owner **cannot reach a user's principal**. The ceiling is
+`MAX_FEE_BPS = 5000` (50% of *profit*) plus spread capture bounded by the
+`minProfit` the user signs. The Executor is bound to this Registry by an
+`immutable` field set in its constructor and cannot be repointed.
+
+**Nothing is transactable at the time of writing.** Every token and router in the
+whitelist reads `false`, `treasury` is `address(0)` and `feeBps` is `0`, so
+`executeCycle` reverts for every asset and no user funds are at risk.
+
+**This note must be replaced with the real custody arrangement before the first
+`setToken` call.** That call is what makes the protocol usable, and from that
+moment a reader is acting on this page.
 
 ## Alternatives considered
 

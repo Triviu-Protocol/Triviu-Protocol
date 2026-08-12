@@ -14,3 +14,7 @@ engine/config/params.toml
 /docs/architecture/
 
 .vercel
+# segredos de deploy — nunca versionados
+contracts/deploy/mainnet.env
+contracts/deploy/*.env
+!contracts/deploy/*.env.exemplo
