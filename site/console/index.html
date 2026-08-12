@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Triviu · Console · read, encode, do not send</title>
+<title>Triviu · Console · read, encode, freeze, sign</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M40 25.36 Q76 32.3 100 60' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M100 60 Q76 87.7 40 94.64' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M40 94.64 Q28 60 40 25.36' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='40' cy='25.36' r='11' fill='%232743C7'/%3E%3Ccircle cx='100' cy='60' r='11' fill='%23C13327'/%3E%3Ccircle cx='40' cy='94.64' r='11' fill='%23E8B23A'/%3E%3C/svg%3E">
-<meta name="description" content="Connect a wallet, read the Triviu contracts on chain 137, and see the exact calldata each step would ask you to sign — selector, target, decoded arguments and estimated gas. This page sends nothing: it has no transaction method available to it.">
+<meta name="description" content="Connect a wallet, read the Triviu contracts on chain 137, and see the exact calldata each step asks you to sign — selector, target, decoded arguments, estimated gas. The bytes are frozen and fingerprinted before they are shown, and the same frozen object is what gets sent.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://triviu.vercel.app/console/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Triviu">
-<meta property="og:title" content="Console · the calldata, before the signature · Triviu">
-<meta property="og:description" content="The exact bytes each step would ask you to sign, with the four-byte selector, the target contract and the gas it costs — read from the chain, signed by nobody.">
+<meta property="og:title" content="Console · the calldata, then the signature · Triviu">
+<meta property="og:description" content="The exact bytes you are asked to sign, with the four-byte selector, the target contract and the gas it costs — frozen and fingerprinted at render, re-checked at the click.">
 <meta property="og:url" content="https://triviu.vercel.app/console/">
 <meta property="og:image" content="https://triviu.vercel.app/og.png">
 <meta property="og:image:width" content="1200">
@@ -38,15 +38,27 @@
   worth paying.
 
   ============================================================================
-  WHAT THIS PAGE IS ALLOWED TO DO
+  WHAT THIS PAGE IS ALLOWED TO DO  ·  changed on 2026-08-12
   ============================================================================
-  It READS the chain and it ENCODES calldata. It does not send. That is not a
-  promise in a comment — /js/console.js carries two allowlists that throw, the
-  wallet one containing exactly eth_accounts, eth_requestAccounts and
-  eth_chainId, and scripts/check-console-abi.mjs fails CI if a write method
-  appears in that file at all. The step that signs opens in a later wave, after
-  the security gates are audited on the public URL. Until then the buttons here
-  produce bytes on screen and nothing else.
+  It reads the chain, encodes calldata, FREEZES it, and sends the frozen object
+  to your wallet. Until this date it had no transaction method at all; the wallet
+  allowlist in /js/console.js grew by exactly one entry, eth_sendTransaction, on
+  a named human authorisation from the founder. It is an allowlist and not a
+  ban-list, so every method that is not one of the four throws — the
+  message-signing ones included, without needing to be named.
+
+  The freeze is the part worth understanding, because it is what makes the bytes
+  on screen mean anything. The transaction object is built once, hashed over
+  {chainId, to, data, value}, drawn from that object, and re-hashed at the
+  instant you click; a mismatch refuses. Change any input and the freeze is
+  discarded out loud — the button says so. The page never rebuilds calldata
+  inside a click handler, and scripts/check-assinatura.mjs fails the build if it
+  ever starts to.
+
+  What is still refused, and by structure rather than by paragraph: unlimited
+  approvals (a byte check rejects an all-ones word), a step whose gas estimate
+  reverts, a wallet on any chain but 137, and any origin other than the single
+  host in /domain.config.json.
 
   ============================================================================
   ADDRESSES AND FUNCTION NAMES · neither is typed here
@@ -183,6 +195,14 @@ button.act[disabled]{opacity:.5;cursor:not-allowed}
 .calldataf{margin-top:14px}
 .calldataf figcaption{font-family:var(--fm);font-size:11px;letter-spacing:.06em;color:var(--grafite);margin-bottom:0}
 .calldataf .cod{margin-top:6px}
+/* O bloco de envio de cada passo. Separado por uma linha porque e a fronteira
+   entre ler e agir: acima dela a pagina mostra bytes, abaixo dela ela pede uma
+   assinatura. As mensagens de estado, recibo e efeito vivem aqui, e nenhuma delas
+   depende de cor para dizer o que diz. */
+.envio{border-top:1px solid var(--fio);margin-top:16px;padding-top:14px}
+.envio p{margin-top:8px}
+.envio p:empty{display:none}
+.envio .mono{font-family:var(--fm);font-size:12px;word-break:break-all}
 .regra{border:1px solid var(--fio);border-left:3px solid var(--tinta);border-radius:var(--r-m);padding:20px 22px;margin-bottom:22px;background:var(--nevoa)}
 .regra .t{font-family:var(--fm);font-size:11px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--grafite);margin-bottom:8px}
 .regra p{font-size:14px;max-width:82ch}.regra p+p{margin-top:10px}
@@ -206,27 +226,33 @@ footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;fon
 </header>
 
 <main class="wrap" id="conteudo" tabindex="-1">
-  <div class="eyebrow">Chain 137 &middot; reads and encodes &middot; sends nothing</div>
-  <h1>The bytes you would be asked to sign &mdash; before anyone asks.</h1>
+  <div class="eyebrow">Chain 137 &middot; reads, encodes, freezes, sends</div>
+  <h1>The bytes you are asked to sign &mdash; frozen before you read them.</h1>
   <p class="lead">Connect a wallet and this page reads the four Triviu contracts on chain 137, then
-  builds the <b>exact calldata</b> each step of the cycle would put in front of your wallet: the
-  four-byte selector, the contract it goes to, every argument decoded, and what the gas costs at the
-  price the network is charging right now. <b>Nothing is sent.</b> The signing step opens in a later
-  wave; this one exists so the bytes are readable before they matter.</p>
+  builds the <b>exact calldata</b> each step of the cycle puts in front of your wallet: the four-byte
+  selector, the contract it goes to, every argument decoded, and what the gas costs at the price the
+  network is charging right now. Those bytes are then <b>frozen and fingerprinted</b>, and the frozen
+  object is the one that gets sent &mdash; not a fresh one rebuilt when you click.</p>
 
   <div class="aviso" role="note" aria-labelledby="h-aviso">
-    <h2 class="rot" id="h-aviso">This page encodes. It does not sign, and it cannot.</h2>
-    <p>The wallet is touched by exactly three methods, all of which only return something you already
-    control: <span class="mono" translate="no">eth_accounts</span>, <span class="mono" translate="no">eth_requestAccounts</span> and
-    <span class="mono" translate="no">eth_chainId</span>. There is no fourth. That is enforced by an allowlist that
-    throws in <span class="mono" translate="no">/js/console.js</span>, and by a check that fails the build if a write
-    method so much as appears in that file &mdash; not by this paragraph.</p>
-    <p>The reason the send is not here is written down and is not ours to waive: a page that asks for a
-    signature has to pass three gates first &mdash; a Content-Security-Policy whose
-    <span class="mono" translate="no">script-src</span> is this domain, no third-party script on the origin, and the 3D
-    library served from here rather than a CDN. Those were closed on 2026-08-12 and have not yet been
-    audited on the public URL. Ordering matters more than speed: signing first and auditing after is how
-    a drainer gets a page to work with.</p>
+    <h2 class="rot" id="h-aviso">This page can now send one thing, and only one</h2>
+    <p>The wallet allowlist has <b>four</b> entries: <span class="mono" translate="no">eth_accounts</span>,
+    <span class="mono" translate="no">eth_requestAccounts</span>, <span class="mono" translate="no">eth_chainId</span> and
+    <span class="mono" translate="no">eth_sendTransaction</span>. It is an allowlist, not a list of banned methods,
+    so anything else throws &mdash; including every form of message signature, which never had to be named
+    to be refused. That distinction matters: a signed off-chain order costs no gas and leaves no trace on
+    chain until it is used against you.</p>
+    <p><b>What you read is what gets sent.</b> The transaction object is built once, hashed over
+    <span class="mono" translate="no">{chainId, to, data, value}</span>, and drawn from that object. When you click,
+    the hash is recomputed and compared before your wallet is asked for anything, the chain id is re-read
+    from the wallet at that instant, and the active account is checked against the address the bytes were
+    built for. Change any field on this page and the freeze is thrown away out loud &mdash; the button
+    turns to <i>Void</i> and says why, instead of quietly re-encoding under text you already read.</p>
+    <p>Four things are refused by construction rather than by promise: an unlimited approval (a byte
+    check rejects an all-ones word in the calldata), any step whose gas estimate reverts, a wallet on any
+    chain other than 137, and any origin other than the single canonical host. A standing allowance is
+    read and shown <i>before</i> a new one is requested, and offered for zeroing when one exists.</p>
+    <p class="mono" id="c-origem" translate="no">Checking which origin is serving this page&hellip;</p>
   </div>
 
   <div class="alerta" role="note" aria-labelledby="h-narracao">
@@ -459,6 +485,13 @@ footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;fon
            foco. As duas nunca falam ao mesmo tempo — sao acionadas por botoes
            diferentes, e cada funcao escreve so na sua. -->
       <p class="estado" style="margin-top:14px"><span id="c-fluxo-estado" role="status" aria-live="polite">Nothing encoded yet.</span> <span class="erro" id="c-fluxo-erro" role="alert"></span></p>
+      <!-- Regra 7 do Tubarao-branco: a aprovacao que JA existe e lida e mostrada
+           antes de a pagina pedir outra. Quem ja carrega uma aprovacao ilimitada
+           de uma sessao antiga precisa ver isso ANTES de assinar mais uma, e
+           receber um passo que a zera — nunca cavalgar em silencio o que ficou
+           de tras. Preenchido por montar(), em /js/console.js. -->
+      <p class="hint" id="c-permissao">The allowance the Executor already holds over the asset you pick
+      is read from the token and printed here, before any new approval is encoded.</p>
     </div>
 
     <div id="c-passos" aria-busy="false"></div>
@@ -480,12 +513,20 @@ footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;fon
   <section class="painel" aria-labelledby="h-nao">
     <h2 id="h-nao">What this page does not do</h2>
     <ul class="nao" role="list">
-      <li>It does not send a transaction. <span class="mono" translate="no">eth_sendTransaction</span> is not in its
-          wallet allowlist, and a check fails the build if the string appears in its script at all.</li>
-      <li>It does not ask for a signature of any kind &mdash; no <span class="mono" translate="no">personal_sign</span>,
-          no typed-data signature, no permit.</li>
-      <li>It does not submit the approval it encodes. The bytes are shown; putting them in front of a
-          wallet is the next wave's job, after the gates are audited on the public URL.</li>
+      <li>It does not ask for a message signature of any kind &mdash; no personal signature, no typed
+          data, no permit. The allowlist has four methods and those are not among them, so the request
+          throws rather than reaching your wallet.</li>
+      <li>It does not encode an unlimited approval. The amount is the principal you typed, and a check
+          runs over the finished calldata and refuses any 32-byte word of all ones.</li>
+      <li>It does not re-encode when you click. The bytes are frozen and fingerprinted at render, and a
+          click that finds a different fingerprint refuses instead of sending.</li>
+      <li>It does not ask your wallet to switch chains, and it will not sign on a chain it did not
+          encode for. It refuses and you switch &mdash; a page that moves your chain for you is a page
+          that chooses where you sign.</li>
+      <li>It does not ride a standing approval in silence. Whatever the Executor is already allowed to
+          move is read from the token and shown before anything new is requested.</li>
+      <li>It does not sign a step whose estimate reverts, and it does not treat a receipt as proof: after
+          a transaction is mined, the state it was supposed to change is read back from the chain.</li>
       <li>It does not invent a route. No router is chosen for you, and where a route is missing the
           calldata says so instead of filling the gap with a plausible one.</li>
       <li>It does not read a private key, a seed phrase or a password &mdash; it has no field for one.</li>
@@ -521,8 +562,8 @@ footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;fon
 
 <footer>
   <div class="rod">Triviu &middot; Open source. Verifiable math. No promises.<br>
-    This screen reads and encodes. It signs nothing and sends nothing. A dash means it did not read that
-    field &mdash; it does not mean zero.</div>
+    This screen reads, encodes, freezes and sends the frozen object &mdash; nothing else, and never a
+    message signature. A dash means it did not read that field &mdash; it does not mean zero.</div>
 </footer>
 
 <script src="/enderecos.js"></script>

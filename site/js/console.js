@@ -1,12 +1,29 @@
 
 /* =============================================================================
-   /console/ — le a chain, monta a calldata, nao envia nada.
+   /console/ — le a chain, monta a calldata, congela, e ENVIA o que congelou.
 
-   Duas travas governam este arquivo, e as duas LANCAM excecao em vez de avisar.
-   Uma promessa em prosa qualquer um edita; um throw tem de ser apagado, e apagar
-   aparece no diff. A trava de carteira e conferida tambem por
-   scripts/check-console-abi.mjs, que reprova o build se um metodo de escrita
-   sequer for citado neste arquivo.
+   Ate 2026-08-12 este arquivo nao tinha metodo de envio. Agora tem exatamente um,
+   e a autorizacao e nominal: o fundador autorizou, com estas palavras, "a
+   assinatura real no console". Nenhum veredito de predador substitui essa frase,
+   e ela autoriza isto e nada alem — a lista de metodos de carteira cresceu em UM.
+
+   As dez regras do Tubarao-branco estao implementadas como CODIGO neste arquivo,
+   nao como comentario. Onde uma regra vira uma linha, a linha esta marcada:
+
+     R1  origem unica          conferirOrigem() — knownHosts de /domain.config.json
+     R2  endereco de calldata  travarEnderecoDoLivro() · travarTokenParaCalldata()
+     R3  congelamento          CONGELAMENTO · hashDaTx() · conferido no clique
+     R4  chain no clique       eth_chainId IMEDIATAMENTE antes do request
+     R5  allowlist +1          CARTEIRA_PERMITIDO — quatro, e o resto LANCA
+     R6  zero aprovacao infinita  recusarAprovacaoInfinita() sobre os BYTES
+     R7  allowance existente   lerAllowance() antes de pedir outra, e o passo de zerar
+     R8  value explicito       toda tx congelada carrega value, nunca por omissao
+     R9  nada em innerHTML     innerHTML so recebe "" · o resto e textContent
+     R10 estimativa que reverte bloqueia  p.podeEnviar
+
+   As travas LANCAM excecao em vez de avisar. Uma promessa em prosa qualquer um
+   edita; um throw tem de ser apagado, e apagar aparece no diff. Sao conferidas de
+   fora por scripts/check-assinatura.mjs e scripts/check-console-abi.mjs.
 
    O elo com os contratos e a segunda invariante: nenhuma assinatura de funcao e
    nenhum seletor de 4 bytes e digitado aqui. Tudo passa por sig(papel, assinatura),
@@ -21,8 +38,38 @@
   var TRACO = "—";   /* o traco que significa "nao lido". Nunca um numero. */
 
   /* ------------------------------------------------------------------ tema -- */
-  var SOL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
-  var LUA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+  /* REGRA 9, e ela comeca aqui e nao na calldata. Os dois icones eram strings de
+     SVG entregues a innerHTML. Sao literais, e literal a regra permite — mas um
+     guardiao que precisa DECIDIR se a string atribuida e literal decide errado no
+     dia em que ela vier de uma variavel montada, e esse dia chega sem aviso.
+     Entao os icones passam a ser construidos por DOM, innerHTML nesta pagina so
+     pode receber "" (limpar), e o guardiao para de julgar: ele compara. Uma regra
+     que depende de julgamento e uma regra que um dia sera julgada errado. */
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function svgIcone(desenho) {
+    var s = document.createElementNS(SVGNS, "svg");
+    s.setAttribute("viewBox", "0 0 24 24");
+    s.setAttribute("fill", "none");
+    s.setAttribute("stroke", "currentColor");
+    s.setAttribute("stroke-width", "2");
+    s.setAttribute("stroke-linecap", "round");
+    s.setAttribute("stroke-linejoin", "round");
+    s.setAttribute("aria-hidden", "true");
+    desenho.forEach(function (d) {
+      var e = document.createElementNS(SVGNS, d.tag);
+      Object.keys(d.attrs).forEach(function (k) { e.setAttribute(k, d.attrs[k]); });
+      s.appendChild(e);
+    });
+    return s;
+  }
+  var SOL = [
+    { tag: "circle", attrs: { cx: "12", cy: "12", r: "4" } },
+    { tag: "path", attrs: { d: "M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" } }
+  ];
+  var LUA = [
+    { tag: "path", attrs: { d: "M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" } }
+  ];
+  function limpar(el) { while (el && el.firstChild) el.removeChild(el.firstChild); }
   function temaAtual() {
     var s = null;
     try { s = localStorage.getItem("triviu-theme"); } catch (e) {}
@@ -32,7 +79,8 @@
   function aplicarTema(t) {
     document.documentElement.setAttribute("data-theme", t);
     var b = $("theme"); if (!b) return;
-    b.innerHTML = t === "dark" ? SOL : LUA;
+    limpar(b);
+    b.appendChild(svgIcone(t === "dark" ? SOL : LUA));
     b.setAttribute("aria-label", t === "dark" ? "Switch to light theme" : "Switch to dark theme");
   }
   aplicarTema(temaAtual());
@@ -43,23 +91,38 @@
   });
 
   /* ============================================================== TRAVAS ==== */
-  /* Somente-leitura, e cada metodo aqui devolve algo que o usuario ja controla.
-     Nao ha um quarto. O passo que assina abre noutra onda, depois dos gates
-     auditados na URL publica, e vai ser outro arquivo — nao uma linha a mais
-     neste. */
-  var CARTEIRA_PERMITIDO = { eth_accounts: 1, eth_requestAccounts: 1, eth_chainId: 1 };
+  /* REGRA 5 — a lista cresceu em EXATAMENTE UM, e o um esta nomeado.
+     Tres metodos devolvem algo que o usuario ja controla; o quarto envia uma
+     transacao que ele aprova na propria carteira. Nao ha um quinto.
+
+     O que continua RECUSADO nao esta escrito numa lista de proibidos, e isso e
+     deliberado: a estrutura e uma allowlist, entao qualquer metodo que nao esteja
+     nas quatro chaves abaixo LANCA — os de assinatura de mensagem inclusive, sem
+     precisar ser nomeado. Lista de proibidos esquece um; allowlist nao tem como.
+     A diferenca importa porque assinatura de mensagem e o vetor mais barato que
+     existe: uma ordem off-chain assinada nao custa gas e nao aparece na chain ate
+     ser usada contra voce. */
+  var CARTEIRA_PERMITIDO = { eth_accounts: 1, eth_requestAccounts: 1, eth_chainId: 1, eth_sendTransaction: 1 };
+  /* eth_getTransactionReceipt entra na lista de RPC, que e toda somente-leitura, e
+     e ele que fecha o circuito: sem recibo, "enviei" seria a ultima coisa que esta
+     pagina saberia dizer sobre a transacao.
+     O comentario esta AQUI FORA e nao dentro do literal de propósito — os
+     guardioes leem estas chaves com um parser de texto, e um comentario dentro das
+     chaves vira uma chave inventada e um alarme falso. Alarme falso treina gente a
+     ignorar guardiao, que e o unico jeito de um guardiao morrer sem ser apagado. */
   var RPC_PERMITIDO = {
     eth_call: 1, eth_chainId: 1, eth_getCode: 1, eth_getLogs: 1,
-    eth_blockNumber: 1, eth_gasPrice: 1, eth_estimateGas: 1, eth_getBalance: 1
+    eth_blockNumber: 1, eth_gasPrice: 1, eth_estimateGas: 1, eth_getBalance: 1,
+    eth_getTransactionReceipt: 1
   };
 
-  function pedirCarteira(metodo) {
+  function pedirCarteira(metodo, params) {
     if (!CARTEIRA_PERMITIDO[metodo]) {
       throw new Error("blocked: this page may only call " +
         Object.keys(CARTEIRA_PERMITIDO).join(" / ") + " on a wallet. Refused: " + metodo);
     }
     if (!window.ethereum) throw new Error("no wallet provider in this browser");
-    return window.ethereum.request({ method: metodo });
+    return window.ethereum.request(params ? { method: metodo, params: params } : { method: metodo });
   }
 
   var idRpc = 0;
@@ -140,6 +203,74 @@
     var frac = p[1] || "";
     if (frac.length > casas) return null;
     return BigInt(p[0] + frac.padEnd(casas, "0"));
+  }
+
+  /* ------------------------------------------------- REGRA 3 · o hash ------
+     O hash de {chainId,to,data,value}, e so desses quatro campos, porque sao
+     esses quatro que decidem o que a chain vai executar. `from` e conferido a
+     parte, contra a conta que a carteira reporta no instante do clique.
+
+     A serializacao e montada a mao, campo a campo, e NAO por JSON.stringify: a
+     ordem das chaves de um objeto e do objeto, e um dia alguem reordena o literal
+     achando que ordem de chave nao muda nada. Aqui muda — mudaria o hash, e um
+     hash que muda por refatoracao e um alarme que dispara sozinho ate alguem
+     desliga-lo. Caixa baixa nos dois campos hex porque EIP-55 e checksum de
+     digitacao, nao identidade, e a mesma decisao ja esta tomada no livro-razao.
+
+     SHA-256 do WebCrypto, e nao o keccak que o gerador tem: este hash nunca vai a
+     chain nem sai desta pagina — ele so precisa detectar que dois objetos
+     diferem. crypto.subtle exige contexto seguro; se nao existir, nao ha
+     congelamento e portanto nao ha envio. Falha fechada, declarada em tela. */
+  /* Conferencia sobre a CARGA que vai para a carteira, e nao sobre o objeto
+     interno. `from` entra na canonicalizacao porque uma allowance pertence ao
+     endereco que a concede: trocar `from` troca o que se esta assinando, e um
+     hash que ignorasse `from` nao provaria nada sobre isso. */
+  function hashDaCarga(carga, chainId) {
+    return hashCanon(
+      "chainId=" + String(chainId) +
+      "|from=" + String(carga.from).toLowerCase() +
+      "|to=" + String(carga.to).toLowerCase() +
+      "|data=" + String(carga.data).toLowerCase() +
+      "|value=" + String(carga.value).toLowerCase());
+  }
+
+  function hashDaTx(tx) {
+    var canon = "chainId=" + String(tx.chainId) +
+      "|to=" + String(tx.to).toLowerCase() +
+      "|data=" + String(tx.data).toLowerCase() +
+      "|value=" + String(tx.value).toLowerCase();
+    return hashCanon(canon);
+  }
+
+  function hashCanon(canon) {
+    if (!window.crypto || !window.crypto.subtle) {
+      return Promise.reject(new Error(
+        "this browser exposes no crypto.subtle on this origin, so the transaction cannot be frozen " +
+        "and hashed. Nothing is offered for signature without that freeze — the freeze is the only " +
+        "thing tying what you read to what you send."));
+    }
+    return window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(canon)).then(function (buf) {
+      var a = new Uint8Array(buf), out = "";
+      for (var i = 0; i < a.length; i++) out += a[i].toString(16).padStart(2, "0");
+      return out;
+    });
+  }
+
+  /* ------------------------------------------- REGRA 6 · sobre os BYTES ----
+     Nao "o codigo aprova o valor exato" — isso e uma afirmacao sobre intencao, e
+     intencao nao e verificavel depois que alguem edita. Esta funcao le a calldata
+     JA CONSTRUIDA e recusa se qualquer palavra de 32 bytes for toda de uns. Vale
+     para approve e para qualquer outra coisa que venha a ser montada aqui. */
+  function recusarAprovacaoInfinita(dados) {
+    var corpo = String(dados).replace(/^0x/, "").slice(8);
+    for (var i = 0; i + 64 <= corpo.length; i += 64) {
+      if (/^f{64}$/i.test(corpo.slice(i, i + 64))) {
+        throw new Error(
+          "refused to build this call: one 32-byte word of its calldata is all-ones (2^256-1), which " +
+          "is the unlimited approval. This page approves an exact amount or it approves nothing.");
+      }
+    }
+    return dados;
   }
 
   /** Decodifica os bytes de uma reversao pelo seletor de 4 bytes. Se o seletor
@@ -363,6 +494,95 @@
   txt($("c-a-gastank"), GASTANK);
   txt($("c-a-lpvault"), LPVAULT);
 
+  /* ============================================ REGRA 2 · endereco em calldata */
+  /* Os quatro contratos do Triviu saem de exigirVivo(), que NAO devolve o texto
+     que recebeu: devolve a constante do livro. Comparar byte a byte e o que a
+     propria funcao ja faz — ela lanca em orfao, em papel trocado e em
+     desconhecido. A comparacao explicita abaixo e redundante de proposito: e a
+     regra escrita como codigo no ponto onde a regra vale, e nao a trinta linhas
+     de distancia dentro de outro arquivo.
+
+     O TOKEN e o unico endereco de calldata que NAO pode sair de exigirVivo(), e
+     isto esta declarado em vez de disfarcado. Ele nao esta no livro e nao poderia
+     estar: a lista de tokens e do ParameterRegistry e muda por pull request. Se
+     eu o passasse por exigirVivo() a funcao lancaria DESCONHECIDO em todos os
+     oito, e a tela pararia de funcionar — entao a tentacao seria afrouxar
+     exigirVivo(), que e exatamente como uma trava morre. Ele passa por outra
+     trava, com quatro exigencias, todas ABORTANDO:
+       1. veio do evento TokenAllowed do Registry que o livro nomeia
+       2. isAllowedToken confirma AO VIVO, relido no instante do congelamento
+       3. nao e nenhum dos quatro orfaos do livro
+       4. tem codigo na chain
+     O que isso NAO prova esta dito na tela: que o token e bom. Prova que o
+     Registry o admite hoje, que e uma afirmacao menor e verdadeira. */
+  function travarEnderecoDoLivro(endereco, papel) {
+    var canon = LIVRO.exigirVivo(endereco, papel);
+    if (String(canon).toLowerCase() !== String(endereco).toLowerCase()) {
+      throw new Error("ABORTED: the address for " + papel + " diverged from the ledger constant.");
+    }
+    return canon;
+  }
+
+  function ehOrfao(endereco) {
+    var baixo = String(endereco).toLowerCase();
+    var orfaos = LIVRO.ORFAOS || [];
+    for (var i = 0; i < orfaos.length; i++) {
+      if (String(orfaos[i].endereco).toLowerCase() === baixo) return orfaos[i];
+    }
+    return null;
+  }
+
+  /* ================================================= REGRA 1 · uma origem ==== */
+  /* O caminho de assinatura e servido por exatamente uma origem, e qual e ela nao
+     esta digitada aqui: sai de /domain.config.json, o mesmo arquivo unico que o
+     resto do site usa, pela mesma razao pela qual endereco sai do livro-razao.
+     Dois hostnames servindo a pagina que assina ensinam o usuario que dois
+     hostnames sao legitimos, e ali morre a unica defesa que ele tem contra
+     phishing: uma origem memorizada.
+
+     Falha FECHADA. Se o arquivo nao carregar, se o host nao constar, ou se a
+     pagina estiver aberta de file://, o envio fica desligado e a leitura
+     continua. Um gate que falha aberto e um gate decorativo. */
+  var ORIGEM = { ok: false, motivo: "the origin has not been checked yet", host: null };
+  function conferirOrigem() {
+    var host = (window.location && window.location.host) || "";
+    ORIGEM.host = host;
+    if (window.location && window.location.protocol !== "https:" && host !== "localhost" &&
+        !/^127\.0\.0\.1(:|$)/.test(host)) {
+      ORIGEM.ok = false;
+      ORIGEM.motivo = "this page is not on https (it is on " + (window.location.protocol || "?") +
+        "), so signing stays off. A page that asks for a signature over a channel anyone on the path " +
+        "can rewrite is a page that asks you to sign whatever they rewrote it to.";
+      return Promise.resolve(ORIGEM);
+    }
+    return fetch("/domain.config.json", { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (cfg) {
+        var hosts = (cfg && cfg.knownHosts) || [];
+        if (hosts.indexOf(host) >= 0) {
+          ORIGEM.ok = true;
+          ORIGEM.motivo = "served from " + host + ", the single host in /domain.config.json.";
+        } else {
+          ORIGEM.ok = false;
+          ORIGEM.motivo = "this page is being served from " + (host || "an origin with no host") +
+            ", and the canonical host list in /domain.config.json is [" + hosts.join(", ") + "]. " +
+            "Signing is off. This is the check, not a formality: a copy of this page on another " +
+            "hostname is what a phishing page IS.";
+        }
+        return ORIGEM;
+      })
+      .catch(function (e) {
+        ORIGEM.ok = false;
+        ORIGEM.motivo = "the canonical host list (/domain.config.json) did not load (" + e.message +
+          "), so this page cannot tell whether it is being served from the origin it belongs to. " +
+          "Signing stays off — the check failing closed is the point of having it.";
+        return ORIGEM;
+      });
+  }
+
   /* A superficie externa completa dos tres contratos cujo codigo-fonte esta neste
      repositorio. Renderizada da tabela gerada — se o contrato ganhar ou perder uma
      funcao, esta lista muda sozinha e o guardiao cobra a diferenca. */
@@ -444,15 +664,26 @@
       .catch(function (e) { erro("Wallet: " + e.message); });
   });
 
+  /* REGRA 4 · segunda metade. Ate esta onda estes dois handlers AVISAVAM — F-5 do
+     Tubarao, aberto: "chainChanged avisa mas nao invalida". Enquanto a pagina so
+     lia, avisar bastava. Agora que existe um objeto congelado esperando um
+     clique, avisar e o defeito: a chain sob os bytes muda, o aviso rola para fora
+     da vista, e o botao continua armado. Os dois INVALIDAM. */
   if (window.ethereum && typeof window.ethereum.on === "function") {
     window.ethereum.on("chainChanged", function (cid) {
       verChain(cid);
+      invalidarCongelamento("The wallet changed chain while these bytes were frozen. They are void: " +
+        "calldata built for one chain and signed on another is how an address that means one thing " +
+        "here means something else there. Encode again.");
       estado("The wallet changed chain. Read again: everything below was read against the previous one.");
     });
     window.ethereum.on("accountsChanged", function (contas) {
       var a = contas && contas.length ? contas[0] : "";
       $("c-endereco").value = a;
       txt($("c-w-conta"), a || TRACO);
+      invalidarCongelamento("The wallet changed account while these bytes were frozen. They are void: " +
+        "they were built for the previous address, and an allowance belongs to the address that " +
+        "granted it. Read the chain again, then encode again.");
       estado("The wallet changed account. Read again: the balances below belong to the previous address.");
     });
   }
@@ -645,7 +876,8 @@
         estado("Read complete against chain " + CHAIN.toString() + ". " + ESTADO.tokens.length +
           " allowed token(s), " + ESTADO.alvos.length + " allowed router(s)." +
           (avisos.length ? " " + avisos.length + " thing(s) did not read: " + avisos.join("; ") + "." : "") +
-          " Nothing was signed and nothing was sent — this page has no method that could." +
+          " Reading asked your wallet for nothing and sent nothing: every call above went to the " +
+          "endpoint in the form, not to the wallet." +
           " The asset list in the flow section below is now filled from what was read.");
       })
       .catch(function (e) {
@@ -844,6 +1076,64 @@
   }
 
   /* ============================================================== CALLDATA == */
+  /* Aqui vive a REGRA 3, que e a espinha desta onda.
+
+     O defeito que esta secao existe para tornar impossivel tem nome: remontar no
+     clique. A tela mostra os bytes, o usuario le, confere, clica — e o codigo, no
+     handler, monta tudo de novo a partir dos campos. Entre a leitura e o clique
+     cabe qualquer coisa: um campo que mudou, uma resposta de RPC atrasada, um
+     render que rodou no meio. O que ele assina deixa de ser o que ele leu, e nada
+     na tela mente em nenhum instante: a tela mostrou a verdade de um momento que
+     ja passou. E o pior defeito possivel numa pagina cuja unica razao de existir e
+     que o byte na tela seja o byte assinado.
+
+     Entao: monta UMA vez, guarda o objeto, desenha DAQUELE objeto, tira o hash
+     DAQUELE objeto. No clique reconfere o hash e envia AQUELE objeto. Qualquer
+     entrada que mude mata o congelamento, e a tela DIZ que matou — o botao vira
+     "Void" com o motivo escrito no cartao, em vez de silenciosamente parar de
+     funcionar ou, pior, continuar funcionando sobre bytes velhos. */
+
+  var MAX_UINT256 = (1n << 256n) - 1n;
+  var CONGELAMENTO = null;   /* { geracao, selo, passos } — null = nao ha o que enviar */
+  var GERACAO = 0;
+  var ENVIANDO = false;
+
+  /* O selo e o retrato das entradas no instante do congelamento, e ele e
+     comparado por VALOR no clique. Os listeners de `input` abaixo sao o caminho
+     rapido — eles avisam na hora — mas nao sao a garantia: um evento pode nao
+     disparar (autofill de gerenciador de senha, restauracao de formulario do
+     proprio navegador ao voltar na historia, extensao escrevendo no campo). Valor
+     nao tem como discordar de si mesmo, entao o selo e quem fecha. */
+  function seloAtual() {
+    /* JSON.stringify e nao join(separador): qualquer separador que eu escolhesse
+       poderia ser digitado dentro de um dos campos, e ai dois conjuntos de
+       entradas diferentes produziriam o MESMO selo — um congelamento que devia
+       ter morrido sobreviveria. JSON escapa o conteudo, entao a serializacao e
+       injetora: selos iguais significam entradas iguais, sem excecao. */
+    return JSON.stringify([
+      $("c-ativo").value,
+      $("c-principal").value,
+      $("c-lucro").value,
+      ($("c-endereco").value || "").trim().toLowerCase(),
+      $("c-rpc").value
+    ]);
+  }
+
+  function invalidarCongelamento(motivo) {
+    if (!CONGELAMENTO) return;
+    var passos = CONGELAMENTO.passos;
+    CONGELAMENTO = null;
+    passos.forEach(function (p) {
+      p.podeEnviar = false;
+      if (p.elBotao && !p.enviada) {
+        p.elBotao.disabled = true;
+        txt(p.elBotao, "Void — encode again");
+      }
+      if (p.elInvalidado) txt(p.elInvalidado, motivo);
+    });
+    estadoFluxo(motivo);
+  }
+
   $("c-montar").addEventListener("click", function () { montar(); });
   ["c-principal", "c-lucro"].forEach(function (id) {
     $(id).addEventListener("keydown", function (ev) {
@@ -851,12 +1141,255 @@
     });
   });
 
+  /* Toda entrada que participa da calldata invalida o congelamento ao mudar.
+     `c-rpc` esta na lista mesmo nao entrando em nenhum byte: e dele que sai a
+     estimativa e a confirmacao de estado, e um congelamento estimado contra um
+     endpoint e confirmado contra outro mede duas coisas diferentes. */
+  ["c-ativo", "c-principal", "c-lucro", "c-endereco", "c-rpc"].forEach(function (id) {
+    var el = $(id); if (!el) return;
+    var aoMudar = function () {
+      invalidarCongelamento("An input changed after these bytes were encoded, so the frozen transaction " +
+        "was thrown away. What is on screen is no longer what your wallet would receive. Press Encode " +
+        "again — this page will not quietly rebuild the bytes under a button you have already read.");
+    };
+    el.addEventListener("input", aoMudar);
+    el.addEventListener("change", aoMudar);
+  });
+
+  /* ------------------------------------------- REGRA 2 · a trava do token ---
+     As quatro exigencias, todas ABORTANDO, nenhuma avisando. O que isto prova
+     esta dito na tela sem inflar: prova que o Registry admite este token agora.
+     Nao prova que o token e bom, e a tela nao vai dizer que prova. */
+  function travarTokenParaCalldata(tok) {
+    return Promise.resolve().then(function () {
+      var a = tok.endereco;
+      if (!END.test(a)) throw new Error("that token's address is not 40 hex characters");
+      if (/^0x0{40}$/.test(a)) throw new Error("that token's address is the zero address");
+      var orf = ehOrfao(a);
+      if (orf) {
+        throw new Error("ABORTED: " + a + " is a " + orf.tipo + " from a failed deploy run (nonce " +
+          orf.nonce + "), which the ledger lists as an orphan. It has code and it would answer.");
+      }
+      var vivos = LIVRO.VIVOS, chaves = Object.keys(vivos);
+      for (var i = 0; i < chaves.length; i++) {
+        if (String(vivos[chaves[i]]).toLowerCase() === String(a).toLowerCase()) {
+          throw new Error("ABORTED: " + a + " is the Triviu " + chaves[i] + ", not a token. Encoding an " +
+            "approve whose target is a Triviu contract is refused.");
+        }
+      }
+      return call(REGISTRY, sig("parameterRegistry", "isAllowedToken(address)") + pal(a));
+    }).then(function (r) {
+      if (!r || r === "0x" || u(palavra(r, 0)) !== 1n) {
+        throw new Error("the ParameterRegistry does not allow that token at this moment. It was allowed " +
+          "when the list was read; it is re-read here, at the instant of encoding, precisely because a " +
+          "whitelist that changed between the read and the click is what this re-check exists for");
+      }
+      return rpc("eth_getCode", [tok.endereco, "latest"]);
+    }).then(function (c) {
+      if (!c || c === "0x") {
+        throw new Error("that token address has no code on chain " + CHAIN.toString() + ", so an approve " +
+          "to it would do nothing and still cost gas");
+      }
+      return tok.endereco;
+    });
+  }
+
+  /* ------------------------------------------ REGRA 7 · a permissao vigente -- */
+  function lerAllowance(token, dono) {
+    return call(token, sig("erc20Allowance", "allowance(address,address)") + pal(dono) + pal(EXECUTOR))
+      .then(function (r) {
+        if (!r || r === "0x") return null;
+        return u(palavra(r, 0));
+      })
+      .catch(function () { return null; });
+  }
+
+  function frasePermissao(v, tok) {
+    var sym = tok.simbolo || "this token";
+    if (v === null) {
+      return "could NOT be read. Because it could not be read, the approval below is not offered for " +
+        "signature at all. Rule 7 is to show the standing allowance before asking for another one, and a " +
+        "page that cannot show it has not earned the right to ask for one.";
+    }
+    if (v === 0n) return "none. The Executor cannot move any " + sym + " of yours right now.";
+    if (v === MAX_UINT256) {
+      return "UNLIMITED — 2^256-1, the all-ones value. This is a standing permission to move every " +
+        sym + " this address will ever hold, granted to " + EXECUTOR + ", lasting until you revoke it. " +
+        "The step below sets it back to zero, and it is offered first for that reason.";
+    }
+    if (v > (1n << 128n)) {
+      return comCasas(v, tok.casas) + " " + sym + " — larger than the entire supply of any real token, " +
+        "so it is unlimited in practice whatever the exact number says. The step below zeroes it.";
+    }
+    return comCasas(v, tok.casas) + " " + sym + " is already approved and still standing.";
+  }
+
+  /* ===================================== O UNICO LUGAR QUE CONSTROI CALLDATA ==
+     sig(), pal() e palNum() nao aparecem em enviar() nem dentro de handler de
+     clique nenhum, e scripts/check-assinatura.mjs reprova o build se aparecerem.
+     Essa e a diferenca entre a regra 3 estar escrita e a regra 3 estar valendo. */
+  function construirPassos(tok, alvoToken, principal, lucro, dono, permissao) {
+    var spender = travarEnderecoDoLivro(EXECUTOR, "triviuExecutor");
+    var gastank = travarEnderecoDoLivro(GASTANK, "gasTank");
+    var sym = tok.simbolo || "";
+    var passos = [];
+    var temPermissaoVelha = permissao !== null && permissao > 0n;
+
+    /* REGRA 7 · o passo de zerar so existe quando ha o que zerar, e vem PRIMEIRO.
+       Nunca cavalgar em silencio uma aprovacao antiga. */
+    if (temPermissaoVelha) {
+      passos.push({
+        n: "first — because an allowance is already standing",
+        titulo: "Set the standing allowance back to zero",
+        papel: "erc20",
+        assinatura: "approve(address,uint256)",
+        alvo: alvoToken,
+        alvoNome: (sym || "the asset token") + " — the token contract, not a Triviu contract",
+        assinavel: true,
+        exigeAllowance: true,
+        permissaoLida: permissao,
+        args: [
+          { nome: "spender", tipo: "address", valor: spender, nota: "the Executor, from the ledger" },
+          { nome: "amount", tipo: "uint256", valor: "0", nota: "zero — this revokes, it does not grant" }
+        ],
+        dados: recusarAprovacaoInfinita(sig("erc20", "approve(address,uint256)") + pal(spender) + palNum(0)),
+        valor: 0n,
+        confirmacao: { tipo: "allowance", token: alvoToken, dono: dono, esperado: 0n, casas: tok.casas, simbolo: sym },
+        faz: "Revokes what the Executor is currently allowed to move. After this, the standing permission " +
+          "reads zero and nothing can be pulled from your address until you grant a new one.",
+        naoFaz: "It moves no tokens and it is not a payment. It also does not undo anything already " +
+          "moved — an allowance governs what can be taken from here on, never what was taken before."
+      });
+    }
+
+    passos.push({
+      n: temPermissaoVelha ? "step 1 of 2 — after the zero above" : "step 1 of 2",
+      titulo: "Let the Executor move that amount, once",
+      papel: "erc20",
+      assinatura: "approve(address,uint256)",
+      alvo: alvoToken,
+      alvoNome: (sym || "the asset token") + " — the token contract, not a Triviu contract",
+      assinavel: true,
+      exigeAllowance: true,
+      permissaoLida: permissao,
+      args: [
+        { nome: "spender", tipo: "address", valor: spender, nota: "the Executor, from the ledger" },
+        { nome: "amount", tipo: "uint256", valor: principal.toString(),
+          nota: comCasas(principal, tok.casas) + " " + sym + ", scaled by the " + tok.casas + " decimals read from the token" }
+      ],
+      dados: recusarAprovacaoInfinita(sig("erc20", "approve(address,uint256)") + pal(spender) + palNum(principal)),
+      valor: 0n,
+      confirmacao: { tipo: "allowance", token: alvoToken, dono: dono, esperado: principal, casas: tok.casas, simbolo: sym },
+      faz: "Sets an allowance: the Executor becomes able to pull up to this amount of this token from " +
+        "your address, and only this token. ERC-20 approve is the standard one; it is on the token, so " +
+        "the same bytes work on any wallet screen that decodes ERC-20.",
+      naoFaz: "It moves nothing by itself, and it is not a payment. It also does not expire: an " +
+        "allowance survives until it is spent or set back to zero, which is why the amount here is the " +
+        "principal and not an unlimited approval. An unlimited approval is a standing permission to " +
+        "drain that token, and this page will not encode one — the byte check that refuses it runs on " +
+        "the calldata itself, not on anyone's good intentions."
+    });
+
+    passos.push({
+      n: "step 2 of 2",
+      titulo: "Run the cycle in one transaction",
+      papel: "triviuExecutor",
+      assinatura: "executeCycle(address,uint256,uint256,(uint8,address,address,address,uint24,uint256)[])",
+      alvo: spender,
+      alvoNome: "TriviuExecutor, from the ledger",
+      assinavel: true,
+      args: [
+        { nome: "asset", tipo: "address", valor: alvoToken, nota: "the cycle opens and closes here" },
+        { nome: "principal", tipo: "uint256", valor: principal.toString(), nota: comCasas(principal, tok.casas) + " " + sym },
+        { nome: "minProfit", tipo: "uint256", valor: lucro.toString(),
+          nota: comCasas(lucro, tok.casas) + " " + sym + " — below this the whole transaction reverts" },
+        { nome: "legs", tipo: "tuple[]", valor: "[] (length 0)",
+          nota: "EMPTY, and stated rather than filled: " + (ESTADO.alvos.filter(function (a) { return a.permitido === true; }).length) +
+            " routers are allowed, and a leg must swap on an allowed one. This page does not invent a route." }
+      ],
+      dados: recusarAprovacaoInfinita(
+        sig("triviuExecutor", "executeCycle(address,uint256,uint256,(uint8,address,address,address,uint24,uint256)[])") +
+        pal(alvoToken) + palNum(principal) + palNum(lucro) + palNum(128) + palNum(0)),
+      valor: 0n,
+      faz: "Pulls the principal, walks the legs in order, and at the end requires the asset balance to " +
+        "be at least what it started with plus the principal plus minProfit. If it is not, the entire " +
+        "transaction reverts and no leg is left half-done. The fee, if any, is taken from the profit " +
+        "only, after that check.",
+      naoFaz: "It does not hold your funds between transactions, and it cannot be pointed at a router " +
+        "or a token the Registry does not allow. With an empty legs array it cannot run at all — " +
+        "which is what the estimate below reports, in the contract's own words."
+    });
+
+    passos.push({
+      n: "optional",
+      titulo: "Fund your own gas reserve",
+      papel: "gasTank",
+      assinatura: "deposit()",
+      alvo: gastank,
+      alvoNome: "GasTank, from the ledger",
+      /* Nao assinavel, e a razao NAO e tecnica: a estimativa passa, 29416 gas
+         medidos. E uma decisao declarada. A autorizacao desta onda PERMITE
+         assinatura; ela nao obriga esta pagina a oferecer uma onde a transacao
+         nao tem efeito que valha a pena. Depositar hoje trava POL num contrato
+         cujo consumidor nao existe. */
+      assinavel: false,
+      razaoNaoAssinavel: "Encoded and not offered for signature, on purpose. The estimate passes — this " +
+        "is not a technical block. The reserve simply buys nothing today: the automated path that would " +
+        "spend it is not deployed, so signing this would lock POL for a feature that does not exist yet. " +
+        "The bytes are here to be read; the button is absent because pressing it would be a decision " +
+        "this page has no honest reason to invite.",
+      args: [],
+      dados: sig("gasTank", "deposit()"),
+      valor: 0n,
+      faz: "Credits native POL to a balance recorded under your address. You are the only account that " +
+        "can move it back out, through withdraw().",
+      naoFaz: "Nothing spends it for you yet. The automated path — using your reserve to finish a " +
+        "return leg that ran out of gas — is not deployed; the contract's own source says it ships " +
+        "only once specified and audited. Until then this is an escrow you can fill and empty, and " +
+        "filling it buys you nothing."
+    });
+
+    /* REGRA 8 · o value entra AQUI, explicito, em todo passo. Nao existe caminho
+       neste arquivo em que uma transacao seja montada sem value: o campo e escrito
+       na mesma linha em que o objeto nasce. `deposit()` e a unica genuinamente
+       payable das quatro, e mesmo ela vai com zero — e por isso mesmo nao e
+       oferecida para assinatura acima. */
+    passos.forEach(function (p) {
+      p.tx = {
+        chainId: Number(CHAIN),
+        to: p.alvo,
+        data: p.dados,
+        value: "0x" + BigInt(p.valor).toString(16),
+        de: dono
+      };
+    });
+    return passos;
+  }
+
+  /* Congela: hash de cada objeto, geracao nova, selo das entradas. Depois disto
+     nada e recalculado — a tela desenha daqui e o clique confere contra isto. */
+  function congelar(passos, selo) {
+    GERACAO += 1;
+    var geracao = GERACAO;
+    return emSerie(passos, function (p) {
+      return hashDaTx(p.tx).then(function (h) { p.hash = h; p.geracao = geracao; });
+    }).then(function () {
+      return { geracao: geracao, selo: selo, passos: passos };
+    });
+  }
+
   function montar() {
     if (montando) {
       estadoFluxo("Still encoding the previous set. This click did nothing.");
       return;
     }
+    if (ENVIANDO) {
+      estadoFluxo("A transaction from this page is in your wallet right now. Accept or reject it before " +
+        "encoding a new set — re-encoding under a pending signature is how the wrong bytes get signed.");
+      return;
+    }
     limparRecusa();
+    invalidarCongelamento("Re-encoding: the previous frozen set was discarded.");
     var caixa = $("c-passos");
     caixa.innerHTML = "";
     ocupadoPassos(false);
@@ -889,123 +1422,55 @@
       return;
     }
 
-    estadoFluxo("Encoding. Every byte below is built from the signature in the compiled ABI; nothing is sent.");
-
-    var passos = [
-      {
-        n: "step 1 of 2",
-        titulo: "Let the Executor move that amount, once",
-        papel: "erc20",
-        assinatura: "approve(address,uint256)",
-        alvo: tok.endereco,
-        alvoNome: (tok.simbolo || "the asset token") + " — the token contract, not a Triviu contract",
-        args: [
-          { nome: "spender", tipo: "address", valor: EXECUTOR, nota: "the Executor, from the ledger" },
-          { nome: "amount", tipo: "uint256", valor: principal.toString(),
-            nota: comCasas(principal, tok.casas) + " " + (tok.simbolo || "") + ", scaled by the " + tok.casas + " decimals read from the token" }
-        ],
-        dados: sig("erc20", "approve(address,uint256)") + pal(EXECUTOR) + palNum(principal),
-        faz: "Sets an allowance: the Executor becomes able to pull up to this amount of this token from " +
-          "your address, and only this token. ERC-20 approve is the standard one; it is on the token, so " +
-          "the same bytes work on any wallet screen that decodes ERC-20.",
-        naoFaz: "It moves nothing by itself, and it is not a payment. It also does not expire: an " +
-          "allowance survives until it is spent or set back to zero, which is why the amount here is the " +
-          "principal and not an unlimited approval. An unlimited approval is a standing permission to " +
-          "drain that token, and this page will not encode one."
-      },
-      {
-        n: "step 2 of 2",
-        titulo: "Run the cycle in one transaction",
-        papel: "triviuExecutor",
-        assinatura: "executeCycle(address,uint256,uint256,(uint8,address,address,address,uint24,uint256)[])",
-        alvo: EXECUTOR,
-        alvoNome: "TriviuExecutor, from the ledger",
-        args: [
-          { nome: "asset", tipo: "address", valor: tok.endereco, nota: "the cycle opens and closes here" },
-          { nome: "principal", tipo: "uint256", valor: principal.toString(), nota: comCasas(principal, tok.casas) + " " + (tok.simbolo || "") },
-          { nome: "minProfit", tipo: "uint256", valor: lucro.toString(),
-            nota: comCasas(lucro, tok.casas) + " " + (tok.simbolo || "") + " — below this the whole transaction reverts" },
-          { nome: "legs", tipo: "tuple[]", valor: "[] (length 0)",
-            nota: "EMPTY, and stated rather than filled: " + (ESTADO.alvos.filter(function (a) { return a.permitido === true; }).length) +
-              " routers are allowed, and a leg must swap on an allowed one. This page does not invent a route." }
-        ],
-        dados: sig("triviuExecutor", "executeCycle(address,uint256,uint256,(uint8,address,address,address,uint24,uint256)[])") +
-          pal(tok.endereco) + palNum(principal) + palNum(lucro) + palNum(128) + palNum(0),
-        faz: "Pulls the principal, walks the legs in order, and at the end requires the asset balance to " +
-          "be at least what it started with plus the principal plus minProfit. If it is not, the entire " +
-          "transaction reverts and no leg is left half-done. The fee, if any, is taken from the profit " +
-          "only, after that check.",
-        naoFaz: "It does not hold your funds between transactions, and it cannot be pointed at a router " +
-          "or a token the Registry does not allow. With an empty legs array it cannot run at all — " +
-          "which is what the estimate below reports, in the contract's own words."
-      },
-      {
-        n: "optional",
-        titulo: "Fund your own gas reserve",
-        papel: "gasTank",
-        assinatura: "deposit()",
-        alvo: GASTANK,
-        alvoNome: "GasTank, from the ledger",
-        args: [],
-        dados: sig("gasTank", "deposit()"),
-        valor: 0n,
-        faz: "Credits native POL to a balance recorded under your address. You are the only account that " +
-          "can move it back out, through withdraw().",
-        naoFaz: "Nothing spends it for you yet. The automated path — using your reserve to finish a " +
-          "return leg that ran out of gas — is not deployed; the contract's own source says it ships " +
-          "only once specified and audited. Until then this is an escrow you can fill and empty, and " +
-          "filling it buys you nothing. Depositing today is a decision to lock up POL for a feature that " +
-          "does not exist yet."
-      }
-    ];
-
-    passos.forEach(function (p) { caixa.appendChild(cartao(p, tok)); });
-
-    /* Estimativa em serie, depois de tudo desenhado: a tela ja e util antes de o
-       primeiro endpoint responder.
-
-       aria-busy enquanto isso, e por um motivo mensuravel: as celulas "Estimated
-       gas" e "What that costs" ja estao na tela com um traco e mudam sozinhas
-       segundos depois, fora de qualquer regiao viva. Quem leu o cartao antes da
-       resposta nao saberia que ele mudou. aria-busy diz "ainda estou montando
-       isto", e a mensagem de conclusao diz o que aconteceu — inclusive quantos
-       passos a estimativa RECUSOU, que e informacao e nao falha. */
-    ocupadoPassos(true);
+    var selo = seloAtual();
     montando = true;
     $("c-montar").disabled = true;
-    emSerie(passos, function (p) { return estimar(p, dono); })
-      .then(function () {
-      ocupadoPassos(false);
-      var revertidos = passos.filter(function (p) { return p._reverteu; }).length;
-      estadoFluxo("Encoded. " + passos.length + " calls, none of them sent. " +
-        (revertidos
-          ? revertidos + " of them would revert against the chain as it is right now, and the reason " +
-            "the contract gave is on each card in its own words."
-          : "All of them estimated without reverting.") +
-        " The bytes above are what a wallet would receive — comparing them with what a wallet actually " +
-        "shows you, one day, is the whole point of reading them here first.");
-    })
-    // `catch` ANTES de `finally`, e nao depois. Medido rodando: com
-    // `.finally().then()` e sem `catch`, uma estimativa que rejeita libera a trava
-    // e some — o usuario nao recebe erro nenhum e sobra uma promessa rejeitada sem
-    // tratamento. A trava sozinha nao basta: ela devolve o botao e deixa a pessoa
-    // sem saber por que a tela nao mudou.
-    .catch(function (e) {
-      estadoFluxo("Stopped while estimating: " + e.message + ". Nothing was sent — this page " +
-        "cannot send. The calldata above is unchanged; only the gas estimate is missing.");
-    })
-    // `ocupadoPassos(false)` vive aqui e nao no `then`: numa falha ele nao rodaria,
-    // e o aria-busy ficaria preso em true para quem usa leitor de tela.
-    .finally(function () {
-      ocupadoPassos(false);
-      montando = false;
-      $("c-montar").disabled = false;
-    });
+    ocupadoPassos(true);
+    estadoFluxo("Re-confirming the token against the Registry and reading the allowance the Executor " +
+      "already holds. The bytes are encoded only after both answer.");
+
+    var alvoToken = null, permissao = null;
+    Promise.resolve()
+      .then(function () { return travarTokenParaCalldata(tok); })
+      .then(function (a) { alvoToken = a; return lerAllowance(alvoToken, dono); })
+      .then(function (v) {
+        permissao = v;
+        txt($("c-permissao"), "Standing allowance of the Executor over your " + (tok.simbolo || "token") +
+          ": " + frasePermissao(v, tok));
+        var passos = construirPassos(tok, alvoToken, principal, lucro, dono, permissao);
+        return congelar(passos, selo);
+      })
+      .then(function (cong) {
+        CONGELAMENTO = cong;
+        cong.passos.forEach(function (p) { caixa.appendChild(cartao(p, tok)); });
+        ajustarRolagem();
+        return emSerie(cong.passos, function (p) { return estimar(p, dono); }).then(function () { return cong; });
+      })
+      .then(function (cong) {
+        var revertidos = cong.passos.filter(function (p) { return p.reverteu; }).length;
+        var enviaveis = cong.passos.filter(function (p) { return p.podeEnviar; }).length;
+        estadoFluxo("Encoded and frozen. " + cong.passos.length + " calls, each with a fingerprint over " +
+          "{chainId, to, data, value} that is re-checked at the instant you click. " +
+          (revertidos
+            ? revertidos + " would revert against the chain as it is right now, and those cannot be " +
+              "signed here — the reason the contract gave is on each card in its own words."
+            : "None of them reverts in the estimate.") +
+          " " + enviaveis + " can be signed. " +
+          (ORIGEM.ok ? "" : "Signing is off on this origin: " + ORIGEM.motivo));
+      })
+      .catch(function (e) {
+        erroFluxo("Nothing was encoded: " + (e && e.message ? e.message : String(e)));
+      })
+      .finally(function () {
+        ocupadoPassos(false);
+        montando = false;
+        $("c-montar").disabled = false;
+      });
   }
 
   function cartao(p, tok) {
     var el = novo("article", "passo");
-    var hid = "passo-" + p.assinatura.replace(/[^a-zA-Z0-9]/g, "-");
+    var hid = "passo-" + p.assinatura.replace(/[^a-zA-Z0-9]/g, "-") + "-" + p.hash.slice(0, 8);
     el.setAttribute("aria-labelledby", hid);
 
     var cab = novo("div", "cab");
@@ -1024,11 +1489,18 @@
       tb.appendChild(tr);
       return tr;
     }
+    /* TUDO abaixo sai de p.tx, o objeto congelado — nunca dos campos do
+       formulario e nunca de uma remontagem. E a metade visivel da regra 3: se a
+       tela desenhasse dos campos e o clique enviasse do objeto, os dois poderiam
+       divergir sem que nada acusasse. */
     linha("Function, from the compiled artefact", p.assinatura);
-    linha("Four-byte selector", p.dados.slice(0, 10));
-    linha("Target contract", p.alvo);
+    linha("Four-byte selector", p.tx.data.slice(0, 10));
+    linha("Target contract", p.tx.to);
     linha("What that address is", p.alvoNome);
-    if (p.valor !== undefined) linha("Native value attached", comCasas(p.valor, 18) + " POL (the estimate below is for this value)");
+    linha("Chain id these bytes are frozen for", String(p.tx.chainId) + "  (0x" + p.tx.chainId.toString(16) + ")");
+    linha("Native value attached", comCasas(BigInt(p.tx.value), 18) + " POL" +
+      (BigInt(p.tx.value) === 0n ? "  — explicitly zero, never by omission" : ""));
+    linha("Fingerprint of {chainId, to, data, value}, SHA-256", p.hash);
     var trGas = linha("Estimated gas, eth_estimateGas", TRACO);
     var trCusto = linha("What that costs at the current gas price", TRACO);
     t.appendChild(tb);
@@ -1036,26 +1508,13 @@
     p._gas = trGas.lastChild;
     p._custo = trCusto.lastChild;
 
-    /* Os argumentos eram um <div> de texto corrido com \n e quatro espacos de
-       recuo. Um leitor de tela despejava isso como uma frase unica de trezentos
-       caracteres, sem dizer onde acaba um argumento e comeca o proximo.
-       "nome = valor, e aqui esta o que ele significa" e literalmente uma lista de
-       descricao: <dt> o termo, <dd> a definicao. HTML semantico resolvendo o que
-       nao precisava de ARIA nenhuma — NVDA anuncia "lista, 2 itens" e le os pares.
-       Nenhuma cor nova: termo e nota se separam por peso e recuo. */
     if (p.args.length) {
       var dl = novo("dl", "cod args");
       p.args.forEach(function (a) {
-        /* Tipo e nome do parametro sao identificadores da ABI — `address spender`
-           nao vira `endereço gastador`. A classe mono ja carrega translate="no"
-           pela regra deste arquivo, e o valor idem. */
         dl.appendChild(novo("dt", "mono", a.tipo + " " + a.nome));
         var dd = novo("dd", null);
         dd.appendChild(novo("span", "mono", a.valor));
         var n = novo("span", "notaarg", a.nota);
-        /* A nota e prosa, e prosa se traduz. O translate="no" que a <dl> herdou
-           por ser .cod e devolvido aqui, explicitamente, para o unico pedaco do
-           bloco que existe para ser entendido em vez de conferido. */
         n.setAttribute("translate", "yes");
         dd.appendChild(n);
         dl.appendChild(dd);
@@ -1063,60 +1522,93 @@
       el.appendChild(dl);
     }
 
-    /* A calldata. Tres decisoes, e cada uma tem uma medida atras:
-
-       1. <figure> + <figcaption>, e nao role="region" + aria-label. A legenda
-          nomeia o bloco pelo HTML, sem ARIA, e e VISIVEL — quem enxerga tambem
-          ganha o rotulo, que antes so existia para o leitor de tela. E figure nao
-          e landmark: tres blocos de calldata viravam tres landmarks na lista de
-          regioes da pagina, e nenhum deles e uma secao da pagina.
-
-       2. Sem tabindex. O tabindex="0" anterior existia para dar alcance de
-          teclado a um contentor que rola (WCAG 2.1.1) — so que este nao rola:
-          .cod declara white-space:pre-wrap e word-break:break-all, entao o hex
-          quebra de linha e nunca transborda na horizontal. Foco num contentor que
-          nao rola e uma parada de tabulacao que nao faz nada, tres vezes por
-          codificacao.
-
-       3. Os bytes continuam sendo TEXTO, exatos, numa unica linha logica. Nao
-          levam aria-label: um aria-label num elemento com texto SUBSTITUI o texto
-          para a tecnologia assistiva, e nesta pagina isso significaria um usuario
-          cego nao conseguir ler os bytes de jeito nenhum — exatamente o contrario
-          do que a pagina existe para fazer. Tambem nao levam quebra a cada
-          palavra de 32 bytes, porque a quebra entraria no copiar-e-colar e o que
-          se colaria deixaria de ser a calldata exata. Quem le com leitor de tela
-          ouve primeiro a legenda — o que e, quantos argumentos, quantos bytes —
-          e decide dali se entra no hex. Os argumentos ja estao decodificados
-          acima, na <dl>: o significado esta la, o hex e o artefato de conferencia.
-
-       Contagem de bytes: (comprimento do hex - 2) / 2, calculada, nao estimada. */
     var fig = novo("figure", "calldataf");
     var cap = novo("figcaption", null,
       "Calldata as the wallet would receive it — 4-byte selector" +
       (p.args.length ? " plus " + p.args.length + " argument" + (p.args.length === 1 ? "" : "s") : ", no arguments") +
-      ", " + ((p.dados.length - 2) / 2) + " bytes in total");
+      ", " + ((p.tx.data.length - 2) / 2) + " bytes in total");
     fig.appendChild(cap);
     var pre = novo("pre", "cod");
     pre.setAttribute("translate", "no");
-    pre.textContent = p.dados;
+    pre.textContent = p.tx.data;
     fig.appendChild(pre);
     el.appendChild(fig);
 
     el.appendChild(novo("p", "hint", "What it does: " + p.faz));
     el.appendChild(novo("p", "hint", "What it does not do: " + p.naoFaz));
-    el.appendChild(novo("p", "hint",
-      "This page stops here. It has encoded the bytes and estimated the gas; putting them in front of " +
-      "your wallet is the next wave's job, and it opens only after the three security gates are audited " +
-      "on the public URL."));
+
+    /* ------------------------------------------------------ o bloco de envio -- */
+    var envio = novo("div", "envio");
+    var b = novo("button", "act", "Send this to my wallet");
+    b.type = "button";
+    b.setAttribute("data-enviar", "1");
+    b.disabled = true;
+    /* O handler NAO monta nada. Ele chama enviar(p), e enviar(p) le o objeto
+       congelado. O guardiao check-assinatura.mjs le o corpo deste handler e o de
+       enviar() e reprova se qualquer um dos dois construir calldata. */
+    b.addEventListener("click", function () { enviar(p); });
+    p.elBotao = b;
+    envio.appendChild(b);
+
+    var est = novo("p", "hint");
+    est.setAttribute("role", "status");
+    est.setAttribute("aria-live", "polite");
+    p.elEnvioEstado = est;
+    envio.appendChild(est);
+
+    var inval = novo("p", "erro");
+    p.elInvalidado = inval;
+    envio.appendChild(inval);
+
+    var lh = novo("p", "hint mono");
+    p.elHash = lh;
+    envio.appendChild(lh);
+
+    var lr = novo("p", "hint mono");
+    p.elRecibo = lr;
+    envio.appendChild(lr);
+
+    var le = novo("p", "hint");
+    p.elEfeito = le;
+    envio.appendChild(le);
+
+    el.appendChild(envio);
+
+    if (!p.assinavel) txt(p.elInvalidado, p.razaoNaoAssinavel);
     return el;
   }
 
+  /* Decide se o botao acende. Cada recusa escreve o motivo na tela: um botao
+     desabilitado sem explicacao e a pagina culpando o usuario pelo proprio
+     silencio. */
+  function liberarEnvio(p) {
+    var razao = null;
+    if (!p.assinavel) razao = p.razaoNaoAssinavel;
+    else if (!window.ethereum) razao = "No wallet is available in this browser, so there is nothing to send to.";
+    else if (!ORIGEM.ok) razao = "Signing is off on this origin. " + ORIGEM.motivo;
+    else if (p.exigeAllowance && p.permissaoLida === null) {
+      razao = "The standing allowance could not be read from the token, and rule 7 says it must be shown " +
+        "before another one is requested. Read the chain again.";
+    }
+    if (razao) {
+      p.podeEnviar = false;
+      p.elBotao.disabled = true;
+      txt(p.elBotao, "Not available");
+      txt(p.elInvalidado, razao);
+      return;
+    }
+    p.podeEnviar = true;
+    p.elBotao.disabled = false;
+    txt(p.elInvalidado, "");
+  }
+
   function estimar(p, dono) {
-    var tx = { from: dono, to: p.alvo, data: p.dados };
-    if (p.valor !== undefined) tx.value = "0x" + p.valor.toString(16);
+    /* O objeto estimado e o objeto congelado, campo por campo. Estimar uma coisa
+       e enviar outra seria a regra 3 furada num lugar onde ninguem olha. */
+    var tx = { from: p.tx.de, to: p.tx.to, data: p.tx.data, value: p.tx.value };
     return rpc("eth_estimateGas", [tx]).then(function (g) {
       var gas = BigInt(g);
-      p._reverteu = false;
+      p.reverteu = false;
       txt(p._gas, gas.toString() + " gas");
       if (ESTADO.gasPrice === null) {
         txt(p._custo, TRACO + "  (the gas price was not read)");
@@ -1125,17 +1617,212 @@
         txt(p._custo, comCasas(custo, 18) + " POL   at " + comCasas(ESTADO.gasPrice, 9) +
           " gwei on chain " + CHAIN.toString());
       }
+      liberarEnvio(p);
     }).catch(function (e) {
-      p._reverteu = true;
+      p.reverteu = true;
       txt(p._gas, explicarRevert(e));
       txt(p._custo, "no cost, because there is no transaction to price — a call that reverts in the " +
         "estimate would revert on chain and spend gas without doing the thing");
-      /* A borda vermelha do cartao NAO e o unico sinal de que este passo nao
-         passaria: a razao esta escrita na celula acima, em palavras, e a
-         conclusao conta quantos foram. Cor sozinha nunca carrega o fato
-         (WCAG 1.4.1). */
+      /* REGRA 10 · nao se assina o que ja se sabe que falha. O bloqueio e aqui, e
+         e por isso que a estimativa roda ANTES de o botao existir aceso. */
+      p.podeEnviar = false;
+      p.elBotao.disabled = true;
+      txt(p.elBotao, "Blocked — this reverts");
+      txt(p.elInvalidado, "Not offered for signature: the estimate reverts against the chain as it is " +
+        "right now, so signing it would spend gas to arrive at the same refusal. The contract's own " +
+        "reason is in the gas row above.");
       var art = p._gas && p._gas.closest ? p._gas.closest("article") : null;
       if (art) art.className = "passo morto";
     });
   }
+
+  /* ------------------------------------------------------------- o recibo ---- */
+  function esperarRecibo(hash, aoAndar) {
+    var tentativas = 0;
+    var TETO = 60;   /* 60 x 3s ≈ 3 minutos */
+    function passo() {
+      tentativas += 1;
+      return rpc("eth_getTransactionReceipt", [hash]).then(function (r) {
+        if (r) return r;
+        if (tentativas >= TETO) {
+          throw new Error("no receipt after " + TETO + " checks (about three minutes). The transaction " +
+            "WAS sent and its hash is above — it may still be pending. This page stopped watching; it " +
+            "does not conclude anything about a transaction it stopped watching.");
+        }
+        aoAndar(tentativas);
+        return new Promise(function (res) { setTimeout(res, 3000); }).then(passo);
+      });
+    }
+    return passo();
+  }
+
+  /* Recibo com status 1 NAO e prova de efeito, e esta funcao existe por causa
+     disso. Um token que devolve false em vez de reverter produz exatamente isto:
+     recibo de sucesso e estado inalterado. Entao o estado e relido da chain e
+     comparado com o que os bytes pediram. */
+  function conferirEstadoNaChain(p) {
+    var c = p.confirmacao;
+    if (!c) {
+      return Promise.resolve("No on-chain effect check is defined for this step, so nothing is claimed " +
+        "about its effect beyond what the receipt says.");
+    }
+    if (c.tipo === "allowance") {
+      return lerAllowance(c.token, c.dono).then(function (v) {
+        if (v === null) {
+          return "The receipt reports success, but allowance() could not be re-read, so the effect is " +
+            "UNCONFIRMED. That is not the same as confirmed — a receipt with status 1 and no effect is a " +
+            "real outcome on chain, and this page will not call it success on the receipt alone.";
+        }
+        if (v === c.esperado) {
+          return "Confirmed against the chain: allowance(you, Executor) on " + c.simbolo + " now reads " +
+            comCasas(v, c.casas) + ", which is exactly what these bytes asked for. Receipt and state agree.";
+        }
+        return "MISMATCH, and this is the case that proves why the state is re-read: the receipt reports " +
+          "SUCCESS, but allowance(you, Executor) now reads " + comCasas(v, c.casas) + " " + c.simbolo +
+          " and these bytes asked for " + comCasas(c.esperado, c.casas) + " " + c.simbolo + ". A token " +
+          "that returns false instead of reverting produces precisely this. Do not treat this step as done.";
+      });
+    }
+    return Promise.resolve("No on-chain effect check is defined for this step.");
+  }
+
+  /* ================================================================ ENVIO ==== */
+  /* Este corpo NAO constroi calldata. Ele le p.tx, reconfere o hash, reconfere a
+     chain no instante do clique, reconfere a conta, e manda AQUELE objeto. */
+  function enviar(p) {
+    if (ENVIANDO) {
+      txt(p.elEnvioEstado, "Another transaction from this page is already waiting in your wallet.");
+      return;
+    }
+    if (!CONGELAMENTO || p.geracao !== CONGELAMENTO.geracao) {
+      invalidarCongelamento("These bytes are no longer the frozen set, so nothing was sent. Encode again.");
+      txt(p.elEnvioEstado, "Nothing was sent: these bytes are no longer the frozen set.");
+      return;
+    }
+    if (seloAtual() !== CONGELAMENTO.selo) {
+      invalidarCongelamento("The form changed after these bytes were encoded. They were discarded before " +
+        "your wallet was asked for anything. Encode again and read the new bytes.");
+      txt(p.elEnvioEstado, "Nothing was sent: the form changed after these bytes were frozen.");
+      return;
+    }
+    if (!p.podeEnviar) {
+      txt(p.elEnvioEstado, "This step is not available for signature, and nothing was sent.");
+      return;
+    }
+    if (!ORIGEM.ok) {
+      txt(p.elEnvioEstado, "Nothing was sent. Signing is off on this origin. " + ORIGEM.motivo);
+      return;
+    }
+
+    ENVIANDO = true;
+    p.elBotao.disabled = true;
+    txt(p.elEfeito, "");
+    txt(p.elRecibo, "");
+    txt(p.elHash, "");
+    txt(p.elEnvioEstado, "Re-checking the frozen fingerprint and the wallet's chain. Nothing has been " +
+      "sent and your wallet has not been asked for anything yet.");
+
+    var tx = p.tx;
+    /* ACHADO #1 DA MEDUSA, fechado aqui.
+       Antes: hashDaTx(tx) conferia o objeto `tx`, e no envio se construia um
+       LITERAL NOVO a partir dos campos de `tx`. Entre uma coisa e outra ha tres
+       await. A impressao digital provava o que a pagina CONGELOU, nao o que ela
+       ENVIA — e provar isso e a unica razao de ela existir.
+       Agora: a carga e construida UMA vez, aqui, congelada, e e ESTA REFERENCIA
+       que e conferida e que vai para a carteira. Nao ha objeto novo no caminho. */
+    var carga = Object.freeze({ from: tx.de, to: tx.to, data: tx.data, value: tx.value });
+    hashDaCarga(carga, tx.chainId)
+      .then(function (h) {
+        if (h !== p.hash) {
+          throw new Error("REFUSED, and nothing was sent: the transaction object is not the one that was " +
+            "hashed when it was drawn on this screen. Fingerprint at render " + p.hash.slice(0, 16) +
+            "…, fingerprint now " + h.slice(0, 16) + "…. What you read is not what would have been sent.");
+        }
+        /* REGRA 4 · a chain e reconferida AQUI, no clique, e nao na conexao.
+           Entre conectar e clicar cabe uma troca de rede inteira. */
+        return pedirCarteira("eth_chainId");
+      })
+      .then(function (cid) {
+        var n;
+        try { n = BigInt(cid); } catch (e) { throw new Error("the wallet did not answer a usable chain id"); }
+        if (n !== CHAIN) {
+          throw new Error("REFUSED, and nothing was sent: your wallet is on chain " + n.toString() +
+            " and these bytes are frozen for chain " + CHAIN.toString() + ". This page does not ask your " +
+            "wallet to switch — it refuses, and you switch. A page that silently switches your chain is a " +
+            "page that decides where you sign.");
+        }
+        if (BigInt(tx.chainId) !== CHAIN) {
+          throw new Error("REFUSED: the frozen chain id is not " + CHAIN.toString() + ".");
+        }
+        return pedirCarteira("eth_accounts");
+      })
+      .then(function (contas) {
+        var a = contas && contas.length ? String(contas[0]) : "";
+        if (a.toLowerCase() !== String(tx.de).toLowerCase()) {
+          throw new Error("REFUSED, and nothing was sent: your wallet's active account is " +
+            (a || "(none)") + " and these bytes were built for " + tx.de + ". An allowance belongs to the " +
+            "address that grants it, so signing this from another account would grant something else.");
+        }
+        txt(p.elEnvioEstado, "The transaction is in your wallet now. Nothing else happens here until you " +
+          "accept it or reject it — both are fine, and rejecting costs nothing.");
+        /* A MESMA referencia conferida acima. Remontar aqui reabriria a
+           costura que este bloco existe para fechar. */
+        return pedirCarteira("eth_sendTransaction", [carga]);
+      })
+      .then(function (hash) {
+        p.enviada = true;
+        txt(p.elHash, "Transaction hash: " + String(hash));
+        txt(p.elEnvioEstado, "Sent. Waiting for the receipt — this page does not call anything done until " +
+          "the chain answers.");
+        return esperarRecibo(String(hash), function (n) {
+          txt(p.elEnvioEstado, "Sent, waiting for the receipt (" + n + " checks so far). The hash is above.");
+        });
+      })
+      .then(function (rec) {
+        var ok = rec.status === "0x1";
+        txt(p.elRecibo, "Receipt: status " + String(rec.status) + (ok ? " (success)" : " (FAILED on chain)") +
+          " · block " + (rec.blockNumber ? BigInt(rec.blockNumber).toString() : TRACO) +
+          " · gas used " + (rec.gasUsed ? BigInt(rec.gasUsed).toString() : TRACO));
+        if (!ok) {
+          txt(p.elEnvioEstado, "The transaction was mined and FAILED on chain. Gas was spent and nothing " +
+            "was changed. That is the chain's answer, not this page's reading of it.");
+          return null;
+        }
+        txt(p.elEnvioEstado, "Mined. Re-reading the state it was supposed to change — a receipt is not " +
+          "proof of effect.");
+        return conferirEstadoNaChain(p).then(function (frase) {
+          txt(p.elEfeito, frase);
+          txt(p.elEnvioEstado, "Done. The receipt and the re-read state are both above; read them " +
+            "together, because only the second one is about the effect.");
+        });
+      })
+      .catch(function (e) {
+        /* Rejeicao na carteira e RESULTADO, nao falha. 4001 e o codigo do
+           EIP-1193; a mensagem so entra como reserva porque texto de carteira
+           varia e codigo nao. */
+        var recusou = e && (e.code === 4001 || e.code === "ACTION_REJECTED");
+        if (recusou) {
+          txt(p.elEnvioEstado, "You declined it in your wallet. Nothing was sent, nothing was approved, " +
+            "and no gas was spent. That is a result and not a failure — the bytes above are unchanged " +
+            "and still frozen, and the button is live again if you would rather read them a while longer.");
+        } else {
+          txt(p.elEnvioEstado, "Stopped: " + (e && e.message ? e.message : String(e)));
+        }
+      })
+      .finally(function () {
+        ENVIANDO = false;
+        if (p.podeEnviar && !p.enviada && CONGELAMENTO && p.geracao === CONGELAMENTO.geracao) {
+          p.elBotao.disabled = false;
+        } else if (p.enviada) {
+          txt(p.elBotao, "Already sent — encode again to act on the new state");
+        }
+      });
+  }
+
+  /* A origem e conferida na carga, e o resultado aparece na tela antes de
+     qualquer botao existir. Falha fechada: enquanto nao responder, ORIGEM.ok e
+     false e nenhum passo libera envio. */
+  conferirOrigem().then(function (o) {
+    txt($("c-origem"), (o.ok ? "Signing is enabled on this origin: " : "Signing is OFF on this origin. ") + o.motivo);
+  });
 })();

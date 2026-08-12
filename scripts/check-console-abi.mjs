@@ -16,9 +16,10 @@
  *   3. Zero seletor de 4 bytes digitado a mao no console — todos vem da tabela.
  *   4. Zero endereco de 40 hex no console (HTML e JS). Endereco vem do
  *      livro-razao /enderecos.js, ou e derivado de uma leitura da chain.
- *   5. A trava de metodo de carteira continua sendo somente-leitura. Enquanto a
- *      onda de assinatura nao abrir, um metodo de escrita no console e a
- *      violacao do veto — e ela para aqui, nao na revisao.
+ *   5. A trava de metodo de carteira e uma ALLOWLIST fechada. Ate 2026-08-12 ela
+ *      tinha tres entradas, todas de leitura; hoje tem quatro, e a quarta e
+ *      eth_sendTransaction, aberta por autorizacao humana nominal do fundador.
+ *      Um quinto metodo reprova aqui. Assinatura de mensagem continua vetada.
  *
  * Uma observacao sobre o item 5, aprendida a duras penas nesta casa: a contagem
  * e feita no JAVASCRIPT, nunca no HTML. O HTML diz, em prosa, que a pagina nao
@@ -116,16 +117,29 @@ for (const [nome, texto] of [["console.js", js], ["console/index.html", html]])
     falhar(`${nome} contem o endereco ${m[0]} escrito a mao — use /enderecos.js`);
 
 /* ---------------------------------------------------------------- item 5 -- */
-const PERMITIDO_CARTEIRA = ["eth_accounts", "eth_requestAccounts", "eth_chainId"];
+/* 2026-08-12: a lista de carteira cresceu em EXATAMENTE UM, sob autorizacao humana
+   nominal do fundador. eth_sendTransaction entra; nenhum metodo de ASSINATURA DE
+   MENSAGEM entra, nem agora nem por engano — a estrutura em console.js e uma
+   allowlist, entao o que nao esta aqui LANCA sem precisar ser proibido por nome.
+   A trava fina de assinatura mora em scripts/check-assinatura.mjs. */
+const PERMITIDO_CARTEIRA = ["eth_accounts", "eth_requestAccounts", "eth_chainId", "eth_sendTransaction"];
 const PERMITIDO_RPC = [
   "eth_call", "eth_chainId", "eth_getCode", "eth_getLogs",
   "eth_blockNumber", "eth_gasPrice", "eth_estimateGas", "eth_getBalance",
+  "eth_getTransactionReceipt",
 ];
 
+/* Os comentarios sao removidos ANTES de partir as chaves, e isto conserta um
+   alarme falso real: um comentario de bloco dentro do literal carrega virgula e
+   dois-pontos, entao o split produzia uma "chave" que nenhuma linguagem
+   reconhece e o guardiao reprovava um arquivo correto. Guardiao que grita sem
+   motivo e guardiao que ensina a ignorar guardiao — e o proximo grito, o
+   verdadeiro, tambem sera ignorado. */
 function chavesDe(nomeVar) {
   const m = js.match(new RegExp(`var\\s+${nomeVar}\\s*=\\s*\\{([^}]*)\\}`));
   if (!m) return null;
-  return m[1].split(",").map((p) => p.split(":")[0].trim().replace(/^["']|["']$/g, "")).filter(Boolean);
+  const semComentario = m[1].replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+  return semComentario.split(",").map((p) => p.split(":")[0].trim().replace(/^["']|["']$/g, "")).filter(Boolean);
 }
 
 const carteira = chavesDe("CARTEIRA_PERMITIDO");
@@ -134,6 +148,8 @@ else {
   for (const k of carteira)
     if (!PERMITIDO_CARTEIRA.includes(k))
       falhar(`console.js permite "${k}" na carteira — fora da lista somente-leitura ${PERMITIDO_CARTEIRA.join(" / ")}`);
+  if (carteira.length !== PERMITIDO_CARTEIRA.length)
+    falhar(`console.js declara ${carteira.length} metodos de carteira e a allowlist autorizada tem ${PERMITIDO_CARTEIRA.length}`);
   notas.push(`carteira travada em ${carteira.join(" · ")}`);
 }
 
@@ -145,10 +161,16 @@ else {
   notas.push(`RPC travado em ${rpcs.length} metodos de leitura`);
 }
 
-/* A varredura textual, SO no JavaScript executavel. */
-for (const proibido of ["eth_sendTransaction", "eth_signTypedData", "personal_sign", "eth_sendRawTransaction", "wallet_"]) {
+/* A varredura textual, SO no JavaScript executavel.
+   eth_sendTransaction SAIU desta lista em 2026-08-12: ele agora e legitimo e
+   aparece no arquivo por autorizacao nominal. Quem cobra a forma correta do
+   disparo — congelamento, hash reconferido, chain no clique — e
+   scripts/check-assinatura.mjs. Aqui ficam os que continuam proibidos, e o
+   grupo tem um traco em comum: TODOS produzem uma autorizacao off-chain, que nao
+   custa gas, nao aparece na chain, e so se manifesta quando ja foi usada. */
+for (const proibido of ["eth_signTypedData", "personal_sign", "eth_sendRawTransaction", "wallet_"]) {
   const n = (js.match(new RegExp(proibido, "g")) || []).length;
-  if (n) falhar(`console.js menciona ${proibido} ${n}x — o veto desta onda proibe o disparo, inclusive escrito`);
+  if (n) falhar(`console.js menciona ${proibido} ${n}x — assinatura de mensagem continua vetada, inclusive escrita`);
 }
 /* eth_sign e prefixo de eth_signTypedData; contado com fronteira para nao
    duplicar o achado acima nem inventar um. */
@@ -167,5 +189,5 @@ if (falhas.length) {
   for (const f of falhas) console.error("  " + f);
   process.exit(1);
 }
-console.log("✓ console: assinaturas conferidas contra o ABI compilado · zero seletor e zero endereco a mao · carteira somente-leitura");
+console.log("✓ console: assinaturas conferidas contra o ABI compilado · zero seletor e zero endereco a mao · carteira na allowlist de 4");
 for (const n of notas) console.log("  " + n);

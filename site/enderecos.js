@@ -40,6 +40,13 @@
    * Contratos vivos na chain, criados por runs de deploy que falharam depois.
    * Saldo zero nos tres.
    *
+   * NAO CONFUNDA `saldo: 'zero'` COM "sem codigo". Todos os quatro TEM codigo
+   * na chain agora. O do LPVault e GEMEO BYTE-EXATO do oficial: os dois tem 7954
+   * bytes e o mesmo sha256 de runtime (601a48c28fe0c44f...). Ele aceita deposito
+   * e cunha posicao que o Executor oficial NUNCA vai ler. Um rotulo anterior aqui
+   * dizia `estado: 'VAZIO'`, e quem lesse concluiria "inofensivo" — por isso os
+   * dois fatos agora sao campos separados, saldo e codigo.
+   *
    * O PERIGO NAO E O SALDO — e que os dois Registries orfaos tem estado
    * BYTE-IDENTICO ao verdadeiro: mesmo owner, mesmo pendingOwner, feeBps 0,
    * treasury 0x0. NAO HA COMO DISTINGUIR O CERTO DO ERRADO CONSULTANDO ESTADO.
@@ -51,16 +58,16 @@
    * codigo. Verificado, nao presumido.
    */
   var ORFAOS = [
-    { endereco: '0x43DB0d57441Ee1F791989ED0EeC2C12eC76A2196', nonce: 1674, tipo: 'ParameterRegistry', estado: 'VAZIO' },
-    { endereco: '0x41CbCd2C0C3564fBFA130C614d2c1F58dE8113D1', nonce: 1675, tipo: 'ParameterRegistry', estado: 'VAZIO' },
-    { endereco: '0x9ABa958EaC3649925378EfC7a7DBc573116E5d31', nonce: 1676, tipo: 'GasTank',           estado: 'VAZIO' },
+    { endereco: '0x43DB0d57441Ee1F791989ED0EeC2C12eC76A2196', nonce: 1674, tipo: 'ParameterRegistry', saldo: 'zero', codigo: 2511 },
+    { endereco: '0x41CbCd2C0C3564fBFA130C614d2c1F58dE8113D1', nonce: 1675, tipo: 'ParameterRegistry', saldo: 'zero', codigo: 2511 },
+    { endereco: '0x9ABa958EaC3649925378EfC7a7DBc573116E5d31', nonce: 1676, tipo: 'GasTank',           saldo: 'zero', codigo: 777 },
     // 2026-08-12: o mesmo padrao outra vez, agora no LPVault. O deploy rodou
     // DUAS vezes (nonces 1686 e 1687) e os dois contratos sao gemeos funcionais
     // — mesmo registry, mesmo positionManager, mesmo MAX_FEE_BPS. So o
     // broadcast/run-latest distingue: ele registra 0xC52BaD28 como o oficial.
     // Aconteceu porque ninguem conferiu se o deploy ja havia rodado antes de
     // rodar de novo. Fica escrito para nao virar folclore.
-    { endereco: '0xd224f7cE6f96c3D26737bD442B20F4f44992c440', nonce: 1686, tipo: 'TriviuLPVault',    estado: 'VAZIO' }
+    { endereco: '0xd224f7cE6f96c3D26737bD442B20F4f44992c440', nonce: 1686, tipo: 'TriviuLPVault',    saldo: 'zero', codigo: 7954, gemeoByteExato: true }
   ];
 
   /* -------------------------------------------------------------- CUSTODIA --

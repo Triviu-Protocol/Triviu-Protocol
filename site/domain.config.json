@@ -2,7 +2,7 @@
   "_note": "SINGLE SOURCE OF TRUTH for the Triviu public domain. To change the domain: edit `domain` below, then run `node scripts/set-domain.mjs --apply` from the repo root. Never find-and-replace a domain by hand. The GitBook whitepaper host (triviu-protocol.gitbook.io) is a different service and is intentionally NOT touched by the script.",
   "domain": "triviu.vercel.app",
   "knownHosts": [
-    "triviu.vercel.app",
-    "triviu-protocol.vercel.app"
-  ]
+    "triviu.vercel.app"
+  ],
+  "_f2": "triviu-protocol.vercel.app saiu de knownHosts em 2026-08-12 e passou a devolver 308 para o canonico. Duas origens servindo a mesma pagina ensinam o usuario que dois hostnames sao legitimos, e isso destroi a unica defesa que ele tem contra phishing: uma origem memorizada. Toleravel em leitura; nao toleravel numa pagina que pede assinatura."
 }

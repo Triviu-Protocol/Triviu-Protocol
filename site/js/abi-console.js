@@ -605,6 +605,14 @@
         }
       }
     },
+    "erc20Allowance": {
+      "origem": "nucleo EIP-20 · ausente do IERC20 minimo deste repositorio · seletor conferido ao vivo contra 3 tokens liberados em 2026-08-12 (responderam 0, nao reverteram)",
+      "funcoes": {
+        "allowance(address,address)": {
+          "seletor": "0xdd62ed3e"
+        }
+      }
+    },
     "lpVault": {
       "origem": "sem fonte neste repositorio · assinatura medida ao vivo contra o contrato implantado em 2026-08-12",
       "funcoes": {

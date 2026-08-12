@@ -142,6 +142,22 @@ const EXTRAS = {
     origem: "EIP-20 metadata (opcional na norma; ausente do IERC20 que o Executor declara)",
     assinaturas: ["symbol()", "decimals()"],
   },
+  /* allowance NAO e metadata opcional: e nucleo do EIP-20. Ela esta aqui, e nao
+     em `erc20`, porque o IERC20 minimo que o TriviuExecutor declara lista apenas
+     approve/balanceOf/transfer/transferFrom — o artefato deste repositorio nao a
+     tem, entao ela nao pode sair de contracts/out.
+     A regra 7 do Tubarao-branco exige LER e MOSTRAR a aprovacao existente antes
+     de pedir outra, e sem esta assinatura a tela nao teria como. O seletor
+     continua calculado pelo keccak conferido, nunca digitado, e foi conferido AO
+     VIVO em 2026-08-12 contra os tres primeiros tokens liberados
+     (0x2791bca1…, 0x3c499c54…, 0xc2132d05…): a chamada RESPONDEU 0 nos tres, ou
+     seja a funcao existe e devolve valor — nao reverteu como reverte um seletor
+     que o contrato nao implementa. Cicatriz MV-1 honrada: nome na tela nao prova
+     nada, a resposta do contrato prova. */
+  erc20Allowance: {
+    origem: "nucleo EIP-20 · ausente do IERC20 minimo deste repositorio · seletor conferido ao vivo contra 3 tokens liberados em 2026-08-12 (responderam 0, nao reverteram)",
+    assinaturas: ["allowance(address,address)"],
+  },
   lpVault: {
     origem: "sem fonte neste repositorio · assinatura medida ao vivo contra o contrato implantado em 2026-08-12",
     assinaturas: ["positionManager()"],
