@@ -74,6 +74,25 @@ const falhas = [];
 const notas = [];
 const falhar = (m) => falhas.push(m);
 
+/* O que EXECUTA numa tela de assinatura nao e mais um arquivo so. Desde
+   2026-08-13 as primitivas moram em /js/motor.js e as telas as consomem — uma
+   definicao, varios consumidores, que e o conserto estrutural do F-1 (duas
+   copias de cargaDaTx que se separaram e deixaram a pagina recusando 100% dos
+   envios com cinco guardioes verdes).
+
+   Um guardiao que lesse so o arquivo da tela diria "nao define cargaDaTx" e
+   estaria certo sobre o arquivo e errado sobre a PAGINA. Ele confere o que roda,
+   entao le a uniao — e o motor entra UMA vez, porque duas entradas iguais
+   inventariam uma segunda definicao que nao existe. */
+let MOTOR_SRC = null;
+function fonteExecutavel(rel) {
+  const proprio = readFileSync(join(SITE, rel), "utf8");
+  if (rel === "js/motor.js") return proprio;
+  if (MOTOR_SRC === null) MOTOR_SRC = readFileSync(join(SITE, "js/motor.js"), "utf8");
+  return MOTOR_SRC + "\n" + proprio;
+}
+
+
 /* Remove comentarios e strings para as checagens ESTRUTURAIS. Sem isto, uma
    frase em prosa dentro de um comentario vira "codigo" e o guardiao reprova o
    arquivo por causa de uma explicacao — o falso alarme classico desta casa. */
@@ -121,7 +140,7 @@ const PADROES_MAX = [
 function conferir(rel) {
   let js;
   try {
-    js = readFileSync(join(SITE, rel), "utf8");
+    js = fonteExecutavel(rel);
   } catch {
     falhar(`${rel} ausente — a lista de assinantes nomeia um arquivo que nao existe`);
     return;
@@ -370,7 +389,7 @@ const TX_SINTETICA = {
 
 async function provarCongelamento(rel) {
   let js;
-  try { js = readFileSync(join(SITE, rel), "utf8"); } catch { return; }
+  try { js = fonteExecutavel(rel); } catch { return; }
   const CODIGO = semComentarios(js);
   const fs_ = todasFuncoes(CODIGO);
   const dizer = (m) => falhar(`${rel}: [congelamento] ${m}`);
@@ -515,7 +534,7 @@ function carregarAbi() {
 
 function provarRegra6(rel) {
   let js;
-  try { js = readFileSync(join(SITE, rel), "utf8"); } catch { return; }
+  try { js = fonteExecutavel(rel); } catch { return; }
   const CODIGO = semComentarios(js);
   const dizer = (m) => falhar(`${rel}: [regra 6] ${m}`);
   const fs_ = todasFuncoes(CODIGO);
@@ -676,7 +695,7 @@ for (const rel of ASSINANTES) provarRegra6(rel);
  *  100% dos envios. Nao se repete.
  * ========================================================================== */
 function regra11(rel) {
-  const src = readFileSync(join(SITE, rel), "utf8");
+  const src = fonteExecutavel(rel);
   const onde = `${rel} · regra 11`;
   const limpo = semComentarios(src);
 

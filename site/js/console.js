@@ -166,22 +166,35 @@
   var call = function (to, data) { return rpc("eth_call", [{ to: to, data: data }, "latest"]); };
 
   /* ================================================================= ABI ==== */
+  /* ------------------------------------------------------------- o motor ---
+     As primitivas de assinatura moram em /js/motor.js e este arquivo as
+     CONSOME. A tela irma (console-lp.js) consome as MESMAS. Enquanto cada uma
+     carregava a sua copia, duas canonicalizacoes do mesmo objeto podiam
+     divergir sem que nada acusasse — e divergiram, e a pagina passou a recusar
+     100% dos envios com os cinco guardioes verdes por cima. Esse e o F-1.
+
+     Este arquivo liga 10 nomes, nao 11: palInt nunca existiu aqui, porque nao
+     ha tick int24 nesta tela. Ligar o que este arquivo nao usava seria alargar
+     a superficie por simetria, e simetria nao e razao. */
+  var MOTOR = window.TRIVIU_MOTOR;
+  if (!MOTOR) throw new Error("TRIVIU_MOTOR nao carregou: /js/motor.js precisa vir antes de /js/console.js");
+  var sig = MOTOR.sig, pal = MOTOR.pal, palNum = MOTOR.palNum, palavra = MOTOR.palavra,
+      cargaDaTx = MOTOR.cargaDaTx, hashDaCarga = MOTOR.hashDaCarga, hashCanon = MOTOR.hashCanon,
+      conferirTelaContraCalldata = MOTOR.conferirTelaContraCalldata,
+      recusarAprovacaoInfinita = MOTOR.recusarAprovacaoInfinita,
+      CODIFICADOR_POR_TIPO = MOTOR.CODIFICADOR_POR_TIPO;
+
   var ABI = window.TRIVIU_ABI;
   var LIVRO = window.TRIVIU_ENDERECOS;
 
   /** Seletor de 4 bytes de uma assinatura, vindo da tabela gerada de contracts/out.
       Lanca se a assinatura nao existir — que e o ponto do arquivo inteiro. */
-  function sig(papel, assinatura) {
-    var g = (ABI.contratos && ABI.contratos[papel]) || (ABI.extras && ABI.extras[papel]);
-    var f = g && g.funcoes && g.funcoes[assinatura];
-    if (!f) throw new Error("no such signature in the compiled ABI: " + papel + "." + assinatura);
-    return f.seletor;
-  }
+
 
   /* ---------------------------------------------------------------- codec -- */
-  function pal(hex) { return String(hex).replace(/^0x/, "").toLowerCase().padStart(64, "0"); }
-  function palNum(v) { return BigInt(v).toString(16).padStart(64, "0"); }
-  function palavra(hex, i) { var x = String(hex).replace(/^0x/, ""); return x.slice(i * 64, (i + 1) * 64); }
+
+
+
   function paraEndereco(w) { return "0x" + w.slice(24); }
   function u(w) { return BigInt("0x" + w); }
   var END = /^0x[0-9a-fA-F]{40}$/;
@@ -247,32 +260,11 @@
       clique reconfere e que a carteira recebe. Existir num unico lugar e o que
       impede que dois literais equivalentes se separem — foi assim que o defeito
       acima entrou, com um literal de cada lado do arquivo. */
-  function cargaDaTx(tx) {
-    return Object.freeze({ from: tx.de, to: tx.to, data: tx.data, value: tx.value });
-  }
 
-  function hashDaCarga(carga, chainId) {
-    return hashCanon(
-      "chainId=" + String(chainId) +
-      "|from=" + String(carga.from).toLowerCase() +
-      "|to=" + String(carga.to).toLowerCase() +
-      "|data=" + String(carga.data).toLowerCase() +
-      "|value=" + String(carga.value).toLowerCase());
-  }
 
-  function hashCanon(canon) {
-    if (!window.crypto || !window.crypto.subtle) {
-      return Promise.reject(new Error(
-        "this browser exposes no crypto.subtle on this origin, so the transaction cannot be frozen " +
-        "and hashed. Nothing is offered for signature without that freeze — the freeze is the only " +
-        "thing tying what you read to what you send."));
-    }
-    return window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(canon)).then(function (buf) {
-      var a = new Uint8Array(buf), out = "";
-      for (var i = 0; i < a.length; i++) out += a[i].toString(16).padStart(2, "0");
-      return out;
-    });
-  }
+
+
+
 
   /* ------------------------------------------- REGRA 6 · sobre os BYTES ----
      Nao "o codigo aprova o valor exato" — isso e uma afirmacao sobre intencao, e
@@ -323,25 +315,7 @@
     return ok ? fora : null;
   }
 
-  function recusarAprovacaoInfinita(dados, papel, assinatura) {
-    var corpo = String(dados).replace(/^0x/, "").slice(8);
-    var n = Math.floor(corpo.length / 64);
-    var tipos = tiposPorPalavra(papel, assinatura);
-    var confiavel = !!tipos && tipos.length === n;
-    for (var i = 0; i < n; i++) {
-      if (!/^f{64}$/i.test(corpo.slice(i * 64, (i + 1) * 64))) continue;
-      if (confiavel && /^int\d+$/.test(tipos[i])) continue;   /* -1 em complemento de dois */
-      throw new Error(
-        "refused to build this call: word " + (i + 1) + " of its calldata is all-ones (2^256-1), and " +
-        (confiavel
-          ? "the compiled artefact declares that argument as " + tipos[i] + ", which is unsigned — so " +
-            "that word is the unlimited approval and not a negative number."
-          : "the argument types could not be matched word for word against the compiled artefact, so " +
-            "every word is treated as unsigned.") +
-        " This page approves an exact amount or it approves nothing.");
-    }
-    return dados;
-  }
+
 
   /** Decodifica os bytes de uma reversao pelo seletor de 4 bytes. Se o seletor
       nao estiver na tabela, devolve null — e a tela mostra o hex cru, que e a
@@ -1483,74 +1457,9 @@
      O QUE ELA NAO PROVA: usa os mesmos codificadores que montaram a calldata.
      Defeito dentro de um codificador erra os dois lados igual e fica verde. Ela
      liga tela<->calldata; nao afere codificador. */
-  var CODIFICADOR_POR_TIPO = {
-    address: function (v) {
-      if (!END.test(String(v))) throw new Error("o valor exibido nao e um endereco: " + v);
-      return pal(v);
-    },
-    uint8: palNum, uint16: palNum, uint24: palNum, uint32: palNum,
-    uint64: palNum, uint128: palNum, uint256: palNum,
-    bool: function (v) { return palNum(v ? 1 : 0); }
-  };
 
-  function conferirTelaContraCalldata(p) {
-    var nome = p.assinatura || "(passo sem assinatura)";
-    var dados = String(p.dados == null ? "" : p.dados).replace(/^0x/, "").toLowerCase();
-    if (!/^[0-9a-f]*$/.test(dados)) throw new Error(nome + ": a calldata tem caractere fora do hexadecimal");
-    if (dados.length < 8) throw new Error(nome + ": a calldata nao tem nem os 4 bytes do seletor");
 
-    /* O seletor sai OUTRA VEZ da assinatura que o cartao imprime, e nao do que
-       ja esta na calldata. Cartao dizendo uma funcao e bytes chamando outra e
-       exatamente o ataque que isto fecha. */
-    var esperadoSel = String(sig(p.papel, p.assinatura)).replace(/^0x/, "").toLowerCase();
-    if (dados.slice(0, 8) !== esperadoSel) {
-      throw new Error(nome + ": o cartao imprime esta funcao e a calldata leva o seletor 0x" +
-        dados.slice(0, 8) + ", que e de outra");
-    }
 
-    var corpo = dados.slice(8);
-    if (corpo.length % 64 !== 0) {
-      throw new Error(nome + ": os argumentos nao fecham em palavras de 32 bytes (" +
-        (corpo.length / 2) + " bytes)");
-    }
-    var palavras = corpo.length / 64;
-    var args = p.args || [];
-    var ligadas = 0;
-    var soltas = [];
-
-    for (var i = 0; i < args.length; i++) {
-      var a = args[i];
-      var cod = CODIFICADOR_POR_TIPO[a.tipo];
-      if (!cod) { soltas.push(a.tipo + " " + a.nome); continue; }
-      if (i >= palavras) {
-        throw new Error(nome + ": o cartao imprime " + args.length +
-          " argumentos e a calldata so tem " + palavras + " palavras");
-      }
-      var esperada;
-      try { esperada = String(cod(a.valor)).toLowerCase(); }
-      catch (e) {
-        throw new Error(nome + ": o valor exibido de `" + a.nome + "` nao codifica como " +
-          a.tipo + " — " + (e && e.message ? e.message : String(e)));
-      }
-      var vinda = corpo.slice(i * 64, (i + 1) * 64);
-      if (esperada !== vinda) {
-        throw new Error(nome + ": o cartao imprime `" + a.nome + " = " + a.valor +
-          "`, que codifica " + esperada + ", e a calldata leva " + vinda + " nessa posicao");
-      }
-      ligadas += 1;
-    }
-
-    /* Sobra e tao grave quanto diferenca: bytes indo para a carteira que a tela
-       nunca imprimiu. So da para exigir contagem exata quando TODO argumento e
-       de tipo estatico. `executeCycle` tem `tuple[]`, entao nesta tela a
-       exigencia de contagem nao se aplica ao passo dele — e o cartao diz isso. */
-    if (soltas.length === 0 && palavras !== args.length) {
-      throw new Error(nome + ": a calldata leva " + palavras + " palavras e o cartao mostra " +
-        args.length + " — ha bytes indo para a carteira que a tela nao imprime");
-    }
-
-    return { ligadas: ligadas, palavras: palavras, soltas: soltas };
-  }
 
   /* Congela: a carga de cada passo nasce AQUI, congelada, a impressao digital
      sai DELA, geracao nova, selo das entradas. Depois disto nada e recalculado e
