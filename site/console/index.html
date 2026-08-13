@@ -1147,20 +1147,23 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       not what is on the chain.</p></div>
 
     <div class="falta">
-      <h2 class="hsec">The two contracts this screen needs are not deployed</h2>
+      <h2 class="hsec">Both contracts are deployed. This screen does not read them yet</h2>
       <p class="small">You reach a vault of your own through <span class="mono">TriviuRegistry</span>,
       which calls <span class="mono">TriviuFactory</span>, which mints the clone in your name and steps
-      away. A scan of the deployer's nonce window 1682 to 1692 on chain 137 found only the two LP vaults:
-      <b>neither the registry nor the factory has code at any address this page could point at</b>.</p>
+      away. Until 2026-08-13 this paragraph said neither had code on any chain. <b>That stopped being
+      true on block 91947477</b>, and the sentence stayed up for as long as it took someone to come
+      back and check — which is the failure this page exists to refuse, committed by this page.</p>
       <dl>
         <dt>needs</dt><dd><span class="mono" translate="no">TriviuRegistry</span> · <span class="mono" translate="no">TriviuFactory</span> · <span class="mono" translate="no">TriviuVault</span></dd>
-        <dt>state</dt><dd>written and audited; on no chain</dd>
-        <dt>blocked by</dt><dd>a deploy that has not happened, being worked on by another crew</dd>
+        <dt>where</dt><dd>both addresses live in <span class="mono" translate="no">/enderecos.js</span>, the ledger this console reads — they are deliberately not typed into this page, because an address written by hand here is exactly how the sentence above went stale</dd>
+        <dt>state</dt><dd>deployed on chain 137 and wired to each other: <span class="mono">registro.fabrica()</span> answers with the factory, <span class="mono">fabrica.registro()</span> answers with the registry, and the factory reverts <span class="mono">NaoEOregistro</span> to every other caller</dd>
+        <dt>blocked by</dt><dd>this console, not the chain — the served ABI carries no group for either contract, so nothing here can call them yet</dd>
         <dt>not this</dt><dd>not disabled, not &ldquo;coming soon&rdquo;, and above all not simulated</dd>
       </dl>
-      <p class="small" style="margin-top:var(--s4)">There is no form here on purpose. A control that
-      appears to work and does not is the same lie as a placeholder number — it is just told with a
-      click.</p>
+      <p class="small" style="margin-top:var(--s4)">There is still no form here, and the reason changed.
+      It is no longer that the contracts are missing — it is that this screen has not been wired to them,
+      and a control that appears to work and does not is the same lie as a placeholder number, just told
+      with a click.</p>
     </div>
 
     <div class="panel" style="margin-top:var(--s4)">
