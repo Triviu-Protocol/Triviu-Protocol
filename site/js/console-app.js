@@ -834,8 +834,26 @@
 
   ajustarTabelasRolantes();
 
+  /* A tela de abertura e a que OPERA, nao a que resume.
+
+     Ate 2026-08-13 o console abria em "over". O fundador testou e reportou que
+     "nao se conecta com a carteira e nem chama para fazer as assinaturas" — e
+     estava certo pelo motivo que ninguem tinha medido: nada estava quebrado.
+     Ele caia no resumo, e das 14 telas do trilho 13 dizem "waiting". A unica
+     que abre carteira, `lp`, e a SEXTA da lista, cercada de telas que anunciam
+     que nao fazem nada. Uma pessoa que abre isso conclui que o produto nao
+     funciona, e conclui certo a partir do que lhe foi mostrado.
+
+     Medido no navegador antes de mexer aqui: com `p-lp` escondida o botao
+     `lp-conectar` existia, nao estava desabilitado e tinha largura ZERO
+     (offsetParent null). Clicar em "Provide liquidity" no trilho punha a tela
+     em `block` e o botao em 136px. O caminho existia; ninguem era levado nele.
+
+     O `#hash` continua mandando quando vem escrito, entao link para qualquer
+     tela segue valendo. O que muda e o default: quem chega sem pedir tela
+     nenhuma cai onde da para agir. */
   var inicial = (window.location.hash || "").replace(/^#/, "");
-  irPara(TELAS.indexOf(inicial) >= 0 ? inicial : "over", false, false);
+  irPara(TELAS.indexOf(inicial) >= 0 ? inicial : "lp", false, false);
 
   window.addEventListener("hashchange", function () {
     var h = (window.location.hash || "").replace(/^#/, "");
