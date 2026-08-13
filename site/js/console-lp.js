@@ -1705,6 +1705,63 @@
 
 
 
+
+  /* ------------------------------------------------------- automacao (canon) --
+     O console e uma automacao: conectar tem de bastar. Ate 2026-08-13 a tela de
+     LP abria com 12 campos VAZIOS — entre eles os dois ticks crus da Uniswap e
+     os dois enderecos de token — e os dois unicos campos que o usuario deveria
+     preencher, `lpSize` e `lpBand`, eram lidos so para desenhar um rotulo:
+     apareciam ZERO vezes neste arquivo, o motor que assina. Eram decorativos.
+
+     O que entra aqui preenche o que JA e canon, e mostra o numero escolhido ao
+     lado — automacao que esconde o valor vira caixa-preta, e esta pagina existe
+     para mostrar o byte antes da assinatura. */
+
+  /** Largura de banda em TICKS, a partir de uma banda em fracao (0.05 = +-5%).
+
+      tick = ln(P) / ln(1.0001), e a largura arredonda para FORA ate o proximo
+      multiplo do espacamento. Para fora, nao para dentro: arredondar para dentro
+      entrega uma banda MENOR que a pedida, e uma posicao mais estreita do que a
+      pessoa escolheu sai de range antes do que ela espera. Mais larga erra a
+      favor de quem assina.
+
+      Conferido: banda 0.05 com espacamento 60 da 540 ticks, e 1.0001^540 =
+      1.05548 — 5,55%, a folga do arredondamento, declarada e nao escondida. */
+  function larguraDaBanda(banda, espacamento) {
+    var b = Number(banda), e = Number(espacamento);
+    if (!(b > 0) || !(e > 0)) return null;
+    var ticks = Math.log(1 + b) / Math.log(1.0001);
+    return Math.ceil(ticks / e) * e;
+  }
+
+  /** O espacamento de tick que cada faixa de taxa da Uniswap V3 impoe. Nao e
+      escolha nossa: e do protocolo, e uma faixa fora desta tabela nao tem pool. */
+  var ESPACAMENTO_POR_FAIXA = { 100: 1, 500: 10, 3000: 60, 10000: 200 };
+
+  /** Preenche o que ja e canon. Nao toca no que exige leitura de pool. */
+  function preencherPadroesDoCanon() {
+    var faixa = $("lp-faixa") && $("lp-faixa").value;
+    var esp = ESPACAMENTO_POR_FAIXA[faixa];
+    var bandaEl = $("lpBand");
+    var largura = bandaEl && esp ? larguraDaBanda(parseFloat(bandaEl.value), esp) : null;
+
+    /* O teto de taxa: o canon e 3000 bps e o contrato crava 5000 como maximo no
+       proprio bytecode. Preencher com o canon, nao com o maximo. */
+    var teto = $("lp-teto");
+    if (teto && !teto.value) teto.value = "3000";
+
+    var eco = $("lp-banda-eco");
+    if (eco) {
+      txt(eco, largura
+        ? "±" + (parseFloat(bandaEl.value) * 100).toFixed(2) + "% pedidos → ±" + largura +
+          " ticks (espaçamento " + esp + " da faixa " + faixa + "), que são ±" +
+          ((Math.pow(1.0001, largura) - 1) * 100).toFixed(2) + "% de fato. " +
+          "O arredondamento vai para fora: a banda entregue nunca é menor que a pedida."
+        : "");
+    }
+    return { largura: largura, espacamento: esp };
+  }
+
   /* REGRA 8 · o value entra AQUI, explicito, em todo passo. Nao existe caminho
      neste arquivo em que uma transacao seja montada sem value: o campo e escrito
      na mesma linha em que o objeto nasce. Nenhuma das funcoes desta pagina e
@@ -2472,5 +2529,20 @@
      false e nenhum passo libera envio. */
   conferirOrigem().then(function (o) {
     txt($("lp-origem"), (o.ok ? "Signing is enabled on this origin: " : "Signing is OFF on this origin. ") + o.motivo);
+  });
+
+  /* A automacao liga aqui. `lpSize` e `lpBand` deixavam de existir depois de
+     desenhar um rotulo — eram lidos pelo console-app.js e nunca chegavam neste
+     arquivo, que e o que assina. Agora a banda vira largura de tick e o eco
+     imprime o numero derivado, com a folga do arredondamento dita em voz alta.
+
+     Roda na carga E a cada mudanca de banda ou de faixa, porque o espacamento
+     de tick MUDA com a faixa: a mesma banda de 5% vale 540 ticks na faixa 3000
+     e 490 na faixa 500. Ligar so na carga deixaria o numero mentindo no instante
+     em que alguem trocasse a faixa. */
+  preencherPadroesDoCanon();
+  ["lpBand", "lp-faixa"].forEach(function (id) {
+    var el = $(id);
+    if (el) el.addEventListener("change", preencherPadroesDoCanon);
   });
 })();
