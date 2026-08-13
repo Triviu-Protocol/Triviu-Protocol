@@ -123,7 +123,22 @@
    * livro E resposta igual a esta constante.
    */
   var EXTERNOS = {
-    uniswapPositionManager: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88'
+    uniswapPositionManager: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
+    /* A fabrica da Uniswap V3. Entrou em 2026-08-13 porque a automacao
+       precisa do tick ATUAL do pool para derivar tickLower/tickUpper de
+       uma banda: a pessoa escolhe '±5%', a calldata exige dois inteiros
+       absolutos, e o caminho e getPool(token0,token1,faixa) aqui e depois
+       slot0() no pool que ela devolver.
+
+       DUAS ORIGENS INDEPENDENTES, nao uma: o N2 do Tubarao-branco leu
+       positionManager().factory() e obteve este endereco, e em 2026-08-13
+       getPool(WPOL, USDC, 3000) chamado nele devolveu
+       0x2DB87C4831B2fec2E35591221455834193b50D1B, um pool cujo slot0()
+       respondeu tick -302525. Esse tick foi cruzado contra fonte externa
+       no mesmo dia: 1.0001^-302525 x 10^(18-6) da ~0,072 USDC por WPOL,
+       e uma cotacao de agregador no mesmo par deu 0,0739. Endereco que
+       responde o que se espera dele, conferido por fora. */
+    uniswapFactory: '0x1F98431c8aD98523631AE4a59f267346ea31F984'
   };
 
   /* -------------------------------------------------------------- CUSTODIA --

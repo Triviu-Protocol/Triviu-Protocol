@@ -1738,6 +1738,44 @@
       escolha nossa: e do protocolo, e uma faixa fora desta tabela nao tem pool. */
   var ESPACAMENTO_POR_FAIXA = { 100: 1, 500: 10, 3000: 60, 10000: 200 };
 
+
+  /** O pool do par nesta faixa, e o tick em que ele esta AGORA.
+
+      `abrir()` recebe tickLower e tickUpper ABSOLUTOS. Uma banda de "±5%" nao
+      vira absoluto sem saber onde o preco esta, entao nao ha automacao possivel
+      sem esta leitura — e por isso ela existe, nao por completude.
+
+      Duas chamadas, as duas somente-leitura: getPool na fabrica que sai do LIVRO
+      (nunca digitada), e slot0 no pool que ELA devolver (nunca digitado tambem).
+      Pool zerado significa que o par nao tem pool nesta faixa: erro alto, porque
+      seguir daria uma calldata que reverte na carteira do usuario. */
+  function lerPoolETick(token0, token1, faixa) {
+    var fabrica = LIVRO.EXTERNOS.uniswapFactory;
+    var dados = sig("uniswapFactory", "getPool(address,address,uint24)") +
+      pal(token0) + pal(token1) + palNum(faixa);
+    return call(fabrica, dados).then(function (r) {
+      var pool = paraEndereco(palavra(r, 0));
+      if (/^0x0{40}$/i.test(pool)) {
+        throw new Error("this pair has no pool at fee tier " + faixa + " — pick another tier");
+      }
+      return call(pool, sig("uniswapPool", "slot0()")).then(function (s0) {
+        return { pool: pool, tick: Number(i256(palavra(s0, 1))) };
+      });
+    });
+  }
+
+  /** Centra a largura no tick atual, ancorado no espacamento.
+
+      O centro e arredondado para o multiplo mais proximo ANTES de somar a
+      largura, e nao depois: a Uniswap so aceita ticks multiplos do espacamento,
+      e centrar em -302525 com largura 540 daria -303065, que nao e multiplo de
+      60 e o mint recusa. Com o centro ancorado em -302520 os dois lados saem
+      multiplos por construcao. */
+  function centrarBanda(tickAtual, largura, espacamento) {
+    var centro = Math.round(tickAtual / espacamento) * espacamento;
+    return { baixo: centro - largura, alto: centro + largura };
+  }
+
   /** Preenche o que ja e canon. Nao toca no que exige leitura de pool. */
   function preencherPadroesDoCanon() {
     var faixa = $("lp-faixa") && $("lp-faixa").value;

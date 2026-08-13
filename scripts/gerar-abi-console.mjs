@@ -146,6 +146,19 @@ const ARTEFATOS = [
   { papel: "erc20", contrato: "IERC20", arq: ["TriviuExecutor.sol", "IERC20"] },
   { papel: "lpVault", contrato: "TriviuLPVault", arq: ["TriviuLPVault.sol", "TriviuLPVault"] },
   { papel: "npm", contrato: "INonfungiblePositionManager", arq: ["TriviuLPVault.sol", "INonfungiblePositionManager"] },
+  /* Entraram em 2026-08-13, no dia em que os dois foram implantados na Polygon
+     (bloco 91947477). Antes disto o ABI nao os carregava, e a consequencia nao
+     era cosmetica: os pontos do console que chamam `register()`,
+     `implantarCofre()` e o ciclo do cofre nao tinham assinatura para codificar,
+     entao NAO havia como porta-los sem inventar seletor. O bloqueio do item 6
+     nunca foi esforco — era o ABI nao carregar os contratos.
+
+     Fonte e artefato espelhados de triviu-engine/contracts, do mesmo jeito que
+     o TriviuLPVault entrou: o seletor sai do artefato que o forge produziu, nao
+     de keccak calculado a mao aqui. */
+  { papel: "triviuRegistry", contrato: "TriviuRegistry", arq: ["TriviuRegistry.sol", "TriviuRegistry"] },
+  { papel: "triviuFactory", contrato: "TriviuFactory", arq: ["TriviuFactory.sol", "TriviuFactory"] },
+  { papel: "triviuVault", contrato: "TriviuVault", arq: ["TriviuVault.sol", "TriviuVault"] },
 ];
 
 /* Assinaturas que NAO vem de artefato deste repositorio, declaradas aqui uma vez
@@ -166,6 +179,31 @@ const ARTEFATOS = [
    excecoes — a lista de excecoes so vale enquanto e curta e cada linha dela e
    necessaria. */
 const EXTRAS = {
+  /* A fabrica e o pool da Uniswap V3. Nao sao contratos nossos e nao ha artefato
+     deles neste repositorio, entao entram por aqui, com o seletor saindo do
+     keccak conferido e nunca digitado a mao.
+
+     Por que a tela precisa deles: sem o tick ATUAL do pool nao ha como derivar
+     tickLower/tickUpper de uma banda. A pessoa escolhe "±5%"; a calldata exige
+     dois inteiros absolutos. O caminho e getPool(token0,token1,faixa) na fabrica
+     e slot0() no pool que ela devolver — e sem isto a automacao para no meio e a
+     tela volta a pedir tick cru, que e o que ninguem sabe responder.
+
+     CONFERIDO AO VIVO em 2026-08-13, na Polygon, ANTES de a assinatura entrar:
+     getPool(WPOL, USDC, 3000) devolveu 0x2DB87C4831B2fec2E35591221455834193b50D1B
+     e slot0() daquele pool devolveu tick -302525. O tick foi cruzado contra uma
+     fonte independente no mesmo dia: 1.0001^-302525 x 10^(18-6) da ~0,072 USDC
+     por WPOL, e a cotacao da Velora no mesmo par deu 0,0739. Duas origens que
+     nao se conhecem concordando na ordem de grandeza — cicatriz MV-1 honrada,
+     a resposta do contrato prova, o nome na tela nao. */
+  uniswapFactory: {
+    origem: "UniswapV3Factory (terceiro; 0x1F98431c8aD98523631AE4a59f267346ea31F984 na 137)",
+    assinaturas: ["getPool(address,address,uint24)"],
+  },
+  uniswapPool: {
+    origem: "UniswapV3Pool (terceiro; endereco vem de getPool, nunca digitado)",
+    assinaturas: ["slot0()"],
+  },
   erc20Meta: {
     origem: "EIP-20 metadata (opcional na norma; ausente do IERC20 que o Executor declara)",
     assinaturas: ["symbol()", "decimals()"],

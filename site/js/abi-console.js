@@ -3,7 +3,7 @@
  * Cada assinatura e cada seletor aqui saiu de contracts/out/**, o artefato que o
  * forge produziu do codigo implantado. O keccak que calculou os seletores de erro
  * e os topicos de evento foi conferido, nesta mesma execucao, contra os
- * 40 seletores de funcao que o proprio forge escreveu.
+ * 64 seletores de funcao que o proprio forge escreveu.
  *
  * Editar este arquivo a mao reprova em scripts/check-console-abi.mjs.
  * Para atualizar:  forge build  &&  node scripts/gerar-abi-console.mjs
@@ -11,7 +11,7 @@
 (function (raiz) {
   "use strict";
   var ABI = {
-  "conferidos": 40,
+  "conferidos": 64,
   "contratos": {
     "parameterRegistry": {
       "contrato": "ParameterRegistry",
@@ -1090,9 +1090,658 @@
       },
       "erros": {},
       "eventos": {}
+    },
+    "triviuRegistry": {
+      "contrato": "TriviuRegistry",
+      "funcoes": {
+        "cercaDe(address,address)": {
+          "seletor": "0x6706c1c6",
+          "mutabilidade": "view",
+          "entradas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            },
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ]
+        },
+        "cofreDe(address,address)": {
+          "seletor": "0xdd18da07",
+          "mutabilidade": "view",
+          "entradas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            },
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ]
+        },
+        "cofres(uint256)": {
+          "seletor": "0x5aad4e52",
+          "mutabilidade": "view",
+          "entradas": [
+            {
+              "nome": "",
+              "tipo": "uint256"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ]
+        },
+        "contas(address)": {
+          "seletor": "0xe46de4ce",
+          "mutabilidade": "view",
+          "entradas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "registrado",
+              "tipo": "bool"
+            },
+            {
+              "nome": "desde",
+              "tipo": "uint40"
+            }
+          ]
+        },
+        "estaRegistrado(address)": {
+          "seletor": "0xa1b8cb1c",
+          "mutabilidade": "view",
+          "entradas": [
+            {
+              "nome": "quem",
+              "tipo": "address"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "bool"
+            }
+          ]
+        },
+        "fabrica()": {
+          "seletor": "0xb5b306ec",
+          "mutabilidade": "view",
+          "entradas": [],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ]
+        },
+        "implantarCofre(address)": {
+          "seletor": "0xa3f00f5a",
+          "mutabilidade": "nonpayable",
+          "entradas": [
+            {
+              "nome": "base",
+              "tipo": "address"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "cofre",
+              "tipo": "address"
+            },
+            {
+              "nome": "cerca",
+              "tipo": "address"
+            }
+          ]
+        },
+        "parametros()": {
+          "seletor": "0x4666b679",
+          "mutabilidade": "view",
+          "entradas": [],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ]
+        },
+        "registrar()": {
+          "seletor": "0x2b20e397",
+          "mutabilidade": "nonpayable",
+          "entradas": [],
+          "saidas": []
+        },
+        "totalDeCofres()": {
+          "seletor": "0xe2ceb9fc",
+          "mutabilidade": "view",
+          "entradas": [],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "uint256"
+            }
+          ]
+        }
+      },
+      "erros": {
+        "0x90fc6269": {
+          "assinatura": "BaseNaoPermitida(address)",
+          "entradas": [
+            {
+              "nome": "token",
+              "tipo": "address"
+            }
+          ]
+        },
+        "0xb18e4b25": {
+          "assinatura": "CofreJaExiste(address,address,address)",
+          "entradas": [
+            {
+              "nome": "dono",
+              "tipo": "address"
+            },
+            {
+              "nome": "base",
+              "tipo": "address"
+            },
+            {
+              "nome": "cofre",
+              "tipo": "address"
+            }
+          ]
+        },
+        "0xb2e9a9bf": {
+          "assinatura": "EnderecoZerado()",
+          "entradas": []
+        },
+        "0x45171dcf": {
+          "assinatura": "JaRegistrado(address)",
+          "entradas": [
+            {
+              "nome": "quem",
+              "tipo": "address"
+            }
+          ]
+        },
+        "0xdd7f5bee": {
+          "assinatura": "NaoRegistrado(address)",
+          "entradas": [
+            {
+              "nome": "quem",
+              "tipo": "address"
+            }
+          ]
+        },
+        "0x63d237cb": {
+          "assinatura": "Reentrante()",
+          "entradas": []
+        }
+      },
+      "eventos": {
+        "CofreCriado(address,address,address,uint256)": {
+          "topico": "0x552f0a0568dd2a39f813531f7ce62d5fd2677784dc4900a0afb3b09476b630b8",
+          "indexados": [
+            "dono",
+            "base"
+          ]
+        },
+        "Registrado(address,uint40)": {
+          "topico": "0x6f42fa0999a6a62b746ec86b02b83d1822f90460b44ed2a3dfeb112ab159bfbc",
+          "indexados": [
+            "dono"
+          ]
+        }
+      }
+    },
+    "triviuFactory": {
+      "contrato": "TriviuFactory",
+      "funcoes": {
+        "implantarCofre(address,address)": {
+          "seletor": "0x4d87aa7c",
+          "mutabilidade": "nonpayable",
+          "entradas": [
+            {
+              "nome": "dono",
+              "tipo": "address"
+            },
+            {
+              "nome": "base",
+              "tipo": "address"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "cofre",
+              "tipo": "address"
+            },
+            {
+              "nome": "cerca",
+              "tipo": "address"
+            }
+          ]
+        },
+        "registro()": {
+          "seletor": "0x3d6c57a7",
+          "mutabilidade": "view",
+          "entradas": [],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ]
+        }
+      },
+      "erros": {
+        "0xb2e9a9bf": {
+          "assinatura": "EnderecoZerado()",
+          "entradas": []
+        },
+        "0xff0a81c4": {
+          "assinatura": "NaoEOregistro(address,address)",
+          "entradas": [
+            {
+              "nome": "quemChamou",
+              "tipo": "address"
+            },
+            {
+              "nome": "registro",
+              "tipo": "address"
+            }
+          ]
+        }
+      },
+      "eventos": {
+        "CercaImplantada(address,address,address,bytes32)": {
+          "topico": "0xfb0150c6e64b7392b6fbb1d830069be343235c950f630d3ab73ebef91ef8341a",
+          "indexados": [
+            "dono",
+            "cofre",
+            "cerca"
+          ]
+        },
+        "CofreImplantado(address,address,address,bytes32)": {
+          "topico": "0x4aaeb28a942ece26ff449b150c166c8391dfcbad3613bc86a971508491fb572d",
+          "indexados": [
+            "dono",
+            "cofre",
+            "base"
+          ]
+        }
+      }
+    },
+    "triviuVault": {
+      "contrato": "TriviuVault",
+      "funcoes": {
+        "base()": {
+          "seletor": "0x5001f3b5",
+          "mutabilidade": "view",
+          "entradas": [],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ]
+        },
+        "ciclar(uint256,uint256,(uint8,address,address,address,uint24,uint256)[])": {
+          "seletor": "0x27269a41",
+          "mutabilidade": "nonpayable",
+          "entradas": [
+            {
+              "nome": "principal",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "minProfit",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "legs",
+              "tipo": "(uint8,address,address,address,uint24,uint256)[]"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "crescimento",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "comandante()": {
+          "seletor": "0x82c98f09",
+          "mutabilidade": "view",
+          "entradas": [],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ]
+        },
+        "criador()": {
+          "seletor": "0x041c797c",
+          "mutabilidade": "view",
+          "entradas": [],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ]
+        },
+        "definirComandante(address)": {
+          "seletor": "0x03e301f5",
+          "mutabilidade": "nonpayable",
+          "entradas": [
+            {
+              "nome": "novo",
+              "tipo": "address"
+            }
+          ],
+          "saidas": []
+        },
+        "definirComandanteInicial(address)": {
+          "seletor": "0xa2f33fe8",
+          "mutabilidade": "nonpayable",
+          "entradas": [
+            {
+              "nome": "novo",
+              "tipo": "address"
+            }
+          ],
+          "saidas": []
+        },
+        "definirMotor(address)": {
+          "seletor": "0xa9a98819",
+          "mutabilidade": "nonpayable",
+          "entradas": [
+            {
+              "nome": "novo",
+              "tipo": "address"
+            }
+          ],
+          "saidas": []
+        },
+        "depositar(uint256)": {
+          "seletor": "0xd5ca6228",
+          "mutabilidade": "nonpayable",
+          "entradas": [
+            {
+              "nome": "quantia",
+              "tipo": "uint256"
+            }
+          ],
+          "saidas": []
+        },
+        "dono()": {
+          "seletor": "0x70514bea",
+          "mutabilidade": "view",
+          "entradas": [],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ]
+        },
+        "motor()": {
+          "seletor": "0xbdd346cf",
+          "mutabilidade": "view",
+          "entradas": [],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ]
+        },
+        "resgatar(address,uint256)": {
+          "seletor": "0x48b2116c",
+          "mutabilidade": "nonpayable",
+          "entradas": [
+            {
+              "nome": "token",
+              "tipo": "address"
+            },
+            {
+              "nome": "quantia",
+              "tipo": "uint256"
+            }
+          ],
+          "saidas": []
+        },
+        "sacar(uint256)": {
+          "seletor": "0x7371b0d6",
+          "mutabilidade": "nonpayable",
+          "entradas": [
+            {
+              "nome": "quantia",
+              "tipo": "uint256"
+            }
+          ],
+          "saidas": []
+        }
+      },
+      "erros": {
+        "0x8e525175": {
+          "assinatura": "AprovacaoRecusada(address,address,uint256)",
+          "entradas": [
+            {
+              "nome": "token",
+              "tipo": "address"
+            },
+            {
+              "nome": "gastador",
+              "tipo": "address"
+            },
+            {
+              "nome": "quantia",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "0x67d012e2": {
+          "assinatura": "CofreEncolheu(uint256,uint256)",
+          "entradas": [
+            {
+              "nome": "antes",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "depois",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "0xb2e9a9bf": {
+          "assinatura": "EnderecoZerado()",
+          "entradas": []
+        },
+        "0x72fea6f1": {
+          "assinatura": "MotorAusente()",
+          "entradas": []
+        },
+        "0x05a53319": {
+          "assinatura": "MotorSemCodigo(address)",
+          "entradas": [
+            {
+              "nome": "informado",
+              "tipo": "address"
+            }
+          ]
+        },
+        "0x4c54b53d": {
+          "assinatura": "NaoEComandante(address,address)",
+          "entradas": [
+            {
+              "nome": "quemChamou",
+              "tipo": "address"
+            },
+            {
+              "nome": "comandante",
+              "tipo": "address"
+            }
+          ]
+        },
+        "0x389d1855": {
+          "assinatura": "NaoEDono(address,address)",
+          "entradas": [
+            {
+              "nome": "quemChamou",
+              "tipo": "address"
+            },
+            {
+              "nome": "dono",
+              "tipo": "address"
+            }
+          ]
+        },
+        "0xf9ff1132": {
+          "assinatura": "NaoEOcriador(address,address)",
+          "entradas": [
+            {
+              "nome": "quemChamou",
+              "tipo": "address"
+            },
+            {
+              "nome": "criador",
+              "tipo": "address"
+            }
+          ]
+        },
+        "0x26d0f711": {
+          "assinatura": "PortaoInicialQueimado()",
+          "entradas": []
+        },
+        "0x4158e8af": {
+          "assinatura": "QuantiaZero()",
+          "entradas": []
+        },
+        "0x63d237cb": {
+          "assinatura": "Reentrante()",
+          "entradas": []
+        },
+        "0x9d8b89ca": {
+          "assinatura": "SaldoInsuficiente(uint256,uint256)",
+          "entradas": [
+            {
+              "nome": "pedido",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "disponivel",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "0x381d5008": {
+          "assinatura": "TransferenciaFalhou(address,address,uint256)",
+          "entradas": [
+            {
+              "nome": "token",
+              "tipo": "address"
+            },
+            {
+              "nome": "para",
+              "tipo": "address"
+            },
+            {
+              "nome": "quantia",
+              "tipo": "uint256"
+            }
+          ]
+        }
+      },
+      "eventos": {
+        "CicloExecutado(address,uint256,uint256,uint256)": {
+          "topico": "0xa892831571b0d9ea453c285a4408dd96245b715db2c1d16a99cb8ea1143c9eb5",
+          "indexados": [
+            "comandante"
+          ]
+        },
+        "ComandanteInicialDefinido(address,address)": {
+          "topico": "0x838b5c08a3a0af665f4d034a4c456f7ae84afa39209e6736ec4f61f9d65e9948",
+          "indexados": [
+            "criador",
+            "comandante"
+          ]
+        },
+        "ComandanteTrocado(address,address)": {
+          "topico": "0x542c47b617509d3bf80dfd340b6e0e96de4804ef8c11c9c8411601a578574de1",
+          "indexados": [
+            "anterior",
+            "novo"
+          ]
+        },
+        "Depositado(address,uint256,uint256)": {
+          "topico": "0xea84ab1b96a4df052463c82c30614a8f1e466190b2cba7bf294b6fb8a77b9b20",
+          "indexados": [
+            "dono"
+          ]
+        },
+        "MotorTrocado(address,address)": {
+          "topico": "0x960b278426ed2aa1d73ea170b4945b738c4bb262723b7e8eb56c951401916dba",
+          "indexados": [
+            "anterior",
+            "novo"
+          ]
+        },
+        "Resgatado(address,uint256)": {
+          "topico": "0xf17962786bafcb2e341f2a69218f7415fb48c0255371711441d91c35c240627b",
+          "indexados": [
+            "token"
+          ]
+        },
+        "Sacado(address,uint256,uint256)": {
+          "topico": "0x60eabf5e87601ab6724ae82428cd0877effe067b5dc75cd198813be5dd3c1342",
+          "indexados": [
+            "dono"
+          ]
+        }
+      }
     }
   },
   "extras": {
+    "uniswapFactory": {
+      "origem": "UniswapV3Factory (terceiro; 0x1F98431c8aD98523631AE4a59f267346ea31F984 na 137)",
+      "funcoes": {
+        "getPool(address,address,uint24)": {
+          "seletor": "0x1698ee82"
+        }
+      }
+    },
+    "uniswapPool": {
+      "origem": "UniswapV3Pool (terceiro; endereco vem de getPool, nunca digitado)",
+      "funcoes": {
+        "slot0()": {
+          "seletor": "0x3850c7bd"
+        }
+      }
+    },
     "erc20Meta": {
       "origem": "EIP-20 metadata (opcional na norma; ausente do IERC20 que o Executor declara)",
       "funcoes": {
