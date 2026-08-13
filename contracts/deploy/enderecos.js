@@ -33,7 +33,26 @@
     // a Factory instancia TriviuVault por dono e nao instancia LPVault nenhum.
     // O usuario detem a posicao (o mint usa recipient msg.sender e este contrato
     // nunca e ownerOf); o que e compartilhado e o roteador e a whitelist.
-    triviuLPVault:     '0xC52BaD280809672D8EC5D1fcF2d7eCa45a2a423E'
+    triviuLPVault:     '0xC52BaD280809672D8EC5D1fcF2d7eCa45a2a423E',
+    // Implantados 2026-08-13, UMA transacao para os dois: o construtor do
+    // Registry faz `new TriviuFactory(address(this))`, entao a Factory nasce
+    // dentro dele, ja apontada para ele. Nao ha ordem a escolher nem endereco a
+    // cruzar depois — e por isso nao ha janela para um gemeo orfao aqui, ao
+    // contrario dos quatro que estao logo abaixo.
+    //
+    // Conferido na chain, nao no log do deploy: registro.fabrica() devolve a
+    // Factory, fabrica.registro() devolve o Registry (mutuo), e
+    // registro.parametros() devolve o ParameterRegistry vivo e nao um dos dois
+    // orfaos. O bytecode dos dois foi comparado byte a byte contra o artefato
+    // local: 80 e 60 bytes divergentes, TODOS dentro das ocorrencias de
+    // immutable (4 no Registry, 3 na Factory, 20 bytes cada — a conta fecha
+    // sozinha), zero divergencia fora. O que esta na chain e o que foi auditado.
+    //
+    // A Factory recusa qualquer origem que nao seja o Registry: provado por
+    // eth_call de 0x..dEaD, que reverteu 0xff0a81c4 =
+    // NaoEOregistro(address,address) nomeando o chamador e o Registry.
+    triviuRegistry:    '0xac89E63F4F7d26A5CefDc6bA5a13d8F507A7EF1D',
+    triviuFactory:     '0x862fD93E6106F07D9395FF14fFE6d828994e8Ee8'
   };
 
   /* --------------------------------------------------------------- ORFAOS --
