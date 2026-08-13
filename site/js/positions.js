@@ -15,10 +15,17 @@
        clue and a screen reader user never sees it. */
     b.setAttribute("aria-label", t==="dark" ? "Switch to light theme" : "Switch to dark theme");}
   applyTheme(curTheme());
-  document.getElementById("theme").addEventListener("click",function(){
-    var next=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";
-    try{localStorage.setItem("triviu-theme",next);}catch(e){}
-    applyTheme(next);});
+  /* applyTheme ja tratava #theme como opcional duas linhas acima; esta chamada
+     nao tratava, e a incoerencia e o defeito. Sem a guarda, hospedar este modulo
+     numa pagina sem #theme lanca aqui e mata o IIFE inteiro na carga — a lista de
+     posicoes ficaria inerte, sem erro visivel, por causa de um botao de tema. */
+  var themeBtn=document.getElementById("theme");
+  if(themeBtn){
+    themeBtn.addEventListener("click",function(){
+      var next=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";
+      try{localStorage.setItem("triviu-theme",next);}catch(e){}
+      applyTheme(next);});
+  }
 
   var $ = function(id){ return document.getElementById(id); };
   var TRACO = "—";  /* the dash that means "not read". Never a number. */

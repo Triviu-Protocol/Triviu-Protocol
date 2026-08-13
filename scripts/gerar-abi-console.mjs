@@ -116,14 +116,36 @@ const OUT = join(RAIZ, "contracts", "out");
 
 const ler = (arquivo, nome) => JSON.parse(readFileSync(join(OUT, arquivo, nome + ".json"), "utf8"));
 
-/* Os quatro artefatos do codigo que foi implantado, mais a interface ERC-20 que
-   o proprio Executor declara — e de onde sai o `approve` que o usuario assina no
-   passo 1. Nenhum deles e escrito a mao: sao os .json que o forge produziu. */
+/* Os artefatos do codigo que foi implantado, mais as interfaces que os proprios
+   contratos declaram — e de onde sai o `approve` que o usuario assina no passo 1.
+   Nenhum deles e escrito a mao: sao os .json que o forge produziu.
+
+   O TriviuLPVault entrou em 2026-08-12, e entrou com prova, nao com confianca.
+   O fonte foi copiado de triviu-engine/contracts/src/TriviuLPVault.sol e
+   compilado aqui (solc 0.8.24, optimizer 200, os mesmos do irmao). O artefato
+   resultante NAO e byte-identico ao que a chain devolve — 380 dos 7954 bytes
+   diferem — e a diferenca foi MEDIDA em vez de suposta:
+
+     bytes divergentes DENTRO das 19 janelas de immutableReferences : 380
+     bytes divergentes FORA delas                                   :   0
+     artefato com os immutables preenchidos === eth_getCode(0xC52BaD28…) : true
+     hash de metadata IPFS na cauda dos dois                         : igual
+
+   Ou seja: os unicos bytes que diferem sao `registry` e `positionManager`, que
+   o construtor grava no deploy e que nenhum compilador poderia conhecer antes.
+   O fonte que este arquivo le E o contrato que esta na chain.
+
+   A INonfungiblePositionManager e a interface que o proprio TriviuLPVault
+   declara — sete funcoes, nao a ABI inteira do Uniswap. Ela vale como
+   assinatura porque cada uma foi conferida AO VIVO contra 0xC36442b4…FE88 em
+   2026-08-12 (ver EXTRAS.erc721 para o metodo e para o controle negativo). */
 const ARTEFATOS = [
   { papel: "parameterRegistry", contrato: "ParameterRegistry", arq: ["ParameterRegistry.sol", "ParameterRegistry"] },
   { papel: "triviuExecutor", contrato: "TriviuExecutor", arq: ["TriviuExecutor.sol", "TriviuExecutor"] },
   { papel: "gasTank", contrato: "GasTank", arq: ["GasTank.sol", "GasTank"] },
   { papel: "erc20", contrato: "IERC20", arq: ["TriviuExecutor.sol", "IERC20"] },
+  { papel: "lpVault", contrato: "TriviuLPVault", arq: ["TriviuLPVault.sol", "TriviuLPVault"] },
+  { papel: "npm", contrato: "INonfungiblePositionManager", arq: ["TriviuLPVault.sol", "INonfungiblePositionManager"] },
 ];
 
 /* Assinaturas que NAO vem de artefato deste repositorio, declaradas aqui uma vez
@@ -131,12 +153,18 @@ const ARTEFATOS = [
    digitado — mas a procedencia e outra e a tela diz isso na cara.
      symbol/decimals  ERC-20 metadata (EIP-20 opcional). O IERC20 que o Executor
                       declara nao os tem, e sem eles a tela so mostraria endereco.
-     positionManager  lido AO VIVO do TriviuLPVault implantado: a chamada
-                      respondeu com 0xC364...FE88 (Uniswap V3 NonfungiblePositionManager,
-                      24384 bytes de codigo, symbol() = "UNI-V3-POS"), medido em
-                      2026-08-12. O TriviuLPVault NAO tem fonte neste repositorio,
-                      entao esta e a unica assinatura dele que a tela usa, e usa
-                      porque foi medida respondendo — nao porque alguem a supos. */
+     approve (ERC-721) o position manager do Uniswap nao tem fonte aqui e o
+                      TriviuLPVault nao declara essa funcao na interface dele —
+                      declara so as sete que ele mesmo chama. Ela e obrigatoria
+                      no fluxo assim mesmo, porque `coletar` e `fechar` passam
+                      por _exigeAprovacaoUnica(). Medida ao vivo, ver abaixo.
+
+   O bloco `lpVault` que morava aqui SAIU em 2026-08-12. Ele existia porque o
+   TriviuLPVault nao tinha fonte neste repositorio; agora tem, foi compilado, e o
+   artefato reproduz o bytecode implantado byte a byte fora dos immutables. Uma
+   assinatura que pode sair do artefato nao tem por que ficar numa lista de
+   excecoes — a lista de excecoes so vale enquanto e curta e cada linha dela e
+   necessaria. */
 const EXTRAS = {
   erc20Meta: {
     origem: "EIP-20 metadata (opcional na norma; ausente do IERC20 que o Executor declara)",
@@ -158,9 +186,27 @@ const EXTRAS = {
     origem: "nucleo EIP-20 · ausente do IERC20 minimo deste repositorio · seletor conferido ao vivo contra 3 tokens liberados em 2026-08-12 (responderam 0, nao reverteram)",
     assinaturas: ["allowance(address,address)"],
   },
-  lpVault: {
-    origem: "sem fonte neste repositorio · assinatura medida ao vivo contra o contrato implantado em 2026-08-12",
-    assinaturas: ["positionManager()"],
+  /* ERC-721 approve. Mesma string de assinatura do approve de ERC-20, mesmo
+     seletor — e semantica completamente diferente: o segundo argumento e um
+     tokenId, nao uma quantia. Fica num papel proprio por isso: a tela precisa
+     poder dizer "isto autoriza UMA posicao", e nao "isto autoriza uma quantia".
+
+     Nao sai de artefato porque nenhum artefato daqui a declara: o
+     INonfungiblePositionManager que o TriviuLPVault escreve lista as sete
+     funcoes que o cofre CHAMA, e `approve` nao e uma delas — quem chama e o
+     usuario, direto na carteira dele.
+
+     Conferida AO VIVO em 2026-08-12 contra 0xC36442b4a4522E871399CD717aBDD847Ab11FE88,
+     pelo despacho e nao pelo bytecode (cicatriz MV-1: PUSH4 e indicio, resposta
+     e prova):
+       approve(0xC52BaD28…, 1) de 0x…0001  -> reverte Error(string)
+         "ERC721: approve caller is not owner nor approved for all"
+       controle negativo, uma funcao inventada -> reverte com data "0x", vazio.
+     Uma reverte com o motivo do contrato, a outra nao reverte com nada. E a
+     diferenca entre as duas que prova que a primeira existe. */
+  erc721: {
+    origem: "EIP-721 · ausente de todo artefato deste repositorio · despacho conferido ao vivo contra o position manager em 2026-08-12 (reverte com Error(string) do proprio contrato; funcao inexistente reverte vazia)",
+    assinaturas: ["approve(address,uint256)"],
   },
   /* Os dois erros que o proprio compilador insere e que nunca aparecem numa ABI:
      `require(cond, "msg")` reverte com Error(string) e um estouro ou divisao por

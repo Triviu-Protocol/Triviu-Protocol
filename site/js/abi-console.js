@@ -3,7 +3,7 @@
  * Cada assinatura e cada seletor aqui saiu de contracts/out/**, o artefato que o
  * forge produziu do codigo implantado. O keccak que calculou os seletores de erro
  * e os topicos de evento foi conferido, nesta mesma execucao, contra os
- * 26 seletores de funcao que o proprio forge escreveu.
+ * 40 seletores de funcao que o proprio forge escreveu.
  *
  * Editar este arquivo a mao reprova em scripts/check-console-abi.mjs.
  * Para atualizar:  forge build  &&  node scripts/gerar-abi-console.mjs
@@ -11,7 +11,7 @@
 (function (raiz) {
   "use strict";
   var ABI = {
-  "conferidos": 26,
+  "conferidos": 40,
   "contratos": {
     "parameterRegistry": {
       "contrato": "ParameterRegistry",
@@ -591,6 +591,505 @@
       },
       "erros": {},
       "eventos": {}
+    },
+    "lpVault": {
+      "contrato": "TriviuLPVault",
+      "funcoes": {
+        "MAX_FEE_BPS()": {
+          "seletor": "0xd55be8c6",
+          "mutabilidade": "view",
+          "entradas": [],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "uint16"
+            }
+          ]
+        },
+        "abrir((address,address,uint24,int24,int24,uint256,uint256,uint256,uint256,uint256))": {
+          "seletor": "0x9016af16",
+          "mutabilidade": "nonpayable",
+          "entradas": [
+            {
+              "nome": "p",
+              "tipo": "(address,address,uint24,int24,int24,uint256,uint256,uint256,uint256,uint256)"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "tokenId",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "liquidez",
+              "tipo": "uint128"
+            },
+            {
+              "nome": "usado0",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "usado1",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "coletar(uint256,uint16,uint256)": {
+          "seletor": "0x622b9ed4",
+          "mutabilidade": "nonpayable",
+          "entradas": [
+            {
+              "nome": "tokenId",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "feeBpsMax",
+              "tipo": "uint16"
+            },
+            {
+              "nome": "prazo",
+              "tipo": "uint256"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "aoDono0",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "aoDono1",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "fechar(uint256,uint256,uint256,uint256,uint16)": {
+          "seletor": "0x9fb13583",
+          "mutabilidade": "nonpayable",
+          "entradas": [
+            {
+              "nome": "tokenId",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "amount0Min",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "amount1Min",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "prazo",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "feeBpsMax",
+              "tipo": "uint16"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "aoDono0",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "aoDono1",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "posicaoDe(uint256)": {
+          "seletor": "0x0960103b",
+          "mutabilidade": "view",
+          "entradas": [
+            {
+              "nome": "",
+              "tipo": "uint256"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "dep0",
+              "tipo": "uint128"
+            },
+            {
+              "nome": "dep1",
+              "tipo": "uint128"
+            },
+            {
+              "nome": "coletado0",
+              "tipo": "uint128"
+            },
+            {
+              "nome": "coletado1",
+              "tipo": "uint128"
+            }
+          ]
+        },
+        "positionManager()": {
+          "seletor": "0x791b98bc",
+          "mutabilidade": "view",
+          "entradas": [],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ]
+        },
+        "registry()": {
+          "seletor": "0x7b103999",
+          "mutabilidade": "view",
+          "entradas": [],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ]
+        }
+      },
+      "erros": {
+        "0x311dc2c1": {
+          "assinatura": "AprovacaoAmpla(uint256)",
+          "entradas": [
+            {
+              "nome": "tokenId",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "0xbd36b870": {
+          "assinatura": "AprovacaoAusente(uint256)",
+          "entradas": [
+            {
+              "nome": "tokenId",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "0x8e525175": {
+          "assinatura": "AprovacaoRecusada(address,address,uint256)",
+          "entradas": [
+            {
+              "nome": "token",
+              "tipo": "address"
+            },
+            {
+              "nome": "gastador",
+              "tipo": "address"
+            },
+            {
+              "nome": "quantia",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "0xb2e9a9bf": {
+          "assinatura": "EnderecoZerado()",
+          "entradas": []
+        },
+        "0x7bbfbe73": {
+          "assinatura": "NadaAColetar(uint256)",
+          "entradas": [
+            {
+              "nome": "tokenId",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "0x02edf030": {
+          "assinatura": "NaoEDono(uint256,address,address)",
+          "entradas": [
+            {
+              "nome": "tokenId",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "dono",
+              "tipo": "address"
+            },
+            {
+              "nome": "quemChamou",
+              "tipo": "address"
+            }
+          ]
+        },
+        "0x9847caa7": {
+          "assinatura": "PrazoExpirado()",
+          "entradas": []
+        },
+        "0x63d237cb": {
+          "assinatura": "Reentrante()",
+          "entradas": []
+        },
+        "0x57ca6d44": {
+          "assinatura": "SemLiquidez(uint256)",
+          "entradas": [
+            {
+              "nome": "tokenId",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "0x5a1474a1": {
+          "assinatura": "SobraNaoDevolvida(address,uint256)",
+          "entradas": [
+            {
+              "nome": "token",
+              "tipo": "address"
+            },
+            {
+              "nome": "quantia",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "0x3506aa16": {
+          "assinatura": "TaxaAcimaDoLimite(uint16,uint16)",
+          "entradas": [
+            {
+              "nome": "limite",
+              "tipo": "uint16"
+            },
+            {
+              "nome": "vigente",
+              "tipo": "uint16"
+            }
+          ]
+        },
+        "0x9d5ba1a9": {
+          "assinatura": "TesourariaZerada()",
+          "entradas": []
+        },
+        "0xa7d11b56": {
+          "assinatura": "TokenNaoPermitido(address)",
+          "entradas": [
+            {
+              "nome": "token",
+              "tipo": "address"
+            }
+          ]
+        },
+        "0x381d5008": {
+          "assinatura": "TransferenciaFalhou(address,address,uint256)",
+          "entradas": [
+            {
+              "nome": "token",
+              "tipo": "address"
+            },
+            {
+              "nome": "para",
+              "tipo": "address"
+            },
+            {
+              "nome": "quantia",
+              "tipo": "uint256"
+            }
+          ]
+        }
+      },
+      "eventos": {
+        "PosicaoAberta(uint256,address,address,address,uint24,uint128,uint256,uint256)": {
+          "topico": "0x399ddbf14763b65da28fd405a39f7b6fb4bc0e8846ad5192011cd688bdf600fb",
+          "indexados": [
+            "tokenId",
+            "dono"
+          ]
+        },
+        "PosicaoFechada(uint256,address,uint256,uint256,uint256,uint256,uint256,uint256,uint16)": {
+          "topico": "0x6c63b9f53dbbefdc06f22120c03811a834a35cd2c0beb86c4e302d66abb0b947",
+          "indexados": [
+            "tokenId",
+            "dono"
+          ]
+        },
+        "TaxasColetadas(uint256,address,uint256,uint256,uint256,uint256,uint16)": {
+          "topico": "0xf118066f03b78daf4ba68576ba0fd20f0c3525289bc99b424a49345fcea996ea",
+          "indexados": [
+            "tokenId",
+            "dono"
+          ]
+        }
+      }
+    },
+    "npm": {
+      "contrato": "INonfungiblePositionManager",
+      "funcoes": {
+        "burn(uint256)": {
+          "seletor": "0x42966c68",
+          "mutabilidade": "payable",
+          "entradas": [
+            {
+              "nome": "tokenId",
+              "tipo": "uint256"
+            }
+          ],
+          "saidas": []
+        },
+        "collect((uint256,address,uint128,uint128))": {
+          "seletor": "0xfc6f7865",
+          "mutabilidade": "payable",
+          "entradas": [
+            {
+              "nome": "params",
+              "tipo": "(uint256,address,uint128,uint128)"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "amount0",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "amount1",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "decreaseLiquidity((uint256,uint128,uint256,uint256,uint256))": {
+          "seletor": "0x0c49ccbe",
+          "mutabilidade": "payable",
+          "entradas": [
+            {
+              "nome": "params",
+              "tipo": "(uint256,uint128,uint256,uint256,uint256)"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "amount0",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "amount1",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "getApproved(uint256)": {
+          "seletor": "0x081812fc",
+          "mutabilidade": "view",
+          "entradas": [
+            {
+              "nome": "tokenId",
+              "tipo": "uint256"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ]
+        },
+        "mint((address,address,uint24,int24,int24,uint256,uint256,uint256,uint256,address,uint256))": {
+          "seletor": "0x88316456",
+          "mutabilidade": "payable",
+          "entradas": [
+            {
+              "nome": "params",
+              "tipo": "(address,address,uint24,int24,int24,uint256,uint256,uint256,uint256,address,uint256)"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "tokenId",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "liquidity",
+              "tipo": "uint128"
+            },
+            {
+              "nome": "amount0",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "amount1",
+              "tipo": "uint256"
+            }
+          ]
+        },
+        "ownerOf(uint256)": {
+          "seletor": "0x6352211e",
+          "mutabilidade": "view",
+          "entradas": [
+            {
+              "nome": "tokenId",
+              "tipo": "uint256"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "",
+              "tipo": "address"
+            }
+          ]
+        },
+        "positions(uint256)": {
+          "seletor": "0x99fbab88",
+          "mutabilidade": "view",
+          "entradas": [
+            {
+              "nome": "tokenId",
+              "tipo": "uint256"
+            }
+          ],
+          "saidas": [
+            {
+              "nome": "nonce",
+              "tipo": "uint96"
+            },
+            {
+              "nome": "operator",
+              "tipo": "address"
+            },
+            {
+              "nome": "token0",
+              "tipo": "address"
+            },
+            {
+              "nome": "token1",
+              "tipo": "address"
+            },
+            {
+              "nome": "fee",
+              "tipo": "uint24"
+            },
+            {
+              "nome": "tickLower",
+              "tipo": "int24"
+            },
+            {
+              "nome": "tickUpper",
+              "tipo": "int24"
+            },
+            {
+              "nome": "liquidity",
+              "tipo": "uint128"
+            },
+            {
+              "nome": "feeGrowthInside0LastX128",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "feeGrowthInside1LastX128",
+              "tipo": "uint256"
+            },
+            {
+              "nome": "tokensOwed0",
+              "tipo": "uint128"
+            },
+            {
+              "nome": "tokensOwed1",
+              "tipo": "uint128"
+            }
+          ]
+        }
+      },
+      "erros": {},
+      "eventos": {}
     }
   },
   "extras": {
@@ -613,11 +1112,11 @@
         }
       }
     },
-    "lpVault": {
-      "origem": "sem fonte neste repositorio · assinatura medida ao vivo contra o contrato implantado em 2026-08-12",
+    "erc721": {
+      "origem": "EIP-721 · ausente de todo artefato deste repositorio · despacho conferido ao vivo contra o position manager em 2026-08-12 (reverte com Error(string) do proprio contrato; funcao inexistente reverte vazia)",
       "funcoes": {
-        "positionManager()": {
-          "seletor": "0x791b98bc"
+        "approve(address,uint256)": {
+          "seletor": "0x095ea7b3"
         }
       }
     },

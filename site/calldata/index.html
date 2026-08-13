@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M40 25.36 Q76 32.3 100 60' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M100 60 Q76 87.7 40 94.64' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M40 94.64 Q28 60 40 25.36' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='40' cy='25.36' r='11' fill='%232743C7'/%3E%3Ccircle cx='100' cy='60' r='11' fill='%23C13327'/%3E%3Ccircle cx='40' cy='94.64' r='11' fill='%23E8B23A'/%3E%3C/svg%3E">
 <meta name="description" content="Connect a wallet, read the Triviu contracts on chain 137, and see the exact calldata each step asks you to sign — selector, target, decoded arguments, estimated gas. The bytes are frozen and fingerprinted before they are shown, and the same frozen object is what gets sent.">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://triviu.vercel.app/console/">
+<link rel="canonical" href="https://triviu.vercel.app/calldata/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Triviu">
 <meta property="og:title" content="Console · the calldata, then the signature · Triviu">
 <meta property="og:description" content="The exact bytes you are asked to sign, with the four-byte selector, the target contract and the gas it costs — frozen and fingerprinted at render, re-checked at the click.">
-<meta property="og:url" content="https://triviu.vercel.app/console/">
+<meta property="og:url" content="https://triviu.vercel.app/calldata/">
 <meta property="og:image" content="https://triviu.vercel.app/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -48,9 +48,11 @@
   message-signing ones included, without needing to be named.
 
   The freeze is the part worth understanding, because it is what makes the bytes
-  on screen mean anything. The transaction object is built once, hashed over
-  {chainId, to, data, value}, drawn from that object, and re-hashed at the
-  instant you click; a mismatch refuses. Change any input and the freeze is
+  on screen mean anything. The payload is built once, hashed over
+  {chainId, from, to, data, value}, drawn from that object, and re-hashed at the
+  instant you click BY THE SAME FUNCTION; a mismatch refuses. One canonicalisation,
+  not two: there were two here until 2026-08-13, differing by the `from` field, and
+  the mismatch they guaranteed refused 100% of sends. Change any input and the freeze is
   discarded out loud — the button says so. The page never rebuilds calldata
   inside a click handler, and scripts/check-assinatura.mjs fails the build if it
   ever starts to.
@@ -242,8 +244,8 @@ footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;fon
     so anything else throws &mdash; including every form of message signature, which never had to be named
     to be refused. That distinction matters: a signed off-chain order costs no gas and leaves no trace on
     chain until it is used against you.</p>
-    <p><b>What you read is what gets sent.</b> The transaction object is built once, hashed over
-    <span class="mono" translate="no">{chainId, to, data, value}</span>, and drawn from that object. When you click,
+    <p><b>What you read is what gets sent.</b> The payload is built once, hashed over
+    <span class="mono" translate="no">{chainId, from, to, data, value}</span>, and drawn from that object. When you click,
     the hash is recomputed and compared before your wallet is asked for anything, the chain id is re-read
     from the wallet at that instant, and the active account is checked against the address the bytes were
     built for. Change any field on this page and the freeze is thrown away out loud &mdash; the button

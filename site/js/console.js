@@ -12,7 +12,8 @@
 
      R1  origem unica          conferirOrigem() — knownHosts de /domain.config.json
      R2  endereco de calldata  travarEnderecoDoLivro() · travarTokenParaCalldata()
-     R3  congelamento          CONGELAMENTO · hashDaTx() · conferido no clique
+     R3  congelamento          CONGELAMENTO · cargaDaTx() + hashDaCarga() · UMA
+                               canonicalizacao dos dois lados · conferido no clique
      R4  chain no clique       eth_chainId IMEDIATAMENTE antes do request
      R5  allowlist +1          CARTEIRA_PERMITIDO — quatro, e o resto LANCA
      R6  zero aprovacao infinita  recusarAprovacaoInfinita() sobre os BYTES
@@ -84,11 +85,19 @@
     b.setAttribute("aria-label", t === "dark" ? "Switch to light theme" : "Switch to dark theme");
   }
   aplicarTema(temaAtual());
-  $("theme").addEventListener("click", function () {
-    var prox = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-    try { localStorage.setItem("triviu-theme", prox); } catch (e) {}
-    aplicarTema(prox);
-  });
+  /* Mesma guarda do irmao /js/console-lp.js, e pelo mesmo motivo medido: sem ela,
+     hospedar este motor numa pagina sem #theme mata o IIFE inteiro na carga e a
+     tela de assinatura fica inerte sem erro visivel. A chave `triviu-theme` e
+     partilhada, entao um controle de tema que viva fora deste arquivo continua
+     concordando com aplicarTema() sem precisar deste botao existir. */
+  var botaoTema = $("theme");
+  if (botaoTema) {
+    botaoTema.addEventListener("click", function () {
+      var prox = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      try { localStorage.setItem("triviu-theme", prox); } catch (e) {}
+      aplicarTema(prox);
+    });
+  }
 
   /* ============================================================== TRAVAS ==== */
   /* REGRA 5 — a lista cresceu em EXATAMENTE UM, e o um esta nomeado.
@@ -206,9 +215,21 @@
   }
 
   /* ------------------------------------------------- REGRA 3 · o hash ------
-     O hash de {chainId,to,data,value}, e so desses quatro campos, porque sao
-     esses quatro que decidem o que a chain vai executar. `from` e conferido a
-     parte, contra a conta que a carteira reporta no instante do clique.
+     UMA canonicalizacao e UM objeto, e as duas coisas sao a mesma correcao.
+
+     O DEFEITO QUE ESTAS LINHAS FECHAM, medido em 2026-08-13 executando as duas
+     funcoes que viviam aqui: existiam DUAS canonicalizacoes do mesmo objeto.
+     congelar() tirava a impressao digital de {chainId,to,data,value} e enviar()
+     recalculava sobre {chainId,FROM,to,data,value}. Serializacoes diferentes,
+     digests diferentes, sempre — a reconferencia do clique nunca podia passar.
+     Medido: 200 de 200 transacoes distintas RECUSADAS, 100%, nas DUAS telas. O
+     defeito e o mesmo nos dois arquivos porque um e porte do outro, e foi
+     portado junto: quando a correcao da carga entrou em enviar(), o lado do
+     congelamento ficou onde estava.
+
+     `from` ENTRA na canonicalizacao, e a versao com quatro campos e que estava
+     errada: uma allowance pertence ao endereco que a concede, entao trocar
+     `from` troca o que se esta assinando.
 
      A serializacao e montada a mao, campo a campo, e NAO por JSON.stringify: a
      ordem das chaves de um objeto e do objeto, e um dia alguem reordena o literal
@@ -221,10 +242,15 @@
      chain nem sai desta pagina — ele so precisa detectar que dois objetos
      diferem. crypto.subtle exige contexto seguro; se nao existir, nao ha
      congelamento e portanto nao ha envio. Falha fechada, declarada em tela. */
-  /* Conferencia sobre a CARGA que vai para a carteira, e nao sobre o objeto
-     interno. `from` entra na canonicalizacao porque uma allowance pertence ao
-     endereco que a concede: trocar `from` troca o que se esta assinando, e um
-     hash que ignorasse `from` nao provaria nada sobre isso. */
+  /** A CARGA: o objeto exato que eth_sendTransaction vai receber. Nasce UMA vez,
+      no congelamento, congelado, e e esta referencia que a tela imprime, que o
+      clique reconfere e que a carteira recebe. Existir num unico lugar e o que
+      impede que dois literais equivalentes se separem — foi assim que o defeito
+      acima entrou, com um literal de cada lado do arquivo. */
+  function cargaDaTx(tx) {
+    return Object.freeze({ from: tx.de, to: tx.to, data: tx.data, value: tx.value });
+  }
+
   function hashDaCarga(carga, chainId) {
     return hashCanon(
       "chainId=" + String(chainId) +
@@ -232,14 +258,6 @@
       "|to=" + String(carga.to).toLowerCase() +
       "|data=" + String(carga.data).toLowerCase() +
       "|value=" + String(carga.value).toLowerCase());
-  }
-
-  function hashDaTx(tx) {
-    var canon = "chainId=" + String(tx.chainId) +
-      "|to=" + String(tx.to).toLowerCase() +
-      "|data=" + String(tx.data).toLowerCase() +
-      "|value=" + String(tx.value).toLowerCase();
-    return hashCanon(canon);
   }
 
   function hashCanon(canon) {
@@ -259,16 +277,68 @@
   /* ------------------------------------------- REGRA 6 · sobre os BYTES ----
      Nao "o codigo aprova o valor exato" — isso e uma afirmacao sobre intencao, e
      intencao nao e verificavel depois que alguem edita. Esta funcao le a calldata
-     JA CONSTRUIDA e recusa se qualquer palavra de 32 bytes for toda de uns. Vale
-     para approve e para qualquer outra coisa que venha a ser montada aqui. */
-  function recusarAprovacaoInfinita(dados) {
-    var corpo = String(dados).replace(/^0x/, "").slice(8);
-    for (var i = 0; i + 64 <= corpo.length; i += 64) {
-      if (/^f{64}$/i.test(corpo.slice(i, i + 64))) {
-        throw new Error(
-          "refused to build this call: one 32-byte word of its calldata is all-ones (2^256-1), which " +
-          "is the unlimited approval. This page approves an exact amount or it approves nothing.");
+     JA CONSTRUIDA e recusa a palavra toda-de-uns. Vale para approve e para
+     qualquer outra coisa que venha a ser montada aqui.
+
+     Esta tela nao tem hoje nenhum argumento COM SINAL, e por isso o falso
+     positivo medido na tela irma — `abrir()` com tickLower = -1 recusada, porque
+     -1 em complemento de dois ocupa a palavra inteira com uns — nao chega a
+     acontecer aqui. A correcao entra assim mesmo: a diferenca entre "nao tem o
+     defeito" e "nao pode ter o defeito" e a unica que sobrevive ao proximo
+     argumento int24 que alguem somar a esta pagina sem lembrar deste comentario.
+
+     A recusa NAO afrouxa: ela pergunta o que a palavra E, e a resposta vem do
+     ARTEFATO COMPILADO. Palavra toda-de-uns em argumento SEM SINAL continua
+     recusada em qualquer chamada, approve ou nao. Falha FECHADA: sem tipos
+     derivaveis — o caso de executeCycle, que carrega um array dinamico — a
+     varredura volta a ser cega, recusando demais e nunca de menos. */
+
+  /** Os tipos, palavra a palavra, como o artefato compilado os declara. Tuplas
+      estaticas sao achatadas. Devolve null diante de qualquer tipo dinamico ou
+      desconhecido, porque com tipo dinamico a posicao da palavra deixa de ser a
+      posicao do argumento e a correspondencia que esta funcao promete some. */
+  function tiposPorPalavra(papel, assinatura) {
+    var g = (ABI.contratos && ABI.contratos[papel]) || (ABI.extras && ABI.extras[papel]);
+    var f = g && g.funcoes && g.funcoes[assinatura];
+    if (!f || !f.entradas) return null;
+    var fora = [], ok = true;
+    function achatar(tipo) {
+      tipo = String(tipo).trim();
+      if (/^\(.*\)$/.test(tipo)) {
+        var s = tipo.slice(1, -1), n = 0, atual = "";
+        for (var i = 0; i < s.length; i++) {
+          var c = s.charAt(i);
+          if (c === "(") n += 1;
+          else if (c === ")") n -= 1;
+          if (c === "," && n === 0) { achatar(atual); atual = ""; continue; }
+          atual += c;
+        }
+        if (atual.trim()) achatar(atual);
+        return;
       }
+      if (!/^(address|bool|uint\d+|int\d+|bytes\d+)$/.test(tipo)) { ok = false; return; }
+      fora.push(tipo);
+    }
+    f.entradas.forEach(function (e) { achatar(e.tipo); });
+    return ok ? fora : null;
+  }
+
+  function recusarAprovacaoInfinita(dados, papel, assinatura) {
+    var corpo = String(dados).replace(/^0x/, "").slice(8);
+    var n = Math.floor(corpo.length / 64);
+    var tipos = tiposPorPalavra(papel, assinatura);
+    var confiavel = !!tipos && tipos.length === n;
+    for (var i = 0; i < n; i++) {
+      if (!/^f{64}$/i.test(corpo.slice(i * 64, (i + 1) * 64))) continue;
+      if (confiavel && /^int\d+$/.test(tipos[i])) continue;   /* -1 em complemento de dois */
+      throw new Error(
+        "refused to build this call: word " + (i + 1) + " of its calldata is all-ones (2^256-1), and " +
+        (confiavel
+          ? "the compiled artefact declares that argument as " + tipos[i] + ", which is unsigned — so " +
+            "that word is the unlimited approval and not a negative number."
+          : "the argument types could not be matched word for word against the compiled artefact, so " +
+            "every word is treated as unsigned.") +
+        " This page approves an exact amount or it approves nothing.");
     }
     return dados;
   }
@@ -318,10 +388,25 @@
     var sel = dados.slice(0, 10).toLowerCase();
     var achado = mapaErros()[sel];
     if (!achado) return { seletor: sel, nome: null, texto: null };
+    /* CONSERTO 2026-08-12, e o defeito era desta funcao desde que ela existe.
+       Os argumentos comecam DEPOIS dos quatro bytes do seletor. A versao anterior
+       indexava as palavras de 32 bytes sobre a string inteira da reversao, que
+       abre com o prefixo e com o seletor — quatro bytes de deslocamento em cada
+       argumento. Medido contra uma reversao real do TriviuLPVault: um tokenId de
+       seis digitos saiu com setenta e tres, e o endereco do dono saiu com quatro
+       bytes de zero na frente e os quatro ultimos perdidos.
+
+       Aqui o defeito nunca apareceu porque os erros que esta tela costuma
+       encontrar nao carregam argumento; ele apareceu na tela irma, que le erros
+       de tres. Nao ter aparecido nao e nao existir, e o que o torna perigoso e
+       que o NOME saia certo: a tela dizia o erro verdadeiro e, ao lado, com a
+       mesma tipografia de valor medido, numeros que nao eram os da chain. Numero
+       errado com cara de lido e pior que traco. */
+    var corpo = "0x" + dados.slice(10);
     var partes = [];
     (achado.def.entradas || []).forEach(function (ent, i) {
-      var w = palavra(dados, i + 1);
-      if (!w) { partes.push(ent.nome + "=" + TRACO); return; }
+      var w = palavra(corpo, i);
+      if (!w || w.length < 64) { partes.push(ent.nome + "=" + TRACO); return; }
       if (ent.tipo === "address") partes.push(ent.nome + "=" + paraEndereco(w));
       else if (/^uint|^int/.test(ent.tipo)) partes.push(ent.nome + "=" + u(w).toString());
       else if (ent.tipo === "string") partes.push(ent.nome + "=(string, not decoded here)");
@@ -590,7 +675,7 @@
     var corpo = $("c-superficie");
     corpo.innerHTML = "";
     var n = 0;
-    ["parameterRegistry", "triviuExecutor", "gasTank"].forEach(function (papel) {
+    ["parameterRegistry", "triviuExecutor", "gasTank", "lpVault"].forEach(function (papel) {
       var c = ABI.contratos[papel];
       Object.keys(c.funcoes).sort().forEach(function (assin) {
         var f = c.funcoes[assin];
@@ -607,9 +692,12 @@
     });
     var tr2 = document.createElement("tr");
     var td = novo("td", null, n + " functions in total. Everything a user or an owner can call on the " +
-      "three contracts whose source is here. approve() is not in this list because it lives on the " +
-      "token, not on a Triviu contract; TriviuLPVault is not either, because its source is not in " +
-      "this repository.");
+      "four contracts whose source is here. approve() is not in this list because it lives on the " +
+      "token, not on a Triviu contract. TriviuLPVault joined the list on 2026-08-12: its source was " +
+      "copied in and compiled here, and the artefact reproduces the deployed bytecode byte for byte " +
+      "outside the 19 immutable windows the constructor writes — 380 bytes differ, all 380 inside " +
+      "those windows, zero outside. Until that was measured the vault had one hand-declared signature " +
+      "and this sentence said its source was elsewhere. It is not elsewhere any more.");
     td.colSpan = 4; tr2.appendChild(td); corpo.appendChild(tr2);
   })();
   ajustarRolagem();
@@ -1252,7 +1340,8 @@
           { nome: "spender", tipo: "address", valor: spender, nota: "the Executor, from the ledger" },
           { nome: "amount", tipo: "uint256", valor: "0", nota: "zero — this revokes, it does not grant" }
         ],
-        dados: recusarAprovacaoInfinita(sig("erc20", "approve(address,uint256)") + pal(spender) + palNum(0)),
+        dados: recusarAprovacaoInfinita(sig("erc20", "approve(address,uint256)") + pal(spender) + palNum(0),
+          "erc20", "approve(address,uint256)"),
         valor: 0n,
         confirmacao: { tipo: "allowance", token: alvoToken, dono: dono, esperado: 0n, casas: tok.casas, simbolo: sym },
         faz: "Revokes what the Executor is currently allowed to move. After this, the standing permission " +
@@ -1277,7 +1366,8 @@
         { nome: "amount", tipo: "uint256", valor: principal.toString(),
           nota: comCasas(principal, tok.casas) + " " + sym + ", scaled by the " + tok.casas + " decimals read from the token" }
       ],
-      dados: recusarAprovacaoInfinita(sig("erc20", "approve(address,uint256)") + pal(spender) + palNum(principal)),
+      dados: recusarAprovacaoInfinita(sig("erc20", "approve(address,uint256)") + pal(spender) + palNum(principal),
+        "erc20", "approve(address,uint256)"),
       valor: 0n,
       confirmacao: { tipo: "allowance", token: alvoToken, dono: dono, esperado: principal, casas: tok.casas, simbolo: sym },
       faz: "Sets an allowance: the Executor becomes able to pull up to this amount of this token from " +
@@ -1309,7 +1399,8 @@
       ],
       dados: recusarAprovacaoInfinita(
         sig("triviuExecutor", "executeCycle(address,uint256,uint256,(uint8,address,address,address,uint24,uint256)[])") +
-        pal(alvoToken) + palNum(principal) + palNum(lucro) + palNum(128) + palNum(0)),
+        pal(alvoToken) + palNum(principal) + palNum(lucro) + palNum(128) + palNum(0),
+        "triviuExecutor", "executeCycle(address,uint256,uint256,(uint8,address,address,address,uint24,uint256)[])"),
       valor: 0n,
       faz: "Pulls the principal, walks the legs in order, and at the end requires the asset balance to " +
         "be at least what it started with plus the principal plus minProfit. If it is not, the entire " +
@@ -1353,8 +1444,15 @@
        neste arquivo em que uma transacao seja montada sem value: o campo e escrito
        na mesma linha em que o objeto nasce. `deposit()` e a unica genuinamente
        payable das quatro, e mesmo ela vai com zero — e por isso mesmo nao e
-       oferecida para assinatura acima. */
+       oferecida para assinatura acima.
+
+       REGRA 11 · e a ligacao tela<->calldata roda ANTES de existir `p.tx`. Passo
+       que nao amarra nao vira transacao. Esta tela tem `legs`, que e `tuple[]` —
+       tipo dinamico, cuja cabeca leva deslocamento e nao valor. A checagem
+       posicional nao alcanca esse argumento, e ele NAO e pulado em silencio:
+       sai impresso no cartao, pelo nome, como nao-amarrado. */
     passos.forEach(function (p) {
+      p.ligacao = conferirTelaContraCalldata(p);
       p.tx = {
         chainId: Number(CHAIN),
         to: p.alvo,
@@ -1366,13 +1464,104 @@
     return passos;
   }
 
-  /* Congela: hash de cada objeto, geracao nova, selo das entradas. Depois disto
-     nada e recalculado — a tela desenha daqui e o clique confere contra isto. */
+  /* ----------------------------------------------- REGRA 11 · tela x carteira -- */
+  /* Cada passo carrega DUAS expressoes independentes dos mesmos valores: `args`,
+     que o cartao imprime em letra legivel, e `dados`, que a carteira recebe em
+     bytes. Nada as ligava. Trocar `palNum(q)` por `palNum(q * 2n)` numa linha
+     deixava o cartao dizendo `q` e a carteira levando `2q`, com impressao digital
+     valida e os cinco guardioes verdes — porque todos eles conferem congelamento
+     contra envio, que sao os DOIS LADOS DO ENVIO, e nunca tela contra envio.
+
+     Medido pelo red-team do N2 do Tubarao-branco: das 8 mutacoes, 4 ficaram
+     verdes, e as 4 eram desta familia.
+
+     NOTA DE PORTE: este arquivo nao tem `palInt` — o outro tem, porque tem
+     ticks int24. Copiar a tabela de tipos tal e qual daria ReferenceError na
+     carga e mataria a tela inteira. A tabela aqui e a dos codificadores que
+     ESTE arquivo tem; o que nao esta nela cai em `soltas`, declarado.
+
+     O QUE ELA NAO PROVA: usa os mesmos codificadores que montaram a calldata.
+     Defeito dentro de um codificador erra os dois lados igual e fica verde. Ela
+     liga tela<->calldata; nao afere codificador. */
+  var CODIFICADOR_POR_TIPO = {
+    address: function (v) {
+      if (!END.test(String(v))) throw new Error("o valor exibido nao e um endereco: " + v);
+      return pal(v);
+    },
+    uint8: palNum, uint16: palNum, uint24: palNum, uint32: palNum,
+    uint64: palNum, uint128: palNum, uint256: palNum,
+    bool: function (v) { return palNum(v ? 1 : 0); }
+  };
+
+  function conferirTelaContraCalldata(p) {
+    var nome = p.assinatura || "(passo sem assinatura)";
+    var dados = String(p.dados == null ? "" : p.dados).replace(/^0x/, "").toLowerCase();
+    if (!/^[0-9a-f]*$/.test(dados)) throw new Error(nome + ": a calldata tem caractere fora do hexadecimal");
+    if (dados.length < 8) throw new Error(nome + ": a calldata nao tem nem os 4 bytes do seletor");
+
+    /* O seletor sai OUTRA VEZ da assinatura que o cartao imprime, e nao do que
+       ja esta na calldata. Cartao dizendo uma funcao e bytes chamando outra e
+       exatamente o ataque que isto fecha. */
+    var esperadoSel = String(sig(p.papel, p.assinatura)).replace(/^0x/, "").toLowerCase();
+    if (dados.slice(0, 8) !== esperadoSel) {
+      throw new Error(nome + ": o cartao imprime esta funcao e a calldata leva o seletor 0x" +
+        dados.slice(0, 8) + ", que e de outra");
+    }
+
+    var corpo = dados.slice(8);
+    if (corpo.length % 64 !== 0) {
+      throw new Error(nome + ": os argumentos nao fecham em palavras de 32 bytes (" +
+        (corpo.length / 2) + " bytes)");
+    }
+    var palavras = corpo.length / 64;
+    var args = p.args || [];
+    var ligadas = 0;
+    var soltas = [];
+
+    for (var i = 0; i < args.length; i++) {
+      var a = args[i];
+      var cod = CODIFICADOR_POR_TIPO[a.tipo];
+      if (!cod) { soltas.push(a.tipo + " " + a.nome); continue; }
+      if (i >= palavras) {
+        throw new Error(nome + ": o cartao imprime " + args.length +
+          " argumentos e a calldata so tem " + palavras + " palavras");
+      }
+      var esperada;
+      try { esperada = String(cod(a.valor)).toLowerCase(); }
+      catch (e) {
+        throw new Error(nome + ": o valor exibido de `" + a.nome + "` nao codifica como " +
+          a.tipo + " — " + (e && e.message ? e.message : String(e)));
+      }
+      var vinda = corpo.slice(i * 64, (i + 1) * 64);
+      if (esperada !== vinda) {
+        throw new Error(nome + ": o cartao imprime `" + a.nome + " = " + a.valor +
+          "`, que codifica " + esperada + ", e a calldata leva " + vinda + " nessa posicao");
+      }
+      ligadas += 1;
+    }
+
+    /* Sobra e tao grave quanto diferenca: bytes indo para a carteira que a tela
+       nunca imprimiu. So da para exigir contagem exata quando TODO argumento e
+       de tipo estatico. `executeCycle` tem `tuple[]`, entao nesta tela a
+       exigencia de contagem nao se aplica ao passo dele — e o cartao diz isso. */
+    if (soltas.length === 0 && palavras !== args.length) {
+      throw new Error(nome + ": a calldata leva " + palavras + " palavras e o cartao mostra " +
+        args.length + " — ha bytes indo para a carteira que a tela nao imprime");
+    }
+
+    return { ligadas: ligadas, palavras: palavras, soltas: soltas };
+  }
+
+  /* Congela: a carga de cada passo nasce AQUI, congelada, a impressao digital
+     sai DELA, geracao nova, selo das entradas. Depois disto nada e recalculado e
+     nada e reconstruido — a tela desenha daqui, o clique confere contra isto, e
+     a carteira recebe este mesmo objeto. */
   function congelar(passos, selo) {
     GERACAO += 1;
     var geracao = GERACAO;
     return emSerie(passos, function (p) {
-      return hashDaTx(p.tx).then(function (h) { p.hash = h; p.geracao = geracao; });
+      p.carga = cargaDaTx(p.tx);
+      return hashDaCarga(p.carga, p.tx.chainId).then(function (h) { p.hash = h; p.geracao = geracao; });
     }).then(function () {
       return { geracao: geracao, selo: selo, passos: passos };
     });
@@ -1450,7 +1639,7 @@
         var revertidos = cong.passos.filter(function (p) { return p.reverteu; }).length;
         var enviaveis = cong.passos.filter(function (p) { return p.podeEnviar; }).length;
         estadoFluxo("Encoded and frozen. " + cong.passos.length + " calls, each with a fingerprint over " +
-          "{chainId, to, data, value} that is re-checked at the instant you click. " +
+          "{chainId, from, to, data, value} that is re-checked at the instant you click. " +
           (revertidos
             ? revertidos + " would revert against the chain as it is right now, and those cannot be " +
               "signed here — the reason the contract gave is on each card in its own words."
@@ -1489,18 +1678,24 @@
       tb.appendChild(tr);
       return tr;
     }
-    /* TUDO abaixo sai de p.tx, o objeto congelado — nunca dos campos do
-       formulario e nunca de uma remontagem. E a metade visivel da regra 3: se a
-       tela desenhasse dos campos e o clique enviasse do objeto, os dois poderiam
-       divergir sem que nada acusasse. */
+    /* TUDO abaixo sai de `p.carga` — o objeto CONGELADO, que e literalmente o
+       que `eth_sendTransaction` recebe. A versao anterior desenhava de `p.tx` e
+       o comentario aqui dizia "o objeto congelado": `p.tx` NAO e congelado,
+       `p.carga` e (`Object.freeze` em `cargaDaTx`). Eram dois objetos, o cartao
+       lia um e a carteira recebia o outro, e o cabecalho afirmava que eram o
+       mesmo. Hoje sao: nao ha o que divergir porque nao ha dois.
+
+       `chainId` e a excecao, e fica declarada: ele nao mora na carga (a carteira
+       o recebe pela sessao, nao no objeto) e por isso sai de `p.tx.chainId`. E o
+       campo conferido em separado contra `eth_chainId` no instante do clique. */
     linha("Function, from the compiled artefact", p.assinatura);
-    linha("Four-byte selector", p.tx.data.slice(0, 10));
-    linha("Target contract", p.tx.to);
+    linha("Four-byte selector", p.carga.data.slice(0, 10));
+    linha("Target contract", p.carga.to);
     linha("What that address is", p.alvoNome);
     linha("Chain id these bytes are frozen for", String(p.tx.chainId) + "  (0x" + p.tx.chainId.toString(16) + ")");
-    linha("Native value attached", comCasas(BigInt(p.tx.value), 18) + " POL" +
-      (BigInt(p.tx.value) === 0n ? "  — explicitly zero, never by omission" : ""));
-    linha("Fingerprint of {chainId, to, data, value}, SHA-256", p.hash);
+    linha("Native value attached", comCasas(BigInt(p.carga.value), 18) + " POL" +
+      (BigInt(p.carga.value) === 0n ? "  — explicitly zero, never by omission" : ""));
+    linha("Fingerprint of {chainId, from, to, data, value}, SHA-256", p.hash);
     var trGas = linha("Estimated gas, eth_estimateGas", TRACO);
     var trCusto = linha("What that costs at the current gas price", TRACO);
     t.appendChild(tb);
@@ -1526,13 +1721,27 @@
     var cap = novo("figcaption", null,
       "Calldata as the wallet would receive it — 4-byte selector" +
       (p.args.length ? " plus " + p.args.length + " argument" + (p.args.length === 1 ? "" : "s") : ", no arguments") +
-      ", " + ((p.tx.data.length - 2) / 2) + " bytes in total");
+      ", " + ((p.carga.data.length - 2) / 2) + " bytes in total");
     fig.appendChild(cap);
     var pre = novo("pre", "cod");
     pre.setAttribute("translate", "no");
-    pre.textContent = p.tx.data;
+    pre.textContent = p.carga.data;
     fig.appendChild(pre);
     el.appendChild(fig);
+
+    /* O resultado da regra 11, impresso. Diz quantas palavras da calldata foram
+       RECONSTRUIDAS a partir do que esta escrito na tela — e nomeia o que ficou
+       de fora, quando fica. O passo nem chegaria ate aqui se alguma divergisse. */
+    if (p.ligacao) {
+      el.appendChild(novo("p", "hint",
+        "Screen against bytes: " + p.ligacao.ligadas + " of " + p.ligacao.palavras +
+        " calldata word(s) were re-encoded from the values printed above and matched, and the " +
+        "selector was re-derived from the signature on this card." +
+        (p.ligacao.soltas.length
+          ? " NOT bound by this check, because the type is dynamic and its bytes are not one word: " +
+            p.ligacao.soltas.join(", ") + "."
+          : " Nothing in this call is left unbound.")));
+    }
 
     el.appendChild(novo("p", "hint", "What it does: " + p.faz));
     el.appendChild(novo("p", "hint", "What it does not do: " + p.naoFaz));
@@ -1603,9 +1812,15 @@
   }
 
   function estimar(p, dono) {
-    /* O objeto estimado e o objeto congelado, campo por campo. Estimar uma coisa
-       e enviar outra seria a regra 3 furada num lugar onde ninguem olha. */
-    var tx = { from: p.tx.de, to: p.tx.to, data: p.tx.data, value: p.tx.value };
+    /* O objeto estimado E o objeto enviado — pela MESMA funcao, nao por dois
+       literais que hoje coincidem. A versao anterior deste comentario afirmava
+       exatamente isto enquanto a linha abaixo remontava um literal a partir de
+       p.tx: cabecalho prometendo o que o codigo nao dava, que e a definicao do
+       M-1 desta casa — dentro do conserto do M-1. Os campos coincidiam, e o
+       risco era a DERIVA, que foi exatamente como o F-1 nasceu: duas
+       canonicalizacoes que se separaram sem ninguem notar.
+       cargaDaTx e a unica construtora da carga. Estimar e enviar leem dela. */
+    var tx = cargaDaTx(p.tx);
     return rpc("eth_estimateGas", [tx]).then(function (g) {
       var gas = BigInt(g);
       p.reverteu = false;
@@ -1709,6 +1924,16 @@
       txt(p.elEnvioEstado, "This step is not available for signature, and nothing was sent.");
       return;
     }
+    /* Sem carga congelada nao ha o que reconferir, e o que nao pode ser
+       reconferido nao e oferecido para assinatura. Este teste vem ANTES da trava
+       de envio de proposito: um retorno depois de ENVIANDO = true teria de
+       desfaze-la a mao, e trava liberada em dois lugares diferentes e a proxima
+       trava que fica presa. */
+    if (!p.carga) {
+      txt(p.elEnvioEstado, "Nothing was sent: this step carries no frozen payload, so there is nothing " +
+        "whose fingerprint could be re-checked. Encode again.");
+      return;
+    }
     if (!ORIGEM.ok) {
       txt(p.elEnvioEstado, "Nothing was sent. Signing is off on this origin. " + ORIGEM.motivo);
       return;
@@ -1723,14 +1948,18 @@
       "sent and your wallet has not been asked for anything yet.");
 
     var tx = p.tx;
-    /* ACHADO #1 DA MEDUSA, fechado aqui.
-       Antes: hashDaTx(tx) conferia o objeto `tx`, e no envio se construia um
-       LITERAL NOVO a partir dos campos de `tx`. Entre uma coisa e outra ha tres
-       await. A impressao digital provava o que a pagina CONGELOU, nao o que ela
-       ENVIA — e provar isso e a unica razao de ela existir.
-       Agora: a carga e construida UMA vez, aqui, congelada, e e ESTA REFERENCIA
-       que e conferida e que vai para a carteira. Nao ha objeto novo no caminho. */
-    var carga = Object.freeze({ from: tx.de, to: tx.to, data: tx.data, value: tx.value });
+    /* ACHADO #1 DA MEDUSA, fechado aqui — e fechado de verdade so em 2026-08-13.
+       Primeira versao: o congelamento imprimia `tx` e o envio montava um LITERAL
+       NOVO a partir dos campos de `tx`. Entre uma coisa e outra ha tres await, e
+       a impressao digital provava o que a pagina CONGELOU e nao o que ela ENVIA.
+       Segunda versao (o conserto incompleto): o envio passou a construir a carga
+       UMA vez e a conferi-la — mas o congelamento continuou imprimindo `tx`, com
+       quatro campos, contra os cinco da carga. O envio ficou correto e o par
+       ficou impossivel: 200 recusas em 200, medidas.
+       Agora: a carga e construida uma unica vez em congelar(), por cargaDaTx(),
+       e o que esta linha faz e LER aquela referencia. Nao ha objeto novo no
+       caminho e nao ha uma segunda canonicalizacao para divergir da primeira. */
+    var carga = p.carga;
     hashDaCarga(carga, tx.chainId)
       .then(function (h) {
         if (h !== p.hash) {

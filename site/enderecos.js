@@ -47,10 +47,18 @@
    * dizia `estado: 'VAZIO'`, e quem lesse concluiria "inofensivo" — por isso os
    * dois fatos agora sao campos separados, saldo e codigo.
    *
-   * O PERIGO NAO E O SALDO — e que os dois Registries orfaos tem estado
-   * BYTE-IDENTICO ao verdadeiro: mesmo owner, mesmo pendingOwner, feeBps 0,
-   * treasury 0x0. NAO HA COMO DISTINGUIR O CERTO DO ERRADO CONSULTANDO ESTADO.
-   * So o endereco difere. Ligar uma tela ao errado *parece* funcionar — le
+   * SOBRE A PARIDADE DE ESTADO: ela era verdade e DEIXOU DE SER. Enquanto o
+   * Registry oficial estava sem configurar, os tres eram indistinguiveis por
+   * estado. Medido em 2026-08-12, depois do setTreasury e do setFeeBps:
+   *     oficial 0x1Adab61e  feeBps 3000  treasury Safe 0x73e344Be
+   *     orfao   0x43DB0d57  feeBps 0     treasury 0x0
+   * Hoje se distinguem em quatro campos. O paragrafo anterior afirmava o
+   * contrario e fica registrado como o que foi: verdadeiro quando escrito,
+   * falso depois de a matilha configurar o que ele descrevia.
+   *
+   * O PERIGO CONTINUA, e mudou de forma: agora um orfao se parece com um
+   * Registry NOVO e nao-configurado, que e exatamente o que alguem esperaria
+   * ver num deploy recente. So o endereco distingue com certeza. Ligar uma tela ao errado *parece* funcionar — le
    * politica plausivel, mostra aliquota zero — e o Executor vivo nunca vai
    * obedecer aquele Registry.
    *
@@ -69,6 +77,35 @@
     // rodar de novo. Fica escrito para nao virar folclore.
     { endereco: '0xd224f7cE6f96c3D26737bD442B20F4f44992c440', nonce: 1686, tipo: 'TriviuLPVault',    saldo: 'zero', codigo: 7954, gemeoByteExato: true }
   ];
+
+  /* ------------------------------------------------------------- EXTERNOS --
+   * Contratos que NAO sao nossos e que mesmo assim entram em calldata assinada
+   * por um usuario. Sao poucos e sao nomeados aqui pela mesma razao pela qual os
+   * nossos sao: um endereco que vai para dentro de uma transacao ou sai do livro
+   * ou e comparado byte-a-byte contra ele.
+   *
+   * Nao vivem em VIVOS porque nao sao Triviu, e exigirVivo() continua recusando
+   * cada um deles — misturar os dois conjuntos faria `exigirVivo(NPM)` passar, e
+   * ai a pergunta "este endereco e nosso?" deixaria de ter resposta.
+   *
+   * MEDIDO na chain 137 em 2026-08-13, e nao copiado de documentacao:
+   *     TriviuLPVault.positionManager() -> 0xC36442b4a4522E871399CD717aBDD847Ab11FE88
+   *     name()    "Uniswap V3 Positions NFT-V1"
+   *     symbol()  "UNI-V3-POS"
+   *     factory() 0x1F98431c8aD98523631AE4a59f267346ea31F984
+   *     codigo    24384 bytes
+   *
+   * POR QUE A COMPARACAO E NECESSARIA MESMO SENDO O PONTEIRO IMMUTABLE:
+   * `positionManager` e immutable no TriviuLPVault (TriviuLPVault.sol:186), logo
+   * o cofre oficial nao pode ser reapontado. Isso torna a leitura confiavel
+   * DEPOIS de se saber que se leu o cofre certo — e o orfao 0xd224f7cE responde
+   * a MESMA pergunta com a MESMA resposta (medido). Ler positionManager() de um
+   * cofre qualquer nao identifica nada; o que identifica e o par: cofre saido do
+   * livro E resposta igual a esta constante.
+   */
+  var EXTERNOS = {
+    uniswapPositionManager: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88'
+  };
 
   /* -------------------------------------------------------------- CUSTODIA --
    * Escrito como foi MEDIDO, nao como foi pretendido.
@@ -97,10 +134,16 @@
     safeDonos: ['0xb5Fb0CDaab5784cBE05CcB9D843DaFe4663883C5'],
     deployer: '0xb5Fb0CDaab5784cBE05CcB9D843DaFe4663883C5',
     separacaoDeChave: false,
-    timelock: null,
-    ownerAtual: '0xb5Fb0CDaab5784cBE05CcB9D843DaFe4663883C5',
-    pendingOwner: '0x73e344Be290c0D53Badbe528e45877296F6dAf6E',
-    aceiteConcluido: false
+    timelock: null
+    /* ownerAtual, pendingOwner e aceiteConcluido SAIRAM daqui em 2026-08-12.
+       Eles diziam owner = EOA e aceiteConcluido = false; a chain respondia
+       owner() = Safe e pendingOwner() = 0x0 desde que a posse foi aceita. Ou
+       seja: estavam MENTINDO, e ninguem notou porque constante nao avisa que
+       envelheceu. Posse e ESTADO DE CHAIN. Constante que espelha estado de
+       chain e uma afirmacao com prazo de validade que ninguem anota — quem
+       precisa do dado le owner() na hora. O que fica aqui e o que NAO expira:
+       o Safe e 1-de-1 e o dono unico dele e o proprio deployer, logo nao ha
+       separacao de chave, e isso nao muda sozinho. */
   };
 
   var MEDICAO = { chainId: CHAIN, bloco: 91859211, onda: 'ONDA-TRIVIU-MAINNET-FECHO-2026-08-11' };
@@ -158,13 +201,67 @@
     return VIVOS[papel];
   }
 
+  var _externosBaixo = {};
+  Object.keys(EXTERNOS).forEach(function (k) { _externosBaixo[EXTERNOS[k].toLowerCase()] = k; });
+
+  /**
+   * A mesma trava de exigirVivo(), para os contratos de terceiros que entram em
+   * calldata. Devolve a CONSTANTE, nunca o texto recebido, para que um chamador
+   * que use o retorno esteja usando o livro mesmo quando leu de outro lugar.
+   *
+   * A divergencia ABORTA. Nao avisa, nao registra, nao continua com o que leu:
+   * um endereco que nao bate e um endereco que ninguem revisou entrando numa
+   * transacao que alguem vai assinar.
+   */
+  function exigirExterno(endereco, papelEsperado) {
+    if (typeof endereco !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(endereco)) {
+      throw new Error('[triviu/enderecos] nao e um endereco: ' + String(endereco));
+    }
+    var baixo = endereco.toLowerCase();
+
+    var orfao = _orfaosBaixo[baixo];
+    if (orfao) {
+      throw new Error(
+        '[triviu/enderecos] ORFAO. ' + endereco + ' e um ' + orfao.tipo +
+        ' do run de deploy que falhou (nonce ' + orfao.nonce + '), e nao um contrato externo.'
+      );
+    }
+    var nosso = _vivosBaixo[baixo];
+    if (nosso) {
+      throw new Error(
+        '[triviu/enderecos] E NOSSO. ' + endereco + ' e o ' + nosso + ' do Triviu, e o esperado era o ' +
+        'contrato externo ' + papelEsperado + '. Tratar um contrato nosso como externo apaga a unica ' +
+        'distincao que importa quando se pergunta quem escreveu o codigo que vai executar.'
+      );
+    }
+
+    var papel = _externosBaixo[baixo];
+    if (!papel) {
+      throw new Error(
+        '[triviu/enderecos] EXTERNO DESCONHECIDO. ' + endereco + ' nao consta do livro. O ' +
+        (papelEsperado || 'externo esperado') + ' e ' +
+        (EXTERNOS[papelEsperado] || '(papel nao declarado no livro)') + '. ' +
+        'Divergencia aqui ABORTA: este endereco entraria em calldata assinada.'
+      );
+    }
+    if (papelEsperado && papel !== papelEsperado) {
+      throw new Error(
+        '[triviu/enderecos] PAPEL TROCADO. ' + endereco + ' e o externo ' + papel +
+        ', e o esperado era o ' + papelEsperado + '.'
+      );
+    }
+    return EXTERNOS[papel];
+  }
+
   var API = {
     CHAIN_ID: CHAIN,
     VIVOS: VIVOS,
     ORFAOS: ORFAOS,
+    EXTERNOS: EXTERNOS,
     CUSTODIA: CUSTODIA,
     MEDICAO: MEDICAO,
-    exigirVivo: exigirVivo
+    exigirVivo: exigirVivo,
+    exigirExterno: exigirExterno
   };
 
   if (typeof module !== 'undefined' && module.exports) { module.exports = API; }
