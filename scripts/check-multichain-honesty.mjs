@@ -97,6 +97,64 @@ for (const file of files) {
   });
 }
 
+/* ---------------------------------------------------------------------------
+   REGRA POSITIVA · a chain que ESTA no livro de enderecos nao pode ser descrita
+   como nao-implantada.
+
+   POR QUE ISTO EXISTE, e a razao e um defeito medido em 2026-08-19: /chains/
+   descrevia "Polygon PoS · Simulated · gate before mainnet" com SEIS contratos
+   vivos na 137, e este guardiao saia 0. As 9 regras BANNED acima sao lista negra
+   de FRASES, e nenhuma delas casava "Simulated · gate before mainnet". Lista
+   negra so pega a frase que alguem ja imaginou; a frase nova passa sempre.
+
+   A regra abaixo inverte o sentido: em vez de proibir frases, ela le a FONTE DA
+   VERDADE — site/enderecos.js, o mesmo livro que exigirVivo() usa — e exige que
+   a chain que tem endereco ali nao seja chamada de simulada em superficie
+   publica. Frase nova nao escapa, porque o gatilho e o FATO, nao a palavra.
+
+   FALHA FECHADA: livro ilegivel ou sem chainId = reprova. */
+const NAO_IMPLANTADA = /\b(simulated|not deployed|nothing deployed|pending deploy|before mainnet)\b/i;
+const AFIRMATIVA = /\b(deployed|live|running|em producao)\b/i;
+const NOME_DA_CHAIN = { 137: /\bpolygon\b/i, 42161: /\barbitrum\b/i, 56: /\b(bnb|bsc)\b/i };
+
+let chainViva;
+try {
+  const livro = readFileSync(join(ROOT, "site", "enderecos.js"), "utf8");
+  const m = /CHAIN\s*=\s*(\d+)/.exec(livro);
+  if (!m) throw new Error("nenhum CHAIN = <id> em site/enderecos.js");
+  chainViva = Number(m[1]);
+  if (!NOME_DA_CHAIN[chainViva]) throw new Error(`chain ${chainViva} sem nome mapeado nesta regra`);
+} catch (e) {
+  console.error("livro de enderecos ilegivel — FALHA FECHADA:", e.message);
+  process.exit(1);
+}
+
+const nome = NOME_DA_CHAIN[chainViva];
+for (const file of files) {
+  if (DECISIONS.test(file)) continue;           // registro de ponto no tempo
+  let text;
+  try { text = readFileSync(file, "utf8"); } catch { continue; }
+  text.split(/\r?\n/).forEach((line, i) => {
+    /* Nao basta co-ocorrer na linha. "Polygon is deployed; Arbitrum is simulated"
+       e uma frase VERDADEIRA e a versao anterior desta regra a reprovava — falso
+       positivo medido em 2026-08-19, na propria correcao que a acompanha.
+       A negativa tem de vir DEPOIS do nome da chain e sem uma afirmativa no meio. */
+    const iChain = line.search(nome);
+    if (iChain >= 0) {
+      const depois = line.slice(iChain, iChain + 60);
+      const mNeg = depois.search(NAO_IMPLANTADA);
+      const mPos = depois.search(AFIRMATIVA);
+      if (mNeg >= 0 && (mPos < 0 || mNeg < mPos)) {
+      violations.push({
+        file, line: i + 1,
+        why: `chain ${chainViva} TEM endereco em site/enderecos.js e esta linha a descreve como nao-implantada`,
+        text: line.trim().slice(0, 100),
+      });
+      }
+    }
+  });
+}
+
 if (violations.length) {
   console.error(`✗ multi-chain honesty: ${violations.length} violation(s)\n`);
   for (const v of violations) console.error(`  ${v.file}:${v.line}\n    ${v.why}\n    > ${v.text}\n`);
