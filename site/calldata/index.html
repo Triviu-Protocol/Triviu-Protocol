@@ -23,19 +23,32 @@
   ============================================================================
   NO WEBFONT ON THIS PAGE, AND THAT IS THE POINT
   ============================================================================
-  Every other page here pulls Libre Caslon Text, Public Sans and IBM Plex Mono
-  from fonts.googleapis.com. This one does not, and the reason is the third of
-  the three gates: the page that will one day ask for a signature should not
-  share its origin with a third party. Closing the script channel was done for
-  the whole site (script-src 'self'); Google Fonts is CSS, not script, so it
-  survived that pass and stayed on 13 pages as a stated residual.
+  UPDATED 2026-08-18 — the paragraph below described the site as it was, and the
+  site changed. It is kept and corrected rather than deleted, because it records
+  why this page was built the way it was.
 
-  It does not survive here. The font stacks below fall through to Georgia,
-  system-ui and ui-monospace, which every target platform already has. The cost
-  is real and is stated rather than hidden: this page is set in slightly
-  different type from the rest of the site. That is the price of an origin with
-  no third party on it, and on the page that will hold a signature the price is
-  worth paying.
+  WHAT IT SAID, AND IT WAS TRUE UNTIL 2026-08-18: every other page here pulled
+  Libre Caslon Text, Public Sans and IBM Plex Mono from fonts.googleapis.com.
+  This one did not, and the reason was the third of the three gates: the page
+  that will one day ask for a signature should not share its origin with a third
+  party. Closing the script channel was done for the whole site (script-src
+  'self'); Google Fonts is CSS, not script, so it survived that pass and stayed
+  on 13 pages as a stated residual.
+
+  WHAT IS TRUE NOW: the residual is gone. The three families are served from
+  /vendor/fonts/ on this origin, under SIL OFL 1.1 (see OFL.txt there), and the
+  two Google hosts were removed from every page and from the Content-Security-
+  Policy itself. No page on this site fetches a byte from a third party.
+
+  That residual should not have been recorded as absent while it was present.
+  The gate-3 note of 2026-08-12 read "not even Google Fonts", and the comment
+  above — on this very page — said the opposite. Two of our own records
+  disagreed and nobody crossed them for six days.
+
+  This page still falls through to Georgia, system-ui and ui-monospace. That was
+  the price of an origin with no third party on it; the price is no longer
+  necessary, and whether this page should now use the brand faces like the rest
+  of the site is a call for the founder, not a change to make silently here.
 
   ============================================================================
   WHAT THIS PAGE IS ALLOWED TO DO  ·  changed on 2026-08-12
