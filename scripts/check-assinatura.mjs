@@ -775,20 +775,57 @@ for (const rel of ASSINANTES) provarRegra6(rel);
     [/\bpersonal_sign\b|\beth_signTypedData\b|\bwallet_[a-zA-Z]/, "pede assinatura ou permissao a carteira"],
   ];
 
-  for (const [rel, paginas] of carregados) {
+  /* O ROL COBRE O DIRETORIO, NAO A LISTA DE <script src>.
+   *
+   * A primeira versao cobria "todo js que uma PAGINA carrega". O N1, refeito
+   * contra a arvore final, atravessou por outra porta:
+   *
+   *     // site/js/oculto.js — nenhuma pagina o carrega
+   *     export function enviar(p){
+   *       return window.ethereum.request({method:"eth_sendTransaction",params:[p]});
+   *     }
+   *     // site/js/tema.js — no rol como `sem-carteira`
+   *     import("/js/oculto.js").then(function (m) { window.__env = m.enviar; });
+   *
+   * `oculto.js` nao aparecia em `carregados`, entao o rol nao o conhecia, entao
+   * o rol nao o reprovava. E `tema.js` nao disparava sinal nenhum, porque uma
+   * string dentro de `import()` nao e chamada de carteira.
+   *
+   * Seguir arestas de `import` seria outra LISTA — de formas de importar — e
+   * lista perde: foi a terceira vez nesta onda que descoberta por enumeracao caiu
+   * contra quem escreveu fora da enumeracao. A resposta e mais larga e mais
+   * simples: TODO arquivo `.js` sob `site/js/` esta classificado, tenha pagina que
+   * o carregue ou nao. Quem chega ao diretorio publicado responde por estar la.
+   *
+   * A informacao de QUEM carrega continua sendo usada — ela distingue "assina numa
+   * pagina" de "existe no diretorio" na mensagem de erro — mas nao decide mais se
+   * o arquivo e julgado. */
+  const JS_EM_DISCO = (() => {
+    const dir = join(SITE, "js");
+    if (!existsSync(dir)) return [];
+    return readdirSync(dir)
+      .filter((f) => f.endsWith(".js"))
+      .map((f) => "js/" + f);
+  })();
+
+  for (const rel of JS_EM_DISCO) {
     if (!Object.prototype.hasOwnProperty.call(ROL_JS, rel)) {
+      const paginas = carregados.get(rel);
       falhar(
-        `${rel} (carregado por ${paginas.join(", ")}) NAO esta no rol deste guardiao. Arquivo que uma ` +
-        "pagina carrega e julgado ou reprovado — nao ha terceira opcao. Classifique-o em ROL_JS como " +
-        "`assina`, `leitura`, `primitivas` ou `sem-carteira`, e a classificacao sera cobrada contra o codigo"
+        `${rel} esta sob a raiz publicada e NAO esta no rol deste guardiao` +
+        (paginas ? ` (carregado por ${paginas.join(", ")})` : " (nenhuma pagina o carrega por <script src>, " +
+          "o que NAO o torna inalcancavel: `import()` chega nele sem passar por HTML)") +
+        ". Arquivo em `site/js/` e julgado ou reprovado — nao ha terceira opcao. Classifique-o em " +
+        "ROL_JS como `assina`, `leitura`, `primitivas` ou `sem-carteira`, e a classificacao sera " +
+        "cobrada contra o codigo"
       );
     }
   }
   for (const rel of Object.keys(ROL_JS)) {
-    if (!carregados.has(rel))
+    if (!JS_EM_DISCO.includes(rel))
       falhar(
-        `${rel} esta no rol e nenhuma pagina o carrega. Rol que nao bate com a arvore apodrece: ou o ` +
-        "arquivo saiu, ou a pagina que o carregava saiu, e nos dois casos a entrada mente"
+        `${rel} esta no rol e nao existe em site/js/. Rol que nao bate com a arvore apodrece: ` +
+        "ou o arquivo saiu, ou a entrada mente"
       );
   }
   for (const [rel, classe] of Object.entries(ROL_JS)) {

@@ -273,6 +273,13 @@ $(alvo).innerHTML = "x";` },
     nome: "PoC E1 do Escorpiao · arquivo novo que assina e le o slot, os dois montados com um mais",
     codigo: 'var M = "eth_send" + "Transaction"; var p = window["eth" + "ereum"]; p.request({ method: M, params: [] });' },
 
+  /* PoC do N1 REFEITO · o rol cobria <script src> e nao o grafo de modulos. Um js
+     que nenhuma pagina carrega era alcancado por import() dinamico e ficava fora
+     do julgamento. O rol passou a cobrir o diretorio publicado inteiro. */
+  { portao: "check-assinatura", tipo: "mordida", onde: "site/js/oculto.js",
+    nome: "PoC N1R-01 · js que nenhuma pagina carrega, alcancado por import dinamico",
+    codigo: 'export function enviar(p){ return window.ethereum.request({method:"eth_sendTransaction",params:[p]}); }' },
+
   /* ===== os PoCs do TUBARAO-BRANCO em agua limpa · 2026-08-19 ==============
      O N2 derrubou tres afirmacoes desta onda por execucao. Os ataques dele
      entram aqui pelo mesmo motivo que os do Escorpiao: comando em transcricao
@@ -322,9 +329,16 @@ $(alvo).innerHTML = "x";` },
     nome: "a allowlist da carteira perde o nome e some da vista do guardiao",
     ancora: "var CARTEIRA_PERMITIDO", codigo: "var CARTEIRA_LIBERADA" },
 
-  { portao: "check-assinatura", tipo: "calado", onde: "site/js/zz-sem-carteira.js",
-    nome: "arquivo que nao alcanca carteira nao entra nas quatro checagens",
-    codigo: "var soma = 1 + 1;" },
+  /* O calado mudou de forma em 2026-08-19, e a razao e o proprio conserto: desde
+     que o rol passou a cobrir o diretorio publicado inteiro, arquivo NOVO em
+     site/js/ reprova por nao estar classificado — e isso e o comportamento certo,
+     nao um defeito. Um fixture de arquivo novo virou, corretamente, uma mordida.
+     O que este calado exerce agora e a outra metade da regra: codigo legitimo
+     DENTRO de um arquivo ja classificado nao pode ser reprovado. */
+  { portao: "check-assinatura", tipo: "calado", onde: "site/js/tema.js", modo: "inserir",
+    ancora: "",
+    nome: "codigo legitimo dentro de arquivo ja classificado no rol nao reprova",
+    codigo: "var somaInofensiva = 1 + 1;" },
 
   /* -------------------- check-origem-unica · F-2 · Lei #1 ----------------- */
   { portao: "check-origem-unica", tipo: "mordida", onde: "site/domain.config.json", modo: "trocar",
