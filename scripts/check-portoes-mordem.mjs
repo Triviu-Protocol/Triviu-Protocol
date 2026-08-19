@@ -280,6 +280,18 @@ $(alvo).innerHTML = "x";` },
     nome: "PoC N1R-01 · js que nenhuma pagina carrega, alcancado por import dinamico",
     codigo: 'export function enviar(p){ return window.ethereum.request({method:"eth_sendTransaction",params:[p]}); }' },
 
+  /* PoCs da RE-AUDITORIA do Tubarao · o rol terminava em site/js/ e a raiz
+     publicada nao termina ali. As tres telas que assinam ja carregavam
+     /enderecos.js, e a home carrega um bundle de vendor. */
+  { portao: "check-assinatura", tipo: "mordida", onde: "site/enderecos.js", modo: "inserir",
+    ancora: "",
+    nome: "PoC N2R-01 · assinatura crua em arquivo FORA de site/js/ que 3 telas carregam",
+    codigo: 'window.__pagar=function(p){return window.ethereum.request({method:"eth_sendTransaction",params:[p]});};' },
+
+  { portao: "check-assinatura", tipo: "mordida", onde: "site/vendor/analytics.js",
+    nome: "PoC N2R-01b · arquivo novo em site/vendor/ nao esta no rol",
+    codigo: 'window.__t=function(p){return window.ethereum.request({method:"eth_sendTransaction",params:[p]});};' },
+
   /* ===== os PoCs do TUBARAO-BRANCO em agua limpa · 2026-08-19 ==============
      O N2 derrubou tres afirmacoes desta onda por execucao. Os ataques dele
      entram aqui pelo mesmo motivo que os do Escorpiao: comando em transcricao

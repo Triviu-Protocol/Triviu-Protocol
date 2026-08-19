@@ -408,6 +408,32 @@ function correr() {
       "Contar portoes nao bastava — nove continuam nove com um inerte no lugar do que prova a Lei #1."
     );
 
+  /* A LISTA NOMINAL CONFERE NOS DOIS SENTIDOS.
+   *
+   * Ela nasceu para pegar REMOCAO: um portao que some de `scripts/` derruba o
+   * numero de 15 para 14 sem que ninguem note, e a lista denuncia o nome que
+   * faltou. Mas o N2 em agua limpa mediu o outro sentido e ele estava aberto:
+   *
+   *     scripts/check-novo-portao.mjs  ->  process.exit(0)
+   *     trilho: "OK 16 de 16"   ·   corpus: exit 0, sem exigir controle
+   *
+   * Um portao OCO somado a pasta infla a manchete e nao e cobrado por ninguem —
+   * nem pela lista, que so olha quem falta, nem pelo corpus, que so cobra quem
+   * esta na lista. "16 de 16" passa a valer mais que "15 de 15" sem que nada
+   * tenha sido guardado.
+   *
+   * A regra vira bijecao: descoberto tem de estar na lista, e listado tem de
+   * estar em scripts/. E a mesma forma do rol fechado do guardiao de assinatura
+   * — cobrir tudo e deixar a omissao reprovar — aplicada a quem guarda. */
+  const intrusos = portoes.filter((p) => !OBRIGATORIOS.includes(p));
+  if (intrusos.length)
+    falhas.push(
+      intrusos.length + " portao(oes) rodou sem estar na lista nominal: " + intrusos.join(", ") +
+      ". Portao que ninguem nomeou tambem nao tem controle no corpus, entao ele soma ao numero " +
+      "sem provar que morde. Ponha o nome em scripts/_obrigatorios.mjs e de a ele mordida e calado, " +
+      "ou tire-o de scripts/."
+    );
+
   if (reprovados.length) falhas.push(reprovados.length + " portao(oes) recusou: " + reprovados.join(", "));
 
   for (const p of pontesVencidas)

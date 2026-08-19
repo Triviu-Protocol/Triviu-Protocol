@@ -687,7 +687,12 @@ for (const rel of ASSINANTES) provarRegra6(rel);
   for (const arquivo of htmls) {
     const html = readFileSync(arquivo, "utf8");
     const pagina = relative(SITE, arquivo).split(sep).join("/");
-    for (const m of html.matchAll(/<script\b[^>]*\bsrc\s*=\s*"\/(js\/[^"]+\.js)"/gi)) {
+    /* CASA QUALQUER CAMINHO, nao so `/js/`.
+       O padrao anterior era `"\/(js\/[^"]+\.js)"`, e o N2 em agua limpa passou por
+       fora dele com um arquivo que tres telas de assinatura ja carregam:
+       `<script src="/enderecos.js">`. O mapa nao o via, o rol nao o conhecia, e
+       `eth_sendTransaction` cru la dentro subia com quinze portoes verdes. */
+    for (const m of html.matchAll(/<script\b[^>]*\bsrc\s*=\s*"\/([^"]+\.js)"/gi)) {
       const rel = m[1];
       if (!carregados.has(rel)) carregados.set(rel, []);
       carregados.get(rel).push(pagina);
@@ -749,6 +754,20 @@ for (const rel of ASSINANTES) provarRegra6(rel);
    * `sem-carteira`, os sinais abaixo sao cobrados contra ele.
    */
   const ROL_JS = {
+    /* FORA de `js/` — e foi exatamente aqui que o rol terminava.
+       `vercel.json` publica `site/` INTEIRO e a CSP e `script-src 'self'`, entao
+       um `.js` em qualquer subdiretorio e carregavel por `<script src>`. O rol
+       parava em `site/js/` e a raiz publicada nao para ali: as tres telas que
+       assinam ja carregavam `/enderecos.js`, e a home carrega o bundle do three.
+       A classificacao dos tres e conferida contra o codigo como a de todos —
+       nenhum deles dispara sinal de carteira hoje, e o dia em que disparar o
+       portao recusa. A integridade do bundle de terceiro e materia de outro
+       guardiao (`check-csp` cobra o SRI publicado); aqui so se responde se ele
+       alcanca a carteira. */
+    "enderecos.js":                "sem-carteira",   /* tabela de enderecos · 3 telas */
+    "api/safety.js":               "sem-carteira",
+    "vendor/three-r128.min.js":    "sem-carteira",   /* render · SRI cobrado no check-csp */
+
     "js/motor.js":       "primitivas",   /* a captura do provedor · nao assina sozinho */
     "js/console.js":     "assina",       /* /calldata/ */
     "js/console-lp.js":  "assina",       /* /console/  */
@@ -800,22 +819,36 @@ for (const rel of ASSINANTES) provarRegra6(rel);
    * A informacao de QUEM carrega continua sendo usada — ela distingue "assina numa
    * pagina" de "existe no diretorio" na mensagem de erro — mas nao decide mais se
    * o arquivo e julgado. */
+  /* A VARREDURA E A RAIZ PUBLICADA INTEIRA, nao `site/js/`.
+   *
+   * Quinta aparicao da mesma classe nesta onda, e a mais cara: descoberta por
+   * recorte perde para quem escreve fora do recorte. Foi `eth_sendTransaction`
+   * literal, depois `window.ethereum` literal, depois a lista de agentes
+   * humanos, depois `<script src>` sem `import()`, e agora o diretorio `js/`.
+   * A forma que resolve e sempre a mesma: cobrir TUDO e deixar a omissao
+   * reprovar. */
   const JS_EM_DISCO = (() => {
-    const dir = join(SITE, "js");
-    if (!existsSync(dir)) return [];
-    return readdirSync(dir)
-      .filter((f) => f.endsWith(".js"))
-      .map((f) => "js/" + f);
+    const achados = [];
+    (function andar(d) {
+      for (const nome of readdirSync(d)) {
+        const abs = join(d, nome);
+        if (statSync(abs).isDirectory()) andar(abs);
+        else if (nome.endsWith(".js"))
+          achados.push(relative(SITE, abs).split(sep).join("/"));
+      }
+    })(SITE);
+    return achados;
   })();
 
   for (const rel of JS_EM_DISCO) {
     if (!Object.prototype.hasOwnProperty.call(ROL_JS, rel)) {
       const paginas = carregados.get(rel);
       falhar(
-        `${rel} esta sob a raiz publicada e NAO esta no rol deste guardiao` +
+        `${rel} esta sob a raiz publicada (site/) e NAO esta no rol deste guardiao` +
         (paginas ? ` (carregado por ${paginas.join(", ")})` : " (nenhuma pagina o carrega por <script src>, " +
           "o que NAO o torna inalcancavel: `import()` chega nele sem passar por HTML)") +
-        ". Arquivo em `site/js/` e julgado ou reprovado — nao ha terceira opcao. Classifique-o em " +
+        ". Arquivo sob a raiz que a Vercel publica e julgado ou reprovado — nao ha terceira opcao. " +
+        "Classifique-o em " +
         "ROL_JS como `assina`, `leitura`, `primitivas` ou `sem-carteira`, e a classificacao sera " +
         "cobrada contra o codigo"
       );
@@ -824,7 +857,7 @@ for (const rel of ASSINANTES) provarRegra6(rel);
   for (const rel of Object.keys(ROL_JS)) {
     if (!JS_EM_DISCO.includes(rel))
       falhar(
-        `${rel} esta no rol e nao existe em site/js/. Rol que nao bate com a arvore apodrece: ` +
+        `${rel} esta no rol e nao existe sob site/. Rol que nao bate com a arvore apodrece: ` +
         "ou o arquivo saiu, ou a entrada mente"
       );
   }
