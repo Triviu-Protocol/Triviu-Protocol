@@ -1,0 +1,53 @@
+# Line endings, and the one place where a byte is a promise.
+# ---------------------------------------------------------------------------
+# This repository is developed on machines with `core.autocrlf=true`. Git then
+# rewrites LF to CRLF on checkout. For source that is fine. For a file whose
+# *hash* is published as a promise, it is not.
+#
+# `site/vendor/three-r128.min.js` has its sha512 pinned in the `VENDOR` table of
+# `scripts/check-csp.mjs`, checked against the SRI that cdnjs publishes for r128.
+# Measured 2026-08-19: a fresh checkout on Windows produced 603451 bytes where the
+# committed blob has 603445 — six LF→CRLF conversions, and the hash stops matching.
+#
+# CORRECTION, 2026-08-19, found by the Tubarão-branco in clean water: the first
+# version of this comment said the page carries `integrity=` and that **the browser
+# refuses to execute the script**. Measured: there are **zero** `integrity=`
+# attributes under `site/`. The file is loaded same-origin by plain `<script src>`.
+# The consequence of the drift is that `check-csp` goes red on a fresh Windows
+# clone — loud, in CI and in the hook — not that the browser silently drops it.
+# The claim was inferred from the presence of a hash in the gate and written as if
+# it had been observed. `-text` is still right; the reason given was not.
+#
+# The header of `check-csp.mjs` already names this line-ending trap for
+# inline-script hashes and avoids it there. The vendor file sat inside the same
+# trap unguarded.
+#
+# `-text` means: never translate line endings, on any platform, in either
+# direction. It is the only setting under which a pinned hash survives a clone.
+
+# Solidity: o byte É a procedência.
+# ---------------------------------------------------------------------------
+# Os artefatos em `contracts/out/` registram o keccak256 de cada fonte que entrou
+# na compilação — e é por esse hash que se prova que o `.sol` deste repositório é
+# o mesmo que gerou o bytecode vivo na Polygon. Medido em 2026-08-19:
+#
+#   contracts/src/TriviuCerca.sol   disco  28658 bytes  0x0e52d5aa…  BATE
+#                                   clone  29238 bytes  0x3ca9b937…  DIVERGE
+#
+# 580 conversões LF→CRLF, e o hash deixa de bater. Quem clonasse recompilaria e
+# obteria uma fonte que o artefato do contrato vivo não reconhece — num repositório
+# cuja capa diz "Open source. Verifiable math." A prova de procedência só existe se
+# o byte atravessar o clone intacto.
+
+*.sol            -text
+
+site/vendor/**   -text
+*.min.js         -text
+*.woff2          -text
+*.png            -text
+*.jpg            -text
+*.ico            -text
+
+# Hooks are executed by sh. A CRLF after `#!/usr/bin/env sh` makes the kernel
+# look for an interpreter named "sh\r", which does not exist. LF, always.
+.githooks/**     text eol=lf

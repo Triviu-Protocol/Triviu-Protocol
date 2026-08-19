@@ -45,6 +45,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { gerado, DESTINO } from "./gerar-abi-console.mjs";
+import { codigoNormalizado, semComentarios, semComentariosHtml } from "./_comentarios.mjs";
 
 const RAIZ = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 
@@ -102,9 +103,20 @@ const norm = (s) => s.replace(/\r\n/g, "\n");
    comentario incluido, e isso e deliberado: um endereco escrito num comentario
    envelhece calado do mesmo jeito que um escrito no codigo. Quem quiser explicar
    um endereco explica sem cola-lo. */
-const semComentarioJs = (s) =>
-  s.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:])\/\/[^\n]*/g, "$1 ");
-const semComentarioHtml = (s) => s.replace(/<!--[\s\S]*?-->/g, " ");
+/* Vem de `_comentarios.mjs` porque PRESERVA a numeracao de linha. A forma que
+   estava aqui trocava o bloco inteiro por um espaco, e todo `arquivo:linha`
+   calculado depois de um cabecalho apontava dezenas de linhas acima do defeito.
+   Eram TRES portoes com a forma ingenua — este, o de alcance e o do F-3 — e um
+   quarto, `check-assinatura.mjs`, que tinha uma copia PRIVADA com outro nome — e
+   por isso escapou daquela varredura. Ela caiu em 2026-08-19, quando a migracao
+   para a fonte normalizada a fez SOMBREAR o import e o guardiao de assinatura
+   passou a ler fonte crua enquanto os outros seis liam a normalizada. Hoje sao
+   sete importando de um lugar so. Esta frase ja disse "quatro" e ja disse "copia
+   local mantida": as duas foram corrigidas depois de medidas, e o registro fica
+   porque comentario que descreve mecanismo inexistente e o defeito que estes
+   portoes existem para pegar. */
+const semComentarioJs = semComentarios;
+const semComentarioHtml = semComentariosHtml;
 if (norm(emDisco) !== norm(gerado)) {
   falhar("site/js/abi-console.js DIVERGE do que os artefatos em contracts/out produzem agora.");
   falhar("  O contrato mudou e a tela nao, ou o arquivo foi editado a mao.");
@@ -210,7 +222,7 @@ const PERMITIDO_RPC = [
 function chavesDe(js, nomeVar) {
   const m = js.match(new RegExp(`var\\s+${nomeVar}\\s*=\\s*\\{([^}]*)\\}`));
   if (!m) return null;
-  const semComentario = m[1].replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+  const semComentario = codigoNormalizado(m[1]);
   return semComentario.split(",").map((p) => p.split(":")[0].trim().replace(/^["']|["']$/g, "")).filter(Boolean);
 }
 
@@ -315,10 +327,30 @@ for (const t of TELAS) {
       falhar(`${nome} contem "${achados[0][0]}" ${achados.length}x — a tela voltou a ser uma simulacao, ` +
         "ou voltou a se anunciar como uma");
   }
-  for (const exigido of [/window\.ethereum/, /eth_sendTransaction/])
-    if (!exigido.test(t.fonteJs))
-      falhar(`${t.rotuloJs} nao fala com uma carteira real (${exigido.source} ausente) — uma tela que ` +
-        "oferece assinatura e nao chama a carteira e a simulacao de volta, com outro nome");
+  /* ATUALIZADO 2026-08-19 · o mecanismo mudou, a intencao NAO.
+   *
+   * Esta regra exigia `window.ethereum` literal no arquivo, porque em 2026-08-12
+   * era assim que uma pagina alcancava carteira. O F-4 tirou o slot do caminho:
+   * ler `window.ethereum` a cada chamada era o proprio furo — a pagina passava a
+   * falar com o objeto que a segunda carteira instalou, enquanto os ouvintes
+   * ficavam presos ao primeiro. A captura agora e unica, em `motor.js`, e as
+   * telas pedem por `MOTOR.provedor()`.
+   *
+   * Entao o que a regra cobra passa a ser: **a tela alcanca uma carteira de
+   * verdade por ALGUM caminho real**. Nao afrouxa — exige um dos dois, nunca
+   * nenhum, e continua exigindo `eth_sendTransaction` do lado de la. Uma tela
+   * que perdesse os dois cairia aqui igual.
+   *
+   * O `check-provedor-unico.mjs` e quem cobra que o caminho escolhido seja o
+   * capturado; esta regra so cobra que exista caminho. Dois portoes, duas
+   * perguntas — juntar as duas num regex faria a falha de uma mascarar a outra. */
+  const alcancaCarteira = /window\.ethereum/.test(t.fonteJs) || /MOTOR\s*\.\s*provedor\s*\(/.test(t.fonteJs);
+  if (!alcancaCarteira)
+    falhar(`${t.rotuloJs} nao fala com uma carteira real (nem window.ethereum, nem MOTOR.provedor()) — ` +
+      "uma tela que oferece assinatura e nao chama a carteira e a simulacao de volta, com outro nome");
+  if (!/eth_sendTransaction/.test(t.fonteJs))
+    falhar(`${t.rotuloJs} nao fala com uma carteira real (eth_sendTransaction ausente) — uma tela que ` +
+      "oferece assinatura e nao chama a carteira e a simulacao de volta, com outro nome");
 }
 notas.push("as duas telas chamam a carteira de verdade e nenhuma se anuncia como simulacao");
 

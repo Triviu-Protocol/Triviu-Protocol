@@ -168,11 +168,77 @@
       throw new Error("blocked: this page may only call " +
         Object.keys(CARTEIRA_PERMITIDO).join(" / ") + " on a wallet. Refused: " + metodo);
     }
-    if (!window.ethereum) throw new Error("no wallet provider in this browser");
-    return window.ethereum.request(params ? { method: metodo, params: params } : { method: metodo });
+    /* F-4 · fala com o provedor CAPTURADO, nunca com `window.ethereum` relido.
+       Reler a cada chamada era o furo: a pagina passava a falar com um objeto
+       enquanto os listeners seguiam noutro. Quem captura e `motor.js`, e a
+       captura e uma so para toda a pagina. */
+    var p = MOTOR.provedor();
+    if (!p) throw new Error("no wallet provider in this browser");
+    return p.request(params ? { method: metodo, params: params } : { method: metodo });
   }
 
+  /* ==========================================================================
+   * F-6 · A LEITURA QUE CONFIRMA EFEITO SAI DE DUAS FONTES
+   * ==========================================================================
+   *
+   * Gate aberto pelo Tubarao-branco em 2026-08-12 — "uma RPC responde e ninguem
+   * confere" — e classificado MEDIUM em 2026-08-19.
+   *
+   * Esta pagina oferece TRES endpoints num `<select>` e usava UM por leitura.
+   * Para desenhar saldo, um basta: erro de leitura vira numero errado na tela e
+   * a proxima leitura corrige. Para CONFIRMAR EFEITO nao basta, e a diferenca e
+   * a frase que a propria pagina imprime depois de enviar:
+   *
+   *     "a receipt is not proof of effect"
+   *
+   * Ela esta certa e ficava pela metade: honesta quanto a NATUREZA da prova
+   * (estado, nao recibo) e cega quanto a FONTE dela. Um endpoint atrasado
+   * responde o estado velho e a pagina conclui que a posicao nao mudou; um
+   * endpoint mentiroso responde o que quiser. Nos dois casos o usuario fecha a
+   * tela acreditando.
+   *
+   * A forma correta ja vivia a duas pastas, em `scripts/check-tesouraria-viva.mjs`:
+   * ler de dois e, se divergirem, ABORTAR SEM ESCOLHER LADO. Nao ha desempate
+   * possivel entre duas respostas sobre o mesmo bloco — escolher uma seria
+   * inventar autoridade que a pagina nao tem.
+   *
+   * Falha fechada: se a segunda fonte nao responder, isto NAO cai para uma so.
+   * Diz que nao confirmou. Nao saber nao e o mesmo que estar certo.
+   */
+  function rpcDuplo(metodo, params) {
+    var escolhido = $("lp-rpc").value;
+    var outro = null;
+    for (var i = 0; i < ENDPOINTS.length; i++) {
+      if (ENDPOINTS[i] !== escolhido) { outro = ENDPOINTS[i]; break; }
+    }
+    if (!outro) return rpc(metodo, params).then(function (v) {
+      return { valor: v, fontes: 1, motivo: "so ha um endpoint configurado" };
+    });
+    return Promise.all([rpcEm(escolhido, metodo, params), rpcEm(outro, metodo, params)])
+      .then(function (r) {
+        var a = JSON.stringify(r[0]), b = JSON.stringify(r[1]);
+        if (a !== b) {
+          throw new Error(
+            "the two endpoints disagree about the state this transaction was supposed to change, and " +
+            "this page will not pick a winner between them. " + hostDe(escolhido) + " answered " + a +
+            " and " + hostDe(outro) + " answered " + b + ". Read again in a moment: one of them is " +
+            "behind, and which one is not something this page can decide.");
+        }
+        return { valor: r[0], fontes: 2, motivo: hostDe(escolhido) + " e " + hostDe(outro) + " concordam" };
+      });
+  }
+  function hostDe(u) { try { return new URL(u).host; } catch (e) { return String(u); } }
+
   var idRpc = 0;
+  function rpcEm(url, metodo, params) {
+    if (!RPC_PERMITIDO[metodo]) {
+      throw new Error("blocked: this page may only call " +
+        Object.keys(RPC_PERMITIDO).join(" / ") + " over RPC. Refused: " + metodo);
+    }
+    if (!/^https:\/\//i.test(url)) return Promise.reject(new Error("the endpoint must be an https URL"));
+    return rpcBruto(url, metodo, params);
+  }
+
   function rpc(metodo, params) {
     if (!RPC_PERMITIDO[metodo]) {
       throw new Error("blocked: this page may only call " +
@@ -180,6 +246,14 @@
     }
     var url = $("lp-rpc").value;
     if (!/^https:\/\//i.test(url)) return Promise.reject(new Error("the endpoint must be an https URL"));
+    return rpcBruto(url, metodo, params);
+  }
+
+  /* O transporte, sem escolher endpoint. `rpc` usa o do <select>, `rpcEm` usa o
+     que lhe passarem, e `rpcDuplo` usa dois e compara. A allowlist e conferida
+     nos dois pontos de entrada — nunca aqui, porque quem entra por aqui ja
+     passou por ela. */
+  function rpcBruto(url, metodo, params) {
     idRpc += 1;
     return fetch(url, {
       method: "POST", headers: { "content-type": "application/json" },
@@ -200,7 +274,22 @@
       return j.result;
     });
   }
-  var call = function (to, data) { return rpc("eth_call", [{ to: to, data: data }, "latest"]); };
+  /* F-6 · DENTRO DA JANELA DE CONFIRMACAO, toda leitura sai de duas fontes.
+   *
+   * A alternativa era duplicar cada leitura da confirmacao uma a uma — e
+   * confirmacao ganha tipos novos (allowance, saldo, posicao, dono), entao a
+   * lista sairia de sincronia no primeiro tipo acrescentado, e quem
+   * acrescentasse nao saberia que existe uma lista. A janela cobre o que existe
+   * hoje e o que for escrito amanha.
+   *
+   * Fora da janela, leitura de tela segue com uma fonte: desenhar saldo com um
+   * numero atrasado se corrige na proxima leitura. Confirmar efeito, nao. */
+  var CONFIRMANDO = false;
+  var call = function (to, data) {
+    var args = [{ to: to, data: data }, "latest"];
+    if (!CONFIRMANDO) return rpc("eth_call", args);
+    return rpcDuplo("eth_call", args).then(function (r) { return r.valor; });
+  };
 
   /* ================================================================= ABI ==== */
   /* ------------------------------------------------------------- o motor ---
@@ -665,7 +754,21 @@
       })
       .then(function (cfg) {
         var hosts = (cfg && cfg.knownHosts) || [];
-        if (hosts.indexOf(host) >= 0) {
+        /* A CARDINALIDADE E A REGRA, e ela e conferida aqui porque a frase abaixo
+           dizia "the single host" enquanto o codigo aceitava QUALQUER host da
+           lista. Nao era exagero de redacao: `set-domain.mjs --apply` ACRESCENTA
+           o dominio a lista, entao uma unica execucao do script legitimava duas
+           origens para a pagina que assina — sem alarme, e ainda imprimindo a
+           palavra "single". Duas origens servindo a mesma tela de assinatura
+           destroem a unica defesa que o usuario tem contra phishing: uma origem
+           memorizada. Lista com tamanho diferente de 1 e recusa, nao aviso. */
+        if (hosts.length !== 1) {
+          ORIGEM.ok = false;
+          ORIGEM.motivo = "the canonical host list in /domain.config.json has " + hosts.length +
+            " entries [" + hosts.join(", ") + "], and this page only signs when it has exactly one. " +
+            "More than one hostname serving the same signing page teaches you that several are " +
+            "legitimate, and that is the door phishing walks through. Signing stays off.";
+        } else if (hosts[0] === host) {
           ORIGEM.ok = true;
           ORIGEM.motivo = "served from " + host + ", the single host in /domain.config.json.";
         } else {
@@ -729,7 +832,11 @@
   })();
   ajustarRolagem();
 
-  if (!window.ethereum) {
+  /* Sem provedor NA CARGA o botao nasce desligado — e o `descobrirProvedor`
+     mais abaixo o religa se uma carteira aparecer depois. Antes ele nao religava:
+     quem instalasse a extensao com a aba aberta ficava com a tela morta ate
+     recarregar, sem nada na tela dizendo isso. */
+  if (!MOTOR.provedor()) {
     $("lp-conectar").disabled = true;
     $("lp-conectar").title = "No wallet provider in this browser. Type an address instead.";
   }
@@ -783,15 +890,20 @@
      objeto congelado esperando um clique, avisar e o defeito: a chain sob os
      bytes muda, o aviso rola para fora da vista, e o botao continua armado. Os
      dois handlers INVALIDAM. */
-  if (window.ethereum && typeof window.ethereum.on === "function") {
-    window.ethereum.on("chainChanged", function (cid) {
+  /* F-4/F-5 · REGISTRADOS UMA VEZ, ANEXADOS SEMPRE.
+     Antes: `window.ethereum.on(...)` uma unica vez, na carga — e quando outra
+     carteira tomava o slot, os handlers ficavam no objeto velho e nao disparavam
+     mais. Agora `MOTOR.ouvir` guarda o par evento+funcao e o RE-ANEXA a cada
+     troca de provedor, sozinho. O corpo dos dois handlers nao mudou uma
+     virgula: eles ja invalidavam certo, so nao eram chamados. */
+  MOTOR.ouvir("chainChanged", function (cid) {
       verChain(cid);
       invalidarCongelamento("The wallet changed chain while these bytes were frozen. They are void: " +
         "calldata built for one chain and signed on another is how an address that means one thing " +
         "here means something else there. Encode again.");
       estado("The wallet changed chain. Read again: everything below was read against the previous one.");
     });
-    window.ethereum.on("accountsChanged", function (contas) {
+  MOTOR.ouvir("accountsChanged", function (contas) {
       var a = contas && contas.length ? contas[0] : "";
       $("lp-endereco").value = a;
       txt($("lp-w-conta"), a || TRACO);
@@ -800,7 +912,31 @@
         "address that holds them. Read the chain again, then encode again.");
       estado("The wallet changed account. Read again: the balances below belong to the previous address.");
     });
-  }
+
+  /* F-4 · A TROCA DE PROVEDOR INVALIDA, e a razao e que ela e INDISTINGUIVEL.
+     Quando o objeto por tras da carteira muda no meio de uma calldata congelada,
+     esta pagina nao sabe o que aconteceu enquanto os handlers estavam presos ao
+     objeto anterior: a chain pode ter mudado, a conta pode ter mudado, e nenhum
+     evento chegou. Supor que nada mudou seria a suposicao mais cara possivel.
+     Recusa por nao saber — o mesmo modo de falha dos portoes desta casa. */
+  MOTOR.aoTrocarProvedor(function () {
+    invalidarCongelamento("The wallet provider itself changed while these bytes were frozen. They are " +
+      "void: while the swap happened this page was not being told about chain or account changes, so it " +
+      "cannot know what those bytes would be signed against. Read the chain again, then encode again.");
+    estado("The wallet provider changed. Read again: everything below was read through the previous one.");
+    $("lp-conectar").disabled = false;
+    $("lp-conectar").title = "";
+  });
+
+  /* Descoberta EIP-6963 + fallback. Uma carteira que chega TARDE religa o botao
+     aqui — antes ele nascia desabilitado e ficava assim para sempre. */
+  /* O fallback e passado DAQUI, e nao lido dentro do motor: um arquivo que
+     alcanca a carteira precisa declarar a allowlist, e a allowlist mora nesta
+     tela. Foi o `check-assinatura` que desenhou esta fronteira. */
+  MOTOR.descobrirProvedor(function () {
+    $("lp-conectar").disabled = false;
+    $("lp-conectar").title = "";
+  }, window.ethereum, function () { return window.ethereum; });
 
   /* ============================================================== LEITURA === */
   var lendo = false;
@@ -2212,7 +2348,7 @@
   function liberarEnvio(p) {
     var razao = null;
     if (!p.assinavel) razao = p.razaoNaoAssinavel;
-    else if (!window.ethereum) razao = "No wallet is available in this browser, so there is nothing to send to.";
+    else if (!MOTOR.provedor()) razao = "No wallet is available in this browser, so there is nothing to send to.";
     else if (!ORIGEM.ok) razao = "Signing is off on this origin. " + ORIGEM.motivo;
     else if (p.exigeAllowance && p.permissaoLida === null) {
       razao = "The standing allowance could not be read from the token, and rule 7 says it must be shown " +
@@ -2299,6 +2435,18 @@
      recibo de sucesso e estado inalterado. Entao o estado e relido da chain e
      comparado com o que os bytes pediram. */
   function conferirEstadoNaChain(p, recibo) {
+    /* A janela abre aqui e fecha no `finally`. Se ela ficasse aberta, uma
+       leitura de tela posterior pagaria o custo de duas fontes sem precisar —
+       e, pior, uma divergencia entre elas viraria erro num lugar onde
+       divergencia e so atraso. */
+    CONFIRMANDO = true;
+    return Promise.resolve()
+      .then(function () { return conferirEstadoNaChainInterno(p, recibo); })
+      .then(function (frase) { CONFIRMANDO = false; return frase; },
+            function (e) { CONFIRMANDO = false; throw e; });
+  }
+
+  function conferirEstadoNaChainInterno(p, recibo) {
     var c = p.confirmacao;
     if (!c) {
       return Promise.resolve("No on-chain effect check is defined for this step, so nothing is claimed " +

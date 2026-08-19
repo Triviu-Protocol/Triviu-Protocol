@@ -155,7 +155,7 @@ function project(){const s=state();const cap=Math.max(10,+$("lrCap").value||1000
   const mean=[],p10=[],p90=[];for(let i=0;i<rec.length;i++){const a=Array.from(rec[i]).sort((x,y)=>x-y);mean.push(a.reduce((s2,v)=>s2+v,0)/TR);p10.push(a[Math.floor(0.1*TR)]);p90.push(a[Math.floor(0.9*TR)]);}
   const ahead=Array.from(bal).filter(v=>v>cap).length,pah=Math.round(ahead/TR*100),finalMean=mean[mean.length-1],pct=(finalMean-cap)/cap*100;
   drawLR(idx,mean,p10,p90,cap,Nc);
-  $("lrBal").innerHTML=`Expected balance after ${Nc.toLocaleString("en-US")} cycles: <span style="color:${finalMean<cap?'var(--lacre)':'var(--tinta)'}">${fmt(finalMean)} ${STABLE}</span> (${pct>=0?'+':''}${pct.toFixed(1)}%)`;
+  $("lrBal").innerHTML=`Expected balance after ${Nc.toLocaleString("en-US")} cycles: <span class="${finalMean<cap?'bal-abaixo':'bal-acima'}">${fmt(finalMean)} ${STABLE}</span> (${pct>=0?'+':''}${pct.toFixed(1)}%)`;
   $("lrPah").textContent=`Chance you end ahead: ${pah}% — and it falls the longer you go.`;
 }
 function drawLR(idx,mean,p10,p90,cap,Nc){const W=480,H=220,pl=8,pr=8,pt=14,pb=22,iw=W-pl-pr,ih=H-pt-pb;

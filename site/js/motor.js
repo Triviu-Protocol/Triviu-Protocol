@@ -152,32 +152,277 @@
     return { ligadas: ligadas, palavras: palavras, soltas: soltas };
   }
 
+  /* ==========================================================================
+   * A DEPENDENCIA QUE FICOU PARA TRAS · defeito VIVO ate 2026-08-19
+   * ==========================================================================
+   *
+   * `recusarAprovacaoInfinita` foi extraida para ca e chamava `tiposPorPalavra`,
+   * que ficou nas DUAS telas — dentro do IIFE de cada uma. Closure em JavaScript
+   * captura o escopo onde a funcao foi DEFINIDA, nao onde e chamada. Entao a
+   * regra 6, a que impede aprovacao ilimitada, lancava
+   * `ReferenceError: tiposPorPalavra is not defined` em TODA invocacao.
+   *
+   * Medido em 2026-08-19, e nao inferido:
+   *   git show HEAD:site/js/motor.js   -> chama 1x, define 0x
+   *   curl .../js/motor.js (producao)  -> chama 1x, define 0x
+   *   node -e "MOTOR.recusarAprovacaoInfinita(...)" -> ReferenceError
+   *
+   * Consequencia em producao: todo passo de `approve` lancava ANTES de montar
+   * calldata, nas duas telas que assinam. Falhou FECHADO — nada foi assinado,
+   * que e a direcao misericordiosa — e o fluxo central do produto estava
+   * quebrado no ar sem que nenhum portao visse.
+   *
+   * E e exatamente o mecanismo que o cabecalho deste arquivo descreve como razao
+   * de existir: "duas canonicalizacoes do mesmo objeto que se separaram sem
+   * ninguem notar". A extracao que consertou o F-1 abriu este, deixando metade
+   * da dupla para tras.
+   *
+   * A funcao vem VERBATIM das telas — as duas copias eram byte-identicas — com
+   * uma unica troca: `ABI` vira `abi()`, o resolvedor preguicoso deste arquivo,
+   * porque aqui o livro nao esta no escopo do modulo.
+   */
+  function tiposPorPalavra(papel, assinatura) {
+    /* VERBATIM das telas, e o `ABI` livre e de proposito.
+       Trocar por `abi()` parecia mais seguro e quebrou o `provarRegra6` do
+       `check-assinatura`, que EXTRAI o fonte desta funcao e o executa com
+       `new Function("ABI", ...)` — nesse escopo `abi` nao existe, toda assinatura
+       era pulada, e o portao passou a dizer "nenhuma palavra sem sinal foi
+       exercitada". No motor `ABI` ja esta resolvido quando esta funcao roda:
+       `recusarAprovacaoInfinita(sig(...) + ...)` avalia `sig()` primeiro, e e
+       `sig()` que chama `abi()`. */
+    /* O livro vem do `ABI` livre quando ha um — e ha em dois contextos diferentes:
+       no motor, resolvido por `sig()` antes desta chamada; e dentro do
+       `provarRegra6` do `check-assinatura`, que EXTRAI o fonte desta funcao e a
+       executa com `new Function("ABI", ...)`. Nomear `abi()` aqui quebraria o
+       segundo, e assumir `ABI` ja resolvido quebra quem chama a regra 6 direto,
+       sem `sig()` antes. O fallback cobre os dois sem nomear nenhum dos dois. */
+    var livro = ABI || (typeof window !== "undefined" && window && window.TRIVIU_ABI) || null;
+    if (!livro) return null;
+    var g = (livro.contratos && livro.contratos[papel]) || (livro.extras && livro.extras[papel]);
+    var f = g && g.funcoes && g.funcoes[assinatura];
+    if (!f || !f.entradas) return null;
+    var fora = [], ok = true;
+    function achatar(tipo) {
+      tipo = String(tipo).trim();
+      if (/^\(.*\)$/.test(tipo)) {
+        var s = tipo.slice(1, -1), n = 0, atual = "";
+        for (var i = 0; i < s.length; i++) {
+          var c = s.charAt(i);
+          if (c === "(") n += 1;
+          else if (c === ")") n -= 1;
+          if (c === "," && n === 0) { achatar(atual); atual = ""; continue; }
+          atual += c;
+        }
+        if (atual.trim()) achatar(atual);
+        return;
+      }
+      if (!/^(address|bool|uint\d+|int\d+|bytes\d+)$/.test(tipo)) { ok = false; return; }
+      fora.push(tipo);
+    }
+    f.entradas.forEach(function (e) { achatar(e.tipo); });
+    return ok ? fora : null;
+  }
+
+  /* ==========================================================================
+   * F-6b · "ILIMITADO" E MAGNITUDE, NAO UM VALOR EXATO
+   * ==========================================================================
+   *
+   * A primeira versao recusava exatamente UM numero: `2^256-1`. Passavam
+   * `2^255`, `type(uint128).max` e `0xffffffffffffffffffffffff` — o maximo de 96
+   * bits, que e o padrao de allowance de UNI, COMP e de todo token que guarda
+   * permissao em 96 bits. Todos ilimitados na pratica, todos aprovados.
+   *
+   * O mais duro: a propria pagina SABE dizer isso, e diz — no caminho de
+   * LEITURA, em `console-lp.js`: "so it is unlimited in practice whatever the
+   * exact number says". A regra 7 e semantica sobre magnitude; a regra 6 era
+   * literal sobre bytes. As duas nunca conversaram, e o gate F-6b e essa
+   * conversa que faltava.
+   *
+   * O CORTE E 2^128, e ele nao e arbitrario. Um token de 18 casas com
+   * fornecimento de um trilhao de unidades tem 1e30 unidades-base. 2^128 e
+   * ~3,4e38 — oito ordens de grandeza acima do maior fornecimento plausivel.
+   * Nenhuma aprovacao honesta precisa passar dali; qualquer valor acima e
+   * ilimitado na pratica, escreva-se como se escrever.
+   *
+   * `int` continua isento: em complemento de dois, palavra alta e numero
+   * negativo, e -1 num campo assinado nao e aprovacao infinita. Quando o
+   * artefato nao casa palavra a palavra, tudo e tratado como sem sinal — recusar
+   * demais e o modo de falha correto aqui.
+   */
+  /* DUAS REGRAS, porque magnitude sozinha nao alcanca.
+   *
+   * Um corte so por tamanho tem de escolher entre deixar passar `uint96 max`
+   * (~7,9e28) ou reprovar uma quantia legitima grande — um bilhao de tokens de
+   * 18 casas e 1e27, a uma ordem de distancia. Nao ha numero que separe os dois
+   * com folga.
+   *
+   * O que separa e a FORMA. "Ilimitado" nao e um numero qualquer: e sempre um
+   * maximo canonico, `2^N - 1`, porque quem escreve `type(uintN).max` esta
+   * dizendo "sem limite" e nao "esta quantia". Uma quantia real cair exatamente
+   * num desses e coincidencia de 1 em 2^N.
+   *
+   *   REGRA A · o valor e `2^N - 1` para uma largura usada em allowance
+   *   REGRA B · o valor passa de 2^128, que e absurdo por tamanho sozinho
+   *
+   * A largura de 96 bits esta na lista porque e o padrao de UNI, COMP e de todo
+   * token que guarda permissao em 96 bits — o caso exato que o Tubarao-branco
+   * nomeou ao abrir o F-6b, e o que a primeira versao desta regra deixava passar. */
+  var TETO_APROVACAO = (1n << 128n);
+  var LARGURAS_MAX = [64, 88, 96, 104, 112, 120, 128, 160, 192, 208, 224, 240, 256];
+  function ehMaximoCanonico(v) {
+    for (var i = 0; i < LARGURAS_MAX.length; i++) {
+      if (v === (1n << BigInt(LARGURAS_MAX[i])) - 1n) return LARGURAS_MAX[i];
+    }
+    return 0;
+  }
+
   function recusarAprovacaoInfinita(dados, papel, assinatura) {
     var corpo = String(dados).replace(/^0x/, "").slice(8);
     var n = Math.floor(corpo.length / 64);
     var tipos = tiposPorPalavra(papel, assinatura);
     var confiavel = !!tipos && tipos.length === n;
     for (var i = 0; i < n; i++) {
-      if (!/^f{64}$/i.test(corpo.slice(i * 64, (i + 1) * 64))) continue;
+      var pal32 = corpo.slice(i * 64, (i + 1) * 64);
+      var v;
+      try { v = BigInt("0x" + pal32); } catch (e) { continue; }
+      var largura = ehMaximoCanonico(v);
+      if (!largura && v < TETO_APROVACAO) continue;
       if (confiavel && /^int\d+$/.test(tipos[i])) continue;   /* -1 em complemento de dois */
+
       throw new Error(
-        "refused to build this call: word " + (i + 1) + " of its calldata is all-ones (2^256-1), and " +
+        "refused to build this call: word " + (i + 1) + " of its calldata is 0x" +
+        pal32.replace(/^0+/, "") + ", which is " +
+        (largura
+          ? "type(uint" + largura + ").max — the canonical way of writing \"no limit\". A real amount " +
+            "landing exactly on it is a 1-in-2^" + largura + " coincidence, and this page does not bet on that"
+          : "above 2^128: no honest approval needs a number eight orders of magnitude past the " +
+            "largest plausible token supply") +
+        ". It is unlimited in practice whatever the exact number says. " +
         (confiavel
-          ? "the compiled artefact declares that argument as " + tipos[i] + ", which is unsigned — so " +
-            "that word is the unlimited approval and not a negative number."
-          : "the argument types could not be matched word for word against the compiled artefact, so " +
-            "every word is treated as unsigned.") +
+          ? "The compiled artefact declares that argument as " + tipos[i] + ", which is unsigned."
+          : "The argument types could not be matched word for word against the compiled artefact, " +
+            "so every word is treated as unsigned.") +
         " This page approves an exact amount or it approves nothing.");
     }
     return dados;
   }
+  /* ==========================================================================
+   * F-4 · O PROVEDOR E CAPTURADO UMA VEZ, E A TROCA DELE E UM EVENTO
+   * ==========================================================================
+   *
+   * Gate aberto pelo Tubarao-branco em 2026-08-12: "window.ethereum confiado
+   * como ultimo a escrever". Classificado MEDIUM em 2026-08-19, e a ameaca nao
+   * e um atacante — e uma colisao corriqueira:
+   *
+   *   duas carteiras instaladas disputam `window.ethereum` (MetaMask e Coinbase
+   *   Wallet fazem isso). A segunda vence a corrida DEPOIS da carga da pagina.
+   *   O codigo antigo relia `window.ethereum` a cada chamada, entao passava a
+   *   falar com o objeto NOVO — enquanto os listeners de `chainChanged`, que
+   *   foram registrados uma unica vez na carga, seguiam presos ao objeto VELHO.
+   *   O usuario troca de chain, o handler nao dispara, e a calldata congelada
+   *   para uma chain fica armada para ser assinada em outra.
+   *
+   * O handler que deveria impedir isso esta escrito e correto. Ele so nunca era
+   * chamado. Era o F-5 desarmado pelo F-4 — e por isso os dois se fecham aqui.
+   *
+   * A DESCOBERTA E PADRAO, NAO INVENCAO. O EIP-6963 existe exatamente porque
+   * `window.ethereum` e um slot unico que varias carteiras disputam: cada uma
+   * ANUNCIA a si mesma num evento, com um `uuid` estavel, e a pagina escolhe em
+   * vez de aceitar quem escreveu por ultimo. A Escada de Reuso parou no degrau 4
+   * (feature nativa da plataforma) — nao ha descoberta a escrever, ha padrao a
+   * usar. `window.ethereum` fica como fallback para carteira que ainda nao
+   * anuncia.
+   *
+   * FALHA FECHADA NA TROCA. Quando a identidade do provedor muda, esta camada
+   * NAO tenta adivinhar o que aconteceu enquanto ninguem olhava: ela avisa quem
+   * assina, e quem assina invalida. Trocar de provedor no meio de uma calldata
+   * congelada e indistinguivel de trocar de chain sem aviso — e a resposta certa
+   * para o indistinguivel e recusar, nao supor.
+   */
+  /* ESTE ARQUIVO NAO FALA COM A CARTEIRA — ele so a ENCONTRA e a segura.
+   *
+   * Tentei centralizar aqui a allowlist e a chamada. O `check-assinatura` recusou,
+   * e recusou com razao: um arquivo que chama `eth_sendTransaction` E um assinante,
+   * e assinante tem de cumprir congelamento, regra 6 sobre os bytes e regra 11 —
+   * que uma biblioteca de primitivas nao tem como cumprir, porque nao tem fluxo.
+   *
+   * Entao a divisao ficou nesta linha, e ela e a que o portao desenhou: o motor
+   * DESCOBRE e GUARDA; quem CHAMA e a tela, com a allowlist dela. Por isso
+   * `descobrirProvedor` recebe o fallback de fora em vez de ler `window.ethereum`
+   * — tocar o slot aqui faria deste arquivo um alcancador de carteira sem trava,
+   * que e exatamente o que o portao veta. */
+  var PROVEDOR = null;        // o objeto capturado · unica fonte
+  var UUID = null;            // identidade estavel (EIP-6963) quando ha
+  var OUVINTES = [];          // { evento, fn } re-registrados a cada troca
+  var AO_TROCAR = [];         // quem quer saber que o provedor mudou
+
+  function anexarOuvintes(p) {
+    if (!p || typeof p.on !== "function") return 0;
+    for (var i = 0; i < OUVINTES.length; i++) p.on(OUVINTES[i].evento, OUVINTES[i].fn);
+    return OUVINTES.length;
+  }
+  function desanexarOuvintes(p) {
+    if (!p || typeof p.removeListener !== "function") return;
+    for (var i = 0; i < OUVINTES.length; i++) p.removeListener(OUVINTES[i].evento, OUVINTES[i].fn);
+  }
+
+  /* Adota um provedor. Devolve `true` se a identidade MUDOU — e mudanca de
+     identidade e o que dispara a invalidacao la em cima. */
+  function adotar(p, uuid) {
+    if (!p) return false;
+    var mesmo = (p === PROVEDOR) && (uuid == null || uuid === UUID);
+    if (mesmo) return false;
+    var tinha = PROVEDOR !== null;
+    desanexarOuvintes(PROVEDOR);
+    PROVEDOR = p;
+    UUID = uuid || null;
+    anexarOuvintes(PROVEDOR);
+    if (tinha) for (var i = 0; i < AO_TROCAR.length; i++) AO_TROCAR[i](UUID);
+    return tinha;
+  }
+
+  function provedor() { return PROVEDOR; }
+
+  /* Registra um ouvinte UMA vez na lista, e o anexa ao provedor atual. Ele
+     acompanha as trocas sozinho — quem chama nunca mais precisa re-registrar,
+     que era exatamente o passo esquecido. */
+  function ouvir(evento, fn) {
+    OUVINTES.push({ evento: evento, fn: fn });
+    if (PROVEDOR && typeof PROVEDOR.on === "function") PROVEDOR.on(evento, fn);
+  }
+  function aoTrocarProvedor(fn) { AO_TROCAR.push(fn); }
+
+  /* Descoberta. Chamar cedo e chamar de novo nao faz mal: `adotar` so age quando
+     a identidade muda. */
+  function descobrirProvedor(aoAparecer, fallback, tardioDe) {
+    if (!raiz || !raiz.addEventListener) return;
+    raiz.addEventListener("eip6963:announceProvider", function (ev) {
+      var d = ev && ev.detail;
+      if (!d || !d.provider) return;
+      var trocou = adotar(d.provider, d.info && d.info.uuid);
+      if (aoAparecer) aoAparecer(d.info || null, trocou);
+    });
+    try { raiz.dispatchEvent(new Event("eip6963:requestProvider")); } catch (e) { /* navegador antigo */ }
+
+    if (fallback) adotar(fallback, null);
+
+    /* Carteira que injeta TARDE. Sem isto a pagina nascia com o botao desligado
+       e nunca o religava — nao perde fundo, perde a tela. */
+    raiz.addEventListener("ethereum#initialized", function () {
+      var tardio = tardioDe && tardioDe();
+      if (tardio) { var t = adotar(tardio, null); if (aoAparecer) aoAparecer(null, t); }
+    }, { once: true });
+  }
+
   var MOTOR = {
     END: END,
     sig: sig, pal: pal, palNum: palNum, palInt: palInt, palavra: palavra,
     cargaDaTx: cargaDaTx, hashDaCarga: hashDaCarga, hashCanon: hashCanon,
     conferirTelaContraCalldata: conferirTelaContraCalldata,
-    recusarAprovacaoInfinita: recusarAprovacaoInfinita,
-    CODIFICADOR_POR_TIPO: CODIFICADOR_POR_TIPO
+    recusarAprovacaoInfinita: recusarAprovacaoInfinita, tiposPorPalavra: tiposPorPalavra,
+    CODIFICADOR_POR_TIPO: CODIFICADOR_POR_TIPO,
+    provedor: provedor, ouvir: ouvir, aoTrocarProvedor: aoTrocarProvedor,
+    descobrirProvedor: descobrirProvedor, adotarProvedor: adotar
   };
   if (typeof module !== "undefined" && module.exports) { module.exports = MOTOR; }
   if (raiz) { raiz.TRIVIU_MOTOR = MOTOR; }

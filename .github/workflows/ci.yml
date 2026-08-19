@@ -28,15 +28,62 @@ jobs:
       - run: npm test
         working-directory: engine
 
-  # Multi-chain honesty sentinel: no public surface may claim a chain is "live"
-  # (nothing is deployed) or assert single-chain exclusivity. Fails on regression.
-  surfaces:
+  # Every gate in scripts/check-*.mjs, discovered rather than listed.
+  #
+  # Until 2026-08-19 this job ran exactly one of them — check-multichain-honesty.
+  # The other seven existed, passed when somebody remembered to run them by hand,
+  # and never ran here. Two of those seven are the ones that prove no screen
+  # outside the signing engine can write into the subtree the user reads before
+  # clicking. A gate that does not run is not a gate.
+  #
+  # `portoes.mjs` discovers the gates instead of listing them, so a gate written
+  # tomorrow runs here the moment it is committed — there is no second place to
+  # remember to edit. Removal is caught by a named roster (a count is satisfied by
+  # anything occupying the slot; a name is not).
+  #
+  # Emptying a gate while keeping its name is caught only where a corpus covers it.
+  # check-portoes-mordem.mjs feeds fixtures to 7 of the 10 gates on the roster and
+  # refuses if a covered gate stops biting. The other 3 carry a written reason in
+  # its SEM_CORPUS block — and for those three, an emptied file still passes. One
+  # of them, check-assinatura, guards the wallet-signing path.
+  #
+  # Two corrections live in this paragraph, both found in clean-water audit.
+  #
+  # An earlier version said the corpus feeds "every gate" and that an emptied gate
+  # "cannot fake a bite". Measured: 7 of 10, and the three uncovered ones do pass
+  # while emptied — one of them guards the signing path.
+  #
+  # The version after that told the reader to get the number from the run instead
+  # of from this comment. That was also wrong, and wrong in the same direction:
+  # `portoes.mjs` prints a gate's own output only when the gate FAILS. With the
+  # corpus passing, its `7 of 10` is swallowed, and the single number this job
+  # prints is `OK 10 of 10` — which reads as full coverage. To see the real
+  # coverage, run the gate on its own:
+  #
+  #     node scripts/check-portoes-mordem.mjs
+  #
+  # Foundry is here because check-console-abi compares site/js/abi-console.js
+  # against the compiled artifacts in contracts/out, which are gitignored. Without
+  # `forge build` that gate cannot look at anything, and "could not look" must
+  # never be reported as "looked and found nothing".
+  #
+  # That gate spent 2026-08-19 behind a declared bridge: the console ABI derived
+  # from four .sol files that were not in this repository, so it could not be run
+  # against the repo's own contents. The debt was paid the same day — the four
+  # sources landed, each with a keccak256 equal to what the artifacts of the live
+  # Polygon contracts recorded — and the bridge self-destructed on detecting it.
+  # The gate runs for real now, and `forge build` above is what feeds it.
+  portoes:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: { submodules: recursive }
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: forge build
+        working-directory: contracts
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
-      - run: node scripts/check-multichain-honesty.mjs
+      - run: node scripts/portoes.mjs
 
   # Static analysis of the contracts. Fails the build only on HIGH findings;
   # the MEDIUM/INFO items are already triaged in docs/audits (Medusa report).

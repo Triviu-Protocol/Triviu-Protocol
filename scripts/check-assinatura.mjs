@@ -56,7 +56,9 @@
  *
  *   node scripts/check-assinatura.mjs
  */
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import vm from "node:vm";
+import { codigoNormalizado } from "./_comentarios.mjs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { webcrypto } from "node:crypto";
 
@@ -68,6 +70,16 @@ const SITE = join(RAIZ, "site");
 const ASSINANTES = [
   "js/console.js",     /* /calldata/ — o leitor de bytes do ciclo do Executor */
   "js/console-lp.js",  /* /console/  — o ciclo de vida de uma posicao no LPVault */
+  /* `js/modelo-2.js` esteve nesta lista de 2026-08-13 a 2026-08-19 e saiu porque
+     o arquivo saiu de `site/`. Ele nunca foi commitado: ficou seis dias sob a
+     raiz que a Vercel publica, com 91 pontos de regra de assinatura reprovando,
+     sem allowlist, sem checagem de origem, e com quase quarenta escritas por
+     `innerHTML`. Estava listado aqui — o guardiao o pegou no instante em que
+     virou arquivo — e listar nao impede publicar.
+     O conserto foi tirar o modelo da raiz publicada (`modelo/`, mesmo layout,
+     hash a hash), e cravar `check-arvore-publicavel.mjs`, que recusa QUALQUER
+     arquivo sob `site/` fora do git. Se o modelo voltar, ele volta commitado e
+     sob as quatro checagens — e ai o nome volta para esta lista. */
 ];
 
 const falhas = [];
@@ -86,20 +98,34 @@ const falhar = (m) => falhas.push(m);
    inventariam uma segunda definicao que nao existe. */
 let MOTOR_SRC = null;
 function fonteExecutavel(rel) {
-  const proprio = readFileSync(join(SITE, rel), "utf8");
+  /* FALHA FECHADA COM NOME, e nao com ENOENT.
+     Um assinante listado que nao existe na arvore avaliada estourava a pilha do
+     Node no meio do relatorio — e ENOENT com stack trace nao diz a quem le o que
+     fazer. Acontece de verdade: a lista de assinantes desta arvore de trabalho
+     inclui `js/modelo-2.js`, que nao esta no indice, entao o portao rodando
+     sobre o indice nao o encontra. A resposta certa e recusar dizendo o nome. */
+  const abs = join(SITE, rel);
+  if (!existsSync(abs)) {
+    console.error(`✗ assinatura: ${rel} esta na lista de ASSINANTES e nao existe nesta arvore.`);
+    console.error("  Isto NAO e uma violacao encontrada: e o guardiao sem conseguir olhar.");
+    console.error("  Ou o arquivo saiu, ou a lista aponta para algo que nao foi commitado.");
+    process.exit(1);
+  }
+  const proprio = readFileSync(abs, "utf8");
   if (rel === "js/motor.js") return proprio;
   if (MOTOR_SRC === null) MOTOR_SRC = readFileSync(join(SITE, "js/motor.js"), "utf8");
   return MOTOR_SRC + "\n" + proprio;
 }
 
 
-/* Remove comentarios e strings para as checagens ESTRUTURAIS. Sem isto, uma
-   frase em prosa dentro de um comentario vira "codigo" e o guardiao reprova o
-   arquivo por causa de uma explicacao — o falso alarme classico desta casa. */
-function semComentarios(src) {
-  return src.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
-            .replace(/(^|[^:])\/\/[^\n]*/g, (m, p) => p + m.slice(p.length).replace(/./g, " "));
-}
+/* O podador de comentarios NAO mora mais aqui.
+   Havia uma copia privada nesta altura do arquivo — a quarta desta casa, com a
+   mesma logica escrita de novo. Ela sobreviveu a varredura de irmaos que criou
+   `_comentarios.mjs` porque tinha outro nome, e quase custou caro: ao migrar os
+   portoes para a fonte NORMALIZADA (comentario fora + literais somados), a copia
+   local passou a SOMBREAR o import, e este guardiao seguiu lendo fonte crua
+   enquanto os outros seis liam a normalizada. O red team do Escorpiao passou por
+   aqui exatamente por isso. Uma definicao, um lugar. */
 
 /** Extrai o corpo de uma funcao a partir do indice da sua primeira chave. */
 function corpoDe(src, iAbre) {
@@ -145,7 +171,7 @@ function conferir(rel) {
     falhar(`${rel} ausente — a lista de assinantes nomeia um arquivo que nao existe`);
     return;
   }
-  const CODIGO = semComentarios(js);
+  const CODIGO = codigoNormalizado(js);
 
   /* ---------------------------------------------------------------- item 1 -- */
   const mAllow = CODIGO.match(/var\s+CARTEIRA_PERMITIDO\s*=\s*\{([^}]*)\}/);
@@ -390,7 +416,7 @@ const TX_SINTETICA = {
 async function provarCongelamento(rel) {
   let js;
   try { js = fonteExecutavel(rel); } catch { return; }
-  const CODIGO = semComentarios(js);
+  const CODIGO = codigoNormalizado(js);
   const fs_ = todasFuncoes(CODIGO);
   const dizer = (m) => falhar(`${rel}: [congelamento] ${m}`);
 
@@ -535,7 +561,7 @@ function carregarAbi() {
 function provarRegra6(rel) {
   let js;
   try { js = fonteExecutavel(rel); } catch { return; }
-  const CODIGO = semComentarios(js);
+  const CODIGO = codigoNormalizado(js);
   const dizer = (m) => falhar(`${rel}: [regra 6] ${m}`);
   const fs_ = todasFuncoes(CODIGO);
   const recusa = fs_.find((f) => f.nome === "recusarAprovacaoInfinita");
@@ -544,12 +570,43 @@ function provarRegra6(rel) {
     dizer("nao achei recusarAprovacaoInfinita() e/ou tiposPorPalavra() para executar."); return;
   }
 
+  /* O ARNES EXECUTA O MOTOR QUE EMBARCA. Nao recorta o fonte dele.
+   *
+   * A versao anterior extraia `tiposPorPalavra` e `recusarAprovacaoInfinita` do
+   * texto e as executava soltas num `new Function`. Funcionou enquanto a regra
+   * nao dependia de mais nada. Quando ela ganhou `ehMaximoCanonico()` e as
+   * constantes de largura, o recorte ficou incompleto: a regra lancou
+   * `ReferenceError` em toda assinatura e — porque o laco abaixo contava
+   * qualquer throw como recusa — o portao ACUSOU o codigo certo, dizendo que
+   * `int24` toda-de-uns fora tratado como aprovacao infinita. Nao fora: a regra
+   * nem chegou a rodar.
+   *
+   * Tentar completar o recorte por fecho transitivo tambem falhou, e falharia
+   * sempre: `ehContratoDoLivro` e `const`, nao `function`, e inicializador de
+   * constante que toca `window` estoura na montagem. Recorte e reconstrucao, e
+   * reconstrucao mede o que o portao conseguiu remontar, nao o que embarca.
+   *
+   * Entao ele carrega `js/motor.js` inteiro numa `vm`, com `TRIVIU_ABI` posto no
+   * global como a pagina poe, e pega as funcoes do `TRIVIU_MOTOR` publicado. E o
+   * mesmo byte que vai para o navegador. De quebra, cobre o caminho em que a
+   * regra 6 e chamada sem `sig()` antes — que era justamente onde o `ABI` ficava
+   * nulo. */
   let ABI, R, T;
   try {
     ABI = carregarAbi();
-    const criar = new Function("ABI", `${tipos.fonte}\n${recusa.fonte}\n` +
-      "return { R: recusarAprovacaoInfinita, T: tiposPorPalavra };");
-    ({ R, T } = criar(ABI));
+    const caixa = { console, TRIVIU_ABI: ABI };
+    caixa.window = caixa;
+    caixa.globalThis = caixa;
+    caixa.addEventListener = () => {};
+    caixa.dispatchEvent = () => {};
+    vm.createContext(caixa);
+    vm.runInContext(MOTOR_SRC ?? readFileSync(join(SITE, "js/motor.js"), "utf8"), caixa,
+      { filename: "site/js/motor.js" });
+    const M = caixa.TRIVIU_MOTOR;
+    if (!M || typeof M.recusarAprovacaoInfinita !== "function" || typeof M.tiposPorPalavra !== "function") {
+      dizer("o motor carregou e nao publicou recusarAprovacaoInfinita/tiposPorPalavra em TRIVIU_MOTOR."); return;
+    }
+    R = M.recusarAprovacaoInfinita; T = M.tiposPorPalavra;
   } catch (e) { dizer(`nao consegui executar a recusa (${e.message}).`); return; }
 
   const UNS = "f".repeat(64), ZERO = "0".repeat(64);
@@ -573,8 +630,22 @@ function provarRegra6(rel) {
     const monta = (i) => sel + ts.map((_, k) => (k === i ? UNS : ZERO)).join("");
     ts.forEach((t, i) => {
       const assinado = /^int\d+$/.test(t);
+      /* Recusa e `throw new Error(...)`. `ReferenceError` e `TypeError` sao
+         subclasses de Error e passariam por recusa num `catch` cego — foi assim
+         que o arnes incompleto virou acusacao contra o codigo certo. `e.name`
+         separa os dois: recusa e Error puro; qualquer outro nome e a regra
+         quebrada, e isso nao se conta, se denuncia. */
       let passou = true;
-      try { R(monta(i), papel, assin); } catch { passou = false; }
+      try { R(monta(i), papel, assin); }
+      catch (e) {
+        if (e && e.name !== "Error") {
+          dizer(`${papel}.${assin}: a palavra ${i + 1} nao foi julgada — a regra lancou ` +
+            `${e.name} (${e.message}). Isso nao e recusa, e a regra quebrada, e portao que ` +
+            "conta os dois igual acusa o codigo certo");
+          return;
+        }
+        passou = false;
+      }
       if (assinado && !passou) {
         dizer(`${papel}.${assin}: a palavra ${i + 1} e ${t}, COM SINAL, e toda-de-uns nela vale -1 — ` +
           "um valor legitimo. A recusa a tratou como aprovacao infinita. Foi exatamente assim que " +
@@ -639,22 +710,173 @@ for (const rel of ASSINANTES) provarRegra6(rel);
      que empurra um arquivo para uma trava mais larga em nome da uniformidade
      esta trabalhando contra o proprio motivo de existir. */
   const SOMENTE_LEITURA = ["eth_accounts", "eth_requestAccounts", "eth_chainId"];
+
+  /* =======================================================================
+   * ROL FECHADO · a omissao reprova
+   * =======================================================================
+   *
+   * Ate 2026-08-19 este bloco decidia assim:
+   *
+   *     if (!/window\.ethereum|eth_requestAccounts|eth_sendTransaction/.test(exec))
+   *       continue;
+   *
+   * `continue` e ISENCAO SILENCIOSA. Um arquivo que nao casasse aquelas tres
+   * cadeias saia do julgamento sem que ninguem soubesse — e o Tubarao-branco
+   * derrubou isso em agua limpa com um `.join`:
+   *
+   *     var envio = ["eth", "sendTransaction"].join("_");
+   *     window.ethereum.request({ method: envio, params: [p] });
+   *
+   * O arquivo assinava. Este guardiao APROVOU e ainda IMPRIMIU
+   * "somente-leitura, allowlist de 2" — certificou como leitor um arquivo cuja
+   * unica funcao e enviar transacao. Afirmar o oposto do fato e pior que calar.
+   *
+   * A dobra de literais (`_literais.mjs`) mata o disfarce que custa um `+`; nao
+   * mata o que custa um `.join`, e o cabecalho dela dizia que a defesa contra o
+   * disfarce caro era "o rol fechado, onde arquivo que a pagina carrega e nao
+   * esta classificado reprova". Esse rol NAO EXISTIA. Comentario descrevendo
+   * mecanismo ausente e o defeito que esta onda inteira persegue, cometido no
+   * arquivo escrito para corrigi-lo.
+   *
+   * Agora existe. A regra inverte o onus:
+   *
+   *   Todo /js/*.js que alguma PAGINA carrega esta classificado aqui — OU
+   *   REPROVA. Nao ha caminho por omissao.
+   *
+   * Esconder a intencao deixa de ajudar: o ataque precisava ser INVISIVEL, e
+   * invisibilidade virou a condicao de falha. `.join`, `atob`, indice calculado,
+   * qualquer coisa — se o arquivo nao esta no rol, nao passa; se esta como
+   * `sem-carteira`, os sinais abaixo sao cobrados contra ele.
+   */
+  const ROL_JS = {
+    "js/motor.js":       "primitivas",   /* a captura do provedor · nao assina sozinho */
+    "js/console.js":     "assina",       /* /calldata/ */
+    "js/console-lp.js":  "assina",       /* /console/  */
+    "js/positions.js":   "leitura",      /* allowlist de 2, nao congela nada */
+    "js/abi-console.js": "sem-carteira", /* tabela gerada dos artefatos */
+    "js/console-app.js": "sem-carteira",
+    "js/home.js":        "sem-carteira",
+    "js/safety.js":      "sem-carteira", /* le a CHAIN por fetch (`rpc("eth_call")`), nao a carteira */
+    "js/simulate.js":    "sem-carteira",
+    "js/tema.js":        "sem-carteira",
+  };
+
+  /* ALCANCAR A CARTEIRA e ALCANCAR A CHAIN sao coisas diferentes, e a lista
+     abaixo so tem a primeira. `safety.js` faz `rpc("eth_call", ...)` por `fetch`
+     contra um endpoint publico: isso le estado, nao move fundo e nao pede
+     assinatura. Cobrar dele allowlist de carteira seria falso alarme, e falso
+     alarme treina gente a ignorar guardiao. */
+  const SINAIS_CARTEIRA = [
+    [/\.\s*request\s*\(/, "chama .request( — a porta de entrada da EIP-1193"],
+    [/\bwindow\s*\.\s*ethereum\b/, "toca o slot window.ethereum"],
+    [/MOTOR\s*\.\s*(provedor|descobrirProvedor|adotarProvedor)\s*\(/, "pede o provedor ao motor"],
+    [/\beth_requestAccounts\b/, "pede contas a carteira"],
+    [/\beth_sendTransaction\b|\beth_sendRawTransaction\b/, "envia transacao"],
+    [/\bpersonal_sign\b|\beth_signTypedData\b|\bwallet_[a-zA-Z]/, "pede assinatura ou permissao a carteira"],
+  ];
+
+  for (const [rel, paginas] of carregados) {
+    if (!Object.prototype.hasOwnProperty.call(ROL_JS, rel)) {
+      falhar(
+        `${rel} (carregado por ${paginas.join(", ")}) NAO esta no rol deste guardiao. Arquivo que uma ` +
+        "pagina carrega e julgado ou reprovado — nao ha terceira opcao. Classifique-o em ROL_JS como " +
+        "`assina`, `leitura`, `primitivas` ou `sem-carteira`, e a classificacao sera cobrada contra o codigo"
+      );
+    }
+  }
+  for (const rel of Object.keys(ROL_JS)) {
+    if (!carregados.has(rel))
+      falhar(
+        `${rel} esta no rol e nenhuma pagina o carrega. Rol que nao bate com a arvore apodrece: ou o ` +
+        "arquivo saiu, ou a pagina que o carregava saiu, e nos dois casos a entrada mente"
+      );
+  }
+  for (const [rel, classe] of Object.entries(ROL_JS)) {
+    if (classe === "assina" && !ASSINANTES.includes(rel))
+      falhar(`${rel} esta no rol como \`assina\` e NAO esta em ASSINANTES — nao passaria pelas quatro checagens`);
+    if (classe !== "assina" && ASSINANTES.includes(rel))
+      falhar(`${rel} esta em ASSINANTES e no rol como \`${classe}\` — as duas fontes discordam`);
+  }
+
+  /* A CLASSIFICACAO E COBRADA CONTRA O CODIGO, senao o rol vira papel: bastaria
+     escrever `sem-carteira` ao lado do arquivo que assina. */
+  for (const [rel, classe] of Object.entries(ROL_JS)) {
+    if (classe !== "sem-carteira") continue;
+    let src = "";
+    try { src = readFileSync(join(SITE, rel), "utf8"); }
+    catch { falhar(`${rel} esta no rol e nao existe nesta arvore — o guardiao nao consegue olhar`); continue; }
+    const exec = codigoNormalizado(src);
+    for (const [re, porque] of SINAIS_CARTEIRA) {
+      if (re.test(exec))
+        falhar(
+          `${rel} esta classificado como \`sem-carteira\` e ${porque}. A classificacao e uma afirmacao ` +
+          "sobre o codigo, e esta e falsa: mude a classe e aceite as checagens, ou tire o alcance do arquivo"
+        );
+    }
+  }
+
+  /* `primitivas` · o motor E a captura, e por isso NAO declara allowlist.
+   *
+   * A allowlist mora na TELA, e isso e desenho, nao concessao: o motor guarda o
+   * provedor uma vez e entrega as primitivas; quem decide que metodos podem ser
+   * chamados e a pagina que assina, porque a decisao muda de tela para tela.
+   * O `check-provedor-unico` cobra o outro lado da mesma regra — nenhum
+   * consumidor le o slot fora da entrega ao motor.
+   *
+   * O que se cobra dele, entao, e o inverso da allowlist: o motor nao pode
+   * carregar metodo de ENVIO nem de ASSINATURA no proprio corpo. Se carregar,
+   * a decisao saiu da tela e voltou para a biblioteca, e a allowlist da tela
+   * deixa de valer alguma coisa. */
+  for (const [rel, classe] of Object.entries(ROL_JS)) {
+    if (classe !== "primitivas") continue;
+    let src = "";
+    try { src = readFileSync(join(SITE, rel), "utf8"); }
+    catch { falhar(`${rel} esta no rol como \`primitivas\` e nao existe nesta arvore`); continue; }
+    const exec = codigoNormalizado(src);
+    for (const proibido of ["eth_sendTransaction", "eth_sendRawTransaction", "personal_sign", "eth_signTypedData"]) {
+      if (new RegExp(proibido).test(exec))
+        falhar(
+          `${rel} e \`primitivas\` e menciona ${proibido} em codigo. A captura entrega o provedor; ` +
+          "quem escolhe metodo e a tela, onde a allowlist vive e e cobrada. Metodo de envio dentro do " +
+          "motor tira a decisao de onde ela e auditada"
+        );
+    }
+  }
+
   let n2 = 0;
   for (const [rel, paginas] of carregados) {
     if (ASSINANTES.includes(rel)) continue;
+    if (ROL_JS[rel] === "sem-carteira") continue;   /* cobrado acima, contra o codigo */
+    if (ROL_JS[rel] === "primitivas") continue;     /* cobrado acima, com regra propria */
     let src = "";
     try { src = readFileSync(join(SITE, rel), "utf8"); } catch { continue; }
-    if (!/window\.ethereum|eth_requestAccounts|eth_sendTransaction/.test(src)) continue;
+
+    /* CORRIGIDO 2026-08-19 · esta varredura lia o arquivo CRU, comentario
+       incluido, enquanto a checagem de allowlist logo abaixo ja usava
+       `semComentarios`. Tres regras no mesmo bloco, duas lendo prosa como se
+       fosse codigo.
+       O caso que expos: `motor.js` passou a EXPLICAR, em comentario, por que NAO
+       chama `eth_sendTransaction` — e foi reprovado por mencionar a palavra na
+       frase que declara a fronteira. Um arquivo sendo punido por documentar o
+       proprio limite e a armadilha que o cabecalho deste repositorio ja nomeia:
+       falso alarme treina gente a ignorar guardiao.
+       A poda e mecanica e nao pede julgamento: string literal de JS sobrevive a
+       ela, e string literal e o que viraria chamada de verdade. */
+    const exec = codigoNormalizado(src);
+    /* O `continue` por ausencia de literal MORREU aqui — era a isencao silenciosa
+       que o `.join("_")` atravessou. Quem chega a esta altura ja passou pelo rol
+       fechado acima e e `leitura` ou `primitivas`; as duas seguem para as
+       checagens abaixo com o onus invertido. */
 
     const onde = `${rel} (carregado por ${paginas.join(", ")})`;
     for (const proibido of ["eth_sendTransaction", "eth_sendRawTransaction", "personal_sign", "eth_signTypedData", "wallet_"]) {
-      if (new RegExp(proibido).test(src)) {
+      if (new RegExp(proibido).test(exec)) {
         falhar(`${onde} menciona ${proibido} e NAO esta na lista de assinantes deste guardiao. ` +
           "Um caminho de assinatura sem guarda e o caminho onde a regra sera quebrada sem que " +
           "ninguem veja. Some-o a ASSINANTES ou tire o envio dele.");
       }
     }
-    const m = semComentarios(src).match(/var\s+CARTEIRA_PERMITIDO\s*=\s*\{([^}]*)\}/);
+    const m = exec.match(/var\s+CARTEIRA_PERMITIDO\s*=\s*\{([^}]*)\}/);
     if (!m) {
       falhar(`${onde} toca window.ethereum sem declarar CARTEIRA_PERMITIDO — sem allowlist nao ha trava, ` +
         "e a proxima linha a ser somada ali sera somada sem que nada reprove.");
@@ -697,7 +919,7 @@ for (const rel of ASSINANTES) provarRegra6(rel);
 function regra11(rel) {
   const src = fonteExecutavel(rel);
   const onde = `${rel} · regra 11`;
-  const limpo = semComentarios(src);
+  const limpo = codigoNormalizado(src);
 
   if (!/function\s+conferirTelaContraCalldata\s*\(/.test(limpo)) {
     falhar(`${onde}: nao existe conferirTelaContraCalldata. Sem ela nada liga o que a tela ` +

@@ -87,3 +87,12 @@ table.res td.big{font-size:16px;font-weight:600;border-bottom:none;padding-top:1
 .lr-read .ins{font-size:13.5px;color:var(--grafite);margin-top:8px;max-width:62ch}.lr-read .pah{font-family:var(--fm);font-size:13px;margin-top:10px}
 footer{border-top:1px solid var(--fio);margin-top:var(--s-7);padding-top:var(--s-5);font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:1.9}
 @media(prefers-reduced-motion:reduce){.arc.flow{animation:none}}
+
+/* O saldo esperado da corrida longa. Ate 2026-08-19 esta cor vinha de um
+   `style="color:..."` montado dentro do innerHTML em js/simulate.js — e a CSP
+   desta origem e `style-src 'self'`, sem unsafe-inline, entao o atributo era
+   entregue ao navegador sob uma diretiva que nao o permite. F-3 tinha sido
+   fechado varrendo os .html; o mesmo estilo inline continuava saindo do .js,
+   onde nenhum portao olhava. */
+.bal-abaixo{color:var(--lacre)}
+.bal-acima{color:var(--tinta)}

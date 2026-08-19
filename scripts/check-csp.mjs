@@ -159,8 +159,46 @@ for (const arquivo of htmls) {
     const rel_ = (atr(m[0], "rel") || "").toLowerCase();
     const href = atr(m[0], "href");
     if (!href || !/^(https?:)?\/\//.test(href)) continue;
+    const host = new URL(href.startsWith("//") ? "https:" + href : href).host;
+
+    /* DICA DE RECURSO PARA TERCEIRO · o furo que passava por baixo do gate 3.
+     *
+     * Ate 2026-08-19 este bloco so recolhia stylesheet/icon/preload, e o teste
+     * aplicado era "o host esta declarado em alguma diretiva do CSP?". Para
+     * essas tres o teste faz sentido: host nao declarado = pagina quebrada.
+     *
+     * Para `preconnect` e `dns-prefetch` o teste e o ERRADO, e errado no
+     * sentido perigoso — nao no sentido chato. Essas duas nao carregam recurso
+     * nenhum: mandam o navegador resolver o DNS e abrir o TLS com o terceiro,
+     * e isso acontece ANTES de qualquer diretiva opinar. A CSP nao as governa.
+     * Um `preconnect` para fonts.gstatic.com nao quebraria a pagina e nao
+     * apareceria em relatorio de violacao; entregaria o IP e o User-Agent de
+     * quem esta lendo a tela de assinatura, em silencio, e o gate 3 continuaria
+     * imprimindo "zero terceiro".
+     *
+     * `prefetch` / `prerender` / `modulepreload` entram na mesma regra por um
+     * motivo diferente: a cobertura da CSP sobre elas varia por navegador
+     * (prefetch-src foi proposto e retirado). Um portao que depende de qual
+     * navegador o visitante usa nao e portao.
+     *
+     * Medido nesta data: zero ocorrencia em site/**.html. Este bloco fecha o
+     * furo do portao, nao uma exposicao de hoje — a diferenca esta dita para
+     * ninguem ler mais do que esta escrito.
+     */
+    const DICAS_QUE_A_CSP_NAO_GOVERNA = ["preconnect", "dns-prefetch", "prefetch", "prerender", "modulepreload"];
+    const dica = DICAS_QUE_A_CSP_NAO_GOVERNA.find((d) => rel_.split(/\s+/).includes(d));
+    if (dica) {
+      falhar(
+        `${rel}: <link rel="${dica}"> aponta para ${host}. Isso resolve DNS e abre TLS com um ` +
+        `terceiro antes de qualquer diretiva da CSP opinar — nao quebra a pagina, nao gera ` +
+        `relatorio de violacao, e entrega IP e User-Agent de quem le a tela. Hospede o recurso ` +
+        `nesta origem, como as 20 fontes woff2 ja estao, ou remova a dica.`
+      );
+      continue;
+    }
+
     if (rel_.includes("stylesheet") || rel_ === "icon" || rel_.includes("preload"))
-      hostsSubrecurso.add(new URL(href.startsWith("//") ? "https:" + href : href).host);
+      hostsSubrecurso.add(host);
   }
 }
 

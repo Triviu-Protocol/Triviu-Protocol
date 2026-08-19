@@ -1,0 +1,46 @@
+#!/usr/bin/env sh
+# ---------------------------------------------------------------------------
+# Triviu · pre-commit
+#
+# Runs every gate in scripts/check-*.mjs against the INDEX — the exact content
+# this commit is about to record. Not the working tree: files you have not
+# staged are none of this hook's business, and a hook that blocks a commit over
+# something the commit does not touch is the shortest path to teaching people
+# `--no-verify`.
+#
+# Turn it on once per clone:
+#
+#     git config core.hooksPath .githooks
+#
+# There is no installer. `core.hooksPath` points git straight at the versioned
+# directory, so what runs is what the repository contains — no copy in
+# .git/hooks to drift out of sync.
+#
+# Careful if you ever change that path: core.hooksPath REPLACES the hooks
+# directory, it does not add to it. Point it at a folder missing a hook and
+# that hook stops running, silently.
+# ---------------------------------------------------------------------------
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-commit: node not found on PATH."
+  echo ""
+  echo "  This is not a finding. It is the gate unable to look."
+  echo "  The gates are Node scripts; without node nothing was checked."
+  echo "  Install Node 20+ and commit again."
+  echo ""
+  echo "  Do NOT reach for --no-verify. An unchecked commit here is how a page"
+  echo "  that asks for a wallet signature goes out unguarded."
+  exit 1
+fi
+
+node "$(git rev-parse --show-toplevel)/scripts/portoes.mjs" --indice
+estado=$?
+
+if [ $estado -ne 0 ]; then
+  echo ""
+  echo "pre-commit: a gate refused the index. Nothing was committed."
+  echo "Reproduce it exactly:  node scripts/portoes.mjs --indice"
+  exit $estado
+fi
+
+exit 0

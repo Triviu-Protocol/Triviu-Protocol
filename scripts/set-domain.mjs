@@ -16,8 +16,11 @@
  *   - Only rewrites URLs whose host is in `knownHosts` (the Vercel hosts + any domain
  *     applied before). External hosts — including triviu-protocol.gitbook.io — are
  *     never touched.
- *   - After --apply, the new domain is added to knownHosts so the NEXT change knows
- *     what to replace.
+ *   - After --apply, knownHosts is REPLACED by exactly [domain]. It used to be
+ *     appended to, and that was the F-2: one routine run left two hosts in the
+ *     list, and the signing page accepted any host in it while printing the
+ *     words "the single host". The old host is consumed BEFORE this write, as
+ *     `fromHosts`, so replacing loses nothing the rewrite still needs.
  */
 
 import { readFileSync, writeFileSync, readdirSync, statSync } from "node:fs";
@@ -101,11 +104,26 @@ function main() {
   for (const [f, n] of changed) console.log(`  ${n.toString().padStart(3)}  ${f}`);
 
   if (APPLY) {
-    // Record the applied domain so future changes know to replace it.
-    if (!knownHosts.includes(domain)) {
-      cfg.knownHosts = [...knownHosts, domain];
+    /* SUBSTITUI a lista, nao a faz crescer — e a diferenca e o F-2.
+     *
+     * O codigo anterior acrescentava, entao uma unica execucao deixava DOIS
+     * hosts em `knownHosts`, e a pagina que assina aceitava qualquer host da
+     * lista enquanto imprimia as palavras "the single host". Duas origens
+     * servindo a mesma tela de assinatura destroem a unica defesa que o usuario
+     * tem contra phishing: uma origem memorizada.
+     *
+     * Substituir tambem e o registro correto. A esta altura toda referencia da
+     * arvore acabou de ser reescrita para `domain`, entao `domain` E o que a
+     * arvore serve; o host antigo ja foi consumido acima, como `fromHosts`,
+     * antes desta linha rodar. O que o operador ainda deve esta fora deste
+     * arquivo: apontar o hostname antigo para um 308 ao canonico, e conferir
+     * que ele responde isso. */
+    if (knownHosts.length !== 1 || knownHosts[0] !== domain) {
+      cfg.knownHosts = [domain];
       writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2) + "\n");
-      console.log(`\nRecorded "${domain}" in knownHosts.`);
+      console.log(`\nknownHosts agora e exatamente ["${domain}"].`);
+      for (const h of knownHosts.filter((x) => x !== domain))
+        console.log(`  "${h}" saiu da lista — faca-o 308 para https://${domain} e confira que responde isso.`);
     }
     console.log("\nDone. Re-run the deploy so the new domain goes live.");
   } else if (totalHits > 0) {

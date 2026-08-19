@@ -21,3 +21,20 @@ contracts/deploy/*.env
 .env*
 *.antes-f3
 *.antes-porte-9telas
+
+# Rascunhos e historico · FORA da raiz publicada, e a distincao e a licao
+#
+# Em 2026-08-19 estas duas linhas acima existiam como `*.antes-f3` e
+# `*.antes-porte-9telas`, e escondiam 17 arquivos DENTRO de `site/`. Ignorar no
+# git nao impede a Vercel de publicar — faz o oposto: some de toda checagem
+# baseada em git e continua sob `outputDirectory: "site"`. Entre eles havia
+# copias inteiras de paginas anteriores ao F-3, e o modelo do fundador
+# (`modelo-2.js`, 176 KB) que assina, nao declara allowlist, nao confere origem
+# e escreve por `innerHTML` em quase quarenta pontos.
+#
+# O conserto nao foi ignorar melhor: foi TIRAR da raiz publicada. `modelo/` e
+# `historico/` guardam os mesmos bytes, hash a hash, fora de `site/`. Ignorar
+# aqui e seguro justamente PORQUE estao fora — e `check-arvore-publicavel.mjs`
+# recusa qualquer arquivo sob `site/` que o git nao conheca, ignorado ou nao.
+/modelo/
+/historico/
