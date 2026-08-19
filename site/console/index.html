@@ -252,7 +252,7 @@
           <tr><td>Liquidity &amp; gas</td><td><span class="pill warn">waiting</span></td>
             <td>GasTank is live; the path that would spend it is not deployed</td></tr>
           <tr><td>Referrals</td><td><span class="pill warn">waiting</span></td>
-            <td>TriviuReferralVault is written and audited, and on no chain</td></tr>
+            <td>TriviuReferralVault is written, <b>not externally audited</b> (its own header says so), and on no chain</td></tr>
           <tr><td>Analytics</td><td><span class="pill warn">waiting</span></td>
             <td>it charted a simulation's history, and the simulation is gone</td></tr>
         </tbody></table></div>
@@ -1157,20 +1157,26 @@
   <!-- ══════════════════════════ REFERRALS ══════════════════════════ -->
   <section class="pane" id="p-refs" role="region" aria-label="Referrals" tabindex="-1">
     <div class="phead"><p class="eyebrow">protocol · referral vault</p>
-      <h1 class="u-0173988c">Spread accrues,<br><em>and only from real wins</em>.</h1>
-      <p class="lede">Pull, never push: the spread from every <b>positive</b> close of someone you
-      introduced accrues in your ReferralVault until you call <span class="mono">claim()</span>. If they
-      do not profit, there is no spread. This is not income, and the whitepaper documents why.</p></div>
+      <h1 class="u-0173988c">The split happens at once,<br><em>and only from real wins</em>.</h1>
+      <p class="lede">The share from every <b>positive</b> close of someone you introduced is divided
+      <b>in the same transaction</b> that takes the fee &mdash; there is no balance waiting for you and
+      nothing to claim. The contract says why in its own comment: holding what is owed to a third party
+      is custody of that party under another name. If they do not profit, there is no share. This is not
+      income, and the whitepaper documents why.</p>
+      <p class="lede u-0173988c"><b>None of this is running.</b>
+      <span class="mono" translate="no">TriviuReferralVault</span> is on no chain, and its own header
+      reads <span class="mono">PRE-MAINNET, NAO AUDITADO EXTERNAMENTE</span>. Until it is deployed the
+      whole fee goes to the treasury. The numbers below are dashes for that reason.</p></div>
     <div class="ledger">
       <div class="lead"><div class="k">Claimable <button class="mini ghost u-3d35d09e" data-explain="referrals"
         aria-label="What is this"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button></div><div class="v num" id="rfClaim">—</div>
-        <div class="d">accrued, waiting for your signature</div></div>
+        <div class="d">not deployed &mdash; nothing accrues, nothing is owed</div></div>
       <div class="side">
         <div class="lcell"><div class="k">Total received</div><div class="v num" id="rfEarned">—</div><div class="d">lifetime</div></div>
         <div class="lcell"><div class="k">Introduced</div><div class="v num" id="rfCount">—</div><div class="d">read from Registered events</div></div>
       </div></div>
     <div class="row u-39761cb3">
-      <div class="tight"><button class="primary" id="btnClaim">Claim accrued spread</button></div>
+      <div class="tight"><button class="primary" id="btnClaim" disabled>No claim exists &mdash; the split is automatic</button></div>
       <div class="tight"><button class="mini" id="btnSimRefs"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Simulate introduced activity</button></div>
     </div>
     <div class="panel u-bfa31e80"><h3>Your link</h3>
