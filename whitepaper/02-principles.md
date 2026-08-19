@@ -15,8 +15,16 @@ wins.
    (failures included), parameters with full Git history, and a fee taken
    on-chain and emitted on every cycle.
 4. **No promises.** No return projections, in any material. Possibility is not
-   probability — and [Section 8](08-risks.md) documents why. A success fee is the
-   opposite of a promise: the protocol earns only when the user does.
+   probability — and [Section 8](08-risks.md) documents why. A fee charged on a
+   result is the opposite of a promise — but "the result" is not the same thing
+   on both of Triviu's paths, and saying otherwise would be a projection by
+   omission. On the **arbitrage cycle**, the protocol earns only when the user
+   does, enforced by the contract's own balance check. On **liquidity
+   provision**, the fee is a share of the fees a position *collected*, and
+   collected fees are not the owner's result: impermanent loss and recentering
+   are subtracted afterwards, so a position can pay the fee and still end below
+   what went into it. [Section 5](05-success-fee.md) states both, with the
+   number we measured.
 5. **No token.** Triviu has no token, presale, allocation or yield program, and
    none is planned.
 6. **Education before execution.** The default user path goes through a local

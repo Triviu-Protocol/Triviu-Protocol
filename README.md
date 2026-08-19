@@ -31,9 +31,13 @@ code themselves. Founding document: [`whitepaper/`](whitepaper/README.md)
 not issue a token, does not sell signals, does not promise returns. If anyone
 offers any of those things in Triviu's name, it is a scam — report it.
 
-**How it sustains itself:** an on-chain **success fee on profit only** — taken
-atomically, capped at 50% of profit in bytecode, zero on reverts or break-even.
-The protocol earns only when the user does ([whitepaper §5](whitepaper/05-success-fee.md)).
+**How it sustains itself:** on the **arbitrage cycle**, an on-chain success fee on
+profit only — taken atomically, capped at 50% of profit in bytecode, zero on reverts
+or break-even. There the protocol earns only when the user does. On **liquidity
+provision** the fee is a share of the fees a position *collected*, and collected fees
+are not the owner's result — impermanent loss and recentering are subtracted after,
+so a position can pay the fee and still end down. Both are stated, with the measured
+number, in [whitepaper §5](whitepaper/05-success-fee.md).
 
 ## Don't trust: verify
 
