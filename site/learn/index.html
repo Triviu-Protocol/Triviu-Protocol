@@ -19,59 +19,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://triviu.vercel.app/og.png">
 <link href="/vendor/fonts/fontes.css" rel="stylesheet">
-<style>
-:root{
-  --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
-  --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
-  --verde:#1E7A46;
-  --fd:"Libre Caslon Text",Georgia,serif;--ft:"Public Sans",system-ui,sans-serif;--fm:"IBM Plex Mono",ui-monospace,monospace;
-  --r-m:6px;--r-l:10px;
-}
-@media(prefers-color-scheme:dark){:root{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}}
-:root[data-theme="dark"]{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}
-:root[data-theme="light"]{--papel:#FAFAF7;--tinta:#16181D;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-fundo:#FBF3DF;--acafrao-texto:#8A6414;--verde:#1E7A46;}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--papel);color:var(--tinta);font-family:var(--ft);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
-a{color:var(--ultramar);text-decoration:none}a:hover{text-decoration:underline}
-.mono{font-family:var(--fm)}
-.top{position:sticky;top:0;z-index:20;background:var(--papel);border-bottom:1px solid var(--fio);padding:14px 22px;display:flex;align-items:center;gap:12px}
-.top svg.lg{width:26px;height:26px}.top b{font-size:15px}.top .spacer{flex:1}
-.top a.nav{font-family:var(--fm);font-size:12px;color:var(--grafite)}
-.themebtn{width:30px;height:30px;padding:0;border:1px solid var(--fio);background:transparent;color:var(--grafite);border-radius:var(--r-m);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
-.themebtn:hover{color:var(--tinta);border-color:var(--tinta)}.themebtn svg{width:16px;height:16px}
-.wrap{max-width:1000px;margin:0 auto;padding:52px 24px 72px}
-.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--grafite);margin-bottom:14px}
-h1{font-family:var(--fd);font-size:38px;line-height:1.12;letter-spacing:-.01em;margin-bottom:16px}
-@media(max-width:640px){h1{font-size:29px}}
-.lead{font-size:17px;color:var(--grafite);max-width:72ch;margin-bottom:26px}
-.seal{border:1px solid var(--fio);background:var(--nevoa);border-radius:var(--r-m);padding:14px 18px;margin-bottom:44px;max-width:82ch}
-.seal .l{font-family:var(--fm);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--grafite);margin-bottom:5px}
-.seal p{font-size:13.5px;margin:0}
-.chip{font-family:var(--fm);font-size:9px;letter-spacing:.09em;border:1px solid currentColor;border-radius:999px;padding:2px 7px;vertical-align:middle;white-space:nowrap}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-bottom:40px}
-@media(max-width:760px){.grid{grid-template-columns:1fr}}
-.mod{border:1px solid var(--fio);border-radius:var(--r-l);padding:22px;background:var(--papel);border-left:3px solid var(--ac);display:flex;flex-direction:column}
-.mod .h{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
-.mod .n{font-family:var(--fm);font-size:26px;font-weight:500;color:var(--ac);line-height:1}
-.mod h3{font-size:18px;line-height:1.2}
-.mod p{font-size:14px;color:var(--tinta);margin-bottom:12px}
-.mod .chk{font-family:var(--fm);font-size:11.5px;color:var(--grafite);margin-bottom:16px}
-.mod .chk a{color:var(--ultramar)}
-.slot{margin-top:auto;display:flex;align-items:center;gap:10px;border:1px dashed var(--fio);border-radius:var(--r-m);padding:10px 12px;color:var(--grafite)}
-.slot .play{width:22px;height:22px;flex:none;color:var(--grafite)}
-.slot .t{font-family:var(--fm);font-size:11px;line-height:1.3;flex:1}
-.slot .coming{font-family:var(--fm);font-size:9px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--fio);border-radius:999px;padding:2px 7px}
-.cta-row{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0}
-.btn{font-family:var(--ft);font-size:14px;font-weight:600;padding:12px 20px;border-radius:var(--r-m);border:1px solid var(--tinta);cursor:pointer;display:inline-block}
-.btn.prim{background:var(--tinta);color:var(--papel)}.btn.sec{background:transparent;color:var(--tinta)}
-.btn:hover{opacity:.9;text-decoration:none}
-footer{border-top:1px solid var(--fio);margin-top:52px;padding-top:22px;font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:1.9}
-</style>
+<link href="/vendor/estilos-inline.css" rel="stylesheet">
+<link href="/vendor/estilos/learn.css" rel="stylesheet">
 </head>
 <body>
 <header class="top">
   <svg class="lg" viewBox="0 0 120 120" aria-label="Triviu"><path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="25.36" r="8.5" fill="#2743C7"/><circle cx="100" cy="60" r="8.5" fill="#C13327"/><circle cx="40" cy="94.64" r="8.5" fill="#E8B23A"/></svg>
-  <b>Triviu</b><span class="mono" style="font-size:12px;color:var(--grafite)">· Learn</span>
+  <b>Triviu</b><span class="mono u-f33008c8">· Learn</span>
   <span class="spacer"></span>
   <button class="themebtn" id="theme" aria-label="Toggle light or dark theme" title="Theme"></button>
   <a class="nav" href="/">Home</a><a class="nav" href="/simulate">Simulate</a><a class="nav" href="/safety">Safety</a><a class="nav" href="/chains">Chains</a><a class="nav" href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">Whitepaper</a>
@@ -92,7 +46,7 @@ footer{border-top:1px solid var(--fio);margin-top:52px;padding-top:22px;font-fam
   </div>
 
   <div class="grid">
-    <article class="mod" style="--ac:var(--ultramar)">
+    <article class="mod u-ccbd7bcc">
       <div class="h"><span class="n">01</span><h3>AMMs from zero</h3></div>
       <p>A constant-product pool holds two tokens under <b>x · y = k</b>. The price is
       only the ratio of the reserves, so every trade moves it. Arbitrage exists because
@@ -102,7 +56,7 @@ footer{border-top:1px solid var(--fio);margin-top:52px;padding-top:22px;font-fam
       <div class="slot"><svg class="play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M10 8.5 L16 12 L10 15.5 Z" fill="currentColor" stroke="none"/></svg><span class="t">Video with Vero · AI instructor</span><span class="coming">coming</span><span class="chip">AI</span></div>
     </article>
 
-    <article class="mod" style="--ac:var(--lacre)">
+    <article class="mod u-bcf1b35e">
       <div class="h"><span class="n">02</span><h3>The fee wall and the math</h3></div>
       <p>Each swap charges a fee on the input — 0.30% on QuickSwap/SushiSwap, 0.25% on
       PancakeSwap. Over N hops it compounds to <b>0.997^N</b>: a three-hop cycle loses
@@ -113,7 +67,7 @@ footer{border-top:1px solid var(--fio);margin-top:52px;padding-top:22px;font-fam
       <div class="slot"><svg class="play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M10 8.5 L16 12 L10 15.5 Z" fill="currentColor" stroke="none"/></svg><span class="t">Video with Vero · AI instructor</span><span class="coming">coming</span><span class="chip">AI</span></div>
     </article>
 
-    <article class="mod" style="--ac:var(--acafrao)">
+    <article class="mod u-e568f327">
       <div class="h"><span class="n">03</span><h3>Anatomy of a real cycle</h3></div>
       <p>Three swaps run inside one atomic transaction: either it clears the
       <b>minProfit</b> condition and returns your principal plus profit, or the whole
@@ -123,7 +77,7 @@ footer{border-top:1px solid var(--fio);margin-top:52px;padding-top:22px;font-fam
       <div class="slot"><svg class="play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M10 8.5 L16 12 L10 15.5 Z" fill="currentColor" stroke="none"/></svg><span class="t">Video with Vero · AI instructor</span><span class="coming">coming</span><span class="chip">AI</span></div>
     </article>
 
-    <article class="mod" style="--ac:var(--verde)">
+    <article class="mod u-bcd49feb">
       <div class="h"><span class="n">04</span><h3>MEV and the searchers</h3></div>
       <p>Wherever atomic backrunning is profitable, a small professional population
       captures it in the same block through priority-fee auctions. A study of Polygon
@@ -134,7 +88,7 @@ footer{border-top:1px solid var(--fio);margin-top:52px;padding-top:22px;font-fam
       <div class="slot"><svg class="play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M10 8.5 L16 12 L10 15.5 Z" fill="currentColor" stroke="none"/></svg><span class="t">Video with Vero · AI instructor</span><span class="coming">coming</span><span class="chip">AI</span></div>
     </article>
 
-    <article class="mod" style="--ac:var(--grafite)">
+    <article class="mod u-d148593f">
       <div class="h"><span class="n">05</span><h3>Wallet and key safety</h3></div>
       <p>Your key signs locally and never leaves your machine — Triviu is non-custodial
       and has no deposit function anywhere. The real defenses are approvals hygiene, a
@@ -143,7 +97,7 @@ footer{border-top:1px solid var(--fio);margin-top:52px;padding-top:22px;font-fam
       <div class="slot"><svg class="play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M10 8.5 L16 12 L10 15.5 Z" fill="currentColor" stroke="none"/></svg><span class="t">Video with Vero · AI instructor</span><span class="coming">coming</span><span class="chip">AI</span></div>
     </article>
 
-    <article class="mod" style="--ac:var(--ultramar)">
+    <article class="mod u-ccbd7bcc">
       <div class="h"><span class="n">06</span><h3>Run it yourself</h3></div>
       <p>Start on the simulator — no wallet, no money — then read the code and run it on
       a local fork, where mistakes are free. The simulator shows the possibility and the

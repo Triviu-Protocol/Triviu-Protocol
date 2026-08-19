@@ -39,58 +39,13 @@
   row in the verify table below. Nothing else on this page was touched.
 -->
 <link href="/vendor/fonts/fontes.css" rel="stylesheet">
-<style>
-:root{
-  --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
-  --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
-  --verde:#1E7A46;
-  --fd:"Libre Caslon Text",Georgia,serif;--ft:"Public Sans",system-ui,sans-serif;--fm:"IBM Plex Mono",ui-monospace,monospace;
-  --r-m:6px;--r-l:10px;
-}
-@media(prefers-color-scheme:dark){:root{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}}
-:root[data-theme="dark"]{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}
-:root[data-theme="light"]{--papel:#FAFAF7;--tinta:#16181D;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-fundo:#FBF3DF;--acafrao-texto:#8A6414;--verde:#1E7A46;}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--papel);color:var(--tinta);font-family:var(--ft);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
-a{color:var(--ultramar);text-decoration:none}a:hover{text-decoration:underline}
-.mono{font-family:var(--fm)}
-.top{position:sticky;top:0;z-index:20;background:var(--papel);border-bottom:1px solid var(--fio);padding:14px 22px;display:flex;align-items:center;gap:12px}
-.top svg.lg{width:26px;height:26px}.top b{font-size:15px}.top .spacer{flex:1}
-.top a.nav{font-family:var(--fm);font-size:12px;color:var(--grafite)}
-.themebtn{width:30px;height:30px;padding:0;border:1px solid var(--fio);background:transparent;color:var(--grafite);border-radius:var(--r-m);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
-.themebtn:hover{color:var(--tinta);border-color:var(--tinta)}.themebtn svg{width:16px;height:16px}
-.wrap{max-width:1000px;margin:0 auto;padding:52px 24px 72px}
-.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--grafite);margin-bottom:14px}
-h1{font-family:var(--fd);font-size:36px;line-height:1.12;letter-spacing:-.01em;margin-bottom:16px}
-@media(max-width:640px){h1{font-size:28px}}
-.lead{font-size:16px;color:var(--grafite);max-width:72ch;margin-bottom:24px}
-.aviso{background:var(--acafrao-fundo);border:1px solid var(--acafrao);border-radius:var(--r-m);padding:14px 18px;margin-bottom:32px;max-width:82ch}
-.aviso b{font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:var(--acafrao-texto);display:block;margin-bottom:5px}
-.aviso p{font-size:13.5px;margin:0}
-.chains{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px}
-.cpill{font-family:var(--fm);font-size:11px;border:1px solid var(--fio);border-radius:999px;padding:5px 12px;color:var(--grafite);display:inline-flex;align-items:center;gap:6px}
-.cpill .d{width:8px;height:8px;border-radius:50%;display:inline-block}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:36px}
-@media(max-width:760px){.grid{grid-template-columns:1fr}}
-.metric{border:1px solid var(--fio);border-radius:var(--r-l);padding:20px 20px 18px;background:var(--papel);border-top:3px solid var(--ac)}
-.metric .lbl{font-family:var(--fm);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--grafite);margin-bottom:10px}
-.metric .val{font-family:var(--fm);font-size:30px;font-weight:500;display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.metric .pill{font-family:var(--fm);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--grafite);color:var(--grafite);border-radius:999px;padding:3px 9px}
-.metric .note{font-size:12.5px;color:var(--grafite)}
-.status{border:1px solid var(--fio);border-radius:var(--r-l);padding:22px;background:var(--nevoa);margin-bottom:36px}
-.status h2{font-family:var(--fd);font-size:20px;margin-bottom:8px}
-.status p{font-size:14px;color:var(--tinta);margin-bottom:10px;max-width:78ch}
-.status .q{font-family:var(--fm);font-size:12.5px;margin-top:8px}
-.vt{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:8px}
-.vt td{padding:9px 0;border-bottom:1px solid var(--fio)}
-.vt td:last-child{text-align:right;font-family:var(--fm);font-size:12px;color:var(--grafite)}
-footer{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:1.9}
-</style>
+<link href="/vendor/estilos-inline.css" rel="stylesheet">
+<link href="/vendor/estilos/dashboard.css" rel="stylesheet">
 </head>
 <body>
 <header class="top">
   <svg class="lg" viewBox="0 0 120 120" aria-label="Triviu"><path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="25.36" r="8.5" fill="#2743C7"/><circle cx="100" cy="60" r="8.5" fill="#C13327"/><circle cx="40" cy="94.64" r="8.5" fill="#E8B23A"/></svg>
-  <b>Triviu</b><span class="mono" style="font-size:12px;color:var(--grafite)">· Dashboard</span>
+  <b>Triviu</b><span class="mono u-f33008c8">· Dashboard</span>
   <span class="spacer"></span>
   <button class="themebtn" id="theme" aria-label="Toggle light or dark theme" title="Theme"></button>
   <a class="nav" href="/">Home</a><a class="nav" href="/positions">Positions</a><a class="nav" href="/simulate">Simulate</a><a class="nav" href="/chains">Chains</a><a class="nav" href="/learn">Learn</a><a class="nav" href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">Whitepaper</a>
@@ -116,28 +71,28 @@ footer{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;font-fam
   </div>
 
   <div class="chains">
-    <span class="cpill"><span class="d" style="background:var(--acafrao)"></span>Polygon · first</span>
-    <span class="cpill"><span class="d" style="background:var(--ultramar)"></span>Arbitrum · after its gate</span>
-    <span class="cpill"><span class="d" style="background:var(--lacre)"></span>BSC · after its gate</span>
+    <span class="cpill"><span class="d u-937dbcd4"></span>Polygon · first</span>
+    <span class="cpill"><span class="d u-ab2848c0"></span>Arbitrum · after its gate</span>
+    <span class="cpill"><span class="d u-b6a95126"></span>BSC · after its gate</span>
   </div>
 
   <div class="grid">
-    <div class="metric" style="--ac:var(--ultramar)">
+    <div class="metric u-ccbd7bcc">
       <div class="lbl">Executions · 30 days</div>
       <div class="val">— <span class="pill">no data yet</span></div>
       <div class="note">Attempts to the executor, reverts included — never only the successes.</div>
     </div>
-    <div class="metric" style="--ac:var(--lacre)">
+    <div class="metric u-bcf1b35e">
       <div class="lbl">Revert rate · 30 days</div>
       <div class="val">— <span class="pill">no data yet</span></div>
       <div class="note">The real number, good or bad. Published from day one, per chain.</div>
     </div>
-    <div class="metric" style="--ac:var(--acafrao)">
+    <div class="metric u-e568f327">
       <div class="lbl">Gas spent vs net result</div>
       <div class="val">— <span class="pill">no data yet</span></div>
       <div class="note">Gas burned across all attempts — reverts still pay gas.</div>
     </div>
-    <div class="metric" style="--ac:var(--verde)">
+    <div class="metric u-bcd49feb">
       <div class="lbl">Treasury balance</div>
       <div class="val">— <span class="pill">no data yet</span></div>
       <div class="note">The public treasury address and the fee actually taken — verifiable on the explorer.</div>
@@ -158,7 +113,7 @@ footer{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;font-fam
     The full <a href="https://github.com/Triviu-Protocol/Triviu-Protocol/blob/main/dashboard/SPEC.md">dashboard spec</a> — panels, rules, timing — is public too.</p>
   </div>
 
-  <h2 style="font-family:var(--fd);font-size:20px;margin-bottom:12px">Don't trust — verify</h2>
+  <h2 class="u-dd71c177">Don't trust — verify</h2>
   <table class="vt">
     <tr><td>Whitepaper — the founding document</td><td><a href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">/whitepaper</a></td></tr>
     <tr><td>Contracts, v0 — tested, external audit pending</td><td><a href="https://triviu-protocol.gitbook.io/triviu-protocol-docs/contracts">docs · contracts</a></td></tr>

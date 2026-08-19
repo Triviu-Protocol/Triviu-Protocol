@@ -1,0 +1,46 @@
+:root{
+  --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
+  --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
+  --verde:#1E7A46;
+  --fd:"Libre Caslon Text",Georgia,serif;--ft:"Public Sans",system-ui,sans-serif;--fm:"IBM Plex Mono",ui-monospace,monospace;
+  --r-m:6px;--r-l:10px;
+}
+@media(prefers-color-scheme:dark){:root{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}}
+:root[data-theme="dark"]{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}
+:root[data-theme="light"]{--papel:#FAFAF7;--tinta:#16181D;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-fundo:#FBF3DF;--acafrao-texto:#8A6414;--verde:#1E7A46;}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--papel);color:var(--tinta);font-family:var(--ft);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--ultramar);text-decoration:none}a:hover{text-decoration:underline}
+.mono{font-family:var(--fm)}
+.top{position:sticky;top:0;z-index:20;background:var(--papel);border-bottom:1px solid var(--fio);padding:14px 22px;display:flex;align-items:center;gap:12px}
+.top svg.lg{width:26px;height:26px}.top b{font-size:15px}.top .spacer{flex:1}
+.top a.nav{font-family:var(--fm);font-size:12px;color:var(--grafite)}
+.themebtn{width:30px;height:30px;padding:0;border:1px solid var(--fio);background:transparent;color:var(--grafite);border-radius:var(--r-m);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.themebtn:hover{color:var(--tinta);border-color:var(--tinta)}.themebtn svg{width:16px;height:16px}
+.wrap{max-width:1000px;margin:0 auto;padding:52px 24px 72px}
+.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--grafite);margin-bottom:14px}
+h1{font-family:var(--fd);font-size:38px;line-height:1.12;letter-spacing:-.01em;margin-bottom:16px}
+@media(max-width:640px){h1{font-size:29px}}
+.lead{font-size:17px;color:var(--grafite);max-width:72ch;margin-bottom:26px}
+.seal{border:1px solid var(--fio);background:var(--nevoa);border-radius:var(--r-m);padding:14px 18px;margin-bottom:44px;max-width:82ch}
+.seal .l{font-family:var(--fm);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--grafite);margin-bottom:5px}
+.seal p{font-size:13.5px;margin:0}
+.chip{font-family:var(--fm);font-size:9px;letter-spacing:.09em;border:1px solid currentColor;border-radius:999px;padding:2px 7px;vertical-align:middle;white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-bottom:40px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.mod{border:1px solid var(--fio);border-radius:var(--r-l);padding:22px;background:var(--papel);border-left:3px solid var(--ac);display:flex;flex-direction:column}
+.mod .h{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+.mod .n{font-family:var(--fm);font-size:26px;font-weight:500;color:var(--ac);line-height:1}
+.mod h3{font-size:18px;line-height:1.2}
+.mod p{font-size:14px;color:var(--tinta);margin-bottom:12px}
+.mod .chk{font-family:var(--fm);font-size:11.5px;color:var(--grafite);margin-bottom:16px}
+.mod .chk a{color:var(--ultramar)}
+.slot{margin-top:auto;display:flex;align-items:center;gap:10px;border:1px dashed var(--fio);border-radius:var(--r-m);padding:10px 12px;color:var(--grafite)}
+.slot .play{width:22px;height:22px;flex:none;color:var(--grafite)}
+.slot .t{font-family:var(--fm);font-size:11px;line-height:1.3;flex:1}
+.slot .coming{font-family:var(--fm);font-size:9px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--fio);border-radius:999px;padding:2px 7px}
+.cta-row{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0}
+.btn{font-family:var(--ft);font-size:14px;font-weight:600;padding:12px 20px;border-radius:var(--r-m);border:1px solid var(--tinta);cursor:pointer;display:inline-block}
+.btn.prim{background:var(--tinta);color:var(--papel)}.btn.sec{background:transparent;color:var(--tinta)}
+.btn:hover{opacity:.9;text-decoration:none}
+footer{border-top:1px solid var(--fio);margin-top:52px;padding-top:22px;font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:1.9}

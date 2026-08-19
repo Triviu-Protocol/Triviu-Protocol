@@ -91,148 +91,14 @@
   to the contract. These are held by a generator and a check.
 -->
 
-<style>
-:root{
-  --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
-  --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
-  --verde:#1E7A46;
-  --fd:Georgia,"Times New Roman",serif;--ft:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --fm:ui-monospace,"Cascadia Mono","Segoe UI Mono",Menlo,Consolas,monospace;
-  --r-m:6px;--r-l:10px;
-}
-@media(prefers-color-scheme:dark){:root{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}}
-:root[data-theme="dark"]{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}
-:root[data-theme="light"]{--papel:#FAFAF7;--tinta:#16181D;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-fundo:#FBF3DF;--acafrao-texto:#8A6414;--verde:#1E7A46;}
-*{margin:0;padding:0;box-sizing:border-box}
-html{scroll-padding-top:72px}
-body{background:var(--papel);color:var(--tinta);font-family:var(--ft);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
-a{color:var(--ultramar);text-decoration:none}a:hover{text-decoration:underline}
-:focus-visible{outline:2px solid var(--ultramar);outline-offset:2px;border-radius:2px}
-/* <main> carries tabindex="-1" so the skip link MOVES focus and does not merely
-   scroll — Safari and older WebKit scroll to a fragment without focusing it, and
-   the next Tab then goes back to the header the reader just skipped. The ring is
-   suppressed only for the programmatic case: :focus-visible still paints on real
-   keyboard navigation, so no indicator is lost. */
-main:focus:not(:focus-visible){outline:none}
-/* WCAG 1.4.11, and this pair FAILED before it was written. --ultramar #2743C7 on
-   the code block's #16181D measures 2.29:1 in the light theme, under the 3.0
-   minimum: in light mode a keyboard user landing on a scrollable code block saw
-   a ring they could not find. currentColor inside .cod is #E8EAE6 — 14.67:1 on
-   #16181D (light) and 15.96:1 on #0C0E11 (dark). The offset is NEGATIVE so the
-   ring is drawn in the block's own padding, on the dark surface it was measured
-   against, rather than 2px outside it on --papel. */
-.cod:focus-visible{outline:2px solid currentColor;outline-offset:-4px}
-.mono{font-family:var(--fm)}
-/* 3.3.1 Error Identification. Measured, sRGB, W3C formula:
-     --lacre #C13327 on --papel #FAFAF7 = 5.33:1  light  (min 4.5)
-     --lacre #E4736A on --papel #131519 = 6.06:1  dark   (min 4.5)
-   Never colour alone: every refusal also sets aria-invalid on the field, moves
-   focus there, and is read out by aria-describedby. */
-.erro{color:var(--lacre)}
-.erro:empty{display:none}
-.campoerro{display:block;font-family:var(--ft);font-size:12.5px;color:var(--lacre);margin-top:6px;text-transform:none;letter-spacing:0}
-.campoerro:empty{display:none}
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.pular{position:absolute;top:0;left:0;z-index:100;transform:translateY(-120%);
-  background:var(--tinta);color:var(--papel);font-family:var(--fm);font-size:13px;
-  padding:10px 16px;border-bottom-right-radius:var(--r-m);text-decoration:none}
-.pular:focus{transform:translateY(0)}
-.top{position:sticky;top:0;z-index:20;background:var(--papel);border-bottom:1px solid var(--fio);padding:14px 22px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.top svg.lg{width:26px;height:26px}.top b{font-size:15px}.top .spacer{flex:1}
-.top nav{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.top a.nav{font-family:var(--fm);font-size:12px;color:var(--grafite)}
-.themebtn{width:30px;height:30px;padding:0;border:1px solid var(--fio);background:transparent;color:var(--grafite);border-radius:var(--r-m);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
-.themebtn:hover{color:var(--tinta);border-color:var(--tinta)}.themebtn svg{width:16px;height:16px}
-.wrap{max-width:1000px;margin:0 auto;padding:52px 24px 0}
-.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--grafite);margin-bottom:14px}
-h1{font-family:var(--fd);font-size:36px;line-height:1.12;letter-spacing:-.01em;margin-bottom:16px}
-@media(max-width:640px){h1{font-size:28px}}
-h2{font-family:var(--fd);font-size:20px;margin-bottom:12px}
-h3{font-family:var(--fd);font-size:17px;margin-bottom:8px}
-.lead{font-size:16px;color:var(--grafite);max-width:72ch;margin-bottom:24px}
-.aviso{background:var(--acafrao-fundo);border:1px solid var(--acafrao);border-radius:var(--r-m);padding:14px 18px;margin-bottom:28px;max-width:82ch}
-.aviso .rot{font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:var(--acafrao-texto);display:block;margin-bottom:5px}
-.aviso p{font-size:13.5px;margin:0}.aviso p+p{margin-top:8px}
-.alerta{background:var(--nevoa);border:1px solid var(--lacre);border-radius:var(--r-m);padding:14px 18px;margin-bottom:28px;max-width:82ch;font-size:13.5px}
-.alerta .rot{font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:var(--lacre);display:block;margin-bottom:5px}
-.alerta p+p{margin-top:8px}
-.painel{border:1px solid var(--fio);border-radius:var(--r-l);padding:22px;background:var(--papel);margin-bottom:28px}
-.form{display:grid;grid-template-columns:1fr;gap:14px;align-items:end}
-@media(min-width:760px){.form.f3{grid-template-columns:1.3fr 1fr auto}.form.f4{grid-template-columns:1fr 1fr 1fr auto}}
-.campo label{display:block;font-family:var(--fm);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--grafite);margin-bottom:6px}
-.campo input,.campo select{width:100%;font-family:var(--fm);font-size:13px;color:var(--tinta);background:var(--papel);border:1px solid var(--grafite);border-radius:var(--r-m);padding:10px 12px}
-.campo input:focus,.campo select:focus{border-color:var(--ultramar)}
-.campo input[aria-invalid="true"]{border-color:var(--lacre)}
-button.act{font-family:var(--ft);font-weight:600;font-size:14px;padding:11px 18px;border-radius:var(--r-m);border:1.5px solid var(--tinta);background:var(--tinta);color:var(--papel);cursor:pointer;white-space:nowrap}
-button.act:hover{background:#000}
-:root[data-theme="dark"] button.act:hover{background:#fff}
-button.act.ghost{background:transparent;color:var(--tinta)}
-button.act.ghost:hover{background:var(--nevoa)}
-button.act[disabled]{opacity:.5;cursor:not-allowed}
-.hint{font-size:12.5px;color:var(--grafite);margin-top:12px;max-width:82ch}
-.estado{font-family:var(--fm);font-size:12.5px;color:var(--grafite);margin-bottom:0}
-.prog{color:var(--grafite)}
-.vt{width:100%;border-collapse:collapse;font-size:14px}
-.vt td,.vt th{padding:9px 0;border-bottom:1px solid var(--fio);vertical-align:top;text-align:left}
-.vt th{font-weight:400}
-.vt td.v,.vt th.v{text-align:right;font-family:var(--fm);font-size:12px;color:var(--grafite);word-break:break-all}
-.tabrol{width:100%;border-collapse:collapse;font-size:13px}
-.tabrol th,.tabrol td{padding:8px 10px 8px 0;border-bottom:1px solid var(--fio);text-align:left;vertical-align:top}
-.tabrol thead th{font-family:var(--fm);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--grafite);font-weight:400}
-.tabrol td.m,.tabrol th.m{font-family:var(--fm);font-size:12px;word-break:break-all}
-.rolagem{overflow-x:auto}
-.pill{font-family:var(--fm);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--grafite);color:var(--grafite);border-radius:999px;padding:3px 9px;white-space:nowrap}
-.pill.lido{border-color:var(--verde);color:var(--verde)}
-.pill.vazio{border-color:var(--lacre);color:var(--lacre)}
-.pill.calc{border-color:var(--acafrao-texto);color:var(--acafrao-texto)}
-.passo{border:1px solid var(--fio);border-radius:var(--r-l);padding:20px;background:var(--papel);margin-bottom:16px;border-top:3px solid var(--ultramar)}
-.passo.morto{border-top-color:var(--lacre)}
-.passo .cab{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
-.passo .num{font-family:var(--fm);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--grafite)}
-.cod{background:var(--tinta);color:#E8EAE6;border-radius:var(--r-m);padding:14px 16px;font-family:var(--fm);font-size:12px;line-height:1.75;overflow-x:auto;margin-top:12px;white-space:pre-wrap;word-break:break-all}
-:root[data-theme="dark"] .cod{background:#0C0E11}
-/* Os argumentos deixaram de ser um bloco de texto com quebras de linha e viram
-   uma <dl>: "address spender" e um termo, o valor e a nota sao a sua definicao.
-   E semantica de HTML resolvendo o que ARIA nao precisava resolver — NVDA anuncia
-   "lista de 2 itens" e le termo/definicao aos pares, em vez de despejar 300
-   caracteres corridos. white-space volta a normal porque agora quem separa os
-   campos sao elementos, nao espacos. Cor: nenhuma nova. O termo e a nota se
-   distinguem por peso e recuo, nunca por cor sozinha. */
-.args{white-space:normal;word-break:normal}
-.args dt{font-weight:600}
-.args dd{margin:0 0 10px 14px;word-break:break-all}
-.args dd:last-child{margin-bottom:0}
-.args .notaarg{display:block;font-family:var(--ft);font-size:12px;font-weight:400;word-break:normal;margin-top:2px;opacity:.92}
-/* <figure> + <figcaption>: a legenda nomeia o bloco ANTES dele, e o nome do
-   figure sai da legenda sem uma linha de ARIA. Nao e landmark — tres blocos de
-   calldata como landmark inchariam a lista de regioes da pagina sem que nenhum
-   deles seja uma secao da pagina. */
-.calldataf{margin-top:14px}
-.calldataf figcaption{font-family:var(--fm);font-size:11px;letter-spacing:.06em;color:var(--grafite);margin-bottom:0}
-.calldataf .cod{margin-top:6px}
-/* O bloco de envio de cada passo. Separado por uma linha porque e a fronteira
-   entre ler e agir: acima dela a pagina mostra bytes, abaixo dela ela pede uma
-   assinatura. As mensagens de estado, recibo e efeito vivem aqui, e nenhuma delas
-   depende de cor para dizer o que diz. */
-.envio{border-top:1px solid var(--fio);margin-top:16px;padding-top:14px}
-.envio p{margin-top:8px}
-.envio p:empty{display:none}
-.envio .mono{font-family:var(--fm);font-size:12px;word-break:break-all}
-.regra{border:1px solid var(--fio);border-left:3px solid var(--tinta);border-radius:var(--r-m);padding:20px 22px;margin-bottom:22px;background:var(--nevoa)}
-.regra .t{font-family:var(--fm);font-size:11px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--grafite);margin-bottom:8px}
-.regra p{font-size:14px;max-width:82ch}.regra p+p{margin-top:10px}
-.nao{list-style:none;margin-top:14px;max-width:82ch}
-.nao li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--fio);font-size:14px}
-.nao li::before{content:"x";font-family:var(--fm);color:var(--lacre);flex:none;font-weight:600}
-footer{max-width:1000px;margin:0 auto;padding:0 24px 72px}
-footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:1.9}
-</style>
+<link href="/vendor/estilos-inline.css" rel="stylesheet">
+<link href="/vendor/estilos/calldata.css" rel="stylesheet">
 </head>
 <body>
 <a class="pular" href="#conteudo">Skip to the console</a>
 <header class="top">
   <svg class="lg" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="25.36" r="8.5" fill="#2743C7"/><circle cx="100" cy="60" r="8.5" fill="#C13327"/><circle cx="40" cy="94.64" r="8.5" fill="#E8B23A"/></svg>
-  <b translate="no">Triviu</b><span class="mono" translate="no" style="font-size:12px;color:var(--grafite)">&middot; Console</span>
+  <b translate="no">Triviu</b><span class="mono u-f33008c8" translate="no">&middot; Console</span>
   <span class="spacer"></span>
   <button class="themebtn" id="theme" type="button" aria-label="Switch to dark theme" title="Theme"></button>
   <nav aria-label="Site">
@@ -332,14 +198,14 @@ footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;fon
          o span do proprio campo, via aria-describedby, junto com o foco.
          #c-prog e aria-hidden: "token 7 de 12", doze vezes, enterra a frase que
          importava. O mesmo fato chega uma vez, na mensagem de conclusao. -->
-    <p class="estado" style="margin-top:14px"><span id="c-estado" role="status" aria-live="polite">Nothing read yet.</span> <span class="erro" id="c-erro" role="alert"></span> <span class="prog" id="c-prog" aria-hidden="true"></span></p>
+    <p class="estado u-c53ea1da"><span id="c-estado" role="status" aria-live="polite">Nothing read yet.</span> <span class="erro" id="c-erro" role="alert"></span> <span class="prog" id="c-prog" aria-hidden="true"></span></p>
 
-    <div id="c-chain-alerta" class="alerta" role="alert" style="margin-top:16px;margin-bottom:0" hidden>
+    <div id="c-chain-alerta" class="alerta u-6d795d56" role="alert" hidden>
       <h3 class="rot">Wrong chain</h3>
       <p id="c-chain-txt"></p>
     </div>
 
-    <table class="vt" style="margin-top:18px">
+    <table class="vt u-2bdf8e45">
       <caption class="sr-only">What the wallet answered</caption>
       <tbody>
         <tr><th scope="row">Address in use &mdash; typed, or returned by the wallet</th><td class="v" translate="no" id="c-w-conta">&mdash;</td></tr>
@@ -411,7 +277,7 @@ footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;fon
   <!-- ============================================================ tokens -->
   <section class="painel" aria-labelledby="h-tokens">
     <h2 id="h-tokens">Tokens the Registry allows, and what you hold of each</h2>
-    <p class="hint" style="margin-top:0">The Registry keeps a mapping, and a mapping cannot be listed:
+    <p class="hint u-a0925a28">The Registry keeps a mapping, and a mapping cannot be listed:
     there is no getter that returns every allowed token. So the candidates come from the
     <span class="mono" translate="no">TokenAllowed</span> events the Registry emitted, and each candidate is then
     confirmed by a live <span class="mono" translate="no">isAllowedToken</span> call &mdash; the event is how they are
@@ -430,7 +296,7 @@ footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;fon
   <!-- =========================================================== routers -->
   <section class="painel" aria-labelledby="h-alvos">
     <h2 id="h-alvos">Routers the Registry allows &mdash; and what follows from the answer</h2>
-    <p class="hint" style="margin-top:0">Every leg of a cycle is a swap on a router, and
+    <p class="hint u-a0925a28">Every leg of a cycle is a swap on a router, and
     <span class="mono" translate="no">executeCycle</span> checks <span class="mono" translate="no">isAllowedTarget(leg.router)</span>
     before each one. Found the same way as the tokens: <span class="mono" translate="no">TargetAllowed</span> events,
     confirmed live.</p>
@@ -462,7 +328,7 @@ footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;fon
 
   <!-- ============================================================ fluxo -->
   <section aria-labelledby="h-fluxo">
-    <h2 id="h-fluxo" style="margin-top:38px">The flow, and the exact bytes of each step</h2>
+    <h2 class="u-85510fa2" id="h-fluxo">The flow, and the exact bytes of each step</h2>
     <p class="lead">Pick the asset the cycle opens and closes on, and the volume. Everything below is
     then encoded exactly as the wallet would receive it &mdash; and handed to
     <span class="mono" translate="no">eth_estimateGas</span>, which runs the call against current state without
@@ -499,7 +365,7 @@ footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;fon
            calldata" aqui recebia a resposta la em cima, fora da vista e fora do
            foco. As duas nunca falam ao mesmo tempo — sao acionadas por botoes
            diferentes, e cada funcao escreve so na sua. -->
-      <p class="estado" style="margin-top:14px"><span id="c-fluxo-estado" role="status" aria-live="polite">Nothing encoded yet.</span> <span class="erro" id="c-fluxo-erro" role="alert"></span></p>
+      <p class="estado u-c53ea1da"><span id="c-fluxo-estado" role="status" aria-live="polite">Nothing encoded yet.</span> <span class="erro" id="c-fluxo-erro" role="alert"></span></p>
       <!-- Regra 7 do Tubarao-branco: a aprovacao que JA existe e lida e mostrada
            antes de a pagina pedir outra. Quem ja carrega uma aprovacao ilimitada
            de uma sessao antiga precisa ver isso ANTES de assinar mais uma, e
@@ -552,7 +418,7 @@ footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;fon
 
   <section class="painel" aria-labelledby="h-verificar">
     <h2 id="h-verificar">Read the same thing yourself</h2>
-    <p class="hint" style="margin-top:0">Every selector on this page was computed from the function
+    <p class="hint u-a0925a28">Every selector on this page was computed from the function
     signature by a keccak-256 that is itself checked, on every build, against the selectors the Solidity
     compiler wrote into the artefacts. The full surface of the three contracts whose source is in this
     repository is below &mdash; generated, not typed.</p>
@@ -563,7 +429,7 @@ footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;fon
         <tbody id="c-superficie"><tr><td colspan="4" class="m" translate="no">&mdash;</td></tr></tbody>
       </table>
     </div>
-    <table class="vt" style="margin-top:18px">
+    <table class="vt u-2bdf8e45">
       <caption class="sr-only">Sources and endpoints</caption>
       <tbody>
         <tr><th scope="row">The address ledger, single source</th><td class="v" translate="no"><a href="/enderecos.js">/enderecos.js</a></td></tr>

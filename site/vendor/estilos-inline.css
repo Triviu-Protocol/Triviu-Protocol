@@ -1,0 +1,140 @@
+/* Utilidades geradas de style= em 2026-08-19 · ONDA-TRIVIU-F3-UNSAFE-INLINE.
+   O nome de cada classe e sha256(valor)[0:8]: derivado do proprio valor, para
+   que o mesmo estilo produza sempre a mesma classe e uma renomeacao nunca
+   passe despercebida.
+
+   POR QUE !important, e a razao e de precedencia e nao de gosto: um atributo
+   `style=` vence QUALQUER regra normal de folha. Uma classe sem !important
+   perderia exatamente onde o inline vencia, e a pagina mudaria de aparencia
+   em silencio — que e o modo de falha que esta onda existe para nao ter.
+   Inline tambem ja perdia para !important de autor, entao as 10 regras
+   !important que existiam continuam ganhando, como ganhavam antes. */
+.u-0173988c{margin-top:var(--s3) !important}   /* 80x */
+.u-bfa31e80{margin-top:var(--s4) !important}   /* 64x */
+.u-39761cb3{margin-top:var(--s5) !important}   /* 32x */
+.u-0f76b54b{margin-top:var(--s2) !important}   /* 17x */
+.u-26b5a4e8{margin-bottom:var(--s3) !important}   /* 16x */
+.u-f33008c8{font-size:12px !important; color:var(--grafite) !important}   /* 13x */
+.u-60e565fc{display:flex !important; gap:var(--s2) !important}   /* 12x */
+.u-c53ea1da{margin-top:14px !important}   /* 9x */
+.u-a0925a28{margin-top:0 !important}   /* 9x */
+.u-61dc39cf{color:var(--saffron-ink) !important}   /* 9x */
+.u-905b7197{border-left:3px solid var(--saffron) !important}   /* 6x */
+.u-a42e2d0c{color:var(--ultramarine) !important; margin-top:3px !important}   /* 6x */
+.u-c302fcc9{color:var(--green) !important; margin-top:3px !important}   /* 6x */
+.u-937dbcd4{background:var(--acafrao) !important}   /* 5x */
+.u-ab2848c0{background:var(--ultramar) !important}   /* 5x */
+.u-b6a95126{background:var(--lacre) !important}   /* 5x */
+.u-632dffa6{color:var(--ink) !important}   /* 5x */
+.u-2bdf8e45{margin-top:18px !important}   /* 4x */
+.u-120048cd{margin-top:0 !important; align-items:start !important}   /* 4x */
+.u-ecc6f5cf{border-left:3px solid var(--ultramarine) !important}   /* 4x */
+.u-d4a5bf59{border-top-width:1px !important; margin:var(--s4) 0 !important; grid-template-columns:1fr !important}   /* 4x */
+.u-8e2fdceb{grid-template-columns:repeat(auto-fit,minmax(110px,1fr)) !important}   /* 4x */
+.u-252959c9{margin-top:var(--s6) !important}   /* 4x */
+.u-ea1e80de{align-items:start !important; margin-top:0 !important}   /* 4x */
+.u-a83ce3a2{word-break:break-all !important}   /* 4x */
+.u-85510fa2{margin-top:38px !important}   /* 3x */
+.u-ff791649{position:absolute !important}   /* 3x */
+.u-7608acb2{color:var(--green) !important}   /* 3x */
+.u-f427803b{color:var(--sealwax) !important}   /* 3x */
+.u-72893568{padding:6px !important}   /* 3x */
+.u-f53b9637{padding:.25rem 0 !important}   /* 3x */
+.u-5e268842{text-align:right !important; word-break:break-all !important}   /* 3x */
+.u-ccbd7bcc{--ac:var(--ultramar) !important}   /* 3x */
+.u-a7203c8a{text-align:right !important; border-bottom:1px solid var(--fio) !important}   /* 3x */
+.u-6d795d56{margin-top:16px !important; margin-bottom:0 !important}   /* 2x */
+.u-74f8a958{border-top-width:1px !important; margin-bottom:var(--s4) !important}   /* 2x */
+.u-3311d222{color:var(--ultramarine) !important}   /* 2x */
+.u-e5e3a2f6{border-left:3px solid var(--green) !important}   /* 2x */
+.u-91efae0f{margin:var(--s4) 0 0 !important}   /* 2x */
+.u-0ee7f66a{margin-top:12px !important}   /* 2x */
+.u-92c18f6b{margin-top:16px !important}   /* 2x */
+.u-28d8e9c6{border-top-width:1px !important; margin:0 0 var(--s4) !important; grid-template-columns:1fr !important}   /* 2x */
+.u-a3c71605{padding-top:var(--s4) !important}   /* 2x */
+.u-f44493c5{margin-top:0 !important; align-items:stretch !important}   /* 2x */
+.u-a3b9e49a{list-style:none !important; margin-top:var(--s4) !important; display:flex !important; flex-direction:column !important; gap:var(--s2) !important}   /* 2x */
+.u-0210977a{border-top-width:1px !important; margin-top:var(--s4) !important; grid-template-columns:1fr !important}   /* 2x */
+.u-9681c09c{grid-template-columns:repeat(auto-fit,minmax(120px,1fr)) !important}   /* 2x */
+.u-3d35d09e{padding:0 !important; vertical-align:-3px !important}   /* 2x */
+.u-9c38a23f{flex:4 !important}   /* 2x */
+.u-6f200ae5{margin:var(--s3) 0 0 var(--s5) !important; display:flex !important; flex-direction:column !important; gap:var(--s1) !important}   /* 2x */
+.u-35484c36{margin-top:var(--s4) !important; align-items:center !important}   /* 2x */
+.u-2d424819{flex:2 !important}   /* 2x */
+.u-d17af2a9{margin-top:var(--s5) !important; border-left:3px solid var(--ultramarine) !important}   /* 2x */
+.u-5e16fc71{margin-top:var(--s7) !important}   /* 2x */
+.u-e2e86c52{color:inherit !important}   /* 2x */
+.u-7dd090e1{background:var(--sealwax) !important}   /* 2x */
+.u-accdf37c{margin-top:var(--s2) !important; text-transform:none !important; letter-spacing:0 !important}   /* 2x */
+.u-ca6fc035{margin-left:auto !important}   /* 2x */
+.u-bcf1b35e{--ac:var(--lacre) !important}   /* 2x */
+.u-e568f327{--ac:var(--acafrao) !important}   /* 2x */
+.u-bcd49feb{--ac:var(--verde) !important}   /* 2x */
+.u-c75be3d8{color:var(--tinta) !important}   /* 2x */
+.u-d74ec391{padding:8px 6px 8px 0 !important; border-bottom:1px solid var(--fio) !important}   /* 2x */
+.u-583cca6d{text-align:right !important; color:var(--grafite) !important; border-bottom:1px solid var(--fio) !important}   /* 2x */
+.u-d4a3d197{display:inline-block !important; margin-left:8px !important}   /* 1x */
+.u-9a6b92e4{margin-top:var(--s9) !important}   /* 1x */
+.u-c6ca668b{margin-top:var(--s4) !important; border-left:3px solid var(--sealwax) !important}   /* 1x */
+.u-eee3f850{margin-top:20px !important}   /* 1x */
+.u-bf75417f{display:flex !important; flex-direction:column !important; gap:var(--s3) !important; margin-top:var(--s4) !important}   /* 1x */
+.u-7f0d25f1{max-width:440px !important}   /* 1x */
+.u-a3970b9f{font-size:15px !important}   /* 1x */
+.u-0a00051d{margin-top:var(--s4) !important; border:1px solid var(--rule) !important; border-radius:8px !important; padding:var(--s3) !important}   /* 1x */
+.u-1c20db1b{width:100% !important; margin-top:var(--s2) !important; border-collapse:collapse !important; font-size:.92em !important}   /* 1x */
+.u-d2d1e3a5{padding:0 var(--s4) var(--s2) !important}   /* 1x */
+.u-ef840c70{padding:var(--s3) var(--s4) 0 !important; border-top:var(--hair) solid var(--rule) !important; margin-top:var(--s3) !important}   /* 1x */
+.u-fc976f6a{text-align:center !important; margin-top:var(--s4) !important}   /* 1x */
+.u-7822b2fb{text-align:center !important; margin-top:var(--s6) !important}   /* 1x */
+.u-6166472e{background:var(--ultramarine) !important}   /* 1x */
+.u-c3b78708{justify-content:center !important; margin-top:var(--s3) !important}   /* 1x */
+.u-2eeb30cb{background:var(--green) !important}   /* 1x */
+.u-6b91ddff{color:var(--faint) !important}   /* 1x */
+.u-abb99f19{border-top-width:1px !important; margin-top:var(--s4) !important}   /* 1x */
+.u-2b762a32{border-top-width:1px !important; margin-top:var(--s5) !important; grid-template-columns:1fr !important}   /* 1x */
+.u-35eecf3e{padding:0 !important}   /* 1x */
+.u-26aa5892{font-size:clamp(24px,3vw,32px) !important}   /* 1x */
+.u-080fde87{vertical-align:middle !important}   /* 1x */
+.u-15ab6f43{margin-top:var(--s4) !important; padding-top:var(--s4) !important; border-top:var(--hair) solid var(--rule) !important}   /* 1x */
+.u-fb263c17{width:0% !important; background:var(--saffron) !important}   /* 1x */
+.u-5928c822{margin-top:var(--s4) !important; padding:0 !important; overflow:hidden !important}   /* 1x */
+.u-f65778b6{display:flex !important; flex-direction:column !important; gap:var(--s2) !important; margin-top:var(--s3) !important}   /* 1x */
+.u-d92b3979{display:flex !important; gap:var(--s3) !important; align-items:center !important}   /* 1x */
+.u-5fa45f72{width:32px !important; color:var(--ink) !important}   /* 1x */
+.u-d65c5183{font-family:var(--disp) !important; font-weight:700 !important; font-size:21px !important}   /* 1x */
+.u-17fe18b4{font-size:11.5px !important; color:var(--graphite) !important}   /* 1x */
+.u-493102ae{margin-top:var(--s3) !important; color:var(--saffron-ink) !important}   /* 1x */
+.u-90500853{text-align:center !important}   /* 1x */
+.u-9d8d7170{max-width:520px !important}   /* 1x */
+.u-b5bb431a{max-width:400px !important}   /* 1x */
+.u-dd71c177{font-family:var(--fd) !important; font-size:20px !important; margin-bottom:12px !important}   /* 1x */
+.u-282f24be{background:var(--grafite) !important}   /* 1x */
+.u-72c8b04f{margin-top:28px !important; border:1px solid var(--fio) !important; border-radius:10px !important; padding:20px 22px !important}   /* 1x */
+.u-437a0a65{font-size:18px !important; margin:6px 0 8px !important}   /* 1x */
+.u-292f2340{font-size:14px !important; color:var(--grafite) !important; margin:0 0 14px !important; max-width:62ch !important}   /* 1x */
+.u-fda43fb9{width:100% !important; border-collapse:collapse !important; font-size:13.5px !important}   /* 1x */
+.u-26288eb4{padding:8px 6px 8px 10px !important; border-left:2px solid var(--acafrao) !important; border-bottom:1px solid var(--fio) !important}   /* 1x */
+.u-9d6d9242{text-align:right !important; color:var(--acafrao-texto) !important; border-bottom:1px solid var(--fio) !important}   /* 1x */
+.u-d726859c{padding:8px 6px 8px 0 !important}   /* 1x */
+.u-5f326564{text-align:right !important}   /* 1x */
+.u-38197073{text-align:right !important; color:var(--grafite) !important}   /* 1x */
+.u-502acabf{font-size:11.5px !important; color:var(--grafite) !important; margin-top:8px !important}   /* 1x */
+.u-66d8b591{margin-top:24px !important}   /* 1x */
+.u-e4683558{font-size:13.5px !important; color:var(--grafite) !important; margin-top:18px !important; max-width:64ch !important}   /* 1x */
+.u-29e36099{margin-top:28px !important}   /* 1x */
+.u-52b64559{font-size:13.5px !important; color:var(--grafite) !important}   /* 1x */
+.u-6e19583f{margin-top:22px !important}   /* 1x */
+.u-08008248{color:#9BA3AE !important}   /* 1x */
+.u-5367ca5f{background:var(--tinta) !important}   /* 1x */
+.u-5441ee4b{display:flex !important; gap:12px !important; align-items:center !important}   /* 1x */
+.u-e4de11b0{width:30px !important; color:var(--tinta) !important}   /* 1x */
+.u-e10f9213{font-family:var(--fd) !important; font-weight:700 !important; font-size:20px !important}   /* 1x */
+.u-51d2b6d3{font-size:11.5px !important; color:var(--grafite) !important}   /* 1x */
+.u-f7dd1da8{font-family:var(--fd) !important}   /* 1x */
+.u-a859f9d0{padding:24px !important}   /* 1x */
+.u-d148593f{--ac:var(--grafite) !important}   /* 1x */
+.u-64e2be32{font-size:12.5px !important; color:var(--grafite) !important}   /* 1x */
+.u-748a8395{margin-bottom:var(--s-5) !important}   /* 1x */
+.u-5225e5b7{width:0% !important}   /* 1x */
+.u-90ea6944{color:var(--ultramar) !important}   /* 1x */
+.u-72e5bd85{width:100% !important; margin-top:6px !important}   /* 1x */

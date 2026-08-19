@@ -30,194 +30,12 @@
 ]}
 </script>
 <link href="/vendor/fonts/fontes.css" rel="stylesheet">
-<style>
-:root{
-  --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
-  --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
-  --violeta:#7B3FE4;
-  --fd:"Libre Caslon Text",Georgia,serif;--ft:"Public Sans",system-ui,sans-serif;--fm:"IBM Plex Mono",monospace;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
-body{background:var(--papel);color:var(--tinta);font-family:var(--ft);font-size:16.5px;line-height:1.65;-webkit-font-smoothing:antialiased;
-  background-image:repeating-linear-gradient(90deg,rgba(22,24,29,.028) 0 1px,transparent 1px 90px)}
-::selection{background:var(--acafrao);color:var(--tinta)}
-a{color:var(--ultramar);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
-a:hover{text-decoration-thickness:2px}
-:focus-visible{outline:2px solid var(--ultramar);outline-offset:2px;border-radius:2px}
-.wrap{max-width:1120px;margin:0 auto;padding:0 24px;position:relative}
-.mono{font-family:var(--fm)}
-
-/* ---------- 3D ---------- */
-#scene{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100%}
-.no3d #scene{display:none}
-#fallback-mark{display:none}
-.no3d #fallback-mark{display:block}
-#tip{position:fixed;z-index:60;pointer-events:none;opacity:0;transform:translate(-50%,-130%);transition:opacity .2s ease-out;font-family:var(--fm);font-size:12px;letter-spacing:.06em;background:var(--tinta);color:var(--papel);padding:7px 12px;border-radius:999px;white-space:nowrap}
-#tip.on{opacity:1}
-#tip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px}
-
-/* ---------- loader ---------- */
-#loader{position:fixed;inset:0;background:var(--papel);z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .3s ease-out}
-#loader.done{opacity:0;pointer-events:none}
-#loader svg{width:72px;transition:transform .2s ease-out}
-#loader .pct{font-family:var(--fm);font-size:13px;color:var(--grafite);letter-spacing:.1em}
-
-/* ---------- nav ---------- */
-nav{position:sticky;top:0;z-index:50;background:rgba(250,250,247,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--fio)}
-.nav-inner{max-width:1120px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:22px}
-.nav-mark{display:flex;align-items:center;gap:10px;flex:none;text-decoration:none;color:var(--tinta)}
-.nav-mark svg{width:26px;height:26px}
-.nav-mark b{font-family:var(--fd);font-size:18px;font-weight:700}
-.nav-links{display:flex;gap:18px;overflow-x:auto;scrollbar-width:none;flex:1}
-.nav-links::-webkit-scrollbar{display:none}
-.nav-links a{font-family:var(--fm);font-size:11.5px;letter-spacing:.05em;color:var(--grafite);text-decoration:none;white-space:nowrap;padding:4px 0}
-.nav-links a:hover{color:var(--tinta)}
-.lang{display:flex;gap:2px;border:1.5px solid var(--tinta);border-radius:999px;padding:2px;flex:none}
-.lang button{font-family:var(--fm);font-size:11px;letter-spacing:.06em;border:0;background:transparent;color:var(--grafite);padding:4px 10px;border-radius:999px;cursor:pointer}
-.lang button[aria-pressed="true"]{background:var(--tinta);color:var(--papel)}
-.gh{flex:none;font-weight:600;font-size:13.5px;text-decoration:none;color:var(--papel);background:var(--tinta);padding:8px 14px;border-radius:6px}
-.gh:hover{background:#000}
-@media(max-width:720px){.gh{display:none}}
-
-/* ---------- hero ---------- */
-header.hero{position:relative;z-index:1;min-height:calc(92svh - 53px);display:flex;align-items:center;overflow:hidden}
-.hero-grid{display:grid;grid-template-columns:1fr;gap:36px;align-items:center;width:100%;padding:56px 0 40px}
-@media(min-width:900px){.hero-grid{grid-template-columns:minmax(0,1.05fr) minmax(320px,.85fr)}}
-.eyebrow{font-family:var(--fm);font-size:12px;letter-spacing:.14em;color:var(--grafite);text-transform:uppercase;margin-bottom:16px}
-h1{font-family:var(--fd);font-weight:700;font-size:clamp(44px,7vw,82px);line-height:1.02;letter-spacing:-.015em}
-.hero p.sub{font-size:clamp(17px,2vw,20px);max-width:52ch;margin-top:20px}
-.cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:30px}
-.btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;padding:13px 22px;border-radius:6px;text-decoration:none;border:1.5px solid transparent;transition:transform .15s ease-out,background .15s ease-out}
-.btn:active{transform:translateY(1px)}
-.btn-prim{background:var(--ultramar);color:#fff}
-.btn-prim:hover{background:#1E37A6}
-.btn-sec{border-color:var(--tinta);color:var(--tinta)}
-.btn-sec:hover{background:var(--nevoa)}
-.hero-meta{margin-top:26px;font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:2}
-.hero-meta b{color:var(--tinta);font-weight:500}
-#stage-hit{position:relative;height:min(52svh,440px);min-height:300px;cursor:grab;touch-action:none;display:flex;align-items:flex-end;justify-content:center}
-#stage-hit.dragging{cursor:grabbing}
-#stage-hit svg{width:100%;max-width:280px}
-.dragcue{font-family:var(--fm);font-size:11px;letter-spacing:.14em;color:var(--grafite);text-transform:uppercase;pointer-events:none;padding-bottom:2px}
-.scrollcue{font-family:var(--fm);font-size:11px;letter-spacing:.14em;color:var(--grafite);margin-top:34px;text-transform:uppercase}
-
-/* ---------- marquee ---------- */
-.marquee{position:relative;z-index:1;border-top:1.5px solid var(--tinta);border-bottom:1.5px solid var(--tinta);background:var(--papel);overflow:hidden;white-space:nowrap}
-.marquee .track{display:inline-block;padding:11px 0;font-family:var(--fm);font-size:12.5px;letter-spacing:.12em;color:var(--tinta);animation:mq 26s linear infinite}
-.marquee span{margin:0 26px}
-@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-@media (prefers-reduced-motion:reduce){.marquee .track{animation:none}}
-
-/* ---------- faixa de risco ---------- */
-.risk{position:relative;z-index:1;background:var(--acafrao-fundo);border-bottom:1px solid var(--acafrao)}
-.risk .wrap{padding:20px 24px}
-.risk b{font-family:var(--fm);font-size:12px;letter-spacing:.1em;color:var(--acafrao-texto);display:block;margin-bottom:6px}
-.risk p{font-size:14.5px;max-width:88ch}
-
-/* ---------- seções ---------- */
-main{position:relative;z-index:1}
-section{position:relative;padding:88px 0;border-bottom:1px solid var(--fio);scroll-margin-top:64px;background:rgba(250,250,247,.88);backdrop-filter:blur(2px);overflow:hidden}
-.gnum{position:absolute;top:8px;right:-6px;font-family:var(--fd);font-weight:700;font-size:clamp(120px,20vw,230px);line-height:1;color:rgba(22,24,29,.05);pointer-events:none;user-select:none}
-h2{font-family:var(--fd);font-weight:700;font-size:clamp(30px,4.6vw,46px);line-height:1.1;letter-spacing:-.01em;margin-bottom:18px;max-width:24ch}
-.lead{font-size:18px;max-width:62ch}
-.arrow{font-weight:600;font-size:15px}
-.enter{display:block;text-align:center;font-family:var(--fm);font-size:10.5px;letter-spacing:.16em;color:var(--grafite);text-transform:uppercase;padding:22px 0 0}
-
-.cards{display:grid;grid-template-columns:1fr;gap:16px;margin-top:44px}
-@media(min-width:760px){.cards{grid-template-columns:repeat(4,1fr)}}
-.card{background:#fff;border:1px solid var(--fio);border-radius:6px;padding:22px;display:flex;flex-direction:column;gap:10px;transition:transform .15s ease-out,border-color .15s ease-out}
-.card:hover,.card:active{transform:translateY(-3px);border-color:var(--grafite)}
-.card .dot{width:11px;height:11px;border-radius:50%}
-.card h3{font-weight:700;font-size:15.5px}
-.card p{font-size:13.5px;color:var(--grafite)}
-
-/* como funciona */
-.steps{display:grid;grid-template-columns:1fr;gap:14px;margin-top:44px}
-@media(min-width:820px){.steps{grid-template-columns:1fr auto 1fr auto 1fr}}
-.step{background:#fff;border:1px solid var(--fio);border-radius:6px;padding:24px}
-.step .n{font-family:var(--fm);font-size:12px;color:var(--lacre);letter-spacing:.1em}
-.step h3{font-family:var(--fd);font-weight:700;font-size:21px;margin:8px 0 8px}
-.step p{font-size:14px;color:var(--grafite)}
-.step .tag{display:inline-block;margin-top:12px;font-family:var(--fm);font-size:10.5px;letter-spacing:.1em;border:1.2px solid var(--fio);border-radius:999px;padding:2px 10px;color:var(--grafite)}
-.step-arrow{display:none;align-self:center;font-family:var(--fd);font-size:34px;color:var(--grafite)}
-@media(min-width:820px){.step-arrow{display:block}}
-
-/* três leituras */
-.readings{display:grid;grid-template-columns:1fr;gap:0;margin-top:44px;border:1px solid var(--fio);border-radius:6px;overflow:hidden;background:#fff}
-@media(min-width:760px){.readings{grid-template-columns:repeat(3,1fr)}}
-.reading{padding:22px;border-bottom:1px solid var(--fio)}
-@media(min-width:760px){.reading{border-bottom:0;border-right:1px solid var(--fio)}.reading:last-child{border-right:0}}
-.reading .rl{font-family:var(--fm);font-size:11px;letter-spacing:.12em;color:var(--grafite);text-transform:uppercase}
-.reading h3{font-family:var(--fd);font-size:20px;font-weight:700;margin:6px 0 6px}
-.reading p{font-size:13.5px;color:var(--grafite);margin:0}
-
-.cod{background:var(--tinta);color:#E8EAE6;border-radius:10px;padding:22px 26px;font-family:var(--fm);font-size:14px;line-height:1.8;overflow-x:auto;max-width:640px;margin-top:32px}
-.cod .k{color:#E8B23A}.cod .u{color:#8FA1F2}.cod .c{color:#9BA3AE}
-
-.ficha{background:#fff;border:1px solid var(--fio);border-left:3px solid var(--tinta);border-radius:6px;padding:24px;max-width:640px;margin-top:36px}
-.ficha .fnum{font-family:var(--fm);font-size:11px;letter-spacing:.12em;color:var(--grafite)}
-.ficha .ftit{font-family:var(--fd);font-weight:700;font-size:19px;margin:6px 0 12px}
-.frow{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--fio);font-size:13.5px;align-items:flex-start}
-.frow .dot{flex:none;width:10px;height:10px;border-radius:50%;margin-top:5px}
-.frow b{flex:none;width:118px;font-size:13.5px}
-.chip{font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;border:1.2px solid var(--grafite);color:var(--grafite);border-radius:999px;padding:1px 7px;margin-left:6px}
-
-.pilares{display:grid;grid-template-columns:1fr;gap:14px;margin-top:40px;counter-reset:p}
-@media(min-width:760px){.pilares{grid-template-columns:1fr 1fr}}
-.pilar{background:#fff;border:1px solid var(--fio);border-radius:6px;padding:20px 22px;display:flex;gap:16px}
-.pilar::before{counter-increment:p;content:counter(p,decimal-leading-zero);font-family:var(--fm);font-size:12px;color:var(--lacre);padding-top:3px}
-.pilar div p{font-size:13.5px;color:var(--grafite)}
-.pilar div h3{font-size:15px;margin-bottom:4px}
-.badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--fm);font-size:11.5px;letter-spacing:.08em;padding:5px 12px;border-radius:999px;background:var(--tinta);color:var(--papel)}
-.badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--violeta)}
-
-section.not{background:rgba(22,24,29,.94);color:var(--papel);border-bottom:none}
-section.not h2{color:var(--papel);max-width:26ch}
-section.not .gnum{color:rgba(250,250,247,.06)}
-.notlist{list-style:none;margin-top:36px;max-width:640px}
-.notlist li{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid #2A2D33;font-size:16px}
-.notlist li::before{content:"✕";font-family:var(--fm);color:#E4736A;flex:none}
-section.not .nota{color:#9BA3AE;font-size:14px;margin-top:22px;max-width:62ch}
-
-table{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:36px;max-width:820px}
-th{font-family:var(--fm);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--grafite);text-align:left;padding:10px 12px;border-bottom:2px solid var(--tinta);font-weight:500}
-td{padding:13px 12px;border-bottom:1px solid var(--fio)}
-.metricas{display:grid;grid-template-columns:1fr;gap:14px;margin-top:36px;max-width:820px}
-@media(min-width:700px){.metricas{grid-template-columns:repeat(3,1fr)}}
-.metrica{background:#fff;border:1px solid var(--fio);border-radius:6px;padding:20px}
-.metrica .lbl{font-family:var(--fm);font-size:10.5px;letter-spacing:.1em;color:var(--grafite);text-transform:uppercase}
-.metrica .val{font-family:var(--fm);font-size:30px;font-weight:600;margin:6px 0 2px}
-.metrica .nt{font-size:12px;color:var(--grafite)}
-
-/* roadmap */
-.road{display:grid;grid-template-columns:1fr;gap:14px;margin-top:44px}
-@media(min-width:820px){.road{grid-template-columns:repeat(4,1fr)}}
-.mile{background:#fff;border:1px solid var(--fio);border-radius:6px;padding:22px;position:relative}
-.mile .md{width:12px;height:12px;border-radius:50%;margin-bottom:12px}
-.mile .mv{font-family:var(--fm);font-size:12px;letter-spacing:.1em;color:var(--grafite)}
-.mile h3{font-family:var(--fd);font-size:19px;font-weight:700;margin:6px 0 6px}
-.mile p{font-size:13.5px;color:var(--grafite);margin:0}
-
-details{border-bottom:1px solid var(--fio);max-width:820px}
-summary{font-weight:600;font-size:16px;padding:18px 0;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:16px}
-summary::after{content:"+";font-family:var(--fm);color:var(--grafite)}
-details[open] summary::after{content:"−"}
-details p{padding:0 0 18px;font-size:15px;max-width:66ch}
-
-.final{position:relative;z-index:1;padding:88px 0;background:rgba(250,250,247,.88)}
-footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44px 0 64px;background:var(--papel)}
-.foot-grid{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:flex-end}
-.colofao{font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:2;text-align:right}
-.reveal{opacity:0;transform:translateY(12px);transition:opacity .2s ease-out,transform .2s ease-out}
-.reveal.in{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}}
-</style>
+<link href="/vendor/estilos-inline.css" rel="stylesheet">
+<link href="/vendor/estilos/index.css" rel="stylesheet">
 </head>
 <body>
 
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<svg class="u-ff791649" width="0" height="0" aria-hidden="true"><defs>
   <g id="mark-min">
     <path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
     <path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
@@ -232,7 +50,7 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
 <div id="tip" role="status"><span class="dot"></span><span id="tip-txt"></span></div>
 
 <div id="loader" aria-hidden="true">
-  <svg id="loader-mark" viewBox="0 0 120 120" style="color:var(--tinta)"><use href="#mark-min"/></svg>
+  <svg class="u-c75be3d8" id="loader-mark" viewBox="0 0 120 120"><use href="#mark-min"/></svg>
   <div class="pct"><span id="pct">0</span>%</div>
 </div>
 
@@ -281,7 +99,7 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
       <div class="scrollcue" data-i18n="hero_scroll">Scroll — the risk notice comes first</div>
     </div>
     <div id="stage-hit" aria-label="Interactive 3D mark: drag to turn, tap a node">
-      <svg id="fallback-mark" viewBox="0 0 120 120" style="color:var(--tinta)" role="img" aria-label="Triviu mark"><use href="#mark-min"/></svg>
+      <svg class="u-c75be3d8" id="fallback-mark" viewBox="0 0 120 120" role="img" aria-label="Triviu mark"><use href="#mark-min"/></svg>
       <div class="dragcue" data-i18n="hero_drag">Drag · turn the cycle · tap a node</div>
     </div>
   </div>
@@ -309,10 +127,10 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
     <h2 data-i18n="p_h2">One transaction. Three legs. Zero custody.</h2>
     <p class="lead" data-i18n="p_lead">A triangular cycle A→B→C→A runs inside a single atomic transaction: either it closes with the minimum profit, or everything reverts and no leg is left exposed. Your keys and your funds never touch us — the executor is stateless by construction.</p>
     <div class="cards">
-      <div class="card"><span class="dot" style="background:var(--ultramar)"></span><h3 data-i18n="c1_t">Atomic executor</h3><p data-i18n="c1_p">Stateless, verified contract. Pulls the principal from the caller, runs the legs, returns everything in the same transaction — or reverts it all.</p></div>
-      <div class="card"><span class="dot" style="background:var(--lacre)"></span><h3 data-i18n="c2_t">Parameter registry</h3><p data-i18n="c2_p">Whitelists and caps on-chain. Every change records the URL of its public pull request: forum → Git → block.</p></div>
-      <div class="card"><span class="dot" style="background:var(--acafrao)"></span><h3 data-i18n="c3_t">Fork simulator</h3><p data-i18n="c3_p">Every route runs on a local fork of the target chain before anything else. Mistakes there are free — and that is the point.</p></div>
-      <div class="card"><span class="dot" style="background:var(--grafite)"></span><h3 data-i18n="c4_t">Open engine</h3><p data-i18n="c4_p">Cycle detection with Bellman–Ford over −log(rates), written to be read. dry-run by default; mainnet requires an explicit risk acknowledgment.</p></div>
+      <div class="card"><span class="dot u-ab2848c0"></span><h3 data-i18n="c1_t">Atomic executor</h3><p data-i18n="c1_p">Stateless, verified contract. Pulls the principal from the caller, runs the legs, returns everything in the same transaction — or reverts it all.</p></div>
+      <div class="card"><span class="dot u-b6a95126"></span><h3 data-i18n="c2_t">Parameter registry</h3><p data-i18n="c2_p">Whitelists and caps on-chain. Every change records the URL of its public pull request: forum → Git → block.</p></div>
+      <div class="card"><span class="dot u-937dbcd4"></span><h3 data-i18n="c3_t">Fork simulator</h3><p data-i18n="c3_p">Every route runs on a local fork of the target chain before anything else. Mistakes there are free — and that is the point.</p></div>
+      <div class="card"><span class="dot u-282f24be"></span><h3 data-i18n="c4_t">Open engine</h3><p data-i18n="c4_p">Cycle detection with Bellman–Ford over −log(rates), written to be read. dry-run by default; mainnet requires an explicit risk acknowledgment.</p></div>
     </div>
     <div class="readings">
       <div class="reading"><div class="rl" data-i18n="rd1_l">Reading I · the name</div><h3 data-i18n="rd1_t">The trivium</h3><p data-i18n="rd1_p">Latin for the meeting of three roads — and the classical curriculum that founded education.</p></div>
@@ -352,20 +170,20 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
       <span class="c" data-i18n="m_c2">// execution condition — otherwise the whole tx reverts</span><br>
       <span class="k">require</span>(profit − G ≥ <span class="u">minProfit</span>)
     </div>
-    <div style="margin-top:28px;border:1px solid var(--fio);border-radius:10px;padding:20px 22px">
+    <div class="u-72c8b04f">
       <div class="eyebrow mono" data-i18n="wex_eye">A simulated result · not a projection</div>
-      <h3 style="font-size:18px;margin:6px 0 8px" data-i18n="wex_h">What a cycle actually returns.</h3>
-      <p style="font-size:14px;color:var(--grafite);margin:0 0 14px;max-width:62ch" data-i18n="wex_lead">Four honest markets, run through the same math the contract enforces (1,000 in A). Watch how rarely one clears.</p>
-      <table style="width:100%;border-collapse:collapse;font-size:13.5px">
-        <tr><td style="padding:8px 6px 8px 0;border-bottom:1px solid var(--fio)" data-i18n="wex_l1">Fair market · product 1.0000</td><td class="mono" style="text-align:right;border-bottom:1px solid var(--fio)">979.35</td><td class="mono" style="text-align:right;color:var(--grafite);border-bottom:1px solid var(--fio)" data-i18n="wex_v1">reverts · fee wall</td></tr>
-        <tr><td style="padding:8px 6px 8px 0;border-bottom:1px solid var(--fio)" data-i18n="wex_l2">A 1% edge · product 1.0100</td><td class="mono" style="text-align:right;border-bottom:1px solid var(--fio)">989.13</td><td class="mono" style="text-align:right;color:var(--grafite);border-bottom:1px solid var(--fio)" data-i18n="wex_v2">reverts · still short</td></tr>
-        <tr><td style="padding:8px 6px 8px 10px;border-left:2px solid var(--acafrao);border-bottom:1px solid var(--fio)" data-i18n="wex_l3">A rare 3% edge · product 1.0303</td><td class="mono" style="text-align:right;border-bottom:1px solid var(--fio)">1,008.90</td><td class="mono" style="text-align:right;color:var(--acafrao-texto);border-bottom:1px solid var(--fio)" data-i18n="wex_v3">+6.18 · rare</td></tr>
-        <tr><td style="padding:8px 6px 8px 0" data-i18n="wex_l4">Same edge, oversized · 40,000 in</td><td class="mono" style="text-align:right">27,560.67</td><td class="mono" style="text-align:right;color:var(--grafite)" data-i18n="wex_v4">reverts · slippage</td></tr>
+      <h3 class="u-437a0a65" data-i18n="wex_h">What a cycle actually returns.</h3>
+      <p class="u-292f2340" data-i18n="wex_lead">Four honest markets, run through the same math the contract enforces (1,000 in A). Watch how rarely one clears.</p>
+      <table class="u-fda43fb9">
+        <tr><td class="u-d74ec391" data-i18n="wex_l1">Fair market · product 1.0000</td><td class="mono u-a7203c8a">979.35</td><td class="mono u-583cca6d" data-i18n="wex_v1">reverts · fee wall</td></tr>
+        <tr><td class="u-d74ec391" data-i18n="wex_l2">A 1% edge · product 1.0100</td><td class="mono u-a7203c8a">989.13</td><td class="mono u-583cca6d" data-i18n="wex_v2">reverts · still short</td></tr>
+        <tr><td class="u-26288eb4" data-i18n="wex_l3">A rare 3% edge · product 1.0303</td><td class="mono u-a7203c8a">1,008.90</td><td class="mono u-9d6d9242" data-i18n="wex_v3">+6.18 · rare</td></tr>
+        <tr><td class="u-d726859c" data-i18n="wex_l4">Same edge, oversized · 40,000 in</td><td class="mono u-5f326564">27,560.67</td><td class="mono u-38197073" data-i18n="wex_v4">reverts · slippage</td></tr>
       </table>
-      <p style="margin-top:16px"><a href="/simulate" class="arrow" data-i18n="wex_cta">Run your own market →</a></p>
-      <p class="mono" style="font-size:11.5px;color:var(--grafite);margin-top:8px" data-i18n="wex_note">Real numbers from the audited AMM math — 0.997 fee per hop, price impact, gas. Not a forecast.</p>
+      <p class="u-92c18f6b"><a href="/simulate" class="arrow" data-i18n="wex_cta">Run your own market →</a></p>
+      <p class="mono u-502acabf" data-i18n="wex_note">Real numbers from the audited AMM math — 0.997 fee per hop, price impact, gas. Not a forecast.</p>
     </div>
-    <p style="margin-top:24px"><a href="#verify" class="arrow" data-i18n="m_link">See it implemented in the executor →</a></p>
+    <p class="u-66d8b591"><a href="#verify" class="arrow" data-i18n="m_link">See it implemented in the executor →</a></p>
     <span class="enter" data-i18n="enter2">Scroll to enter · The trilemma</span>
   </div>
 </section>
@@ -379,11 +197,11 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
     <div class="ficha">
       <div class="fnum" data-i18n="t_fnum">TRADEOFF RECORD No. 0001 · FOUNDING DECISION</div>
       <div class="ftit" data-i18n="t_ftit">Execution network: Polygon PoS</div>
-      <div class="frow"><span class="dot" style="background:var(--acafrao)"></span><b data-i18n="t_ax1">Scalability<span class="chip">GAINS</span></b><p data-i18n="t_r1">Low gas makes small cycles executable and mistakes cheap — the prerequisite of hands-on education.</p></div>
-      <div class="frow"><span class="dot" style="background:var(--lacre)"></span><b data-i18n="t_ax2">Security<span class="chip">HOLDS</span></b><p data-i18n="t_r2">Atomicity removes leg exposure; contract risk remains — external audit before v1.</p></div>
-      <div class="frow"><span class="dot" style="background:var(--ultramar)"></span><b data-i18n="t_ax3">Decentralization<span class="chip">COSTS</span></b><p data-i18n="t_r3">We inherit Polygon's validator set. Mitigation: verified contracts, local simulation, self-hosted RPC.</p></div>
+      <div class="frow"><span class="dot u-937dbcd4"></span><b data-i18n="t_ax1">Scalability<span class="chip">GAINS</span></b><p data-i18n="t_r1">Low gas makes small cycles executable and mistakes cheap — the prerequisite of hands-on education.</p></div>
+      <div class="frow"><span class="dot u-b6a95126"></span><b data-i18n="t_ax2">Security<span class="chip">HOLDS</span></b><p data-i18n="t_r2">Atomicity removes leg exposure; contract risk remains — external audit before v1.</p></div>
+      <div class="frow"><span class="dot u-ab2848c0"></span><b data-i18n="t_ax3">Decentralization<span class="chip">COSTS</span></b><p data-i18n="t_r3">We inherit Polygon's validator set. Mitigation: verified contracts, local simulation, self-hosted RPC.</p></div>
     </div>
-    <p style="font-size:13.5px;color:var(--grafite);margin-top:18px;max-width:64ch" data-i18n="t_more">Polygon is the founding record. The same EVM contracts extend to <b>Arbitrum</b> (Record 0004) and <b>BSC</b> (0005) — each pays a different price; BSC is the most centralized of the three, and we say so. <b>Solana</b> is not EVM: a deferred sibling protocol (0006), not a config. Nothing is "live" until its own gate clears. <a href="/chains">See the expansion records →</a></p>
+    <p class="u-e4683558" data-i18n="t_more">Polygon is the founding record. The same EVM contracts extend to <b>Arbitrum</b> (Record 0004) and <b>BSC</b> (0005) — each pays a different price; BSC is the most centralized of the three, and we say so. <b>Solana</b> is not EVM: a deferred sibling protocol (0006), not a config. Nothing is "live" until its own gate clears. <a href="/chains">See the expansion records →</a></p>
     <span class="enter" data-i18n="enter3">Scroll to enter · Education</span>
   </div>
 </section>
@@ -400,8 +218,8 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
       <div class="pilar"><div><h3 data-i18n="e3_t">Run it yourself</h3><p data-i18n="e3_p"><a href="/simulate">Simulate a cycle here</a> — no wallet, no money — then read the code and run it on a fork.</p></div></div>
       <div class="pilar"><div><h3 data-i18n="e4_t">Wallet &amp; MEV literacy</h3><p data-i18n="e4_p">Key safety, approvals hygiene, and how professional searchers actually win.</p></div></div>
     </div>
-    <p style="margin-top:28px"><span class="badge">AI-GENERATED</span> &nbsp;<span style="font-size:13.5px;color:var(--grafite)" data-i18n="e_badge">— the badge every piece of persona content carries, by rule.</span></p>
-    <p style="margin-top:22px"><a href="/learn" class="arrow" data-i18n="e_course">Open the full course →</a></p>
+    <p class="u-29e36099"><span class="badge">AI-GENERATED</span> &nbsp;<span class="u-52b64559" data-i18n="e_badge">— the badge every piece of persona content carries, by rule.</span></p>
+    <p class="u-6e19583f"><a href="/learn" class="arrow" data-i18n="e_course">Open the full course →</a></p>
     <span class="enter" data-i18n="enter4">Scroll to enter · Read this twice</span>
   </div>
 </section>
@@ -409,7 +227,7 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
 <section class="not" id="not">
   <div class="gnum">06</div>
   <div class="wrap reveal">
-    <div class="eyebrow" style="color:#9BA3AE" data-i18n="n_eyebrow">06 · Read this twice</div>
+    <div class="eyebrow u-08008248" data-i18n="n_eyebrow">06 · Read this twice</div>
     <h2 data-i18n="n_h2">What Triviu is not.</h2>
     <ul class="notlist">
       <li data-i18n="n1">It does not custody funds — there is no deposit function anywhere.</li>
@@ -450,10 +268,10 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
     <h2 data-i18n="r_h2">Intent, not deadlines.</h2>
     <p class="lead" data-i18n="r_lead">Consistent with the no-promises principle: the roadmap states direction, and every milestone below the audit gate stays off mainnet.</p>
     <div class="road">
-      <div class="mile"><span class="md" style="background:var(--ultramar)"></span><div class="mv">v0 · NOW</div><h3 data-i18n="rm1_t">Public foundation</h3><p data-i18n="rm1_p">Whitepaper, open repository, fork simulator, tested v0 contracts.</p></div>
-      <div class="mile"><span class="md" style="background:var(--acafrao)"></span><div class="mv">v0.2</div><h3 data-i18n="rm2_t">Contract hardening</h3><p data-i18n="rm2_p">Balance-delta accounting and typed swap adapters; public dashboard fills with on-chain data.</p></div>
-      <div class="mile"><span class="md" style="background:var(--lacre)"></span><div class="mv" data-i18n="rm3_v">GATE</div><h3 data-i18n="rm3_t">External audit</h3><p data-i18n="rm3_p">Independent review of Executor and Registry. Nothing touches mainnet before this.</p></div>
-      <div class="mile"><span class="md" style="background:var(--tinta)"></span><div class="mv">v1</div><h3 data-i18n="rm4_t">Mainnet + curriculum</h3><p data-i18n="rm4_p">Polygon mainnet first; the same contracts then extend to Arbitrum and BSC, each behind its own gate. Timelocked Registry, full curriculum, second audit.</p></div>
+      <div class="mile"><span class="md u-ab2848c0"></span><div class="mv">v0 · NOW</div><h3 data-i18n="rm1_t">Public foundation</h3><p data-i18n="rm1_p">Whitepaper, open repository, fork simulator, tested v0 contracts.</p></div>
+      <div class="mile"><span class="md u-937dbcd4"></span><div class="mv">v0.2</div><h3 data-i18n="rm2_t">Contract hardening</h3><p data-i18n="rm2_p">Balance-delta accounting and typed swap adapters; public dashboard fills with on-chain data.</p></div>
+      <div class="mile"><span class="md u-b6a95126"></span><div class="mv" data-i18n="rm3_v">GATE</div><h3 data-i18n="rm3_t">External audit</h3><p data-i18n="rm3_p">Independent review of Executor and Registry. Nothing touches mainnet before this.</p></div>
+      <div class="mile"><span class="md u-5367ca5f"></span><div class="mv">v1</div><h3 data-i18n="rm4_t">Mainnet + curriculum</h3><p data-i18n="rm4_p">Polygon mainnet first; the same contracts then extend to Arbitrum and BSC, each behind its own gate. Timelocked Registry, full curriculum, second audit.</p></div>
     </div>
     <span class="enter" data-i18n="enter6">Scroll to enter · FAQ</span>
   </div>
@@ -486,21 +304,21 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
 
 <footer>
   <div class="wrap foot-grid">
-    <div style="display:flex;gap:12px;align-items:center">
-      <svg viewBox="0 0 120 120" style="width:30px;color:var(--tinta)"><use href="#mark-min"/></svg>
+    <div class="u-5441ee4b">
+      <svg class="u-e4de11b0" viewBox="0 0 120 120"><use href="#mark-min"/></svg>
       <div>
-        <div style="font-family:var(--fd);font-weight:700;font-size:20px">Triviu</div>
-        <div class="mono" style="font-size:11.5px;color:var(--grafite)" data-i18n="foot_lic">AGPL-3.0 code · CC BY 4.0 brand · no token · no tracking</div>
+        <div class="u-e10f9213">Triviu</div>
+        <div class="mono u-51d2b6d3" data-i18n="foot_lic">AGPL-3.0 code · CC BY 4.0 brand · no token · no tracking</div>
       </div>
     </div>
     <div class="colofao">
-      <em style="font-family:var(--fd)" data-i18n="foot_tag">Open source. Verifiable math. No promises.</em><br>
+      <em class="u-f7dd1da8" data-i18n="foot_tag">Open source. Verifiable math. No promises.</em><br>
       <span data-i18n="foot_col">Set in Libre Caslon Text, Public Sans &amp; IBM Plex Mono · July 2026</span>
     </div>
   </div>
 </footer>
 
-<noscript><div class="wrap" style="padding:24px"><p>This page works without JavaScript too — the 3D scene and the language toggle simply stay off. Repository and whitepaper: github.com/Triviu-Protocol</p></div></noscript>
+<noscript><div class="wrap u-a859f9d0"><p>This page works without JavaScript too — the 3D scene and the language toggle simply stay off. Repository and whitepaper: github.com/Triviu-Protocol</p></div></noscript>
 
 <!-- three.js r128, servido do proprio dominio. Antes vinha de cdnjs.cloudflare.com
      sem integrity: um terceiro com execucao de script nesta origem. A copia em

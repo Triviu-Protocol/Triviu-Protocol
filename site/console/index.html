@@ -72,877 +72,12 @@
   that same call can be read without anyone being invited to sign them.
 -->
 <link href="/vendor/fonts/fontes.css" rel="stylesheet">
-<style>
-:root{
-  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px; --s8:64px; --s9:96px;
-  --r1:6px; --r2:10px; --rp:999px; --hair:1px;
-  --t1:150ms; --t2:170ms; --t3:200ms; --ease:cubic-bezier(.22,.61,.36,1);
-  --disp:"Libre Caslon Text",Georgia,serif;
-  --body:"Public Sans",system-ui,-apple-system,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,monospace;
-  --on-saffron:#16181D; --scrim:rgba(22,24,29,.62);
-  --syn-key:#8FA1F2; --syn-com:#7E848D; --syn-fn:#E8B23A;
-  --log-base:#BDBBB4; --log-ok:#6BD69B; --log-err:#E4736A; --log-tx:#8FA1F2;
-}
-:root[data-theme="light"]{
-  --paper:#FAFAF7; --raised:#FFFFFF; --mist:#EFF1ED; --rule:#DDE0DA;
-  --ink:#16181D; --graphite:#52575D; --faint:#696E73;
-  --ultramarine:#2743C7; --sealwax:#C13327; --saffron:#E8B23A; --saffron-ink:#8A6414;
-  --u-soft:#EAEDFB; --s-soft:#FBEAE8; --a-soft:#FBF3DF; --green:#1E7A46; --g-soft:#E6F2EB;
-  --code:#16181D; --code-ink:#E8EAE6; --grid:rgba(22,24,29,.07); --on-brand:#FFFFFF;
-  --ambient:.055;
-  /* --edge e a BORDA DE CONTROLE, e existe separada de --rule por medicao, nao
-     por gosto. --rule #DDE0DA sobre o painel branco mede 1.33:1 — WCAG 1.4.11
-     pede 3:1 para o limite de um componente de interface, e um campo cuja moldura
-     ninguem enxerga so se revela ao clicar. --rule continua servindo divisor de
-     tabela e moldura de cartao, que nao sao componentes e nao devem 3:1.
-     Medido: #82868C = 3.66 no raised · 3.50 no papel · 3.22 na nevoa. */
-  --edge:#82868C;
-}
-:root[data-theme="dark"]{
-  --paper:#131519; --raised:#191C22; --mist:#1D2027; --rule:#2A2E36;
-  --ink:#ECEDEA; --graphite:#A2A8B2; --faint:#83888D;
-  --ultramarine:#8FA1F2; --sealwax:#E4736A; --saffron:#E8B23A; --saffron-ink:#E8B23A;
-  --u-soft:#1B2138; --s-soft:#33201E; --a-soft:#2A2413; --green:#6BD69B; --g-soft:#152A20;
-  --code:#0E1014; --code-ink:#E8EAE6; --grid:rgba(236,237,234,.06); --on-brand:#131519;
-  --ambient:.075;
-  /* medido: #6E737D = 3.58 no raised · 3.84 no papel · 3.42 na nevoa */
-  --edge:#6E737D;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-[hidden]{display:none!important}
-html{-webkit-text-size-adjust:100%}
-/* The vertical hairline field from the official site — 1px every 90px at 2.8%.
-   It is what stops a large empty area reading as a hole. */
-body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;
-  line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh;
-  background-image:repeating-linear-gradient(90deg,var(--hairfield) 0 1px,transparent 1px 90px)}
-:root[data-theme="light"]{--hairfield:rgba(22,24,29,.028)}
-:root[data-theme="dark"]{--hairfield:rgba(236,237,234,.030)}
-/* Content floats ON the scene: translucent paper keeps type readable while the
-   Cycle stays visible at the edges. Without this the 3D collides with the copy. */
-.app{position:relative;z-index:1}
-.simstrip,header,.rail{background:color-mix(in srgb,var(--paper) 92%,transparent)}
-.panel,.vcard,.picket,.inst,.path,.net,.stage,.feed{
-  background:color-mix(in srgb,var(--raised) 90%,transparent);backdrop-filter:blur(3px)}
-/* The hero carries NO veil: the Cycle shows at full strength, as on the
-   official site. Only the dense console content gets translucent paper. */
-.content{background:color-mix(in srgb,var(--paper) 80%,transparent)}
-.init{background:none}
-.init .panel,.init .path{background:color-mix(in srgb,var(--raised) 94%,transparent)}
-
-/* ── marquee · the protocol says what it is, on a loop ─────────────── */
-.marquee{position:relative;z-index:1;border-top:2px solid var(--ink);border-bottom:var(--hair) solid var(--ink);
-  background:var(--paper);overflow:hidden;white-space:nowrap}
-.marquee .track{display:inline-block;padding:11px 0;font-family:var(--mono);font-size:12px;
-  letter-spacing:.14em;color:var(--ink);animation:mq 30s linear infinite}
-.marquee span{margin:0 26px}
-@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-
-/* ── footer ────────────────────────────────────────────────────────── */
-footer{position:relative;z-index:1;border-top:2px solid var(--ink);
-  background:color-mix(in srgb,var(--paper) 94%,transparent);padding:var(--s7) 0 var(--s8)}
-.foot-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:var(--s6);align-items:start}
-@media(max-width:820px){.foot-grid{grid-template-columns:minmax(0,1fr);gap:var(--s5)}}
-.foot-grid h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--faint);margin-bottom:var(--s3)}
-.foot-grid ul{list-style:none;display:flex;flex-direction:column;gap:var(--s2)}
-.foot-grid li{font-size:12.5px;color:var(--graphite)}
-.foot-spec{font-family:var(--mono);font-size:11.5px;color:var(--faint);line-height:1.9}
-.colophon{font-family:var(--disp);font-style:italic;font-size:15px;color:var(--ink)}
-
-/* ── web3 header · the chain is a first-class citizen ──────────────── */
-.chainbar{display:flex;align-items:center;gap:var(--s2);border:var(--hair) solid var(--rule);
-  border-radius:var(--rp);padding:3px var(--s3) 3px var(--s2);font-family:var(--mono);font-size:11px}
-.chaindot{width:7px;height:7px;border-radius:50%;background:var(--green);flex:none}
-.chaindot.off{background:var(--faint)}
-.bell{position:relative}
-.bell .badge{position:absolute;top:2px;right:2px;min-width:15px;height:15px;border-radius:var(--rp);
-  background:var(--sealwax);color:#fff;font-family:var(--mono);font-size:9px;
-  display:flex;align-items:center;justify-content:center;padding:0 3px}
-.notif{position:absolute;right:var(--s5);top:58px;width:min(340px,92vw);z-index:70;
-  background:var(--raised);border:var(--hair) solid var(--rule);border-radius:var(--r2);
-  padding:var(--s3);display:none}
-.notif.on{display:block}
-.notif .n{display:flex;gap:var(--s2);padding:var(--s2);border-bottom:var(--hair) solid var(--rule);font-size:12.5px}
-.notif .n:last-child{border-bottom:0}
-.notif .n .ic{margin-top:3px;flex:none}
-.langsw{display:inline-flex;border:var(--hair) solid var(--ink);border-radius:var(--rp);overflow:hidden}
-.langsw button{border:0;border-radius:0;padding:3px var(--s3);font-family:var(--mono);font-size:11px;background:none}
-.langsw button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-::selection{background:var(--saffron);color:var(--on-saffron)}
-a{color:var(--brand,var(--ultramarine));text-underline-offset:2px}
-:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{
-  outline:2px solid var(--brand,var(--ultramarine));outline-offset:2px;border-radius:3px}
-
-h1{font-family:var(--disp);font-weight:700;font-size:clamp(30px,4vw,46px);line-height:1.05;letter-spacing:-.02em}
-h2{font-family:var(--disp);font-weight:700;font-size:22px;line-height:1.25}
-h3{font-family:var(--body);font-weight:700;font-size:14px}
-/* ── a arvore de titulos ────────────────────────────────────────────────
-   A arvore e ESTRUTURA, e a estrutura estava quebrada nas 14 telas: todas
-   pulavam de h1 direto para h3, e p-lp abria uma SEGUNDA h1 no meio da mesma
-   tela. Quem navega por titulo num leitor de tela recebia dois topos na mesma
-   tela e um degrau que nao existe.
-   Os niveis foram corrigidos; a aparencia foi preservada por estas duas
-   classes — .hsec veste uma h2 com a antiga h3, .hpane veste uma h2 com a h1.
-   Nenhum pixel mudou. O que mudou foi o que o leitor de tela anuncia. */
-h2.hsec{font-family:var(--body);font-weight:700;font-size:14px;line-height:1.6;letter-spacing:0}
-h2.hpane{font-family:var(--disp);font-weight:700;font-size:clamp(30px,4vw,46px);line-height:1.05;letter-spacing:-.02em}
-.lede{font-size:16px;color:var(--graphite);max-width:62ch;margin-top:var(--s3)}
-.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
-.small{font-size:13px} .micro{font-size:11.5px}
-.muted{color:var(--graphite)} .faint{color:var(--faint)}
-.mono,code{font-family:var(--mono)}
-.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.win{color:var(--green)} .lose{color:var(--sealwax)}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
-
-/* ═══ THE BRAND · the real Cycle ════════════════════════════════════════
-   Ported from the official site (site/index.html). It is a Three.js WebGL
-   scene: spheres with a standard material, a tube for each arc, a cone for
-   each direction marker, a point field, hemisphere + directional light.
-   Drag to turn it, tap a node. The flat SVG that used to sit here was a
-   drawing of the mark; this is the mark.
-   The canvas is FIXED behind everything at z-index 0 and the content sits
-   above it on a translucent paper — which is why it reads as depth instead
-   of collision.
-   ═══════════════════════════════════════════════════════════════════════ */
-#scene{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100%}
-.no3d #scene{display:none}
-.no3d .ambient-fallback{display:flex}
-.mkbig{display:none}
-.no3d .mkbig{display:block}
-.ambient-fallback{position:fixed;inset:0;z-index:0;pointer-events:none;
-  display:none;align-items:center;justify-content:center}
-.ambient-fallback svg{width:min(120vh,120vw);opacity:var(--ambient)}
-#stage-hit{position:relative;height:min(46svh,400px);min-height:280px;cursor:grab;
-  touch-action:none;display:flex;align-items:flex-end;justify-content:center}
-#stage-hit.dragging{cursor:grabbing}
-#stage-hit .hintline{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--faint);padding-bottom:var(--s2)}
-#tip{position:fixed;z-index:60;pointer-events:none;opacity:0;transform:translate(-50%,-130%);
-  transition:opacity .2s ease-out;font-family:var(--mono);font-size:12px;letter-spacing:.06em;
-  background:var(--ink);color:var(--paper);padding:7px 12px;border-radius:var(--rp);
-  white-space:nowrap;display:flex;align-items:center;gap:var(--s2)}
-#tip.on{opacity:1}
-#tip .dot{width:9px;height:9px;border-radius:50%;flex:none}
-@keyframes cycle120{
-  0%,24.9%{transform:rotate(0deg)} 25%,49.9%{transform:rotate(120deg)}
-  50%,74.9%{transform:rotate(240deg)} 75%,100%{transform:rotate(360deg)}
-}
-.turning{animation:cycle120 1.6s steps(1,end) infinite;transform-origin:50% 50%}
-.app{position:relative;z-index:1}
-
-/* ── icons ─────────────────────────────────────────────────────────── */
-.ic{width:1em;height:1em;flex:none;vertical-align:-.14em;fill:none;stroke:currentColor;
-  stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.ic-l{width:1.2em;height:1.2em}
-
-/* ── controls · B-01: a button never wraps into a blob ─────────────── */
-button{font-family:var(--body);font-weight:600;font-size:13px;cursor:pointer;
-  border:var(--hair) solid var(--edge);background:var(--raised);color:var(--ink);
-  padding:var(--s2) var(--s4);border-radius:var(--r1);display:inline-flex;align-items:center;
-  gap:var(--s2);white-space:nowrap;
-  transition:border-color var(--t1) var(--ease),color var(--t1) var(--ease),background-color var(--t1) var(--ease)}
-button:hover:not(:disabled){border-color:var(--brand,var(--ultramarine));color:var(--brand,var(--ultramarine))}
-button:disabled{opacity:.4;cursor:not-allowed}
-button.primary{background:var(--brand,var(--ultramarine));border-color:var(--brand,var(--ultramarine));color:var(--on-brand)}
-button.primary:hover:not(:disabled){background:var(--ink);border-color:var(--ink);color:var(--paper)}
-button.mini{padding:var(--s1) var(--s3);font-size:11.5px;gap:var(--s1)}
-button.big{padding:var(--s3) var(--s5);font-size:15px;border-radius:var(--rp)}
-button.ghost{background:none;border-color:transparent}
-button.ghost:hover:not(:disabled){border-color:var(--edge)}
-button.danger{border-color:var(--sealwax);color:var(--sealwax)}
-button.danger:hover:not(:disabled){background:var(--s-soft)}
-.iconbtn{padding:var(--s2);line-height:0}
-input,select{font-family:var(--mono);font-size:13px;background:var(--paper);
-  border:var(--hair) solid var(--edge);color:var(--ink);padding:var(--s2) var(--s3);
-  border-radius:var(--r1);width:100%;transition:border-color var(--t1) var(--ease)}
-input:hover,select:hover{border-color:var(--graphite)}
-input::placeholder{color:var(--faint)}
-input[type=checkbox]{width:auto;accent-color:var(--brand,var(--ultramarine))}
-label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--faint);margin-bottom:var(--s1)}
-.pill{font-family:var(--mono);font-size:11px;border:var(--hair) solid var(--rule);
-  border-radius:var(--rp);padding:3px var(--s3);color:var(--graphite);white-space:nowrap;
-  display:inline-flex;align-items:center;gap:var(--s1)}
-.pill.ok{border-color:var(--green);color:var(--green);background:var(--g-soft)}
-.pill.warn{border-color:var(--saffron);color:var(--saffron-ink);background:var(--a-soft)}
-.pill.bad{border-color:var(--sealwax);color:var(--sealwax);background:var(--s-soft)}
-/* The border keeps the raw accent — a border carries no text and needs no AA.
-   The label reads from --brand-ink, which is the same accent lightened just
-   enough to clear 4.5:1 against this fill in whichever theme is on. */
-.pill.brand{border-color:var(--brand,var(--ultramarine));
-  color:var(--brand-ink,var(--brand,var(--ultramarine)));background:var(--u-soft)}
-
-.panel{background:var(--raised);border:var(--hair) solid var(--rule);border-radius:var(--r2);padding:var(--s5)}
-.row{display:flex;gap:var(--s3);align-items:flex-end;flex-wrap:wrap}
-.row>div{flex:1;min-width:150px}
-.row .tight{flex:0;min-width:auto}
-.spacer{flex:1}
-.hint{font-size:12.5px;color:var(--faint);margin-top:var(--s2);max-width:74ch}
-.wrap{max-width:1180px;margin:0 auto;padding:0 var(--s5)}
-
-.simstrip{background:var(--a-soft);border-bottom:var(--hair) solid var(--saffron);
-  color:var(--saffron-ink);font-family:var(--mono);font-size:11.5px;display:flex;
-  align-items:center;justify-content:center;gap:var(--s2);padding:var(--s2) var(--s4);text-align:center}
-.skip{position:absolute;left:-9999px;background:var(--ultramarine);color:#fff;padding:var(--s3) var(--s4);z-index:100;font-weight:600}
-.skip:focus{left:0}
-
-/* ═══ INITIATION ═══════════════════════════════════════════════════════ */
-.init{min-height:calc(100vh - 40px);display:flex;flex-direction:column;justify-content:center;
-  padding:var(--s8) 0 var(--s9)}
-.hero{display:grid;grid-template-columns:1fr minmax(240px,34%);gap:var(--s8);align-items:center}
-@media(max-width:900px){.hero{grid-template-columns:minmax(0,1fr);gap:var(--s6)}}
-.hero .mkbig{width:100%;max-width:300px;margin-inline:auto;
-  transform:rotateX(16deg) rotateY(-14deg);transform-style:preserve-3d;
-  animation:heroturn 12s steps(1,end) infinite}
-@keyframes heroturn{
-  0%,32.9%{transform:rotateX(16deg) rotateY(-14deg) rotate(0deg)}
-  33%,65.9%{transform:rotateX(16deg) rotateY(-14deg) rotate(120deg)}
-  66%,100%{transform:rotateX(16deg) rotateY(-14deg) rotate(240deg)}
-}
-.paths{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4);margin-top:var(--s7)}
-@media(max-width:860px){.paths{grid-template-columns:minmax(0,1fr)}}
-/* Cards built as <button> need the layout back: the global nowrap that fixes
-   action buttons would run their copy off the screen. Scoped, not global. */
-.path,.vcard,.net{display:block;white-space:normal;text-align:left}
-.path{background:var(--raised);border:var(--hair) solid var(--rule);border-top:3px solid var(--rule);
-  border-radius:var(--r2);padding:var(--s5);cursor:pointer;text-align:left;width:100%;
-  transition:border-color var(--t2) var(--ease),transform var(--t2) var(--ease)}
-.path:hover{border-color:var(--brand,var(--ultramarine));border-top-color:var(--brand,var(--ultramarine));transform:translateY(-3px);color:var(--ink)}
-.path .ph{display:flex;align-items:center;gap:var(--s2);color:var(--brand,var(--ultramarine))}
-.path h2{margin:var(--s3) 0 var(--s2)}
-.path ul{margin-top:var(--s3);list-style:none;display:flex;flex-direction:column;gap:var(--s1)}
-.path li{display:flex;gap:var(--s2);align-items:flex-start;color:var(--graphite);font-size:12.5px}
-.path li .ic{color:var(--green);margin-top:3px;width:15px;height:15px}
-.trust{display:flex;gap:var(--s5);flex-wrap:wrap;margin-top:var(--s6);padding-top:var(--s4);border-top:var(--hair) solid var(--rule)}
-.trust div{display:flex;gap:var(--s2);align-items:center;font-size:12.5px;color:var(--graphite)}
-.trust .ic{color:var(--brand,var(--ultramarine));width:17px;height:17px}
-
-/* ── stepper (builder) ─────────────────────────────────────────────── */
-.stage{display:grid;grid-template-columns:230px minmax(0,1fr);border:var(--hair) solid var(--rule);
-  border-radius:var(--r2);overflow:hidden;margin-top:var(--s5);background:var(--raised)}
-@media(max-width:940px){.stage{grid-template-columns:minmax(0,1fr)}}
-.side{border-right:var(--hair) solid var(--rule);padding:var(--s4) 0;background:var(--mist)}
-@media(max-width:940px){.side{border-right:0;border-bottom:var(--hair) solid var(--rule)}}
-.stepbtn{display:flex;align-items:center;gap:var(--s3);width:100%;text-align:left;border:0;
-  border-left:3px solid transparent;border-radius:0;background:none;color:var(--graphite);
-  padding:var(--s3) var(--s4);font-size:13.5px;white-space:nowrap}
-.stepbtn:hover{color:var(--ink);background:var(--raised);border-color:transparent;border-left-color:var(--rule)}
-.stepbtn[aria-current="step"]{color:var(--ink);border-left-color:var(--brand,var(--ultramarine));background:var(--raised);font-weight:700}
-.stepbtn .n{font-family:var(--mono);font-size:11px;color:var(--faint);min-width:19px}
-.stepbtn .st{margin-left:auto;line-height:0}
-.main{display:flex;flex-direction:column;min-height:520px}
-.codehead{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) var(--s4);
-  border-bottom:var(--hair) solid var(--rule);background:var(--mist);flex-wrap:wrap}
-.codehead .file{font-family:var(--mono);font-size:12px;font-weight:500}
-.codewrap{position:relative;flex:1}
-pre.code{font-family:var(--mono);font-size:12.5px;line-height:1.75;padding:var(--s4) var(--s5) var(--s9);
-  overflow:auto;white-space:pre;max-height:400px;tab-size:2}
-.k{color:var(--ultramarine);font-weight:500}.f{color:var(--saffron-ink);font-weight:500}
-.s{color:var(--green)}.c{color:var(--faint);font-style:italic}
-.fnblk{display:inline;border-radius:4px}
-.fnblk.spot{background:var(--mist);outline:1px solid var(--brand,var(--ultramarine));outline-offset:3px}
-.actionbar{position:absolute;right:var(--s4);bottom:var(--s4);display:flex;gap:var(--s3);
-  align-items:center;flex-wrap:wrap;justify-content:flex-end;background:var(--raised);padding-left:var(--s2)}
-.guide{position:absolute;left:var(--s4);right:var(--s4);bottom:var(--s4);max-width:420px;
-  background:var(--mist);border:var(--hair) solid var(--brand,var(--ultramarine));
-  border-radius:var(--r2);padding:var(--s4);display:none}
-.guide .gfn{font-family:var(--mono);font-size:12px;color:var(--saffron-ink);font-weight:500}
-.guide p{font-size:12.8px;margin-top:var(--s2)}
-.gnav{display:flex;gap:var(--s2);margin-top:var(--s3);align-items:center}
-.gpos{font-family:var(--mono);font-size:11px;color:var(--faint);margin-left:auto}
-.formbar{display:flex;gap:var(--s3);flex-wrap:wrap;padding:var(--s3) var(--s4);border-top:var(--hair) solid var(--rule);background:var(--mist)}
-.formbar>div{flex:1;min-width:180px}
-.calldata{font-family:var(--mono);font-size:11px;color:var(--faint);padding:var(--s2) var(--s4);
-  border-top:var(--hair) solid var(--rule);word-break:break-all}
-.calldata b{color:var(--ink);letter-spacing:.06em;text-transform:uppercase;font-size:10px}
-.term{border-top:var(--hair) solid var(--rule);background:var(--mist);min-height:100px;max-height:190px;
-  overflow:auto;padding:var(--s3) var(--s4);font-family:var(--mono);font-size:12px}
-.term .cap{color:var(--faint);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:var(--s2)}
-.ln{display:flex;gap:var(--s2);align-items:flex-start;padding:2px 0;white-space:pre-wrap}
-.ln>.ic{margin-top:4px}
-.ln.ok{color:var(--green)}.ln.err{color:var(--sealwax)}.ln.tx{color:var(--ultramarine)}.ln.dim{color:var(--faint)}
-
-.nets{display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:var(--s3)}
-.net{background:var(--raised);border:var(--hair) solid var(--rule);border-radius:var(--r2);
-  padding:var(--s4);cursor:pointer;text-align:left;width:100%;transition:border-color var(--t1) var(--ease)}
-.net[aria-pressed="true"]{border-color:var(--brand,var(--ultramarine))}
-.net[disabled]{opacity:.6;cursor:not-allowed}
-.net h4{font-size:14px;display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;font-weight:700}
-.net .coin{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:var(--s1)}
-.net .why{font-size:12px;color:var(--graphite);margin-top:var(--s2)}
-.calcline{font-family:var(--mono);font-size:12.5px;padding:var(--s2) 0;border-bottom:var(--hair) solid var(--rule);
-  display:flex;justify-content:space-between;gap:var(--s3);flex-wrap:wrap;align-items:center}
-.calcline:last-child{border-bottom:0}
-
-/* ── copilot ───────────────────────────────────────────────────────── */
-.feed{background:var(--mist);border:var(--hair) solid var(--rule);border-radius:var(--r2);
-  min-height:300px;padding:var(--s5);font-family:var(--mono);font-size:13px}
-.pln{margin-bottom:var(--s3);white-space:pre-wrap;line-height:1.65}
-.pln .who{color:var(--brand,var(--ultramarine));font-weight:500}
-.pln.ok{color:var(--green)}.pln.err{color:var(--sealwax)}
-.cursor{display:inline-block;width:7px;height:1em;background:var(--brand,var(--ultramarine));
-  vertical-align:-2px;animation:blink 1.05s steps(1) infinite}
-@keyframes blink{50%{opacity:0}}
-.stages{display:flex;gap:var(--s2);flex-wrap:wrap;margin:var(--s3) 0}
-
-/* ═══ CONSOLE ══════════════════════════════════════════════════════════ */
-header{position:sticky;top:0;z-index:40;background:var(--paper);border-bottom:var(--hair) solid var(--ink)}
-.hd{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) var(--s5);flex-wrap:wrap}
-.brandmark{display:flex;align-items:center;gap:var(--s3);background:none;border:0;padding:0;color:var(--ink)}
-.brandmark:hover{border-color:transparent;color:var(--ink)}
-.brandmark .mk{width:28px;height:28px;flex:none}
-.brandmark img{width:28px;height:28px;border-radius:var(--r1);object-fit:cover;flex:none}
-.brandmark b{font-family:var(--disp);font-size:18px;letter-spacing:-.01em}
-.brandmark span{font-family:var(--mono);font-size:11px;color:var(--faint)}
-.instsel{display:flex;align-items:center;gap:var(--s2);border:var(--hair) solid var(--rule);
-  border-radius:var(--rp);padding:2px var(--s2) 2px var(--s3)}
-.instsel select{border:0;background:none;width:auto;font-size:11.5px;padding:var(--s1)}
-.avatar{width:30px;height:30px;border-radius:50%;object-fit:cover;border:var(--hair) solid var(--rule);flex:none}
-.avatar.ph{display:flex;align-items:center;justify-content:center;background:var(--mist);
-  font-family:var(--mono);font-size:11px;color:var(--graphite)}
-
-/* minmax(0,1fr) and not 1fr: a bare `1fr` track has an AUTO minimum, which is the
-   min-content width of whatever is inside it. One wide table or one long address
-   and the column grows past the shell — the page then relies on overflow-x:hidden
-   to clip content instead of reflowing it. Measured: 504px track inside a 485px
-   shell before this. */
-.shell{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:calc(100vh - 96px)}
-@media(max-width:980px){.shell{grid-template-columns:minmax(0,1fr)}}
-.rail{border-right:var(--hair) solid var(--rule);padding:var(--s4) 0;background:var(--mist)}
-@media(max-width:980px){.rail{border-right:0;border-bottom:var(--hair) solid var(--rule);
-  display:flex;overflow-x:auto;padding:var(--s2);gap:var(--s1)}}
-.rail .cap{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--faint);
-  padding:0 var(--s5) var(--s2);text-transform:uppercase}
-@media(max-width:980px){.rail .cap{display:none}}
-.navb{display:flex;align-items:center;gap:var(--s3);width:100%;text-align:left;border:0;
-  border-left:3px solid transparent;border-radius:0;background:none;color:var(--graphite);
-  padding:var(--s3) var(--s5);font-size:13.5px;white-space:nowrap;font-weight:500}
-.navb:hover{color:var(--ink);background:var(--raised);border-color:transparent;border-left-color:var(--rule)}
-.navb[aria-current="page"]{color:var(--ink);border-left-color:var(--brand,var(--ultramarine));
-  background:var(--raised);font-weight:700}
-@media(max-width:980px){.navb{width:auto;border-left:0;border-bottom:3px solid transparent;border-radius:var(--r1)}
-  .navb[aria-current="page"]{border-left:0;border-bottom-color:var(--brand,var(--ultramarine))}}
-/* B-05: short content in a tall viewport left a void. The content column now
-   owns the full height and the pane sits at the top of it, so the empty area
-   reads as page, not as a hole. */
-.content{padding:var(--s6) var(--s5) var(--s9);max-width:1180px;display:flex;flex-direction:column}
-.pane{display:none}
-.pane.on{display:block;animation:enter var(--t3) var(--ease)}
-/* Trocar de tela e uma navegacao. Sem mover o foco, quem usa teclado continua
-   parado no trilho enquanto a pagina inteira troca embaixo dele, e o proximo
-   Tab volta a percorrer o menu em vez de entrar no que acabou de abrir.
-   O painel recebe foco por programa (tabindex="-1", logo fora da ordem do Tab)
-   e o anel usa :focus-visible de proposito: o Chrome so o aplica em foco
-   programatico quando quem estava com o foco antes tambem tinha :focus-visible
-   — ou seja, aparece para quem chegou de teclado e nao para quem clicou. E o
-   comportamento certo pelas duas pontas, sem uma classe de estado no meio.
-   #main entra na mesma regra porque e onde o "Skip to content" aterrissa. */
-#main:focus,.pane:focus{outline:none}
-#main:focus-visible,.pane:focus-visible{outline:2px solid var(--brand,var(--ultramarine));
-  outline-offset:6px;border-radius:var(--r1)}
-@keyframes enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.phead{margin-bottom:var(--s6);padding-bottom:var(--s5);border-bottom:2px solid var(--ink)}
-
-/* the ledger — one dominant figure, the rest reading across a rule */
-.ledger{display:grid;grid-template-columns:minmax(210px,1.05fr) minmax(0,2fr);gap:var(--s7);
-  padding:var(--s5) 0;border-top:2px solid var(--ink);border-bottom:var(--hair) solid var(--rule)}
-@media(max-width:820px){.ledger{grid-template-columns:minmax(0,1fr);gap:var(--s5)}}
-.ledger .lead .k,.lcell .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;
-  text-transform:uppercase;color:var(--faint)}
-.ledger .lead .v{font-family:var(--mono);font-variant-numeric:tabular-nums;
-  font-size:clamp(36px,5vw,52px);line-height:1;margin-top:var(--s2);font-weight:500;letter-spacing:-.02em}
-.ledger .lead .d,.lcell .d{font-size:12px;color:var(--faint);margin-top:var(--s2)}
-.ledger .side{display:grid;grid-template-columns:repeat(auto-fit,minmax(136px,1fr))}
-.lcell{padding:0 var(--s4);border-left:var(--hair) solid var(--rule)}
-.lcell:first-child{border-left:0;padding-left:0}
-.lcell .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:23px;margin-top:var(--s2);font-weight:500}
-
-/* same reason as .shell: a bare fr track cannot shrink below its content */
-.grid2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:var(--s4);margin-top:var(--s5)}
-@media(max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
-.chead{display:flex;align-items:center;gap:var(--s3);margin-bottom:var(--s4);flex-wrap:wrap}
-.legend{display:flex;gap:var(--s3);flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;color:var(--faint)}
-.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:var(--s1);vertical-align:-1px}
-.chart{width:100%;height:auto;display:block}
-.draw{stroke-dasharray:2400;stroke-dashoffset:2400;animation:draw 1.4s var(--ease) forwards}
-@keyframes draw{to{stroke-dashoffset:0}}
-.rise{transform-origin:bottom;transform:scaleY(0);animation:rise .6s var(--ease) forwards}
-.fall{transform-origin:top;transform:scaleY(0);animation:rise .6s var(--ease) forwards}
-@keyframes rise{to{transform:scaleY(1)}}
-.fadein{opacity:0;animation:fadein .5s var(--ease) forwards}
-@keyframes fadein{to{opacity:1}}
-
-/* sub-accounts */
-.vaults{display:grid;grid-template-columns:repeat(auto-fit,minmax(264px,1fr));gap:var(--s4);margin-top:var(--s4)}
-.vcard{background:var(--raised);border:var(--hair) solid var(--rule);border-top:3px solid var(--rule);
-  border-radius:var(--r2);padding:var(--s5);cursor:pointer;text-align:left;width:100%;
-  transition:border-color var(--t2) var(--ease),transform var(--t2) var(--ease)}
-.vcard:hover{border-color:var(--ink);transform:translateY(-2px);color:var(--ink)}
-.vcard[aria-pressed="true"]{border-color:var(--brand,var(--ultramarine))}
-.vn{display:flex;align-items:center;gap:var(--s2);font-weight:700;font-size:15px}
-.vdot{width:10px;height:10px;border-radius:50%;flex:none}
-.vrow{display:flex;justify-content:space-between;font-family:var(--mono);
-  font-variant-numeric:tabular-nums;font-size:12px;color:var(--graphite);margin-top:var(--s2)}
-.vbar{height:5px;background:var(--mist);border-radius:var(--rp);margin-top:var(--s3);overflow:hidden}
-.vbar i{display:block;height:100%;border-radius:var(--rp);transition:width .6s var(--ease)}
-.band{display:flex;align-items:center;gap:var(--s2);font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:var(--s2)}
-.bandbar{flex:1;height:3px;background:var(--mist);border-radius:var(--rp);position:relative;overflow:hidden}
-.bandbar i{position:absolute;top:0;bottom:0;left:0;border-radius:var(--rp)}
-
-/* the fence · 16 parameters, not a list of assets */
-.fence{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:var(--s3);margin-top:var(--s4)}
-.picket{background:var(--mist);border:var(--hair) solid var(--rule);border-top:3px solid var(--rule);
-  border-radius:var(--r2);padding:var(--s3) var(--s4);transition:border-color var(--t1) var(--ease)}
-.picket.on{border-top-color:var(--green)}
-.picket.guard{border-top-color:var(--saffron)}
-.picket h4{font-size:13px;font-weight:700;display:flex;align-items:center;gap:var(--s1)}
-.picket h4 .ic{color:var(--saffron-ink);width:14px;height:14px}
-.picket .cur{font-family:var(--mono);font-size:11.5px;color:var(--green);margin:var(--s1) 0 var(--s2);word-break:break-word}
-.picket .cur.empty{color:var(--sealwax)}
-.picket .desc{font-size:11.5px;color:var(--faint);margin-bottom:var(--s2);min-height:30px}
-.picket .row{gap:var(--s1)}.picket .row>div{min-width:56px}
-.picket input,.picket select{padding:5px var(--s2);font-size:12px}
-.wd{display:inline-flex;gap:var(--s1);align-items:center;margin:0 var(--s2) var(--s1) 0;
-  font-family:var(--mono);font-size:11.5px;color:var(--ink);text-transform:none;letter-spacing:0}
-.chips{display:flex;gap:var(--s2);flex-wrap:wrap;margin-top:var(--s2)}
-.chip{font-family:var(--mono);font-size:11.5px;border:var(--hair) solid var(--brand,var(--ultramarine));
-  background:var(--u-soft);color:var(--brand,var(--ultramarine));border-radius:var(--rp);
-  padding:var(--s1) var(--s3);display:flex;align-items:center;gap:var(--s2)}
-.chip button{border:0;background:none;color:inherit;padding:0;line-height:0}
-
-/* route */
-.hops{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;margin-top:var(--s3)}
-.hop{font-family:var(--mono);font-size:12px;border:var(--hair) solid var(--rule);border-radius:var(--r1);
-  padding:var(--s2) var(--s3);background:var(--raised);display:flex;align-items:center;gap:var(--s2)}
-.hop.empty{border-color:var(--sealwax);color:var(--sealwax);background:var(--s-soft)}
-.hop .hd2{width:9px;height:9px;border-radius:50%}
-.harrow{color:var(--faint);line-height:0}
-
-.tscroll{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:11.5px}
-th,td{text-align:left;padding:var(--s2) var(--s3);border-bottom:var(--hair) solid var(--rule)}
-th{font-family:var(--body);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--faint);border-bottom:2px solid var(--ink);font-weight:600}
-tbody tr:hover{background:var(--mist)}
-tr.rev td:first-child{border-left:3px solid var(--sealwax);padding-left:calc(var(--s3) - 3px)}
-
-.acc{border:var(--hair) solid var(--rule);border-radius:var(--r2);overflow:hidden;background:var(--raised);margin-bottom:var(--s3)}
-.acc summary{padding:var(--s4) var(--s5);cursor:pointer;list-style:none;display:flex;align-items:center;gap:var(--s3);font-weight:600}
-.acc summary::-webkit-details-marker{display:none}
-.acc summary .chev{margin-left:auto;transition:transform var(--t2) var(--ease);line-height:0}
-.acc[open] summary .chev{transform:rotate(180deg)}
-.acc .body{padding:0 var(--s5) var(--s5);border-top:var(--hair) solid var(--rule);padding-top:var(--s4)}
-.acc .fn{font-family:var(--mono);font-size:11.5px;color:var(--brand,var(--ultramarine))}
-.steps{counter-reset:s;margin-top:var(--s3)}
-.stp{display:flex;gap:var(--s3);padding:var(--s2) 0;border-bottom:1px dashed var(--rule);font-size:13px}
-.stp:last-child{border-bottom:0}
-.stp::before{counter-increment:s;content:counter(s,decimal-leading-zero);font-family:var(--mono);
-  font-size:11px;color:var(--sealwax);flex:none;padding-top:2px}
-.codeb{background:var(--code);color:var(--code-ink);border-radius:var(--r2);padding:var(--s4);
-  font-family:var(--mono);font-size:11.5px;line-height:1.75;overflow-x:auto;margin-top:var(--s3);white-space:pre}
-.codeb .k{color:var(--syn-key)}.codeb .c{color:var(--syn-com)}.codeb .f{color:var(--syn-fn)}
-
-.insts{display:grid;grid-template-columns:repeat(auto-fit,minmax(244px,1fr));gap:var(--s4);margin-top:var(--s4)}
-.inst{background:var(--raised);border:var(--hair) solid var(--rule);border-radius:var(--r2);padding:var(--s5)}
-.inst.on{border-color:var(--brand,var(--ultramarine))}
-.ih{display:flex;align-items:center;gap:var(--s3)}
-.sw{width:28px;height:28px;border-radius:var(--r1);flex:none;object-fit:cover;border:var(--hair) solid var(--rule)}
-.swatches{display:flex;gap:var(--s2);flex-wrap:wrap;margin-top:var(--s2)}
-.sws{width:30px;height:30px;border-radius:var(--r1);cursor:pointer;border:2px solid transparent;padding:0}
-.sws[aria-pressed="true"]{border-color:var(--ink)}
-
-/* ── AUTOMATION · the master switch ───────────────────────────────────── */
-.autosw{display:flex;align-items:center;gap:var(--s2);border:var(--hair) solid var(--rule);
-  border-radius:var(--rp);padding:3px var(--s2) 3px var(--s3);font-family:var(--mono);
-  font-size:11px;background:transparent;color:var(--faint);
-  transition:color var(--t1) var(--ease),border-color var(--t1) var(--ease)}
-.autosw .autolabel{letter-spacing:.1em;text-transform:uppercase}
-.autotrack{width:30px;height:16px;border-radius:var(--rp);background:var(--mist);
-  border:var(--hair) solid var(--rule);position:relative;flex:none;
-  transition:background var(--t2) var(--ease),border-color var(--t2) var(--ease)}
-.autotrack i{position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;
-  background:var(--faint);transition:transform var(--t2) var(--ease),background var(--t2) var(--ease)}
-.autosw[aria-checked="true"]{color:var(--green);border-color:var(--green)}
-.autosw[aria-checked="true"] .autotrack{background:var(--g-soft);border-color:var(--green)}
-.autosw[aria-checked="true"] .autotrack i{transform:translateX(14px);background:var(--green)}
-.autosw[aria-checked="true"] .autolabel::after{content:" on"}
-.livedot{width:7px;height:7px;border-radius:50%;background:var(--green);flex:none;
-  animation:pulse 1.6s var(--ease) infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.28}}
-
-/* ── TIME RANGE · one bar, every consumer reads through it ────────────── */
-.filterbar{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;
-  padding:var(--s3) 0;border-bottom:var(--hair) solid var(--rule);margin-bottom:var(--s4)}
-.chip{font-family:var(--mono);font-size:11px;border:var(--hair) solid var(--rule);
-  border-radius:var(--rp);padding:4px var(--s3);background:transparent;color:var(--graphite);
-  transition:border-color var(--t1) var(--ease),color var(--t1) var(--ease),background var(--t1) var(--ease)}
-.chip[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);background:var(--mist)}
-.rangeinp{display:none;gap:var(--s2);align-items:center}
-.rangeinp.on{display:flex}
-.rangeinp input{width:auto;min-width:132px;font-size:12px;padding:4px var(--s2)}
-.rangecount{font-family:var(--mono);font-size:11px;color:var(--faint)}
-
-/* ── STRATEGIES ───────────────────────────────────────────────────────── */
-.strat{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:var(--s4);margin-top:var(--s4)}
-.scard{background:var(--raised);border:var(--hair) solid var(--rule);border-radius:var(--r2);
-  padding:var(--s5);display:flex;flex-direction:column;gap:var(--s3);
-  transition:border-color var(--t2) var(--ease)}
-.scard:hover{border-color:var(--graphite)}
-.scard.applied{border-color:var(--brand,var(--ultramarine));border-width:2px;padding:calc(var(--s5) - 1px)}
-.scard h4{font-size:16px;margin:0}
-/* B: this was `1fr auto`, which let the VALUE take its max-content width and left
-   the label about 20px — so "trading window" shredded into three lines and even a
-   dd of "100" wrapped. The label is short and fixed; the value is the variable one.
-   So the label gets auto and the value gets the shrinkable column. */
-.sgrid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px var(--s3);
-  font-family:var(--mono);font-size:11.5px;border-top:var(--hair) solid var(--rule);
-  padding-top:var(--s3)}
-.sgrid dt{color:var(--faint);white-space:nowrap}
-.sgrid dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.smeasure{font-family:var(--mono);font-size:11.5px;border-top:var(--hair) solid var(--rule);
-  padding-top:var(--s3);color:var(--faint)}
-.srank{font-family:var(--mono);font-size:11px;border-radius:var(--rp);padding:2px var(--s2);
-  border:var(--hair) solid var(--rule);color:var(--faint)}
-.srank.first{border-color:var(--green);color:var(--green);background:var(--g-soft)}
-
-/* ── PICKLIST · many sub-accounts, one amount ─────────────────────────── */
-.picklist{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s3)}
-.pick{display:flex;align-items:center;gap:var(--s2);border:var(--hair) solid var(--rule);
-  border-radius:var(--rp);padding:4px var(--s3);font-family:var(--mono);font-size:11.5px;
-  background:transparent;color:var(--graphite);
-  transition:border-color var(--t1) var(--ease),color var(--t1) var(--ease),background var(--t1) var(--ease)}
-.pick[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);background:var(--mist)}
-.pick .vdot{width:8px;height:8px;border-radius:50%;flex:none}
-.pick.full{border-style:dashed;opacity:.62}
-.spwarn{color:var(--sealwax)}
-.spok{color:var(--green)}
-.armpref{display:flex;gap:var(--s3);align-items:flex-start;margin-top:var(--s4);
-  padding-top:var(--s4);border-top:var(--hair) solid var(--rule);font-size:13px;color:var(--graphite)}
-.armpref input{width:16px;height:16px;flex:none;margin-top:2px;accent-color:var(--green)}
-.armpref b{color:var(--ink)}
-
-/* ── the two rates that sit under the money figure ────────────────────── */
-.pcts{display:flex;flex-wrap:wrap;gap:var(--s5);margin-top:var(--s3)}
-.pcell{display:flex;align-items:baseline;gap:var(--s2)}
-.pcell b{font-family:var(--mono);font-size:17px;font-variant-numeric:tabular-nums}
-.pcell>span{display:flex;flex-direction:column;font-family:var(--mono);font-size:10.5px;
-  letter-spacing:.06em;text-transform:uppercase;color:var(--faint);line-height:1.45}
-.pcell i{font-style:normal;text-transform:none;letter-spacing:0;color:var(--faint);opacity:.8}
-.preview{border:var(--hair) solid var(--rule);border-radius:var(--r2);padding:var(--s4);background:var(--mist);display:flex;align-items:center;gap:var(--s3)}
-.avbig{width:76px;height:76px;border-radius:50%;object-fit:cover;border:2px solid var(--rule);flex:none}
-.avbig.ph{display:flex;align-items:center;justify-content:center;background:var(--mist);font-family:var(--disp);font-size:30px;color:var(--graphite)}
-
-.ov{position:fixed;inset:0;background:var(--scrim);z-index:80;display:none;align-items:center;justify-content:center;padding:var(--s4)}
-.ov.show{display:flex}
-.modal{background:var(--raised);border:var(--hair) solid var(--rule);border-radius:var(--r2);
-  max-width:620px;width:100%;padding:var(--s5);max-height:90vh;overflow:auto;animation:pop var(--t3) var(--ease)}
-@keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
-.mact{display:flex;gap:var(--s3);justify-content:flex-end;margin-top:var(--s5);flex-wrap:wrap}
-.runsvg{width:100%;max-width:320px;margin:var(--s2) auto 0;display:block}
-.rarc{stroke-dasharray:200;stroke-dashoffset:200;transition:stroke-dashoffset .5s var(--ease)}
-.rarc.done{stroke-dashoffset:0}
-.runlog{background:var(--code);border-radius:var(--r2);padding:var(--s4);margin-top:var(--s4);
-  text-align:left;font-family:var(--mono);font-size:11.5px;min-height:96px;max-height:150px;overflow:auto}
-.rl{color:var(--log-base);white-space:pre-wrap;display:flex;gap:var(--s2);align-items:flex-start;padding:2px 0}
-.rl>.ic{margin-top:3px;flex:none}
-.rl.ok{color:var(--log-ok)}.rl.err{color:var(--log-err)}.rl.tx{color:var(--log-tx)}.rl.dim{color:var(--syn-com)}
-/* The --log-* tokens are fixed values tuned for the run overlay, which is dark in
-   BOTH themes. The automation log lives on a normal light panel, so it re-colours
-   from theme tokens instead — otherwise dark-theme green lands on light paper at
-   a measured 1.58:1. */
-#autoLog .rl{color:var(--graphite)}
-#autoLog .rl.ok{color:var(--green)}
-#autoLog .rl.err{color:var(--sealwax)}
-#autoLog .rl.warn{color:var(--saffron-ink)}
-#autoLog .rl.dim{color:var(--faint)}
-.verdict{margin-top:var(--s4);padding:var(--s3) var(--s4);border-radius:var(--r2);
-  font-family:var(--mono);font-size:12.5px;display:none;align-items:center;gap:var(--s2)}
-.verdict.ok{display:flex;background:var(--g-soft);border:var(--hair) solid var(--green);color:var(--green)}
-.verdict.bad{display:flex;background:var(--s-soft);border:var(--hair) solid var(--sealwax);color:var(--sealwax)}
-#toast{position:fixed;bottom:var(--s4);left:50%;transform:translateX(-50%);z-index:95;
-  background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:12px;
-  padding:var(--s3) var(--s4);border-radius:var(--r1);display:none;max-width:92vw;align-items:center;gap:var(--s2)}
-#toast.show{display:flex}
-#toast.ok{background:var(--green);color:#fff}#toast.err{background:var(--sealwax);color:#fff}
-.risk{background:var(--a-soft);border:var(--hair) solid var(--saffron);border-radius:var(--r2);
-  padding:var(--s4);margin-bottom:var(--s5);display:flex;gap:var(--s3);align-items:flex-start}
-.risk .ic{color:var(--saffron-ink);width:19px;height:19px;margin-top:2px}
-.risk b{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--saffron-ink);text-transform:uppercase}
-.risk p{font-size:13px;margin-top:var(--s1);max-width:88ch}
-
-@media(prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
-    transition-duration:.01ms!important}
-  .ambient svg,.hero .mkbig,.turning,.cursor{animation:none}
-  .vcard:hover,.path:hover{transform:none}
-}
-/* ═══ HANDHELD · Cisne-negro ════════════════════════════════════════════
-   Measured on a 1440×3120 device: the header stacked into three rows, the
-   ledger kept three columns and clipped, the headline ran past the right
-   edge, and the Cycle landed on top of the type. Composition, not styling.
-   ═══════════════════════════════════════════════════════════════════════ */
-@media(max-width:760px){
-  /* nothing may exceed the viewport — the headline was the offender */
-  html,body{max-width:100%;overflow-x:hidden}
-  h1,h2.hpane{font-size:clamp(25px,7.4vw,34px);overflow-wrap:break-word;hyphens:auto}
-  .lede{font-size:15px;max-width:none}
-  .content{padding:var(--s5) var(--s4) var(--s8)}
-  .wrap{padding:0 var(--s4)}
-  .panel{padding:var(--s4)}
-
-  /* the strip says the essential in one line, not four */
-  .simstrip{font-size:10.5px;padding:var(--s2) var(--s3);text-align:left}
-  .simstrip .long{display:none}
-
-  /* header: one row, icons grouped, chain reduced to its dot + id */
-  .hd{padding:var(--s2) var(--s4);gap:var(--s2);flex-wrap:nowrap;overflow-x:auto;
-      scrollbar-width:none}
-  .hd::-webkit-scrollbar{display:none}
-  .brandmark b{font-size:16px}
-  .brandmark span{display:none}
-  .chainbar{padding:2px var(--s2);font-size:10px}
-  #chainName{display:none}
-  #walletAddr{max-width:11ch;overflow:hidden;text-overflow:ellipsis}
-  .langsw button{padding:2px var(--s2)}
-  .iconbtn{padding:var(--s1)}
-  .notif{right:var(--s3);left:var(--s3);width:auto;top:52px}
-
-  /* the rail scrolls sideways — say so, and let it breathe */
-  .rail{gap:var(--s2);padding:var(--s2) var(--s3);
-        -webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
-  .navb{scroll-snap-align:start;padding:var(--s2) var(--s3);font-size:12.5px}
-
-  /* the ledger stacks; a rule between rows replaces the column rule */
-  .ledger{grid-template-columns:minmax(0,1fr);gap:var(--s4);padding:var(--s4) 0}
-  .ledger .lead .v{font-size:clamp(32px,10vw,44px)}
-  .ledger .side{grid-template-columns:minmax(0,1fr)}
-  .lcell{padding:var(--s3) 0 0;border-left:0;border-top:var(--hair) solid var(--rule)}
-  .lcell:first-child{padding-top:var(--s3)}
-  .lcell .v{font-size:21px}
-
-  /* the double rule: .phead already closes the header, so the ledger does not
-     need to open with a second one */
-  .phead{margin-bottom:var(--s5);padding-bottom:var(--s4)}
-  .phead + .ledger{border-top:0;padding-top:0}
-
-  .grid2{grid-template-columns:minmax(0,1fr);gap:var(--s3)}
-  .vaults,.insts,.fence,.strat{grid-template-columns:minmax(0,1fr)}
-  .row>div{min-width:100%}
-  .row .tight{min-width:auto;flex:0 0 auto}
-  table{font-size:11px}
-  th,td{padding:var(--s2)}
-
-  /* the master switch keeps its track and loses its word — the track is the
-     state, the word was only ever a caption for it */
-  .autosw{padding:3px var(--s2)}
-  .autosw .autolabel{display:none}
-  /* the range chips wrap instead of scrolling: a filter you cannot see the
-     end of is a filter you do not trust */
-  .filterbar{gap:var(--s1) var(--s2);padding:var(--s2) 0}
-  .rangeinp{width:100%;margin-top:var(--s2)}
-  .rangeinp input{flex:1;min-width:0}
-  .rangecount{width:100%;margin-top:var(--s1)}
-
-  /* the Cycle stops competing with the type: it sits low and quiet, and the
-     hero gives it its own band instead of sharing one */
-  #scene{opacity:.5}
-  .hero{grid-template-columns:1fr}
-  #stage-hit{height:min(34svh,280px);min-height:220px;order:-1}
-  .foot-grid{grid-template-columns:1fr}
-}
-@media(max-width:400px){
-  .content,.wrap{padding-left:var(--s3);padding-right:var(--s3)}
-  .panel{padding:var(--s3)}
-  h1,h2.hpane{font-size:clamp(23px,7.6vw,30px)}
-  .modal{padding:var(--s4)}
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   A CAMADA DO MOTOR · o painel de assinatura chegou com o seu proprio CSS
-
-   O motor /js/console-lp.js foi PORTADO inteiro, e a marcacao que ele dirige
-   veio junto, byte a byte. Essa marcacao usa outros nomes de classe e outros
-   nomes de variavel (--papel, --tinta, --fio) que os desta tela (--paper,
-   --ink, --rule). Duas folhas de estilo no mesmo documento colidiriam em
-   .hint, .pill e .mono — as tres existem nas duas.
-
-   Entao a folha do motor entra INTEIRA sob `.lpk`, e a ponte de variaveis
-   abaixo mapeia um vocabulario no outro. Nenhuma regra do motor alcanca nada
-   fora de .lpk, e nenhuma cor foi redigitada: os dois temas continuam saindo
-   de data-theme, num lugar so.
-   ═══════════════════════════════════════════════════════════════════════ */
-.lpk{
-  --papel:var(--paper); --nevoa:var(--mist); --fio:var(--rule); --grafite:var(--graphite);
-  --tinta:var(--ink); --ultramar:var(--ultramarine); --lacre:var(--sealwax);
-  --acafrao:var(--saffron); --acafrao-texto:var(--saffron-ink); --acafrao-fundo:var(--a-soft);
-  --verde:var(--green);
-  --fd:var(--disp); --ft:var(--body); --fm:var(--mono);
-  --r-m:var(--r1); --r-l:var(--r2);
-}
-/* WCAG 1.4.11 — --ultramar on the code block's near-black measures 2.29:1 in the
-   light theme, under the 3.0 minimum. currentColor inside .cod is #E8EAE6, which
-   is 14.67:1 there. The offset is NEGATIVE so the ring lands in the block's own
-   padding, on the surface it was measured against. */
-.lpk .cod:focus-visible{outline:2px solid currentColor;outline-offset:-4px}
-.lpk .mono{font-family:var(--fm)}
-/* 3.3.1 Error Identification. Measured, sRGB, W3C formula:
-     --lacre #C13327 on --papel #FAFAF7 = 5.33:1  light  (min 4.5)
-     --lacre #E4736A on --papel #131519 = 6.06:1  dark   (min 4.5)
-   Never colour alone: every refusal also sets aria-invalid on the field, moves
-   focus there, and is read out through aria-describedby. */
-.lpk .erro{color:var(--lacre)}
-.lpk .erro:empty{display:none}
-.lpk .campoerro{display:block;font-family:var(--ft);font-size:12.5px;color:var(--lacre);margin-top:6px;text-transform:none;letter-spacing:0}
-.lpk .campoerro:empty{display:none}
-.lpk .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.lpk .lead{font-size:16px;color:var(--grafite);max-width:72ch;margin-bottom:24px}
-.lpk .aviso{background:var(--acafrao-fundo);border:1px solid var(--acafrao);border-radius:var(--r-m);padding:14px 18px;margin-bottom:28px;max-width:82ch}
-.lpk .aviso .rot{font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:var(--acafrao-texto);display:block;margin-bottom:5px}
-.lpk .aviso p{font-size:13.5px;margin:0}
-.lpk .aviso p+p{margin-top:8px}
-.lpk .alerta{background:var(--nevoa);border:1px solid var(--lacre);border-radius:var(--r-m);padding:14px 18px;margin-bottom:28px;max-width:82ch;font-size:13.5px}
-.lpk .alerta .rot{font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:var(--lacre);display:block;margin-bottom:5px}
-.lpk .alerta p+p{margin-top:8px}
-.lpk .painel{border:1px solid var(--fio);border-radius:var(--r-l);padding:22px;background:var(--papel);margin-bottom:28px}
-.lpk .form{display:grid;grid-template-columns:1fr;gap:14px;align-items:end}
-@media(min-width:760px){.lpk .form.f2{grid-template-columns:1fr auto}
-.lpk .form.f3{grid-template-columns:1.3fr 1fr auto}
-.lpk .form.f4{grid-template-columns:1fr 1fr 1fr auto}}
-.lpk .grupo{border-top:1px dashed var(--fio);padding-top:16px;margin-top:16px}
-.lpk .grupo[hidden]{display:none}
-.lpk .grupo .rot{font-family:var(--fm);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--grafite);display:block;margin-bottom:10px}
-.lpk .campo label{display:block;font-family:var(--fm);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--grafite);margin-bottom:6px}
-.lpk .campo input,.lpk .campo select{width:100%;font-family:var(--fm);font-size:13px;color:var(--tinta);background:var(--papel);border:1px solid var(--grafite);border-radius:var(--r-m);padding:10px 12px}
-.lpk .campo input:focus,.lpk .campo select:focus{border-color:var(--ultramar)}
-.lpk .campo input[aria-invalid="true"],.lpk .campo select[aria-invalid="true"]{border-color:var(--lacre)}
-.lpk button.act{font-family:var(--ft);font-weight:600;font-size:14px;padding:11px 18px;border-radius:var(--r-m);border:1.5px solid var(--tinta);background:var(--tinta);color:var(--papel);cursor:pointer;white-space:nowrap}
-.lpk button.act:hover{background:#000}
-/* O mesmo erro, no botao que ENVIA. `.act` escreve com var(--papel) e o hover
-   pinta o fundo de preto literal: no claro, papel quase branco sobre preto =
-   20.08:1; no escuro, papel #131519 sobre preto = 1.15:1 — o rotulo "Send this
-   to my wallet" desaparecia debaixo do cursor, no exato momento de clicar.
-   /calldata/ ja tinha esta linha; /positions/ NAO tem e continua com o defeito
-   (relatado, nao tocado — outra tela, fora desta frente).
-   Medido depois, no elemento renderizado: #131519 sobre #FFFFFF = 18.28:1. */
-:root[data-theme="dark"] .lpk button.act:hover{background:#fff}
-.lpk button.act.ghost{background:transparent;color:var(--tinta)}
-.lpk button.act.ghost:hover{background:var(--nevoa)}
-.lpk button.act[disabled]{opacity:.5;cursor:not-allowed}
-.lpk .hint{font-size:12.5px;color:var(--grafite);margin-top:12px;max-width:82ch}
-.lpk .estado{font-family:var(--fm);font-size:12.5px;color:var(--grafite);margin-bottom:0}
-.lpk .prog{color:var(--grafite)}
-.lpk .vt{width:100%;border-collapse:collapse;font-size:14px}
-.lpk .vt td,.lpk .vt th{padding:9px 0;border-bottom:1px solid var(--fio);vertical-align:top;text-align:left}
-.lpk .vt th{font-weight:400}
-.lpk .vt td.v,.lpk .vt th.v{text-align:right;font-family:var(--fm);font-size:12px;color:var(--grafite);word-break:break-all}
-.lpk .tabrol{width:100%;border-collapse:collapse;font-size:13px}
-.lpk .tabrol th,.lpk .tabrol td{padding:8px 10px 8px 0;border-bottom:1px solid var(--fio);text-align:left;vertical-align:top}
-.lpk .tabrol thead th{font-family:var(--fm);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--grafite);font-weight:400}
-.lpk .tabrol td.m,.lpk .tabrol th.m{font-family:var(--fm);font-size:12px;word-break:break-all}
-.lpk .rolagem{overflow-x:auto}
-.lpk .pill{font-family:var(--fm);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--grafite);color:var(--grafite);border-radius:999px;padding:3px 9px;white-space:nowrap}
-.lpk .pill.lido{border-color:var(--verde);color:var(--verde)}
-.lpk .pill.vazio{border-color:var(--lacre);color:var(--lacre)}
-.lpk .passo{border:1px solid var(--fio);border-radius:var(--r-l);padding:20px;background:var(--papel);margin-bottom:16px;border-top:3px solid var(--ultramar)}
-.lpk .passo.morto{border-top-color:var(--lacre)}
-.lpk .passo .cab{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
-.lpk .passo .num{font-family:var(--fm);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--grafite)}
-.lpk .cod{background:var(--tinta);color:#E8EAE6;border-radius:var(--r-m);padding:14px 16px;font-family:var(--fm);font-size:12px;line-height:1.75;overflow-x:auto;margin-top:12px;white-space:pre-wrap;word-break:break-all}
-/* MEDIDO, e e o defeito mais grave que esta auditoria encontrou.
-   `.cod` pinta o FUNDO com var(--tinta) e a LETRA com um literal fixo #E8EAE6.
-   No claro --tinta e #16181D e o par mede 14.67:1. No ESCURO --tinta vira
-   #ECEDEA — quase branco — e o mesmo par mede 1.03:1. O bloco de calldata, que
-   e a unica razao pela qual esta tela existe, ficava branco no branco: o
-   usuario nao conseguia ler os bytes que ia assinar.
-   O par que erra e sempre o mesmo: cor FIXA casada com token que VIRA. As duas
-   paginas irmas que hospedam o mesmo motor ja corrigiam isto — a linha existe
-   em /calldata/ e em /positions/ e foi PERDIDA no porte para ca. O valor abaixo
-   e o mesmo delas, byte-igual, para nao inventar um terceiro preto.
-   Medido depois, no elemento renderizado: #E8EAE6 sobre #0C0E11 = 15.96:1. */
-:root[data-theme="dark"] .lpk .cod{background:#0C0E11}
-/* Os argumentos sao uma <dl>: "address spender" e um termo, o valor e a nota sao
-   a sua definicao. Semantica de HTML resolvendo o que ARIA nao precisava
-   resolver — um leitor de tela anuncia "lista de N itens" e le termo/definicao
-   aos pares, em vez de despejar 300 caracteres corridos. */
-.lpk .args{white-space:normal;word-break:normal}
-.lpk .args dt{font-weight:600}
-.lpk .args dd{margin:0 0 10px 14px;word-break:break-all}
-.lpk .args dd:last-child{margin-bottom:0}
-.lpk .args .notaarg{display:block;font-family:var(--ft);font-size:12px;font-weight:400;word-break:normal;margin-top:2px;opacity:.92}
-.lpk .calldataf{margin-top:14px}
-.lpk .calldataf figcaption{font-family:var(--fm);font-size:11px;letter-spacing:.06em;color:var(--grafite);margin-bottom:0}
-.lpk .calldataf .cod{margin-top:6px}
-/* O bloco de envio de cada passo. Separado por uma linha porque e a fronteira
-   entre ler e agir: acima dela a pagina mostra bytes, abaixo dela ela pede uma
-   assinatura. Nenhuma das mensagens depende de cor para dizer o que diz. */
-.lpk .envio{border-top:1px solid var(--fio);margin-top:16px;padding-top:14px}
-.lpk .envio p{margin-top:8px}
-.lpk .envio p:empty{display:none}
-.lpk .envio .mono{font-family:var(--fm);font-size:12px;word-break:break-all}
-.lpk .regra{border:1px solid var(--fio);border-left:3px solid var(--tinta);border-radius:var(--r-m);padding:20px 22px;margin-bottom:22px;background:var(--nevoa)}
-.lpk .regra .t{font-family:var(--fm);font-size:11px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--grafite);margin-bottom:8px}
-.lpk .regra p{font-size:14px;max-width:82ch}
-.lpk .regra p+p{margin-top:10px}
-.lpk .nao{list-style:none;margin-top:14px;max-width:82ch}
-.lpk .nao li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--fio);font-size:14px}
-.lpk .nao li::before{content:"x";font-family:var(--fm);color:var(--lacre);flex:none;font-weight:600}
-/* O rodape. Era uma parede de links e paragrafos; o fundador chamou de extenso e
-   de mal-acabado, e estava certo — num lugar onde ninguem procura nada, cada
-   linha a mais e ruido cobrando atencao. Tres linhas, e as tres sao uteis. */
-
-/* ═══ o que esta tela acrescenta ═════════════════════════════════════ */
-
-/* O rodape. Era uma parede de links e paragrafos — o fundador chamou de extenso
-   e de mal-acabado, e estava certo: num lugar onde ninguem procura nada, cada
-   linha a mais e ruido cobrando atencao. Tres linhas, e as tres sao uteis. */
-footer .rod{border-top:var(--hair) solid var(--rule);display:flex;flex-wrap:wrap;
-  gap:var(--s2) var(--s5);align-items:baseline;font-family:var(--mono);font-size:12px;
-  color:var(--graphite);max-width:1180px;margin:0 auto;padding:var(--s5) var(--s5) 0}
-footer .rod nav{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s4)}
-footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
-
-/* O seletor de tema. Tres opcoes e nao duas: "seguir o sistema" e a ausencia de
-   escolha gravada, e sem ela o usuario e obrigado a gravar uma preferencia so
-   para usar a pagina — e a partir dai o computador vira noite sem que a pagina
-   acompanhe. */
-.temaops{display:flex;flex-direction:column;gap:var(--s2);margin-top:var(--s4)}
-.temaop{display:flex;align-items:center;gap:var(--s3);width:100%;text-align:left;
-  border:var(--hair) solid var(--edge);background:var(--paper);color:var(--ink);
-  border-radius:var(--r1);padding:var(--s3) var(--s4);cursor:pointer;font:inherit}
-.temaop:hover{border-color:var(--ink)}
-.temaop[aria-checked="true"]{border-color:var(--ultramarine);
-  box-shadow:inset 3px 0 0 var(--ultramarine)}
-.temaop .ic{flex:none;color:var(--graphite)}
-.temaop[aria-checked="true"] .ic{color:var(--ultramarine)}
-.temaop .sub{display:block;font-size:12.5px;color:var(--graphite);margin-top:2px}
-
-/* O selo de estado de cada tela do trilho. Uma tela que nao age precisa dizer
-   isso ONDE se escolhe entrar nela, e nao so depois de aberta. */
-.navb .st{margin-left:auto;font-family:var(--mono);font-size:9px;letter-spacing:.06em;
-  text-transform:uppercase;border:var(--hair) solid currentColor;border-radius:var(--rp);
-  padding:1px 6px;opacity:.75}
-.navb .st.age{color:var(--green)}
-.navb .st.espera{color:var(--saffron-ink)}
-
-/* O cartao de "o que falta". Nao e um aviso de erro e nao e um placeholder: e o
-   estado real de um contrato que nao esta na chain, escrito como tal. */
-.falta{border:var(--hair) solid var(--rule);border-left:3px solid var(--saffron);
-  border-radius:var(--r2);padding:var(--s5);background:var(--a-soft)}
-.falta h2{margin-bottom:var(--s3)}
-.falta dl{margin-top:var(--s4);display:grid;gap:var(--s2) var(--s4);
-  grid-template-columns:max-content minmax(0,1fr);font-size:13.5px}
-.falta dt{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--graphite);padding-top:3px}
-.falta dd{min-width:0;word-break:break-word}
-@media(max-width:640px){.falta dl{grid-template-columns:1fr}.falta dt{padding-top:var(--s2)}}
-</style>
+<link href="/vendor/estilos-inline.css" rel="stylesheet">
+<link href="/vendor/estilos/console.css" rel="stylesheet">
 </head>
 <body class="no3d">
 
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<svg class="u-ff791649" width="0" height="0" aria-hidden="true"><defs>
   <g id="mark">
     <path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
     <path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
@@ -1006,14 +141,14 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
 </defs></svg>
 
 <div class="ambient-fallback" aria-hidden="true">
-  <svg viewBox="0 0 120 120" style="color:var(--ink)"><use href="#markline"/></svg></div>
+  <svg class="u-632dffa6" viewBox="0 0 120 120"><use href="#markline"/></svg></div>
 
 <a class="skip" href="#main">Skip to content</a>
 
 <div class="app">
 <header><div class="hd">
   <span class="brandmark">
-    <svg class="mk" viewBox="0 0 120 120" aria-hidden="true" style="color:var(--ink)"><use href="#mark"/></svg>
+    <svg class="mk u-632dffa6" viewBox="0 0 120 120" aria-hidden="true"><use href="#mark"/></svg>
     <span><b translate="no">Triviu</b> <span class="faint" translate="no">· console</span></span>
   </span>
   <div class="spacer"></div>
@@ -1044,11 +179,11 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
     <button class="navb" type="button" data-p="lp"><svg class="ic" aria-hidden="true"><use href="#i-liquidity"/></svg>Provide liquidity<span class="st age">acts</span></button>
     <button class="navb" type="button" data-p="ops"><svg class="ic" aria-hidden="true"><use href="#i-operate"/></svg>Operate<span class="st espera">waiting</span></button>
     <button class="navb" type="button" data-p="analytics"><svg class="ic" aria-hidden="true"><use href="#i-analytics"/></svg>Analytics<span class="st espera">waiting</span></button>
-    <p class="cap" style="margin-top:var(--s4)">protocol</p>
+    <p class="cap u-bfa31e80">protocol</p>
     <button class="navb" type="button" data-p="layers"><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg>Layers · L1 / L2<span class="st age">reads</span></button>
     <button class="navb" type="button" data-p="refs"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>Referrals<span class="st espera">waiting</span></button>
     <button class="navb" type="button" data-p="contracts"><svg class="ic" aria-hidden="true"><use href="#i-contract"/></svg>Contracts<span class="st age">reads</span></button>
-    <p class="cap" style="margin-top:var(--s4)">account</p>
+    <p class="cap u-bfa31e80">account</p>
     <button class="navb" type="button" data-p="instances"><svg class="ic" aria-hidden="true"><use href="#i-instances"/></svg>Instances<span class="st age">acts</span></button>
     <button class="navb" type="button" data-p="profile"><svg class="ic" aria-hidden="true"><use href="#i-profile"/></svg>Profile</button>
     <button class="navb" type="button" data-p="help"><svg class="ic" aria-hidden="true"><use href="#i-help"/></svg>How it works</button>
@@ -1074,7 +209,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
   <!-- ══════════════════════════ OVERVIEW ══════════════════════════ -->
   <section class="pane" id="p-over" role="region" aria-label="Overview" tabindex="-1">
     <div class="phead"><p class="eyebrow">console · overview</p>
-      <h1 style="margin-top:var(--s3)">Fourteen screens.<br><em>Two of them can spend your money</em>.</h1>
+      <h1 class="u-0173988c">Fourteen screens.<br><em>Two of them can spend your money</em>.</h1>
       <p class="lede">Most consoles show you everything as if it all worked. This one sorts its own
       screens into the ones whose contracts are deployed and the ones whose contracts are not, and puts
       the sorting where you choose — on the rail, next to the name.</p></div>
@@ -1087,16 +222,16 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         <p>Triviu is education, not income. For most participants the expected result after fees and gas
         trends to zero or below. There is no Triviu token and no presale — anyone offering one is running
         a scam. Possibility is not probability.</p>
-        <p style="margin-top:var(--s2)">The one screen here that signs asks your wallet for a real
+        <p class="u-0f76b54b">The one screen here that signs asks your wallet for a real
         transaction, with real money, on Polygon PoS. Providing liquidity can return less than it took:
         fees earned are real and so is impermanent loss, and this console shows you the second one
         because the first one alone is an advertisement.</p></div>
     </div>
 
-    <div class="panel" style="margin-top:var(--s5)">
+    <div class="panel u-39761cb3">
       <div class="chead"><h2 class="hsec">What acts, and what is waiting</h2><div class="spacer"></div>
         <span class="pill" translate="no">measured 2026-08-12 · chain 137</span></div>
-      <p class="small faint" style="margin-bottom:var(--s3)">A screen is listed as waiting when the
+      <p class="small faint u-26b5a4e8">A screen is listed as waiting when the
       contract behind it has no code at any address this page could point at, or when the chain refuses
       the call for every caller. Neither case is a roadmap note: both were read off the chain.</p>
       <div class="tscroll"><table translate="no">
@@ -1123,13 +258,13 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         </tbody></table></div>
     </div>
 
-    <div class="panel" style="margin-top:var(--s4)">
+    <div class="panel u-bfa31e80">
       <div class="chead"><h2 class="hsec">Why nine screens have no numbers in them</h2></div>
       <p class="small">Until 2026-08-12 every one of them was full. The wallet was fake, the chain was
       fake, the cycle outcomes were drawn from a generator, and the ledger, the charts and the strategy
       cards were all downstream of that draw. Emptying them is not a loss of function — it is the
       removal of a function that never existed.</p>
-      <p class="small" style="margin-top:var(--s3)">They read <b>&ldquo;&mdash;&rdquo;</b> rather than
+      <p class="small u-0173988c">They read <b>&ldquo;&mdash;&rdquo;</b> rather than
       <span class="mono">0</span> wherever nothing has been read. A missing record and a zero are not the
       same fact, and a plausible figure in an empty field is an invention wearing a measurement's
       clothes.</p>
@@ -1139,12 +274,12 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
   <!-- ══════════════════════════ SUB-ACCOUNTS ══════════════════════════ -->
   <section class="pane" id="p-vaults" role="region" aria-label="Sub-accounts" tabindex="-1">
     <div class="phead"><p class="eyebrow">operation · sub-accounts</p>
-      <h1 style="margin-top:var(--s3)">Capital is sliced,<br><em>never stacked</em>.</h1>
+      <h1 class="u-0173988c">Capital is sliced,<br><em>never stacked</em>.</h1>
       <p class="lede">A sub-account is its own vault: its own base currency, its own fence, its own
       history. The executor of one never reaches the capital of another. Size is bounded on purpose —
       a large position moves the price against itself, so the strategy runs many small ones instead.</p></div>
-    <div class="panel" style="border-left:3px solid var(--saffron)">
-      <div class="chead"><svg class="ic ic-l" style="color:var(--saffron-ink)" aria-hidden="true"><use href="#i-shield"/></svg>
+    <div class="panel u-905b7197">
+      <div class="chead"><svg class="ic ic-l u-61dc39cf" aria-hidden="true"><use href="#i-shield"/></svg>
         <h3>Operating band · 10 to 500 per sub-account</h3><div class="spacer"></div>
         <button class="mini ghost" data-explain="subaccounts" aria-label="What is this">
           <svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button></div>
@@ -1152,7 +287,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       slippage of a single position starts eating the edge it was chasing. The ceiling rises as the
       sub-account builds a real record — not as a reward, but because a proven size is a measured one.</p>
     </div>
-    <div class="row" style="margin-top:var(--s5)">
+    <div class="row u-39761cb3">
       <div><label for="nvName">Name</label><input id="nvName" placeholder="Conservative" maxlength="40" autocomplete="off"></div>
       <div><label for="nvBase">Base</label><select id="nvBase"><option>USDT</option><option>USDC.e</option><option>DAI</option></select></div>
       <div><label for="nvSeed">Opening size <span class="faint">each</span></label><input id="nvSeed" placeholder="blank = open empty" inputmode="decimal"></div>
@@ -1170,11 +305,11 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       blank to open them empty and fund them in one go from <b>Liquidity &amp; gas</b> — that is how a
       round number divides cleanly. Empty the fence at any time and that sub-account opens nothing.</p>
     <div class="vaults" id="vaultGrid"></div>
-    <div class="panel" id="vaultDetail" style="margin-top:var(--s5)" hidden>
+    <div class="panel u-39761cb3" id="vaultDetail" hidden>
       <div class="chead"><h3 id="vdName">—</h3><span class="pill" id="vdBase"></span><div class="spacer"></div>
         <button class="mini" data-go="fence"><svg class="ic" aria-hidden="true"><use href="#i-fence"/></svg>Fence</button>
         <button class="mini danger" id="btnDelVault"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Close</button></div>
-      <div class="ledger" style="border-top-width:1px;margin-bottom:var(--s4)">
+      <div class="ledger u-74f8a958">
         <div class="lead"><div class="k">Result</div><div class="v" id="vdNet">—</div><div class="d">net of gas and fee</div></div>
         <div class="side">
           <div class="lcell"><div class="k">Idle</div><div class="v num" id="vdIdle">—</div><div class="d">withdrawable</div></div>
@@ -1187,10 +322,10 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         <div><label for="vdWd">Withdraw</label><input id="vdWd" placeholder="100" inputmode="decimal"></div>
         <div class="tight"><button id="btnWd">Withdraw</button></div>
       </div>
-      <h3 style="margin-top:var(--s5)">Open positions · emergency rescue</h3>
+      <h3 class="u-39761cb3">Open positions · emergency rescue</h3>
       <p class="small faint">Rescue sends the position's token straight to your wallet — no keeper, no
       route, no quote. It exists for the day everything else has stopped.</p>
-      <div class="tscroll" style="margin-top:var(--s3)"><table translate="no" id="posTable" hidden>
+      <div class="tscroll u-0173988c"><table translate="no" id="posTable" hidden>
         <thead><tr><th>id</th><th>asset</th><th>cost</th><th>opened</th><th></th></tr></thead><tbody></tbody></table></div>
       <p class="small faint" id="posEmpty">No open position.</p>
     </div>
@@ -1198,16 +333,16 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
 
   <section class="pane" id="p-liquidity" role="region" aria-label="Liquidity and gas" tabindex="-1">
     <div class="phead"><p class="eyebrow">operation · liquidity and gas</p>
-      <h1 style="margin-top:var(--s3)">Two reserves,<br><em>both of them yours</em>.</h1>
+      <h1 class="u-0173988c">Two reserves,<br><em>both of them yours</em>.</h1>
       <p class="lede">The <b>liquidity</b> is the base currency inside a sub-account vault — what the
       cycle actually trades. The <b>gas reserve</b> is native currency held in the GasTank so a return
       leg never gets stuck in the block flow for want of gas. They are separate contracts, separate
       balances, and both are non-custodial: only you move either one.</p></div>
 
-    <div class="grid2" style="margin-top:0;align-items:start">
+    <div class="grid2 u-120048cd">
       <!-- LIQUIDITY -->
-      <div class="panel" style="border-left:3px solid var(--ultramarine)">
-        <div class="chead"><svg class="ic ic-l" style="color:var(--ultramarine)" aria-hidden="true"><use href="#i-liquidity"/></svg>
+      <div class="panel u-ecc6f5cf">
+        <div class="chead"><svg class="ic ic-l u-3311d222" aria-hidden="true"><use href="#i-liquidity"/></svg>
           <h3>Liquidity</h3><div class="spacer"></div>
           <button class="mini ghost" data-explain="liquidity" aria-label="What is this">
             <svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button></div>
@@ -1215,8 +350,8 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
           <div><label for="lqVault">Sub-account</label><select id="lqVault"></select></div>
           <div><label for="lqNet">Network</label><select id="lqNet"></select></div>
         </div>
-        <div class="ledger" style="border-top-width:1px;margin:var(--s4) 0;grid-template-columns:1fr">
-          <div class="side" style="grid-template-columns:repeat(auto-fit,minmax(110px,1fr))">
+        <div class="ledger u-d4a5bf59">
+          <div class="side u-8e2fdceb">
             <div class="lcell"><div class="k">Idle</div><div class="v num" id="lqIdle">—</div><div class="d">withdrawable now</div></div>
             <div class="lcell"><div class="k">In position</div><div class="v num" id="lqPos">—</div><div class="d">locked until close</div></div>
             <div class="lcell"><div class="k">Headroom</div><div class="v num" id="lqRoom">—</div><div class="d">to the 500 ceiling</div></div>
@@ -1226,7 +361,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
           <div class="tight"><button class="primary" id="btnLqAdd">
             <svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Add</button></div>
         </div>
-        <div class="row" style="margin-top:var(--s3)">
+        <div class="row u-0173988c">
           <div><label for="lqRem">Remove liquidity</label><input id="lqRem" placeholder="empty = all idle" inputmode="decimal"></div>
           <div class="tight"><button id="btnLqRem">Remove</button></div>
         </div>
@@ -1236,12 +371,12 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       </div>
 
       <!-- SPREAD · one amount, many sub-accounts -->
-      <div class="panel" style="border-left:3px solid var(--green)">
-        <div class="chead"><svg class="ic ic-l" style="color:var(--green)" aria-hidden="true"><use href="#i-vaults"/></svg>
+      <div class="panel u-e5e3a2f6">
+        <div class="chead"><svg class="ic ic-l u-7608acb2" aria-hidden="true"><use href="#i-vaults"/></svg>
           <h3>Spread across sub-accounts</h3><div class="spacer"></div>
           <button class="mini ghost" data-explain="spread" aria-label="What is this">
             <svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button></div>
-        <p class="small faint" style="margin-bottom:var(--s3)">Pick the sub-accounts, name one total,
+        <p class="small faint u-26b5a4e8">Pick the sub-accounts, name one total,
           and it divides exactly — to the cent. Nothing is rounded away and nothing is invented.</p>
         <div class="row">
           <div><label for="spTotal">Total to spread</label><input id="spTotal" placeholder="5000" inputmode="decimal"></div>
@@ -1250,24 +385,24 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
           <div class="tight"><button class="mini ghost" id="spMax">Max that fits</button></div>
         </div>
         <div class="picklist" id="spList" role="group" aria-label="Sub-accounts to fund"></div>
-        <div class="tscroll" style="margin-top:var(--s3)"><table translate="no">
+        <div class="tscroll u-0173988c"><table translate="no">
           <thead><tr><th>sub-account</th><th>now</th><th>receives</th><th>after</th><th>headroom</th></tr></thead>
           <tbody id="spRows"></tbody></table></div>
-        <p class="small" id="spMath" style="margin-top:var(--s3)"></p>
-        <div class="row" style="margin-top:var(--s3)">
+        <p class="small u-0173988c" id="spMath"></p>
+        <div class="row u-0173988c">
           <div class="tight"><button class="primary" id="btnSpread" disabled>
             <svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Spread</button></div>
         </div>
       </div>
 
       <!-- GAS -->
-      <div class="panel" style="border-left:3px solid var(--saffron)">
-        <div class="chead"><svg class="ic ic-l" style="color:var(--saffron-ink)" aria-hidden="true"><use href="#i-fuel"/></svg>
+      <div class="panel u-905b7197">
+        <div class="chead"><svg class="ic ic-l u-61dc39cf" aria-hidden="true"><use href="#i-fuel"/></svg>
           <h3>Gas reserve · GasTank</h3><div class="spacer"></div>
           <button class="mini ghost" data-explain="gas" aria-label="What is this">
             <svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button></div>
-        <div class="ledger" style="border-top-width:1px;margin:var(--s4) 0;grid-template-columns:1fr">
-          <div class="side" style="grid-template-columns:repeat(auto-fit,minmax(110px,1fr))">
+        <div class="ledger u-d4a5bf59">
+          <div class="side u-8e2fdceb">
             <div class="lcell"><div class="k">Reserve</div><div class="v num" id="gtBal">—</div><div class="d" id="gtCoin">POL</div></div>
             <div class="lcell"><div class="k">Burned so far</div><div class="v num lose" id="gtBurn">—</div><div class="d">all time · reverts included</div></div>
             <div class="lcell"><div class="k">Cycles covered</div><div class="v num" id="gtRuns">—</div><div class="d">at the current estimate</div></div>
@@ -1277,14 +412,14 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
           <div class="tight"><button class="primary" id="btnGtAdd">
             <svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Fund</button></div>
         </div>
-        <div class="row" style="margin-top:var(--s3)">
+        <div class="row u-0173988c">
           <div><label for="gtRem">Remove gas</label><input id="gtRem" placeholder="empty = all" inputmode="decimal"></div>
           <div class="tight"><button id="btnGtRem">Withdraw</button></div>
         </div>
         <p class="hint">Native currency, one balance per account, and <b>only you can move it</b> —
         the protocol takes nothing here and earns nothing here. Withdrawal follows
         Checks-Effects-Interactions, so a reentrant call sees the already-debited balance.</p>
-        <div class="risk" style="margin:var(--s4) 0 0">
+        <div class="risk u-91efae0f">
           <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
           <div><b>Honest about v0</b>
             <p>Today this is a transparent, user-controlled escrow: nothing leaves except back to the
@@ -1295,10 +430,10 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       </div>
     </div>
 
-    <div class="panel" style="margin-top:var(--s4)">
+    <div class="panel u-bfa31e80">
       <div class="chead"><h3>Across networks</h3><div class="spacer"></div>
         <span class="pill warn">nothing is live before its gate</span></div>
-      <p class="small faint" style="margin-bottom:var(--s3)">Liquidity lives per sub-account on one
+      <p class="small faint u-26b5a4e8">Liquidity lives per sub-account on one
       network. Gas lives per network, in that network's own currency — they are not interchangeable.</p>
       <div class="tscroll"><table translate="no">
         <thead><tr><th>network</th><th>chain</th><th>gas currency</th><th>liquidity</th><th>gas reserve</th><th>status</th></tr></thead>
@@ -1308,7 +443,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
 
   <section class="pane" id="p-fence" role="region" aria-label="Fence" tabindex="-1">
     <div class="phead"><p class="eyebrow">operation · the fence</p>
-      <h1 style="margin-top:var(--s3)">Sixteen ways to say no,<br><em>and no contract to say them to</em>.</h1>
+      <h1 class="u-0173988c">Sixteen ways to say no,<br><em>and no contract to say them to</em>.</h1>
       <p class="lede">The fence is the policy contract that bounds what a keeper may ask for: allowed
       assets, allowed routers, ceilings, a profit floor, a cadence, a window. It is born closed — empty
       lists, zero ceilings — and only the owner ever touches it.</p></div>
@@ -1324,7 +459,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         <dt>state</dt><dd>source written, 6,546 B runtime measured against the EIP-170 ceiling</dd>
         <dt>readable</dt><dd>the source, on the <button class="mini ghost" type="button" data-ir="contracts">Contracts screen</button></dd>
       </dl>
-      <p class="small" style="margin-top:var(--s4)">The sixteen controls are not drawn here as a
+      <p class="small u-bfa31e80">The sixteen controls are not drawn here as a
       disabled form. A greyed-out fence would suggest the fence exists and is merely locked, and what is
       true is that it has never been created.</p>
     </div>
@@ -1333,14 +468,14 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
   <!-- ══════════════════════════ STRATEGIES ══════════════════════════ -->
   <section class="pane" id="p-strategy" role="region" aria-label="Strategies" tabindex="-1">
     <div class="phead"><p class="eyebrow">strategy · a fence with a name</p>
-      <h1 style="margin-top:var(--s3)">Nobody here will tell you<br><em>which one earns more</em>.</h1>
+      <h1 class="u-0173988c">Nobody here will tell you<br><em>which one earns more</em>.</h1>
       <p class="lede">A strategy is not a secret — it is a set of limits: what may be bought, when,
       how large, how much slippage is tolerated, when to stop for the day. Pick one of the defaults,
       or build your own in the Fence and save it here. What none of them carries is a promised return.
       The console measures; it does not forecast.</p></div>
 
     <div class="panel">
-      <div class="chead"><svg class="ic ic-l" style="color:var(--saffron-ink)" aria-hidden="true"><use href="#i-shield"/></svg>
+      <div class="chead"><svg class="ic ic-l u-61dc39cf" aria-hidden="true"><use href="#i-shield"/></svg>
         <h3>Why no strategy here shows a return</h3></div>
       <p class="small">Every number you will see on these cards was produced by <b>your own session</b>,
       by running the cycles yourself, and it always carries how many cycles it came from. Until you
@@ -1349,10 +484,10 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       predict nothing about a market.</p>
     </div>
 
-    <div class="panel" style="margin-top:var(--s4)">
+    <div class="panel u-bfa31e80">
       <div class="chead"><h3>Bake-off</h3><div class="spacer"></div>
         <span class="pill" id="bakeState">not measured</span></div>
-      <p class="small faint" style="margin-bottom:var(--s3)">Runs every default strategy under identical
+      <p class="small faint u-26b5a4e8">Runs every default strategy under identical
       conditions on the selected sub-account, and ranks them by what actually came out — net after gas
       and fee. The fence you have set is restored when it finishes.</p>
       <div class="row">
@@ -1364,7 +499,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
           <svg class="ic" aria-hidden="true"><use href="#i-fastforward"/></svg>Measure all</button></div>
         <div class="tight"><button class="ghost" id="btnBakeClear">Reset measurements</button></div>
       </div>
-      <div class="tscroll" style="margin-top:var(--s4)"><table translate="no">
+      <div class="tscroll u-bfa31e80"><table translate="no">
         <thead><tr><th>#</th><th>strategy</th><th>cycles</th><th>closed</th><th>reverted</th>
           <th>revert rate</th><th>deployed</th><th>net after gas &amp; fee</th>
           <th>net per 1,000</th><th>return on deployed</th><th>gas</th></tr></thead>
@@ -1378,11 +513,11 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         simulation of a few dozen attempts, where the draw decides. Run it twice and it changes.</p>
     </div>
 
-    <div class="chead" style="margin-top:var(--s6)"><h3>Default strategies</h3>
+    <div class="chead u-252959c9"><h3>Default strategies</h3>
       <span class="pill" id="stratApplied">none applied</span></div>
     <div class="strat" id="stratGrid"></div>
 
-    <div class="chead" style="margin-top:var(--s6)"><h3>Your own</h3><div class="spacer"></div>
+    <div class="chead u-252959c9"><h3>Your own</h3><div class="spacer"></div>
       <button class="mini" id="btnSaveStrat"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg>Save current fence as a strategy</button></div>
     <p class="small faint">The sixteen controls in the Fence stay exactly as they are. This only gives
       the arrangement a name so you can apply it to another sub-account later.</p>
@@ -1392,7 +527,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
 
   <section class="pane on" id="p-lp" role="region" aria-label="Provide liquidity" tabindex="-1">
     <div class="phead"><p class="eyebrow">operation · provide liquidity</p>
-      <h1 style="margin-top:var(--s3)">There is no best pool.<br><em>There is a best pool for your size</em>.</h1>
+      <h1 class="u-0173988c">There is no best pool.<br><em>There is a best pool for your size</em>.</h1>
       <p class="lede">This is the screen that signs. It opens, authorises, collects from and closes a
       Uniswap V3 position through <b translate="no">TriviuLPVault</b>, the shared router live on chain
       137 — and the position is minted in <b>your own name</b>, with the router never its owner. Every
@@ -1400,17 +535,17 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       fingerprinted, and the frozen object is the one that gets sent.</p></div>
 
     <div class="panel">
-      <div class="chead"><svg class="ic ic-l" style="color:var(--saffron-ink)" aria-hidden="true"><use href="#i-shield"/></svg>
+      <div class="chead"><svg class="ic ic-l u-61dc39cf" aria-hidden="true"><use href="#i-shield"/></svg>
         <h2 class="hsec">Read this before the numbers</h2></div>
       <p class="small">A return of <span class="mono">77.4%</span> is true at $250 and false at
       $50,000 — <b>in the same pool, in the same week</b>. That is why this screen asks how much you
       are bringing <i>before</i> it shows you anything. The ranking below reorders itself completely
       between sizes: the pool that leads at $500 finishes fifth at $200,000.</p>
-      <p class="small" style="margin-top:var(--s3)"><b>And it is one window.</b> Seven days, ending at
+      <p class="small u-0173988c"><b>And it is one window.</b> Seven days, ending at
       a fixed block. The same pool measured forty minutes apart gave 49.44% and 51.97% — a 5% relative
       swing from nothing but the clock. Read every figure here as <i>what a position would have earned
       in those seven days</i>, never as what one will earn.</p>
-      <p class="small" style="margin-top:var(--s3)"><b>Approve the exact amount, never
+      <p class="small u-0173988c"><b>Approve the exact amount, never
       &ldquo;unlimited&rdquo;.</b> Opening needs an ERC-20 allowance to a shared router, and your wallet
       will offer you an unlimited one because most of them do. The contract pulls only the amount you
       passed and resets router approval to zero afterwards — but an unlimited allowance lives in your
@@ -1418,10 +553,10 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       refusal is a check on the bytes rather than on anyone's intentions.</p>
     </div>
 
-    <div class="panel" style="margin-top:var(--s4)">
+    <div class="panel u-bfa31e80">
       <div class="chead"><h2 class="hsec">1 · How much are you bringing</h2><div class="spacer"></div>
         <span class="pill" id="lpSizeState">choose a size</span></div>
-      <p class="small faint" style="margin-bottom:var(--s3)">Sizes below are the ones actually
+      <p class="small faint u-26b5a4e8">Sizes below are the ones actually
       measured. Anything between them is shown as the nearest measured size, and labelled as such —
       an interpolated number would be an invention wearing a measurement's clothes.</p>
       <div class="row">
@@ -1447,7 +582,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         measurement you can read and not a position this page can open.</p>
     </div>
 
-    <div class="panel" style="margin-top:var(--s4)">
+    <div class="panel u-bfa31e80">
       <div class="chead"><h2 class="hsec">2 · What was measured, ranked for that size</h2>
         <div class="spacer"></div><span class="pill" id="lpWindow">&mdash;</span></div>
       <div class="tscroll"><table translate="no">
@@ -1468,15 +603,15 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         this screen.</p>
     </div>
 
-    <div class="panel" id="lpCostPanel" style="margin-top:var(--s4)" hidden>
-      <div class="chead"><svg class="ic ic-l" style="color:var(--sealwax)" aria-hidden="true"><use href="#i-info"/></svg>
+    <div class="panel u-bfa31e80" id="lpCostPanel" hidden>
+      <div class="chead"><svg class="ic ic-l u-f427803b" aria-hidden="true"><use href="#i-info"/></svg>
         <h2 class="hsec">What your network choice costs</h2></div>
       <div id="lpCostBody"></div>
     </div>
 
-    <div class="panel" style="margin-top:var(--s4)">
+    <div class="panel u-bfa31e80">
       <div class="chead"><h2 class="hsec">3 · How the size changes the ranking</h2></div>
-      <p class="small faint" style="margin-bottom:var(--s3)">The same pools, the same week, ordered by
+      <p class="small faint u-26b5a4e8">The same pools, the same week, ordered by
       annualised return at each size. Watch the order break.</p>
       <div class="tscroll"><table translate="no">
         <thead><tr id="lpFlipHead"></tr></thead>
@@ -1486,7 +621,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         reaches that limit early.</p>
     </div>
 
-    <div class="panel" style="margin-top:var(--s4)">
+    <div class="panel u-bfa31e80">
       <div class="chead"><h2 class="hsec">4 · Where these numbers came from</h2></div>
       <div class="tscroll"><table translate="no">
         <thead><tr><th>network</th><th>window</th><th>blocks read</th><th>log windows</th>
@@ -1505,9 +640,9 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
          Everything above is a measurement taken in the past. Everything below is
          read live and, at the end, sent. The boundary gets a heading rather than
          a scroll, because the two halves make very different claims. -->
-    <div class="phead" style="margin-top:var(--s9)">
+    <div class="phead u-9a6b92e4">
       <p class="eyebrow">the same screen · from here it is live</p>
-      <h2 class="hpane" style="margin-top:var(--s3)">Now the chain,<br><em>and every byte before your wallet sees it</em>.</h2>
+      <h2 class="hpane u-0173988c">Now the chain,<br><em>and every byte before your wallet sees it</em>.</h2>
       <p class="lede">Four actions, and they are the whole life of a position: open it, authorise the
       vault for it, collect what it earned, close it. Nothing below is drawn from the table above — it
       is read from chain 137 when you press Read, and encoded from what you type.</p>
@@ -1518,7 +653,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         <h2 class="rot">This page is not reading anything</h2>
         <p id="lp-fatal-txt"></p>
       </div>
-      <p class="hint" style="margin-top:0" id="lp-origem">Checking which origin is serving this page&hellip;</p>
+      <p class="hint u-a0925a28" id="lp-origem">Checking which origin is serving this page&hellip;</p>
 
 <section class="painel" aria-labelledby="h-carteira">
     <h2 id="h-carteira">Your wallet, and which chain it is on</h2>
@@ -1542,14 +677,14 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
     Content-Security-Policy of this origin names these three hosts in <span class="mono" translate="no">connect-src</span>
     and the browser blocks a fourth. The lock is the browser's, not this page's promise.</span></p>
 
-    <p class="estado" style="margin-top:14px"><span id="lp-estado" role="status" aria-live="polite">Nothing read yet.</span> <span class="erro" id="lp-erro" role="alert"></span> <span class="prog" id="lp-prog" aria-hidden="true"></span></p>
+    <p class="estado u-c53ea1da"><span id="lp-estado" role="status" aria-live="polite">Nothing read yet.</span> <span class="erro" id="lp-erro" role="alert"></span> <span class="prog" id="lp-prog" aria-hidden="true"></span></p>
 
-    <div id="lp-chain-alerta" class="alerta" role="alert" style="margin-top:16px;margin-bottom:0" hidden>
+    <div id="lp-chain-alerta" class="alerta u-6d795d56" role="alert" hidden>
       <span class="rot">Wrong chain</span>
       <p id="lp-chain-txt"></p>
     </div>
 
-    <div class="rolagem" style="margin-top:18px">
+    <div class="rolagem u-2bdf8e45">
       <table class="vt">
         <tbody>
           <tr><th scope="row">Address in use &mdash; typed, or returned by the wallet</th><td class="v" translate="no" id="lp-w-conta">&mdash;</td></tr>
@@ -1578,8 +713,8 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
     The vault knows what went <i>into</i> it &mdash; and if the vault has no record, the close charges
     exactly zero, because an absent record is not a zero and the contract treats it as "cannot prove a
     result".</p>
-    <p class="estado" style="margin-top:12px"><span id="lp-pos-estado" role="status" aria-live="polite">Nothing read yet.</span></p>
-    <div class="rolagem" style="margin-top:14px">
+    <p class="estado u-0ee7f66a"><span id="lp-pos-estado" role="status" aria-live="polite">Nothing read yet.</span></p>
+    <div class="rolagem u-c53ea1da">
       <table class="vt">
         <tbody>
           <tr><th scope="row">Owner, <span class="mono" translate="no">ownerOf</span></th><td class="v" translate="no" id="lp-p-dono">&mdash;</td></tr>
@@ -1595,7 +730,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
   </section>
 
 <section aria-labelledby="h-fluxo">
-    <h2 id="h-fluxo" style="margin-top:38px">The flow, and the exact bytes of each step</h2>
+    <h2 class="u-85510fa2" id="h-fluxo">The flow, and the exact bytes of each step</h2>
     <p class="lead">Four actions, and they are the whole life of a position: open it, authorise the vault
     for it, collect what it earned, close it. Pick one, fill in what it needs, and press Encode. Nothing is
     sent by encoding &mdash; encoding builds the bytes, freezes them, prices them against the chain as it is
@@ -1722,7 +857,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
 
       <div class="grupo" id="g-posicao">
         <span class="rot">Which position</span>
-        <p class="hint" style="margin-top:0">The token id comes from the field in the section above, and it
+        <p class="hint u-a0925a28">The token id comes from the field in the section above, and it
         is the same one. Read the position there first: it shows whether the vault is already approved on
         it, which is what decides between a call that works and one that reverts
         <span class="mono" translate="no">AprovacaoAusente</span>.</p>
@@ -1759,7 +894,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         the chain. Lower it if you want to.</p>
       </div>
 
-      <p class="estado" style="margin-top:16px"><span id="lp-fluxo-estado" role="status" aria-live="polite">Nothing encoded yet.</span> <span class="erro" id="lp-fluxo-erro" role="alert"></span></p>
+      <p class="estado u-92c18f6b"><span id="lp-fluxo-estado" role="status" aria-live="polite">Nothing encoded yet.</span> <span class="erro" id="lp-fluxo-erro" role="alert"></span></p>
       <p class="hint" id="lp-permissao">The allowance the vault already holds over each token appears here
       before any new one is requested. If it cannot be read, the approval is not offered for signature at
       all: showing the standing permission first is the rule, and a page that cannot show it has not earned
@@ -1820,11 +955,11 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
   <!-- ══════════════════════════ OPERATE ══════════════════════════ -->
   <section class="pane" id="p-ops" role="region" aria-label="Operate" tabindex="-1">
     <div class="phead"><p class="eyebrow">operation · atomic route</p>
-      <h1 style="margin-top:var(--s3)">It closes the loop,<br><em>or it never happened</em>.</h1>
+      <h1 class="u-0173988c">It closes the loop,<br><em>or it never happened</em>.</h1>
       <p class="lede">The route leaves the base currency, walks the hops and comes back. If it does not
       come back above the minimum after gas, the whole transaction is undone — no leg is ever left
       half-open. You keep the principal; you lose the gas.</p></div>
-    <div class="grid2" style="align-items:start;margin-top:0">
+    <div class="grid2 u-ea1e80de">
       <div class="panel">
         <div class="chead"><h3>Route</h3><div class="spacer"></div>
           <button class="mini ghost" data-explain="cycle" aria-label="What is this">
@@ -1838,13 +973,13 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
           <div><label for="opSize">Size</label><input id="opSize" value="250" inputmode="decimal"></div>
         </div>
         <div class="hops" id="hopRow"></div>
-        <div class="row" style="margin-top:var(--s4)">
+        <div class="row u-bfa31e80">
           <div><label for="opMin">Min profit (bps)</label><input id="opMin" value="8" inputmode="decimal"></div>
           <div><label for="opSlip">Max slippage (bps)</label><input id="opSlip" value="30" inputmode="decimal"></div>
           <div><label for="opAgg">Execution venue</label><select id="opAgg">
             <option>Triviu engine</option><option>1inch</option><option>0x</option></select></div>
         </div>
-        <div class="row" style="margin-top:var(--s5)">
+        <div class="row u-39761cb3">
           <div class="tight"><button class="primary big" id="btnRun"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Run one cycle</button></div>
           <div class="tight"><button id="btnBatch"><svg class="ic" aria-hidden="true"><use href="#i-fastforward"/></svg>Run 25</button></div>
           <div class="tight"><button class="ghost" id="btnShuffle"><svg class="ic" aria-hidden="true"><use href="#i-shuffle"/></svg>Reshuffle</button></div>
@@ -1856,7 +991,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         <div class="tscroll"><table translate="no"><tbody id="preRows"></tbody></table></div>
         <div class="codeb" id="preCode" translate="no"></div></div>
     </div>
-    <div class="panel" style="margin-top:var(--s4)">
+    <div class="panel u-bfa31e80">
       <div class="chead"><svg class="ic ic-l" aria-hidden="true"><use href="#i-power"/></svg>
         <h3>Automation</h3><span class="pill" id="autoPill">off</span>
         <span class="livedot" id="autoLive" hidden></span>
@@ -1864,13 +999,13 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         <button class="mini ghost" data-explain="automation" aria-label="What is this">
           <svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button></div>
 
-      <div class="ledger" style="border-top-width:1px;margin:0 0 var(--s4);grid-template-columns:1fr">
-        <div class="lead" style="padding-top:var(--s4)">
+      <div class="ledger u-28d8e9c6">
+        <div class="lead u-a3c71605">
           <div class="k">Two brakes, and they are not the same one</div>
-          <p class="small" style="margin-top:var(--s2)"><b>Automation</b> is this console's engine: it
+          <p class="small u-0f76b54b"><b>Automation</b> is this console's engine: it
           opens cycles for you on an interval, using the sub-account's own fence. Turning it off stops
           the engine — <b>it does not pause any contract</b>.</p>
-          <p class="small" style="margin-top:var(--s2)"><b>Emergency pause</b> is
+          <p class="small u-0f76b54b"><b>Emergency pause</b> is
           <span class="mono">definirPausa(true)</span> on chain, per sub-account. That is the real
           handbrake: it blocks opening while closing and rescue stay free. It survives this page being
           closed; the automation switch does not.</p>
@@ -1899,15 +1034,15 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       <p class="hint">The engine skips any sub-account that is paused, has an empty fence or lacks idle
       balance, and writes the reason below instead of failing quietly. It stops when this page is
       closed — a loop that spends should not outlive the tab that started it.</p>
-      <div class="feed" id="autoLog" style="margin-top:var(--s4)" role="log" aria-live="polite"></div>
+      <div class="feed u-bfa31e80" id="autoLog" role="log" aria-live="polite"></div>
     </div>
 
-    <div class="panel" style="margin-top:var(--s4)">
+    <div class="panel u-bfa31e80">
       <div class="chead"><h3>Execution log</h3><span class="pill bad" id="revCount">—</span>
         <div class="spacer"></div>
         <button class="mini ghost" id="btnCsv"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>CSV</button>
         <button class="mini ghost" id="btnClearHist">Clear</button></div>
-      <p class="small faint" style="margin-bottom:var(--s3)">Venue, route and cost for every attempt.
+      <p class="small faint u-26b5a4e8">Venue, route and cost for every attempt.
         Reverts are marked on the left edge and never removed.</p>
       <div class="filterbar" data-range></div>
       <div class="tscroll"><table translate="no">
@@ -1918,7 +1053,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
 
   <section class="pane" id="p-analytics" role="region" aria-label="Analytics" tabindex="-1">
     <div class="phead"><p class="eyebrow">analytics · growth and outcome</p>
-      <h1 style="margin-top:var(--s3)">Read the record,<br><em>not the pitch</em>.</h1>
+      <h1 class="u-0173988c">Read the record,<br><em>not the pitch</em>.</h1>
       <p class="lede">Three views, and none of them flatters: where the capital went, how the outcomes
       distribute, and whether the hit rate is moving. If it is flat, the strategy is not improving and
       this page will not pretend otherwise.</p></div>
@@ -1943,11 +1078,11 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         <p class="hint">Above the axis: net profit. Below: gas lost on reverts involving that asset.</p></div>
       <div class="panel"><div class="chead"><h3>Result by sub-account</h3></div><div id="vaultBars"></div></div>
     </div>
-    <div class="panel" style="margin-top:var(--s4)">
+    <div class="panel u-bfa31e80">
       <div class="chead"><svg class="ic ic-l" aria-hidden="true"><use href="#i-calendar"/></svg>
         <h3>Day by day</h3><div class="spacer"></div>
         <button class="mini ghost" id="btnDayCsv"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>CSV</button></div>
-      <p class="small faint" style="margin-bottom:var(--s3)">One row per day inside the selected range,
+      <p class="small faint u-26b5a4e8">One row per day inside the selected range,
         newest first. A day with nothing in it does not appear — an empty row would look like a zero,
         and a zero is a measurement.</p>
       <div class="tscroll"><table translate="no">
@@ -1960,24 +1095,24 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
 
   <section class="pane" id="p-layers" role="region" aria-label="Layers" tabindex="-1">
     <div class="phead"><p class="eyebrow">protocol · the layer model</p>
-      <h1 style="margin-top:var(--s3)">One base layer,<br><em>many surfaces above it</em>.</h1>
+      <h1 class="u-0173988c">One base layer,<br><em>many surfaces above it</em>.</h1>
       <p class="lede">Ethereum splits the network into levels to solve scale: <b>L1</b> is the main
       chain — security and decentralisation, at a price. <b>L2</b> is built above it, settles faster
       and cheaper, and folds the consolidated result back down to L1. Triviu borrows the shape.</p></div>
 
-    <div class="grid2" style="margin-top:0;align-items:stretch">
-      <div class="panel" style="border-left:3px solid var(--ultramarine)">
+    <div class="grid2 u-f44493c5">
+      <div class="panel u-ecc6f5cf">
         <div class="chead"><span class="pill brand">L1</span><h2 class="hsec">The protocol</h2></div>
         <p class="small muted">Audited contracts, one fence rule, one fee rule, one settlement rail.
         Slow to change on purpose: a base layer that moves easily is not a base layer.</p>
-        <ul style="list-style:none;margin-top:var(--s4);display:flex;flex-direction:column;gap:var(--s2)">
-          <li class="small muted" style="display:flex;gap:var(--s2)"><svg class="ic" style="color:var(--ultramarine);margin-top:3px" aria-hidden="true"><use href="#i-lock"/></svg>Custody never exists — the position is minted to you</li>
-          <li class="small muted" style="display:flex;gap:var(--s2)"><svg class="ic" style="color:var(--ultramarine);margin-top:3px" aria-hidden="true"><use href="#i-shield"/></svg>Atomic settlement: it closes or it reverts</li>
-          <li class="small muted" style="display:flex;gap:var(--s2)"><svg class="ic" style="color:var(--ultramarine);margin-top:3px" aria-hidden="true"><use href="#i-eye"/></svg>Every attempt published, failures included</li>
+        <ul class="u-a3b9e49a">
+          <li class="small muted u-60e565fc"><svg class="ic u-a42e2d0c" aria-hidden="true"><use href="#i-lock"/></svg>Custody never exists — the position is minted to you</li>
+          <li class="small muted u-60e565fc"><svg class="ic u-a42e2d0c" aria-hidden="true"><use href="#i-shield"/></svg>Atomic settlement: it closes or it reverts</li>
+          <li class="small muted u-60e565fc"><svg class="ic u-a42e2d0c" aria-hidden="true"><use href="#i-eye"/></svg>Every attempt published, failures included</li>
         </ul>
-        <div class="tscroll" style="margin-top:var(--s4)"><table translate="no"><tbody>
-          <tr><td class="faint">registry</td><td class="mono" style="word-break:break-all" id="l1Registry">&mdash;</td></tr>
-          <tr><td class="faint">LP router</td><td class="mono" style="word-break:break-all" id="lyVault">&mdash;</td></tr>
+        <div class="tscroll u-bfa31e80"><table translate="no"><tbody>
+          <tr><td class="faint">registry</td><td class="mono u-a83ce3a2" id="l1Registry">&mdash;</td></tr>
+          <tr><td class="faint">LP router</td><td class="mono u-a83ce3a2" id="lyVault">&mdash;</td></tr>
           <tr><td class="faint">chain</td><td id="l1Chain">&mdash;</td></tr>
           <tr><td class="faint">changes by</td><td>public PR &rarr; on-chain event</td></tr>
         </tbody></table></div>
@@ -1985,13 +1120,13 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         script reads. Not one address is typed into this page.</p>
       </div>
 
-      <div class="panel" style="border-left:3px solid var(--saffron)">
+      <div class="panel u-905b7197">
         <div class="chead"><span class="pill warn">L2</span><h2 class="hsec">Your surface</h2></div>
         <p class="small muted">Your label — name, logo, accent — for your own users. Fast to change,
         because changing it cannot touch the layer underneath. Everything consolidates back down to L1
         at settlement.</p>
-        <div class="ledger" style="border-top-width:1px;margin-top:var(--s4);grid-template-columns:1fr">
-          <div class="side" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">
+        <div class="ledger u-0210977a">
+          <div class="side u-9681c09c">
             <div class="lcell"><div class="k">Sub-accounts</div><div class="v num">&mdash;</div><div class="d">no vault contract on 137</div></div>
             <div class="lcell"><div class="k">Fence rules</div><div class="v num">&mdash;</div><div class="d">no fence contract on 137</div></div>
             <div class="lcell"><div class="k">Instances</div><div class="v num" id="lyInst">&mdash;</div><div class="d">labels, in this browser</div></div>
@@ -2004,9 +1139,9 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       </div>
     </div>
 
-    <div class="panel" style="margin-top:var(--s4)">
+    <div class="panel u-bfa31e80">
       <h2 class="hsec">What settles where</h2>
-      <div class="tscroll" style="margin-top:var(--s3)"><table translate="no">
+      <div class="tscroll u-0173988c"><table translate="no">
         <thead><tr><th>action</th><th>decided on</th><th>settles on</th><th>who can change it</th></tr></thead>
         <tbody>
           <tr><td>Open a position</td><td>L2 · your inputs</td><td>L1 · atomic</td><td>you</td></tr>
@@ -2022,29 +1157,29 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
   <!-- ══════════════════════════ REFERRALS ══════════════════════════ -->
   <section class="pane" id="p-refs" role="region" aria-label="Referrals" tabindex="-1">
     <div class="phead"><p class="eyebrow">protocol · referral vault</p>
-      <h1 style="margin-top:var(--s3)">Spread accrues,<br><em>and only from real wins</em>.</h1>
+      <h1 class="u-0173988c">Spread accrues,<br><em>and only from real wins</em>.</h1>
       <p class="lede">Pull, never push: the spread from every <b>positive</b> close of someone you
       introduced accrues in your ReferralVault until you call <span class="mono">claim()</span>. If they
       do not profit, there is no spread. This is not income, and the whitepaper documents why.</p></div>
     <div class="ledger">
-      <div class="lead"><div class="k">Claimable <button class="mini ghost" data-explain="referrals"
-        aria-label="What is this" style="padding:0;vertical-align:-3px"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button></div><div class="v num" id="rfClaim">—</div>
+      <div class="lead"><div class="k">Claimable <button class="mini ghost u-3d35d09e" data-explain="referrals"
+        aria-label="What is this"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button></div><div class="v num" id="rfClaim">—</div>
         <div class="d">accrued, waiting for your signature</div></div>
       <div class="side">
         <div class="lcell"><div class="k">Total received</div><div class="v num" id="rfEarned">—</div><div class="d">lifetime</div></div>
         <div class="lcell"><div class="k">Introduced</div><div class="v num" id="rfCount">—</div><div class="d">read from Registered events</div></div>
       </div></div>
-    <div class="row" style="margin-top:var(--s5)">
+    <div class="row u-39761cb3">
       <div class="tight"><button class="primary" id="btnClaim">Claim accrued spread</button></div>
       <div class="tight"><button class="mini" id="btnSimRefs"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Simulate introduced activity</button></div>
     </div>
-    <div class="panel" style="margin-top:var(--s4)"><h3>Your link</h3>
-      <div class="row" style="margin-top:var(--s3)">
-        <div style="flex:4"><label for="refLink" class="sr">Referral link</label><input id="refLink" readonly></div>
+    <div class="panel u-bfa31e80"><h3>Your link</h3>
+      <div class="row u-0173988c">
+        <div class="u-9c38a23f"><label for="refLink" class="sr">Referral link</label><input id="refLink" readonly></div>
         <div class="tight"><button class="mini" id="btnCopyRef"><svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg>Copy</button></div>
       </div>
       <p class="hint">A referral only counts once it is written on chain. Check the explorer; do not trust the link.</p>
-      <div class="tscroll" style="margin-top:var(--s4)"><table translate="no" id="refTable" hidden>
+      <div class="tscroll u-bfa31e80"><table translate="no" id="refTable" hidden>
         <thead><tr><th>#</th><th>address</th><th>block</th></tr></thead><tbody></tbody></table></div>
       <p class="small faint" id="refEmpty">Nobody introduced yet.</p>
     </div>
@@ -2052,7 +1187,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
 
   <section class="pane" id="p-contracts" role="region" aria-label="Contracts" tabindex="-1">
     <div class="phead"><p class="eyebrow">protocol · the code</p>
-      <h1 style="margin-top:var(--s3)">The contract is the claim.<br><em>Everything else is commentary</em>.</h1>
+      <h1 class="u-0173988c">The contract is the claim.<br><em>Everything else is commentary</em>.</h1>
       <p class="lede">If anything in this console disagrees with the verified contract, the contract
       wins. The tables below are the ledger this whole site reads from, and — once you press Read —
       the live answers of the contracts themselves.</p></div>
@@ -2061,7 +1196,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       <div class="chead"><h2 class="hsec">The four that are live on chain 137</h2><div class="spacer"></div>
         <button class="mini" type="button" id="ct-ler">
           <svg class="ic" aria-hidden="true"><use href="#i-shuffle"/></svg>Read the chain</button></div>
-      <p class="small faint" style="margin-bottom:var(--s3)">Addresses come from the address ledger, the
+      <p class="small faint u-26b5a4e8">Addresses come from the address ledger, the
       single file every screen and script imports. Reading asks the contracts themselves, and the
       answers land in the two tables below this one.</p>
       <div class="tscroll"><table translate="no">
@@ -2070,25 +1205,25 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       <p class="hint" id="ct-medicao">&mdash;</p>
     </div>
 
-    <div class="panel" style="margin-top:var(--s4);border-left:3px solid var(--sealwax)">
-      <div class="chead"><svg class="ic ic-l" style="color:var(--sealwax)" aria-hidden="true"><use href="#i-alert"/></svg>
+    <div class="panel u-c6ca668b">
+      <div class="chead"><svg class="ic ic-l u-f427803b" aria-hidden="true"><use href="#i-alert"/></svg>
         <h2 class="hsec">And the four orphans, which answer every call exactly like the real ones</h2></div>
       <p class="small">Four contracts with live code on this chain, left by deploy runs that failed
       afterwards. One of them is a <b>byte-exact twin</b> of the real LP vault — same 7,954 bytes, same
       runtime hash — and it would accept a deposit and mint a position that the official router will
       never read. <b>Only the address tells them apart.</b> They are printed in full here for the same
       reason: a truncated address is exactly how someone lands on the wrong one.</p>
-      <div class="tscroll" style="margin-top:var(--s3)"><table translate="no">
+      <div class="tscroll u-0173988c"><table translate="no">
         <thead><tr><th>address</th><th>type</th><th>nonce</th><th>code</th><th></th></tr></thead>
         <tbody id="ct-orfaos"><tr><td colspan="5" class="faint">&mdash;</td></tr></tbody></table></div>
       <p class="hint">Every address that reaches calldata on this site passes through a function that
       throws on all four. That is the check; this table is so you can recognise one by eye as well.</p>
     </div>
 
-    <div class="panel" style="margin-top:var(--s4)">
+    <div class="panel u-bfa31e80">
       <div class="chead"><h2 class="hsec">Who can change the two numbers that cost you money</h2></div>
       <div class="tscroll"><table translate="no"><tbody>
-        <tr><td class="faint">owner &amp; treasury</td><td class="mono" style="word-break:break-all" id="ct-safe">&mdash;</td></tr>
+        <tr><td class="faint">owner &amp; treasury</td><td class="mono u-a83ce3a2" id="ct-safe">&mdash;</td></tr>
       </tbody></table></div>
       <p class="hint" id="ct-safe-nota">&mdash;</p>
       <p class="hint">Said without decoration, because it is the thing an auditor would ask first:
@@ -2103,17 +1238,17 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       <span class="mono">minProfit</span> the user signed.</p>
     </div>
 
-    <div class="lpk" style="margin-top:var(--s4)">
+    <div class="lpk u-bfa31e80">
 <section class="painel" aria-labelledby="h-contratos">
     <h2 id="h-contratos">The contracts, and proof each one has code</h2>
-    <p class="hint" style="margin-top:0">Not one of these addresses is written in this file. The two Triviu
+    <p class="hint u-a0925a28">Not one of these addresses is written in this file. The two Triviu
     ones come from the address ledger and pass a function that throws on the four orphaned deploys living
     on this chain &mdash; one of which is a <b>byte-exact twin</b> of the real vault and would answer every
     call exactly like it. The position manager is not ours, so it sits in the ledger's separate list of
     external contracts: it is read off the live vault and then has to match that constant byte for byte,
     prove it is not an orphan, not a Triviu contract, and have code, before any calldata may contain it.
     The live read alone proves nothing &mdash; the orphaned twin vault answers the same address, measured.</p>
-    <div class="rolagem" style="margin-top:14px">
+    <div class="rolagem u-c53ea1da">
       <table class="tabrol">
         <caption class="sr-only">Contracts this page uses, their addresses and the size of the code at each</caption>
         <thead><tr><th scope="col">Contract</th><th scope="col">Address</th><th scope="col">Code on chain</th></tr></thead>
@@ -2152,11 +1287,11 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
 
 <section class="painel" aria-labelledby="h-tokens">
     <h2 id="h-tokens">Tokens the Registry allows, and what you hold of each</h2>
-    <p class="hint" style="margin-top:0">A mapping cannot be enumerated: there is no getter that returns
+    <p class="hint u-a0925a28">A mapping cannot be enumerated: there is no getter that returns
     every allowed token. So the candidates come from the Registry's own events and each one is then
     <b>confirmed by a live call</b>. The block range that was scanned is printed under the table, because a
     slice that does not say where it ends passes for the whole.</p>
-    <div class="rolagem" style="margin-top:14px">
+    <div class="rolagem u-c53ea1da">
       <table class="tabrol">
         <caption class="sr-only">Allowed tokens, their addresses, decimals and your balance</caption>
         <thead><tr><th scope="col">Symbol</th><th scope="col">Address</th><th scope="col">Decimals</th><th scope="col">Registry</th><th scope="col">Your balance</th></tr></thead>
@@ -2165,7 +1300,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
     </div>
     <p class="hint" id="lp-tokens-faixa">The scanned block range appears here after a read, so the edge of
     what was looked at is visible rather than implied.</p>
-    <div class="rolagem" style="margin-top:14px">
+    <div class="rolagem u-c53ea1da">
       <table class="vt">
         <tbody>
           <tr><th scope="row">Positions this address owns &mdash; <span class="mono" translate="no">balanceOf</span> on the position manager</th><td class="v" translate="no" id="lp-pos-conta">&mdash;</td></tr>
@@ -2177,17 +1312,17 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
 
 <section class="painel" aria-labelledby="h-verificar">
     <h2 id="h-verificar">Read the same thing yourself</h2>
-    <p class="hint" style="margin-top:0">Both tables below are rendered from the generated selector table,
+    <p class="hint u-a0925a28">Both tables below are rendered from the generated selector table,
     not typed into this file. If the contract gains or loses a function, they change on their own and the
     build check charges the difference.</p>
-    <div class="rolagem" style="margin-top:14px">
+    <div class="rolagem u-c53ea1da">
       <table class="tabrol">
         <caption class="sr-only">Every external function of TriviuLPVault, with its four-byte selector</caption>
         <thead><tr><th scope="col">Selector</th><th scope="col">Signature</th><th scope="col">Mutability</th></tr></thead>
         <tbody id="lp-superficie"><tr><td colspan="3" class="m" translate="no">&mdash;</td></tr></tbody>
       </table>
     </div>
-    <div class="rolagem" style="margin-top:20px">
+    <div class="rolagem u-eee3f850">
       <table class="tabrol">
         <caption class="sr-only">Every error TriviuLPVault can revert with, and its four-byte selector</caption>
         <thead><tr><th scope="col">Selector</th><th scope="col">Error</th></tr></thead>
@@ -2200,8 +1335,8 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
   </section>
     </div>
 
-    <div class="panel" style="margin-top:var(--s4)"><h2 class="hsec">Verify it yourself</h2>
-      <ol class="small muted" style="margin:var(--s3) 0 0 var(--s5);display:flex;flex-direction:column;gap:var(--s1)">
+    <div class="panel u-bfa31e80"><h2 class="hsec">Verify it yourself</h2>
+      <ol class="small muted u-6f200ae5">
         <li>Open the address on the explorer &rarr; <b>Contract</b> &rarr; check it is verified.</li>
         <li>Or manually: <code>forge verify-contract &lt;address&gt; &lt;Contract&gt; --chain 137</code> against the public repository.</li>
         <li>Compare the runtime bytecode with the artefact <code>forge build</code> produces from the published source.</li>
@@ -2213,21 +1348,21 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
   <!-- ══════════════════════════ INSTANCES ══════════════════════════ -->
   <section class="pane" id="p-instances" role="region" aria-label="Instances" tabindex="-1">
     <div class="phead"><p class="eyebrow">platform · licensed instances</p>
-      <h1 style="margin-top:var(--s3)">Your label,<br><em>our engine underneath</em>.</h1>
+      <h1 class="u-0173988c">Your label,<br><em>our engine underneath</em>.</h1>
       <p class="lede">The protocol is the base layer: audited contracts, one fence rule, one fee rule.
       An instance sits above it carrying your name and your accent, for your own users. The brand
       changes. The audited engine, the risk notice and the visible failures do not.</p></div>
 
-    <div class="grid2" style="margin-top:0;align-items:start">
+    <div class="grid2 u-120048cd">
       <div class="panel"><h2 class="hsec">Create an instance</h2>
-        <p class="small faint" style="margin-top:var(--s2)">This is an L2 surface and it needs no
+        <p class="small faint u-0f76b54b">This is an L2 surface and it needs no
         contract — which is the point of the layer model, not a limitation of this screen. What you
         create here lives in this browser and reaches no chain.</p>
-        <div class="row" style="margin-top:var(--s4)">
+        <div class="row u-bfa31e80">
           <div><label for="niName">Brand name</label><input id="niName" placeholder="Acme Capital" maxlength="60" autocomplete="off"></div>
           <div><label for="niSub">Suffix</label><input id="niSub" placeholder="· powered by Triviu" maxlength="40" autocomplete="off"></div>
         </div>
-        <div class="row" style="margin-top:var(--s3)">
+        <div class="row u-0173988c">
           <div><label for="niAccent">Accent colour</label><input id="niAccent" value="#2743C7" maxlength="7" autocomplete="off" spellcheck="false"></div>
         </div>
         <p class="hint" id="niErro" role="alert"></p>
@@ -2235,30 +1370,30 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         SVG can carry a script and this logo would be printed into the header of every screen, so the
         only safe form is raster with a size ceiling and a validated data URL. That check belongs with
         the code that renders it; until it is written, the accent carries the brand.</p>
-        <div class="row" style="margin-top:var(--s5)"><div class="tight">
+        <div class="row u-39761cb3"><div class="tight">
           <button class="primary" type="button" id="btnNewInst"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Create instance</button></div></div>
         <p class="sr" id="instVoz" role="status" aria-live="polite"></p>
-        <div class="insts" id="instGrid" style="margin-top:var(--s5)"></div>
+        <div class="insts u-39761cb3" id="instGrid"></div>
       </div>
 
       <div class="panel">
         <h2 class="hsec">What a licensed instance may never remove</h2>
-        <div style="display:flex;flex-direction:column;gap:var(--s3);margin-top:var(--s4)">
-          <div class="small muted" style="display:flex;gap:var(--s2)"><svg class="ic" style="color:var(--green);margin-top:3px" aria-hidden="true"><use href="#i-lock"/></svg><span><b>The risk notice, in full, on the first screen.</b> Unconditional. It is the first thing on Overview and it did not move.</span></div>
-          <div class="small muted" style="display:flex;gap:var(--s2)"><svg class="ic" style="color:var(--green);margin-top:3px" aria-hidden="true"><use href="#i-lock"/></svg><span><b>The simulation label, while the instance is a simulation.</b> A conditional, and it is the one that just came due.</span></div>
-          <div class="small muted" style="display:flex;gap:var(--s2)"><svg class="ic" style="color:var(--green);margin-top:3px" aria-hidden="true"><use href="#i-lock"/></svg><span><b>Reverts at the same weight as wins, on every chart and table.</b> Unconditional.</span></div>
+        <div class="u-bf75417f">
+          <div class="small muted u-60e565fc"><svg class="ic u-c302fcc9" aria-hidden="true"><use href="#i-lock"/></svg><span><b>The risk notice, in full, on the first screen.</b> Unconditional. It is the first thing on Overview and it did not move.</span></div>
+          <div class="small muted u-60e565fc"><svg class="ic u-c302fcc9" aria-hidden="true"><use href="#i-lock"/></svg><span><b>The simulation label, while the instance is a simulation.</b> A conditional, and it is the one that just came due.</span></div>
+          <div class="small muted u-60e565fc"><svg class="ic u-c302fcc9" aria-hidden="true"><use href="#i-lock"/></svg><span><b>Reverts at the same weight as wins, on every chart and table.</b> Unconditional.</span></div>
         </div>
-        <div class="risk" style="margin-top:var(--s5)">
+        <div class="risk u-39761cb3">
           <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
           <div><b>The middle rule is why this console lost two banners</b>
             <p>&ldquo;While the instance is a simulation&rdquo; is a condition with two edges, and both
             of them cut. Removing the label early is a lie. Keeping it after the wallet became real is
             also a lie — a page that cries simulation while spending real money teaches its reader that
             the label means nothing, which is worse than never having had one.</p>
-            <p style="margin-top:var(--s2)">So the label left in the same commit as the fake wallet it
+            <p class="u-0f76b54b">So the label left in the same commit as the fake wallet it
             described. Not before, not after. And the screens that still do not act do not wear it
             either, because they do not simulate — they state what is missing.</p>
-            <p style="margin-top:var(--s2)">The two exact strings those banners were built from are not
+            <p class="u-0f76b54b">The two exact strings those banners were built from are not
             reproduced anywhere on this page, and that is not squeamishness: the acceptance criterion
             was zero occurrences of them on the published console, and the guardian counts bytes rather
             than reading intent. This very paragraph had to be rewritten once because a sentence
@@ -2271,34 +1406,34 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
   <!-- ══════════════════════════ PROFILE ══════════════════════════ -->
   <section class="pane" id="p-profile" role="region" aria-label="Profile" tabindex="-1">
     <div class="phead"><p class="eyebrow">account · preferences</p>
-      <h1 style="margin-top:var(--s3)">Profile</h1>
+      <h1 class="u-0173988c">Profile</h1>
       <p class="lede">Everything here stays in this browser. There is no account and no password — in the
       real console you are identified by the wallet you connect, and by nothing else.</p></div>
-    <div class="grid2" style="align-items:start;margin-top:0">
+    <div class="grid2 u-ea1e80de">
       <div class="panel"><h2 class="hsec">Appearance</h2>
-        <p class="small muted" style="margin-top:var(--s2)">Light, dark, or whatever your system is
+        <p class="small muted u-0f76b54b">Light, dark, or whatever your system is
         doing right now. The choice is stored in this browser under one key, which is the same key the
         signing engine reads — two keys would be two themes disagreeing on one screen.</p>
-        <p style="margin-top:var(--s4)"><button class="primary" type="button" id="btnThemeProfile">
+        <p class="u-bfa31e80"><button class="primary" type="button" id="btnThemeProfile">
           <svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg>Choose the theme</button></p>
         <p class="hint">Currently: <b id="temaAtivo">&mdash;</b></p>
       </div>
 
       <div class="panel"><h3>Identity</h3>
-        <div class="row" style="margin-top:var(--s4);align-items:center">
+        <div class="row u-35484c36">
           <div class="tight"><span id="avBigSlot"><span class="avbig ph">T</span></span></div>
           <div><label for="pfAvatar">Profile picture</label>
-            <input type="file" id="pfAvatar" accept="image/png,image/jpeg,image/webp,image/gif" style="padding:6px">
+            <input class="u-72893568" type="file" id="pfAvatar" accept="image/png,image/jpeg,image/webp,image/gif">
             <p class="hint">Same rule as the label logo: raster only, 300&nbsp;KB, no SVG.</p></div></div>
-        <div class="row" style="margin-top:var(--s4)">
+        <div class="row u-bfa31e80">
           <div><label for="pfName">Display name</label><input id="pfName" placeholder="Your name" maxlength="60" autocomplete="off"></div>
           <div><label for="pfTag">Initials</label><input id="pfTag" placeholder="TU" maxlength="3" autocomplete="off"></div></div>
-        <div class="row" style="margin-top:var(--s3)"><div class="tight"><button class="primary" id="btnSaveProfile">Save</button></div></div>
-        <h3 style="margin-top:var(--s5)">Account type</h3>
-        <p class="small muted" style="margin-top:var(--s2)">A <b>participant</b> operates their own triad.
+        <div class="row u-0173988c"><div class="tight"><button class="primary" id="btnSaveProfile">Save</button></div></div>
+        <h3 class="u-39761cb3">Account type</h3>
+        <p class="small muted u-0f76b54b">A <b>participant</b> operates their own triad.
         A <b>label</b> also licenses the technology and runs it under its own brand, for its own users.
         Switching to label unlocks the Instances section.</p>
-        <div class="row" style="margin-top:var(--s3)">
+        <div class="row u-0173988c">
           <div><label for="pfRole">Type</label><select id="pfRole">
             <option value="user">Participant</option><option value="label">Label · licensed</option></select></div></div>
       </div>
@@ -2306,21 +1441,21 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         <p class="small">Where the console reads the chain from. <b>Arbitrum has a
         native endpoint and needs nothing from you.</b> Polygon has no public endpoint
         that serves seven days of historical logs, so it needs one of yours.</p>
-        <p class="small" style="margin-top:var(--s3)"><b>What is typed here never
+        <p class="small u-0173988c"><b>What is typed here never
         reaches storage.</b> It lives in memory for this session and is gone when you
         reload — deliberately. This console writes its state to your browser, and a key
         that entered that path would sit there in clear text after you closed the tab.</p>
-        <div class="row" style="margin-top:var(--s3)">
+        <div class="row u-0173988c">
           <div><label for="pfRpcNet">Network</label><select id="pfRpcNet">
             <option value="arbitrum" selected>Arbitrum &mdash; native endpoint ready</option>
             <option value="polygon">Polygon &mdash; needs yours</option></select></div>
-          <div style="flex:2"><label for="pfRpcUrl">Endpoint</label>
+          <div class="u-2d424819"><label for="pfRpcUrl">Endpoint</label>
             <input id="pfRpcUrl" type="url" placeholder="https://…" autocomplete="off"
                    spellcheck="false"></div>
           <div class="tight"><button class="mini" id="btnRpcTest">
             <svg class="ic" aria-hidden="true"><use href="#i-shuffle"/></svg>Test it</button></div>
         </div>
-        <div id="rpcVerdict" class="small faint" style="margin-top:var(--s3)">
+        <div id="rpcVerdict" class="small faint u-0173988c">
           Arbitrum is on <span class="mono">arb1.arbitrum.io</span> &mdash; untested this session.</div>
         <p class="hint">Testing asks the endpoint three questions, in this order: the
           current block, a log range from seven days ago, and how wide a range it
@@ -2335,7 +1470,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         this screen cannot raise. On chain the same change demands a pull-request URL,
         recorded with the transaction:
         <span class="mono">setFeeBps(uint16, string prUrl)</span>.</p>
-        <div class="row" style="margin-top:var(--s3)">
+        <div class="row u-0173988c">
           <div><label for="pfFee">Success fee</label><select id="pfFee">
             <option value="1000">10% of a positive result</option>
             <option value="1500">15%</option><option value="2000">20%</option>
@@ -2351,14 +1486,14 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       </div>
 
       <div class="panel"><h3>Console preferences</h3>
-        <div class="row" style="margin-top:var(--s4)">
+        <div class="row u-bfa31e80">
           <div><label for="pfTheme">Theme</label><select id="pfTheme"><option value="light">Light</option><option value="dark">Dark</option></select></div>
           <div><label for="pfCur">Display currency</label><select id="pfCur"><option>USD</option><option>EUR</option><option>BRL</option></select></div></div>
-        <div class="row" style="margin-top:var(--s3)">
+        <div class="row u-0173988c">
           <div><label for="pfDensity">Density</label><select id="pfDensity"><option value="normal">Normal</option><option value="compact">Compact</option></select></div>
           <div><label for="pfAnim">Motion</label><select id="pfAnim"><option value="on">On</option><option value="off">Reduced</option></select></div></div>
-        <h3 style="margin-top:var(--s5)">Your data</h3>
-        <div class="row" style="margin-top:var(--s3)">
+        <h3 class="u-39761cb3">Your data</h3>
+        <div class="row u-0173988c">
           <div class="tight"><button id="btnExport"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Export state</button></div>
           <div class="tight"><button class="danger" id="btnReset"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Start over</button></div></div>
         <p class="hint">The export is the raw simulation state — the same shape an auditor would read.
@@ -2368,7 +1503,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
 
   <section class="pane" id="p-help" role="region" aria-label="How it works" tabindex="-1">
 <div class="phead"><p class="eyebrow">step by step</p>
-      <h1 style="margin-top:var(--s3)">Every function,<br><em>opened up</em>.</h1>
+      <h1 class="u-0173988c">Every function,<br><em>opened up</em>.</h1>
       <p class="lede">What the function does, what happens on chain when you call it, and the code that
       does it. If anything here disagrees with the verified contract, the contract wins — always.</p></div>
 
@@ -2395,8 +1530,8 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
         </tbody></table></div>
     </div>
 
-    <div class="panel" style="margin-top:var(--s4)" >
-      <div class="chead"><svg class="ic ic-l" style="color:var(--saffron-ink)" aria-hidden="true"><use href="#i-alert"/></svg>
+    <div class="panel u-bfa31e80" >
+      <div class="chead"><svg class="ic ic-l u-61dc39cf" aria-hidden="true"><use href="#i-alert"/></svg>
         <h2 class="hsec">Step 5, and why it cannot be the convenient one</h2></div>
       <p class="small">The requirement is not in the signature of <span class="mono">coletar</span> or
       <span class="mono">fechar</span>. It is in the body, in
@@ -2404,7 +1539,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       <span class="mono">getApproved(tokenId)</span> and demands it be the vault. Reading only the
       signatures is how a reviewer concludes the two calls are self-sufficient, and they are not —
       without step 5 both revert <span class="mono">AprovacaoAusente</span>.</p>
-      <p class="small" style="margin-top:var(--s3)">And it may <b>not</b> be
+      <p class="small u-0173988c">And it may <b>not</b> be
       <span class="mono">setApprovalForAll</span>. That call does not write
       <span class="mono">getApproved</span>, so whoever grants the broad permission instead of the
       single one gets <span class="mono">AprovacaoAmpla</span> and the transaction stops. That is
@@ -2412,7 +1547,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       convenience, is the trade this contract refuses on your behalf.</p>
     </div>
 
-    <div class="panel" style="margin-top:var(--s4)">
+    <div class="panel u-bfa31e80">
       <div class="chead"><h2 class="hsec">What this console does not show you</h2></div>
       <p class="small muted">You can see every byte that would be signed, every address it names, every
       revert it hits and the reason in the contract's own words. You cannot see how an opportunity is
@@ -2449,9 +1584,9 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
      when it is missing, reaches the same conclusion without knowing this modal
      exists. -->
 <div class="ov" id="temaOv" role="dialog" aria-modal="true" aria-labelledby="temaTitulo">
-  <div class="modal" style="max-width:440px">
+  <div class="modal u-7f0d25f1">
     <div class="chead"><svg class="ic ic-l" aria-hidden="true"><use href="#i-sun"/></svg>
-      <h2 id="temaTitulo" class="hsec" style="font-size:15px">Light or dark</h2></div>
+      <h2 id="temaTitulo" class="hsec u-a3970b9f">Light or dark</h2></div>
     <div class="temaops" role="radiogroup" aria-label="Theme">
       <button class="temaop" type="button" role="radio" data-tema="light" aria-checked="false">
         <svg class="ic ic-l" aria-hidden="true"><use href="#i-sun"/></svg>
@@ -2476,13 +1611,13 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
 </body>
 </html>
 
-    <div class="panel" style="margin-top:var(--s5)">
+    <div class="panel u-39761cb3">
       <div class="chead"><h2 class="hsec">Every function, from the compiled artifact</h2></div>
       <p class="small muted">Signature, selector, mutability and types below are read from
       <span class="mono">contracts/out</span> &mdash; the same artifact <span class="mono">check-console-abi</span>
       verifies. Nothing here is typed by hand. Where a function carries an explanation, the
       explanation is the author’s; where it does not, the artifact speaks alone.</p>
-      <h3 class="hsec" style="margin-top:var(--s5)">GasTank <span class="mono small muted">3</span></h3>
+      <h3 class="hsec u-39761cb3">GasTank <span class="mono small muted">3</span></h3>
       <details class="acc"><summary><span class="fn mono" translate="no">balanceOf(address)</span> <span class="mono small muted">0x70a08231</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x70a08231</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">address</td></tr><tr><th>returns</th><td class="mono">uint256</td></tr></tbody></table>
       </details>
@@ -2492,7 +1627,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       <details class="acc"><summary><span class="fn mono" translate="no">withdraw(uint256)</span> <span class="mono small muted">0x2e1a7d4d</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x2e1a7d4d</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">uint256 amount</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
       </details>
-      <h3 class="hsec" style="margin-top:var(--s5)">IERC20 <span class="mono small muted">4</span></h3>
+      <h3 class="hsec u-39761cb3">IERC20 <span class="mono small muted">4</span></h3>
       <details class="acc"><summary><span class="fn mono" translate="no">approve(address,uint256)</span> <span class="mono small muted">0x095ea7b3</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x095ea7b3</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address spender &middot; uint256 amount</td></tr><tr><th>returns</th><td class="mono">bool</td></tr></tbody></table>
       </details>
@@ -2505,7 +1640,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       <details class="acc"><summary><span class="fn mono" translate="no">transferFrom(address,address,uint256)</span> <span class="mono small muted">0x23b872dd</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x23b872dd</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address from &middot; address to &middot; uint256 amount</td></tr><tr><th>returns</th><td class="mono">bool</td></tr></tbody></table>
       </details>
-      <h3 class="hsec" style="margin-top:var(--s5)">INonfungiblePositionManager <span class="mono small muted">7</span></h3>
+      <h3 class="hsec u-39761cb3">INonfungiblePositionManager <span class="mono small muted">7</span></h3>
       <details class="acc"><summary><span class="fn mono" translate="no">burn(uint256)</span> <span class="mono small muted">0x42966c68</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x42966c68</td></tr><tr><th>mutability</th><td class="mono">payable</td></tr><tr><th>takes</th><td class="mono">uint256 tokenId</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
       </details>
@@ -2527,7 +1662,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       <details class="acc"><summary><span class="fn mono" translate="no">positions(uint256)</span> <span class="mono small muted">0x99fbab88</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x99fbab88</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">uint256 tokenId</td></tr><tr><th>returns</th><td class="mono">uint96 &middot; address &middot; address &middot; address &middot; uint24 &middot; int24 &middot; int24 &middot; uint128 &middot; uint256 &middot; uint256 &middot; uint128 &middot; uint128</td></tr></tbody></table>
       </details>
-      <h3 class="hsec" style="margin-top:var(--s5)">ParameterRegistry <span class="mono small muted">16</span></h3>
+      <h3 class="hsec u-39761cb3">ParameterRegistry <span class="mono small muted">16</span></h3>
       <details class="acc"><summary><span class="fn mono" translate="no">acceptOwner()</span> <span class="mono small muted">0xebbc4965</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xebbc4965</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
       </details>
@@ -2576,7 +1711,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       <details class="acc"><summary><span class="fn mono" translate="no">treasury()</span> <span class="mono small muted">0x61d027b3</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x61d027b3</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
       </details>
-      <h3 class="hsec" style="margin-top:var(--s5)">TriviuExecutor <span class="mono small muted">3</span></h3>
+      <h3 class="hsec u-39761cb3">TriviuExecutor <span class="mono small muted">3</span></h3>
       <details class="acc"><summary><span class="fn mono" translate="no">MAX_FEE_BPS()</span> <span class="mono small muted">0xd55be8c6</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xd55be8c6</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">uint16</td></tr></tbody></table>
       </details>
@@ -2586,14 +1721,14 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       <details class="acc"><summary><span class="fn mono" translate="no">registry()</span> <span class="mono small muted">0x7b103999</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x7b103999</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
       </details>
-      <h3 class="hsec" style="margin-top:var(--s5)">TriviuFactory <span class="mono small muted">2</span></h3>
+      <h3 class="hsec u-39761cb3">TriviuFactory <span class="mono small muted">2</span></h3>
       <details class="acc"><summary><span class="fn mono" translate="no">implantarCofre(address,address)</span> <span class="mono small muted">0x4d87aa7c</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x4d87aa7c</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address dono &middot; address base</td></tr><tr><th>returns</th><td class="mono">address &middot; address</td></tr></tbody></table>
       </details>
       <details class="acc"><summary><span class="fn mono" translate="no">registro()</span> <span class="mono small muted">0x3d6c57a7</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x3d6c57a7</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
       </details>
-      <h3 class="hsec" style="margin-top:var(--s5)">TriviuLPVault <span class="mono small muted">7</span></h3>
+      <h3 class="hsec u-39761cb3">TriviuLPVault <span class="mono small muted">7</span></h3>
       <details class="acc"><summary><span class="fn mono" translate="no">MAX_FEE_BPS()</span> <span class="mono small muted">0xd55be8c6</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xd55be8c6</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">uint16</td></tr></tbody></table>
       </details>
@@ -2615,7 +1750,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       <details class="acc"><summary><span class="fn mono" translate="no">registry()</span> <span class="mono small muted">0x7b103999</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x7b103999</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
       </details>
-      <h3 class="hsec" style="margin-top:var(--s5)">TriviuRegistry <span class="mono small muted">10</span></h3>
+      <h3 class="hsec u-39761cb3">TriviuRegistry <span class="mono small muted">10</span></h3>
       <details class="acc"><summary><span class="fn mono" translate="no">cercaDe(address,address)</span> <span class="mono small muted">0x6706c1c6</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x6706c1c6</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">address &middot; address</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
       </details>
@@ -2647,7 +1782,7 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       <details class="acc"><summary><span class="fn mono" translate="no">totalDeCofres()</span> <span class="mono small muted">0xe2ceb9fc</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xe2ceb9fc</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">uint256</td></tr></tbody></table>
       </details>
-      <h3 class="hsec" style="margin-top:var(--s5)">TriviuVault <span class="mono small muted">12</span></h3>
+      <h3 class="hsec u-39761cb3">TriviuVault <span class="mono small muted">12</span></h3>
       <details class="acc"><summary><span class="fn mono" translate="no">base()</span> <span class="mono small muted">0x5001f3b5</span></summary>
         <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x5001f3b5</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
       </details>
@@ -2687,9 +1822,9 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
       </details>
     </div>
 
-    <div class="panel" style="margin-top:var(--s5);border-left:3px solid var(--ultramarine)">
+    <div class="panel u-d17af2a9">
       <h3>What this console does not show you</h3>
-      <p class="small muted" style="margin-top:var(--s2)">You can see every route walked, every venue routed
+      <p class="small muted u-0f76b54b">You can see every route walked, every venue routed
       through, every cost paid and every attempt that failed. You cannot see how an opportunity is
       identified in the first place. That search took years to build, and it is the one thing kept —
       the rest is open by design, including the parts that make us look bad.</p></div>

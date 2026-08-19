@@ -19,102 +19,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://triviu.vercel.app/og.png">
 <link href="/vendor/fonts/fontes.css" rel="stylesheet">
-<style>
-:root{
-  --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
-  --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
-  --verde:#1E7A46;--verde-fundo:#E8F3EC;
-  --fd:"Libre Caslon Text",Georgia,serif;--ft:"Public Sans",system-ui,sans-serif;--fm:"IBM Plex Mono",ui-monospace,monospace;
-  --s-3:12px;--s-4:16px;--s-5:24px;--s-6:32px;--s-7:48px;--r-m:6px;--r-l:10px;
-}
-@media(prefers-color-scheme:dark){:root{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;--verde-fundo:#12241a;}}
-:root[data-theme="dark"]{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;--verde-fundo:#12241a;}
-:root[data-theme="light"]{--papel:#FAFAF7;--tinta:#16181D;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--ultramar:#2743C7;--lacre:#C13327;--acafrao-fundo:#FBF3DF;--acafrao-texto:#8A6414;--verde:#1E7A46;--verde-fundo:#E8F3EC;}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--papel);color:var(--tinta);font-family:var(--ft);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
-a{color:var(--ultramar);text-decoration:none}a:hover{text-decoration:underline}
-.mono{font-family:var(--fm)}
-.top{position:sticky;top:0;z-index:20;background:var(--papel);border-bottom:1px solid var(--fio);padding:14px 22px;display:flex;align-items:center;gap:12px}
-.top svg{width:26px;height:26px}.top b{font-size:15px}.top .spacer{flex:1}
-.top a.nav{font-family:var(--fm);font-size:12px;color:var(--grafite)}
-.themebtn{width:30px;height:30px;padding:0;border:1px solid var(--fio);background:transparent;color:var(--grafite);border-radius:var(--r-m);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
-.themebtn:hover{color:var(--tinta);border-color:var(--tinta)}.themebtn svg{width:16px;height:16px}
-.wrap{max-width:1020px;margin:0 auto;padding:var(--s-6) var(--s-5) var(--s-7)}
-h1{font-family:var(--fd);font-size:30px;letter-spacing:-.01em;margin-bottom:10px}
-.lead{font-size:16px;color:var(--grafite);max-width:66ch;margin-bottom:var(--s-5)}
-.aviso{background:var(--acafrao-fundo);border:1px solid var(--acafrao);border-radius:var(--r-m);padding:14px 18px;margin-bottom:var(--s-6)}
-.aviso b{font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:var(--acafrao-texto);display:block;margin-bottom:5px}
-.aviso p{font-size:13.5px;margin:0}
-.selrow{display:flex;gap:var(--s-4);flex-wrap:wrap;margin-bottom:var(--s-5)}
-.sel{display:flex;flex-direction:column;gap:5px}
-.sel label{font-family:var(--fm);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--grafite)}
-select{font-family:var(--ft);font-size:14px;padding:8px 10px;border:1px solid var(--fio);border-radius:var(--r-m);background:var(--papel);color:var(--tinta)}
-.stage{display:grid;grid-template-columns:1.05fr .95fr;gap:var(--s-6);align-items:start}
-@media(max-width:800px){.stage{grid-template-columns:1fr}}
-.markwrap{border:1px solid var(--fio);border-radius:var(--r-l);background:var(--papel);padding:var(--s-4)}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
-button{font-family:var(--ft);font-size:14px;font-weight:500;padding:9px 14px;border-radius:var(--r-m);border:1px solid var(--tinta);background:var(--tinta);color:var(--papel);cursor:pointer}
-button.sec{background:transparent;color:var(--tinta);border-color:var(--fio)}
-button.on{background:var(--ultramar);border-color:var(--ultramar);color:#fff}
-button:disabled{opacity:.5;cursor:default}
-button:hover:not(:disabled){opacity:.9}
-.bic{width:1em;height:1em;vertical-align:-0.13em;margin-right:6px;flex:none}
-.toolbar button{display:inline-flex;align-items:center}
-.markwrap svg.cyc{width:100%;height:auto;display:block;touch-action:none;overflow:visible}
-.arc{fill:none;stroke:var(--grafite);stroke-width:4.6;stroke-linecap:round;opacity:.55}
-.arc.flow{stroke-dasharray:6 9;animation:march 2.4s linear infinite}
-@keyframes march{to{stroke-dashoffset:-30}}
-.node{cursor:grab;transition:r .12s ease}
-.node:active{cursor:grabbing}.node:focus{outline:none}
-.node-ring{fill:none;stroke:var(--ultramar);stroke-width:2;opacity:0;transition:opacity .15s}
-.node:focus-visible+.node-ring,.dragging .node-ring{opacity:.9}
-.tokl{font-family:var(--fm);font-size:7px;fill:var(--tinta);font-weight:600;pointer-events:none}
-.dot{fill:var(--ultramar);opacity:0}
-.card{border:1px solid var(--fio);border-radius:var(--r-l);padding:var(--s-5);background:var(--papel)}
-.ctrl{margin-bottom:14px}
-.ctrl label{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:6px}
-.ctrl label .lbl{display:flex;align-items:center;gap:5px}
-.ctrl label .v{font-family:var(--fm);color:var(--ultramar)}
-input[type=range]{width:100%;accent-color:var(--ultramar)}
-input[type=number]{font-family:var(--fm);font-size:14px;padding:7px 10px;border:1px solid var(--fio);border-radius:var(--r-m);background:var(--papel);color:var(--tinta);width:100%}
-.verdict{font-family:var(--fm);font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;padding:8px 14px;border-radius:var(--r-m);display:inline-block;margin-bottom:var(--s-4);transition:background .2s}
-.v-loss{background:var(--acafrao-fundo);color:var(--acafrao-texto);border:1px solid var(--acafrao)}
-.v-revert{background:var(--nevoa);color:var(--grafite);border:1px solid var(--fio)}
-.v-profit{background:var(--verde-fundo);color:var(--verde);border:1px solid var(--verde)}
-.rare{font-family:var(--fm);font-size:9px;letter-spacing:.1em;border:1px solid currentColor;border-radius:999px;padding:1px 7px;margin-left:8px;vertical-align:middle}
-table.res{width:100%;border-collapse:collapse;font-size:14px;margin-top:var(--s-3)}
-table.res td{padding:7px 0;border-bottom:1px solid var(--fio)}
-table.res td:last-child{text-align:right;font-family:var(--fm)}
-table.res td.big{font-size:16px;font-weight:600;border-bottom:none;padding-top:12px}
-.tcell{display:flex;align-items:center;gap:5px}
-.tip{width:16px;height:16px;min-width:16px;padding:0;border-radius:50%;border:1px solid var(--grafite);background:transparent;color:var(--grafite);font-family:var(--fm);font-size:10px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
-.tip:hover{border-color:var(--tinta);color:var(--tinta)}
-.tip-pop{position:fixed;z-index:40;max-width:240px;background:var(--tinta);color:var(--papel);font-size:12.5px;line-height:1.45;padding:10px 12px;border-radius:var(--r-m);box-shadow:0 6px 24px rgba(0,0,0,.22);display:none}
-.tip-pop.on{display:block}
-.tally{margin-top:var(--s-5);font-size:13px;color:var(--grafite)}
-.tally b{color:var(--tinta)}
-.bar{height:8px;border-radius:4px;background:var(--nevoa);overflow:hidden;margin-top:8px}
-.bar>i{display:block;height:100%;background:var(--verde);transition:width .3s}
-.note{font-size:12.5px;color:var(--grafite);margin-top:var(--s-4)}
-.hint{font-size:12px;color:var(--grafite);text-align:center;margin-top:6px}
-.cap{font-family:var(--fm);font-size:10.5px;color:var(--grafite);text-align:center;margin-top:2px}
-.lr{margin-top:var(--s-7);border:1px solid var(--fio);border-radius:var(--r-l);padding:var(--s-6) var(--s-5)}
-.lr h2{font-family:var(--fd);font-size:24px;margin-bottom:4px}
-.lr .sub{color:var(--grafite);font-size:14px;margin-bottom:var(--s-5);max-width:64ch}
-.lr-grid{display:grid;grid-template-columns:260px 1fr;gap:var(--s-6);align-items:start}
-@media(max-width:760px){.lr-grid{grid-template-columns:1fr}}
-.lr-in{margin-bottom:14px}.lr-in label{display:flex;align-items:center;gap:5px;font-size:13px;margin-bottom:5px}
-.lrchart{width:100%;height:auto;display:block;border:1px solid var(--fio);border-radius:var(--r-m);background:var(--papel)}
-.lr-read{margin-top:var(--s-4)}.lr-read .big{font-family:var(--fm);font-size:22px;font-weight:500}
-.lr-read .ins{font-size:13.5px;color:var(--grafite);margin-top:8px;max-width:62ch}.lr-read .pah{font-family:var(--fm);font-size:13px;margin-top:10px}
-footer{border-top:1px solid var(--fio);margin-top:var(--s-7);padding-top:var(--s-5);font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:1.9}
-@media(prefers-reduced-motion:reduce){.arc.flow{animation:none}}
-</style>
+<link href="/vendor/estilos-inline.css" rel="stylesheet">
+<link href="/vendor/estilos/simulate.css" rel="stylesheet">
 </head>
 <body>
 <header class="top">
   <svg viewBox="0 0 120 120" aria-label="Triviu"><path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="25.36" r="8.5" fill="#2743C7"/><circle cx="100" cy="60" r="8.5" fill="#C13327"/><circle cx="40" cy="94.64" r="8.5" fill="#E8B23A"/></svg>
-  <b>Triviu</b><span class="mono" style="font-size:12px;color:var(--grafite)">· Simulator</span>
+  <b>Triviu</b><span class="mono u-f33008c8">· Simulator</span>
   <span class="spacer"></span>
   <button class="themebtn" id="theme" aria-label="Toggle light or dark theme" title="Theme"></button>
   <a class="nav" href="/">Home</a><a class="nav" href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">Whitepaper</a><a class="nav" href="/dashboard">Dashboard</a>
@@ -158,7 +69,7 @@ footer{border-top:1px solid var(--fio);margin-top:var(--s-7);padding-top:var(--s
     </div>
 
     <div>
-      <div class="card" style="margin-bottom:var(--s-5)">
+      <div class="card u-748a8395">
         <span class="verdict v-revert" id="verdict">—</span>
         <table class="res">
           <tr><td><span class="tcell">Price product <button class="tip" data-tip="product" aria-label="?">?</button></span></td><td id="oProd">—</td></tr>
@@ -183,7 +94,7 @@ footer{border-top:1px solid var(--fio);margin-top:var(--s-7);padding-top:var(--s
   <div class="tally">
     Over <b id="tN">0</b> markets you've run, <b id="tWin">0</b> profited after fees
     and gas — <b id="tPct">0%</b>. The rest reverted or lost. That ratio is the honest lesson.
-    <div class="bar"><i id="tBar" style="width:0%"></i></div>
+    <div class="bar"><i class="u-5225e5b7" id="tBar"></i></div>
   </div>
 
   <section class="lr">
@@ -194,9 +105,9 @@ footer{border-top:1px solid var(--fio);margin-top:var(--s-7);padding-top:var(--s
         <div class="lr-in"><label>Starting capital</label><input type="number" id="lrCap" value="1000" min="10" step="10"></div>
         <div class="lr-in"><label>Cycles per day</label><input type="number" id="lrPd" value="20" min="1" step="1"></div>
         <div class="lr-in"><label>Days</label><input type="number" id="lrDays" value="30" min="1" step="1"></div>
-        <div class="lr-in"><label><span class="lbl">Searcher competition <button class="tip" data-tip="comp" aria-label="?">?</button></span><span id="lrCv" class="mono" style="color:var(--ultramar)">85%</span></label><input type="range" id="lrComp" min="0" max="100" step="5" value="85"></div>
-        <button id="project" style="width:100%;margin-top:6px">Project the long run</button>
-        <p class="note" style="margin-top:12px">Searcher competition is the whole story. At <b>0%</b> you're the only player and the pure math can grow. At the realistic <b>~85%</b> (whitepaper <a href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">§8</a>), searchers win most races and take most of your edge, and it decays. Drag it. Models random markets, not a forecast.</p>
+        <div class="lr-in"><label><span class="lbl">Searcher competition <button class="tip" data-tip="comp" aria-label="?">?</button></span><span id="lrCv" class="mono u-90ea6944">85%</span></label><input type="range" id="lrComp" min="0" max="100" step="5" value="85"></div>
+        <button class="u-72e5bd85" id="project">Project the long run</button>
+        <p class="note u-0ee7f66a">Searcher competition is the whole story. At <b>0%</b> you're the only player and the pure math can grow. At the realistic <b>~85%</b> (whitepaper <a href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">§8</a>), searchers win most races and take most of your edge, and it decays. Drag it. Models random markets, not a forecast.</p>
       </div>
       <div>
         <svg class="lrchart" id="lrchart" viewBox="0 0 480 220" role="img" aria-label="Expected balance over time — a decay, with a luck band."></svg>

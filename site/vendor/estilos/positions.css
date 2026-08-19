@@ -1,0 +1,159 @@
+:root{
+  --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
+  --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
+  --verde:#1E7A46;
+  --fd:"Libre Caslon Text",Georgia,serif;--ft:"Public Sans",system-ui,sans-serif;--fm:"IBM Plex Mono",ui-monospace,monospace;
+  --r-m:6px;--r-l:10px;
+}
+@media(prefers-color-scheme:dark){:root{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}}
+:root[data-theme="dark"]{--papel:#131519;--tinta:#ECEDEA;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--ultramar:#8FA1F2;--lacre:#E4736A;--acafrao-fundo:#241f14;--acafrao-texto:#E8B23A;--verde:#6BD69B;}
+:root[data-theme="light"]{--papel:#FAFAF7;--tinta:#16181D;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-fundo:#FBF3DF;--acafrao-texto:#8A6414;--verde:#1E7A46;}
+*{margin:0;padding:0;box-sizing:border-box}
+/* WCAG 2.2 SC 2.4.11 Focus Not Obscured (Minimum, AA). The header is
+   position:sticky, so an in-page jump — the skip link, any #anchor — would land
+   its target underneath the bar. scroll-padding-top reserves the bar's height:
+   14+14 padding + 30px control + 1px border = 59px measured; 72 clears it with
+   room for the wrapped two-row header on a narrow screen. */
+html{scroll-padding-top:72px}
+body{background:var(--papel);color:var(--tinta);font-family:var(--ft);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--ultramar);text-decoration:none}a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--ultramar);outline-offset:2px;border-radius:2px}
+/* The skip link scrolled but did not FOCUS: Safari and older WebKit move the
+   viewport to a fragment without moving focus, so the next Tab went straight back
+   into the header the reader had just skipped past. tabindex="-1" on <main> makes
+   the jump a real focus move. The ring is dropped only for that programmatic
+   case — :focus-visible still paints for genuine keyboard navigation, so no
+   indicator is lost anywhere. */
+main:focus:not(:focus-visible){outline:none}
+/* WCAG 1.4.11 Non-text Contrast, and this pair MEASURED A FAIL before this rule
+   existed. The code block's background is --tinta #16181D even in the light
+   theme, and the global focus ring is --ultramar #2743C7:
+       #2743C7 on #16181D = 2.29:1   light   FAIL (min 3.0)
+   A keyboard user in light mode landed on the one scrollable block on this page
+   and could not see where they were. currentColor inside .cod is its own text
+   colour #E8EAE6:
+       #E8EAE6 on #16181D = 14.67:1  light   PASS
+       #E8EAE6 on #0C0E11 = 15.96:1  dark    PASS
+   The offset is negative so the ring lands in the block's own padding — on the
+   dark surface those two numbers were measured against — instead of 2px outside
+   it on --papel, where #E8EAE6 would vanish. */
+.cod:focus-visible{outline:2px solid currentColor;outline-offset:-4px}
+.mono{font-family:var(--fm)}
+/* 3.3.1 Error Identification. Measured, sRGB, W3C formula:
+     --lacre #C13327 on --papel #FAFAF7 = 5.33:1  light  (min 4.5)
+     --lacre #E4736A on --papel #131519 = 6.06:1  dark   (min 4.5)
+   Colour is never the only carrier: the refused field also gets aria-invalid, the
+   focus, and the sentence read out through aria-describedby. */
+.erro{color:var(--lacre)}
+.erro:empty{display:none}
+.campoerro{display:block;font-family:var(--ft);font-size:12.5px;color:var(--lacre);margin-top:6px;text-transform:none;letter-spacing:0}
+.campoerro:empty{display:none}
+/* Available to assistive technology, not to the eye. Used for table captions
+   that name a table a sighted reader already understands from the heading
+   above it. clip+1px, not display:none — display:none removes it from the
+   accessibility tree too, which would defeat the point. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+/* WCAG 2.4.1 Bypass Blocks. Seven header controls sit before the content on
+   every load; a keyboard or switch user should not have to walk them each time.
+   Hidden by transform rather than by display, so it stays in the tab order. */
+.pular{position:absolute;top:0;left:0;z-index:100;transform:translateY(-120%);
+  background:var(--tinta);color:var(--papel);font-family:var(--fm);font-size:13px;
+  padding:10px 16px;border-bottom-right-radius:var(--r-m);text-decoration:none}
+.pular:focus{transform:translateY(0)}
+.top{position:sticky;top:0;z-index:20;background:var(--papel);border-bottom:1px solid var(--fio);padding:14px 22px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top svg.lg{width:26px;height:26px}.top b{font-size:15px}.top .spacer{flex:1}
+.top nav{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top a.nav{font-family:var(--fm);font-size:12px;color:var(--grafite)}
+.themebtn{width:30px;height:30px;padding:0;border:1px solid var(--fio);background:transparent;color:var(--grafite);border-radius:var(--r-m);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.themebtn:hover{color:var(--tinta);border-color:var(--tinta)}.themebtn svg{width:16px;height:16px}
+/* padding-bottom moves to the footer, which is now a sibling of <main> rather
+   than a child of it: a <footer> inside <main> is not a contentinfo landmark
+   (HTML spec — the element only maps to contentinfo when its nearest ancestor
+   sectioning content is <body>). The box model is reproduced exactly on .rod
+   below, so the rule stays 952px wide and 44px below the last content. */
+.wrap{max-width:1000px;margin:0 auto;padding:52px 24px 0}
+.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--grafite);margin-bottom:14px}
+h1{font-family:var(--fd);font-size:36px;line-height:1.12;letter-spacing:-.01em;margin-bottom:16px}
+@media(max-width:640px){h1{font-size:28px}}
+h2{font-family:var(--fd);font-size:20px;margin-bottom:12px}
+.lead{font-size:16px;color:var(--grafite);max-width:72ch;margin-bottom:24px}
+.aviso{background:var(--acafrao-fundo);border:1px solid var(--acafrao);border-radius:var(--r-m);padding:14px 18px;margin-bottom:32px;max-width:82ch}
+/* .rot was <b>. It is a heading in the outline now, so it is an <h2 class="rot">;
+   the class carries the same declarations the <b> selector carried, and <b> and
+   <h2> are both font-weight:bold by user-agent default, so nothing moves. */
+.aviso .rot{font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:var(--acafrao-texto);display:block;margin-bottom:5px}
+.aviso p{font-size:13.5px;margin:0}.aviso p+p{margin-top:8px}
+.alerta{background:var(--nevoa);border:1px solid var(--lacre);border-radius:var(--r-m);padding:14px 18px;margin-bottom:28px;max-width:82ch;font-size:13.5px}
+.alerta .rot{font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:var(--lacre);display:block;margin-bottom:5px}
+.painel{border:1px solid var(--fio);border-radius:var(--r-l);padding:22px;background:var(--papel);margin-bottom:28px}
+.form{display:grid;grid-template-columns:1fr;gap:14px;align-items:end}
+@media(min-width:760px){.form{grid-template-columns:1.4fr 1fr auto auto}}
+.campo label{display:block;font-family:var(--fm);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--grafite);margin-bottom:6px}
+/* WCAG 1.4.11 Non-text Contrast (AA), and it is the one thing on this page that
+   measured a fail. The field's background is --papel, the same as the page, so
+   the border is the ONLY thing that says "this is a field" — which puts it
+   squarely inside 1.4.11's "visual information required to identify a user
+   interface component". Measured, sRGB, W3C formula:
+       --fio     #DDE0DA on #FAFAF7 = 1.28:1  light   FAIL (min 3.0)
+       --fio     #2A2E36 on #131519 = 1.34:1  dark    FAIL (min 3.0)
+       --grafite #52575D on #FAFAF7 = 6.97:1  light   PASS
+       --grafite #9BA1AC on #131519 = 7.04:1  dark    PASS
+   --grafite is an existing token of this palette, not a new colour: inventing a
+   token is design-system governance and belongs to the token owner, not here. */
+.campo input,.campo select{width:100%;font-family:var(--fm);font-size:13px;color:var(--tinta);background:var(--papel);border:1px solid var(--grafite);border-radius:var(--r-m);padding:10px 12px}
+.campo input:focus,.campo select:focus{border-color:var(--ultramar)}
+/* 3.3.1 Error Identification: the field that was refused says so on itself, not
+   only in the status line. Border AND the message — never colour alone. */
+.campo input[aria-invalid="true"]{border-color:var(--lacre)}
+button.act{font-family:var(--ft);font-weight:600;font-size:14px;padding:11px 18px;border-radius:var(--r-m);border:1.5px solid var(--tinta);background:var(--tinta);color:var(--papel);cursor:pointer;white-space:nowrap}
+button.act:hover{background:#000}
+button.act.ghost{background:transparent;color:var(--tinta)}
+button.act.ghost:hover{background:var(--nevoa)}
+button.act[disabled]{opacity:.5;cursor:not-allowed}
+.hint{font-size:12.5px;color:var(--grafite);margin-top:12px;max-width:82ch}
+.vt{width:100%;border-collapse:collapse;font-size:14px}
+/* The first cell of each row is now <th scope="row">, so th inherits every
+   declaration td had, plus the two user-agent defaults a th brings and this
+   layout never wanted (centred, bold). Appearance unchanged; semantics gained. */
+.vt td,.vt th{padding:9px 0;border-bottom:1px solid var(--fio);vertical-align:top}
+.vt th{text-align:left;font-weight:400}
+.vt td:last-child{text-align:right;font-family:var(--fm);font-size:12px;color:var(--grafite);word-break:break-all}
+.pos{border:1px solid var(--fio);border-radius:var(--r-l);padding:20px;background:var(--papel);margin-bottom:16px;border-top:3px solid var(--ultramar)}
+.pos .cab{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.pos .par{font-family:var(--fd);font-size:22px;font-weight:700}
+.pill{font-family:var(--fm);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--grafite);color:var(--grafite);border-radius:999px;padding:3px 9px}
+.pill.lido{border-color:var(--verde);color:var(--verde)}
+.pill.calc{border-color:var(--acafrao-texto);color:var(--acafrao-texto)}
+.pill.vazio{border-color:var(--lacre);color:var(--lacre)}
+.celas{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:700px){.celas{grid-template-columns:repeat(3,1fr)}}
+.cela .k{font-family:var(--fm);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--grafite);margin-bottom:5px}
+.cela .v{font-family:var(--fm);font-size:19px;font-weight:500;word-break:break-all}
+/* .n now sits inside the <dd>, so it would inherit the value's mono face, its
+   500 weight and its break-all. All three are cancelled here; the note renders
+   exactly as it did when it was a sibling. */
+.cela .n{font-size:12px;color:var(--grafite);margin-top:4px;font-family:var(--ft);font-weight:400;word-break:normal}
+.regra{border:1px solid var(--fio);border-left:3px solid var(--tinta);border-radius:var(--r-m);padding:20px 22px;margin-bottom:22px;background:var(--nevoa)}
+/* Was a <div>, is an <h2> — font-weight is pinned to 400 so the heading renders
+   byte-for-byte as the div did. A heading does not have to look like one. */
+.regra .t{font-family:var(--fm);font-size:11px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--grafite);margin-bottom:8px}
+.regra p{font-size:14px;max-width:82ch}.regra p+p{margin-top:10px}
+.nao{list-style:none;margin-top:14px;max-width:82ch}
+.nao li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--fio);font-size:14px}
+.nao li::before{content:"x";font-family:var(--fm);color:var(--lacre);flex:none;font-weight:600}
+/* This block is a <pre> now, and that is a correctness fix, not a style change.
+   It was a <div> with runs of literal spaces and &nbsp; meant to line up three
+   columns — but a <div> is white-space:normal, so every run collapsed to one
+   space and the columns the author aligned were destroyed in every browser. A
+   <pre> keeps white-space:pre, which restores the alignment AND makes the block
+   genuinely overflow on a narrow viewport. That second consequence matters: the
+   tabindex="0" and role="region" on it were added for WCAG 2.1.1 (a scrollable
+   region must be reachable by keyboard) — until now they guarded a block that
+   never scrolled. margin:0 cancels the <pre> user-agent margin so the box sits
+   exactly where the <div> sat. */
+.cod{background:var(--tinta);color:#E8EAE6;border-radius:var(--r-m);padding:16px 18px;font-family:var(--fm);font-size:12.5px;line-height:1.9;overflow-x:auto;margin:14px 0 0}
+:root[data-theme="dark"] .cod{background:#0C0E11}
+.estado{font-family:var(--fm);font-size:12.5px;color:var(--grafite);margin-bottom:18px}
+.prog{color:var(--grafite)}
+footer{max-width:1000px;margin:0 auto;padding:0 24px 72px}
+footer .rod{border-top:1px solid var(--fio);margin-top:44px;padding-top:22px;font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:1.9}

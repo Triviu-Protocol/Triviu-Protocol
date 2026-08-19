@@ -19,3 +19,5 @@ contracts/deploy/mainnet.env
 contracts/deploy/*.env
 !contracts/deploy/*.env.exemplo
 .env*
+*.antes-f3
+*.antes-porte-9telas
