@@ -503,6 +503,29 @@ $(alvo).innerHTML = "x";` },
     nome: 'afirma "live on Arbitrum", que nao esta implantada',
     codigo: '<html><body><p>Triviu is live on Arbitrum today.</p></body></html>' },
 
+  /* ── check-alcance-dom · o campo que o assinante LE ───────────────────────
+     N2-1 do Tubarao-branco, 2026-08-20: 326 ids no console, 85 sob `lp-`
+     protegidos e 12 em `lpXxx` de fora. `console-lp.js` — o assinante — LE
+     `lpBand` para montar a transacao: `console-lp.js:1919` le o <select> e o
+     converte em largura de TICK, que vira tickLower/tickUpper na calldata. O
+     portao nao via, porque a derivacao de namespace fazia
+     `if (id.indexOf("-") <= 0) continue` — id sem hifen nunca era contado.
+
+     O N2 dizia que TRES selects decidiam dinheiro. Medido no codigo executavel,
+     e um so: `lpSize` aparece no assinante apenas dentro de comentario, e o
+     proprio comentario diz que ele "era lido so para desenhar um rotulo". A
+     quantia vem de `lp-q0`/`lp-q1`, que sempre estiveram protegidos. O controle
+     `calado` abaixo crava essa fronteira para ela nao voltar por opiniao. */
+  { portao: "check-alcance-dom", tipo: "calado", onde: "site/js/zz.js",
+    nome: "lpSize NAO chega na calldata, e o portao nao o protege — a fronteira, cravada",
+    codigo: 'document.getElementById("lpSize").value = "200000";' },
+  { portao: "check-alcance-dom", tipo: "mordida", onde: "site/js/zz.js",
+    nome: "escreve na faixa que vira tickLower/tickUpper na calldata",
+    codigo: 'document.getElementById("lpBand").value = "0.2";' },
+  { portao: "check-alcance-dom", tipo: "calado", onde: "site/js/zz.js",
+    nome: "a casca desenhar o painel de custo dela NAO e invasao da subarvore",
+    codigo: 'document.getElementById("lpCostPanel").hidden = false;' },
+
   /* ── check-procedencia-byte ───────────────────────────────────────────────
      Os quatro controles precisam de git: o portao pergunta ao git quais
      caminhos carregam `-text` e compara com o blob do INDICE. Sem as duas

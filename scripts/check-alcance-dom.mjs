@@ -216,9 +216,91 @@ function ancestraisDe(html, idsAlvo, cascas) {
   return achados;
 }
 
-const IDS_DIRETOS = new Set(
-  [...IDS_POR_TELA.values()].flat().filter((id) => PREFIXOS.some((p) => id.startsWith(p)))
-);
+/* O NAMESPACE camelCASE DO CAMPO QUE O ASSINANTE LE  ·  2026-08-20
+ * ---------------------------------------------------------------------------
+ * `PREFIXOS` deriva namespace por HIFEN e com piso de 5. Isso deixou de fora,
+ * na tela que assina, os campos que o operador ESCOLHE:
+ *
+ *     lpSize   <select>   quanto capital ele traz
+ *     lpBand   <select>   que faixa em torno do preco
+ *     lpChain  <select>   que rede
+ *
+ * `console-lp.js` — o assinante — LE `lpSize` e `lpBand` para montar a
+ * transacao. Mas ele cita so DOIS ids nesse formato, e o piso e 5: o namespace
+ * nunca nascia. Medido no N2 do Tubarao-branco em 2026-08-20: 326 ids no
+ * console, 85 sob `lp-` protegidos, 12 em `lpXxx` de fora. O invariante que
+ * tres auditorias repetiram — "a subarvore que assina e namespaced lp-*" —
+ * cobria 85 de 97 elementos.
+ *
+ * BAIXAR O PISO SERIA ERRADO: ele existe para `id="ok"` nao virar namespace
+ * `ok-`, e continua necessario.
+ *
+ * A regra que entra e outra e tem o mesmo criterio do resto deste arquivo — o
+ * namespace sai de QUEM ASSINA, nao do HTML: **se o assinante cita um id em
+ * camelCase, o namespace daquele campo esta protegido, com os irmaos dele.**
+ * Uma citacao basta, porque a citacao E a evidencia.
+ *
+ * OS IRMAOS IMPORTAM, e este e o ataque que a regra fecha: `lpSizeState` e o
+ * `<span>` que MOSTRA a escolha. Reescrever o que a tela mostra sem mudar o que
+ * ela envia separa o que a pessoa le do que ela assina — e sem esta regra
+ * `lpSizeState` estava fora da protecao enquanto `lpSize` entrava.
+ *
+ * ENTRA NO CONJUNTO PROTEGIDO, E NAO EM `PREFIXOS`. `PREFIXOS` tambem alimenta
+ * as regex que cacam `[id^=...]` e string de prefixo nu; um prefixo de duas
+ * letras ali faria qualquer script que contivesse `"lp"` ser acusado. O que se
+ * protege aqui sao os ids, um a um, e a linha 303 ja sabe lidar com id
+ * protegido que nao casa prefixo nenhum.
+ *
+ * A PRIMEIRA VERSAO DESTA REGRA PUXAVA OS IRMAOS DE NAMESPACE, e estava errada.
+ * Ela protegia todo `lpXxx` porque o assinante citava `lpSize`, e o portao
+ * passou a acusar `console-app.js:583-584` por escrever em `lpCostPanel` e
+ * `lpCostBody`. Medi quem desenha cada um dos 12:
+ *
+ *     console-app.js (a casca, `sem-carteira`)  toca os 12
+ *     console-lp.js  (o assinante)              le apenas lpSize e lpBand
+ *
+ * A arquitetura e deliberada: `lp-*` e a subarvore do assinante, `lpXxx` sao os
+ * alvos de render da casca. A casca desenhar a propria tela nao e invasao — e o
+ * trabalho dela. Proteger por irmandade de nome acusava trabalho legitimo, e
+ * portao que acusa o certo e desligado na semana seguinte.
+ *
+ * O INVARIANTE QUE FICA E MAIS ESTREITO E EXATO: **id que o ASSINANTE LE esta
+ * protegido**, um a um, sem expansao. `console-lp.js` le `lpSize` e `lpBand`
+ * para montar a transacao; quem escrevesse neles mudaria o valor que a pessoa
+ * acredita ter escolhido, e ate hoje o portao nao veria.
+ *
+ * MEDIDO ANTES DE CRAVAR: nenhum script escreve nesses dois hoje — eles sao
+ * `<select>` estaticos que o operador muda. A regra nao acusa ninguem agora, e
+ * passa a acusar no dia em que alguem escrever. E o que um portao deve ser.
+ *
+ * RISCO RESIDUAL DECLARADO, e nao varrido: `lpSizeState` e o `<span>` que MOSTRA
+ * a escolha, e quem o desenha e a casca. Um `console-app.js` comprometido podia
+ * mostrar um tamanho e o assinante ler outro. Proteger o span acusaria a casca
+ * pelo render dela; a defesa desse vetor e o rol fechado de `check-assinatura`,
+ * que so deixa entrar `.js` classificado. Fica nomeado para o Tubarao-branco. */
+const CAMEL = /^([a-z]{2,})(?=[A-Z])/;
+
+function idsQueOAssinanteLe(tela, ids) {
+  const lidos = new Set();
+  for (const rel of ASSINANTES_REL) {
+    const paginas = carregadosPorPagina(RAIZ).get(rel) || [];
+    if (!paginas.includes(tela)) continue;
+    let fonte = "";
+    try { fonte = codigoNormalizado(readFileSync(join(SITE, rel), "utf8")); } catch { continue; }
+    for (const id of ids) {
+      /* so os que NAO casam prefixo ja derivado — os outros ja estao protegidos */
+      if (PREFIXOS.some((p) => id.startsWith(p))) continue;
+      if (!CAMEL.test(id)) continue;
+      if (fonte.includes(id)) lidos.add(id);
+    }
+  }
+  return [...lidos];
+}
+
+const IDS_DIRETOS = new Set([
+  ...[...IDS_POR_TELA.values()].flat().filter((id) => PREFIXOS.some((p) => id.startsWith(p))),
+  ...[...IDS_POR_TELA].flatMap(([tela, ids]) => idsQueOAssinanteLe(tela, [...new Set(ids)])),
+]);
 
 const IDS_PROTEGIDOS = (() => {
   const todos = new Set(IDS_DIRETOS);
