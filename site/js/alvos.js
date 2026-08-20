@@ -53,12 +53,52 @@
     }) : "—";
   }
 
-  function semAlvo(motivo, quando) {
+  /* A FRASE É ESCRITA AQUI, E NÃO NA PONTE.
+     A ponte emite o FATO — um código e os números que o sustentam. A primeira
+     versão desta tela imprimia o texto da ponte cru, e o Chrome mostrou o que
+     isso significa: uma frase em português no meio de uma página inteiramente em
+     inglês, terminando em "Rode `node oracle/oraculo.mjs`" — uma instrução de
+     operador servida a quem não tem terminal, não tem o repositório e não é quem
+     religa o oráculo. Um texto só serviria bem a um dos dois públicos.
+     O código desconhecido cai no ramo genérico: motivo novo na ponte aparece
+     como "não decidiu, e o motivo não tem tradução aqui ainda" — visível e
+     estranho, que é como um caso não previsto deve aparecer. Nunca em branco. */
+  function emIngles(codigo, d) {
+    d = d || {};
+    switch (codigo) {
+      case "ORACULO_CEGO":
+        return "The oracle's last reading is " + esc(d.idadeHoras) + " hours old and it stops " +
+               "trusting itself past " + esc(d.limiteHoras) + ". It would rather show you nothing " +
+               "than show you a stale target.";
+      case "SEM_DECISAO":
+      case "CARIMBO_ILEGIVEL":
+        return "The oracle has not published a reading this screen can read.";
+      case "PORTAO_DE_REDE":
+        return "A network gate is holding the oracle back: " +
+               (d.portoes || []).map(function (p) {
+                 return "<b>" + esc(p.portao) + "</b> (" + esc(p.motivo) + ")";
+               }).join(", ") + ".";
+      case "TODOS_REPROVADOS":
+        return "The oracle evaluated <b>" + esc(d.avaliados) + "</b> candidates in its last run and " +
+               "none of them cleared its own thresholds" +
+               ((d.principais || []).length
+                 ? ", mostly on " + d.principais.map(function (p) {
+                     return "<b>" + esc(p.criterio) + "</b> (" + esc(p.quantos) + ")";
+                   }).join(", ")
+                 : "") + ". Nothing to offer is an answer, and it is this one.";
+      default:
+        return "The oracle declined to name a target, and this screen does not yet have a " +
+               "sentence for the reason it gave (<span class=\"mono\">" + esc(codigo || "none") +
+               "</span>).";
+    }
+  }
+
+  function semAlvo(codigo, dados, quando) {
     selo.textContent = "no target";
     selo.className = "pill warn";
     corpo.innerHTML =
       '<p class="small"><b>The oracle is not offering a target right now, and this is why:</b></p>' +
-      '<p class="mono small orac-espaco">' + esc(motivo || "no reason recorded") + "</p>" +
+      '<p class="small orac-espaco">' + emIngles(codigo, dados) + "</p>" +
       (quando ? '<p class="small faint orac-espaco">bridge ran at ' + esc(quando) + "</p>" : "");
   }
 
@@ -106,7 +146,7 @@
     .then(function (d) {
       bloco.hidden = false;
       if (!d || !Array.isArray(d.alvos) || d.alvos.length === 0) {
-        semAlvo(d && d.motivo, d && d.geradoEm);
+        semAlvo(d && d.motivoCodigo, d && d.motivoDados, d && d.geradoEm);
       } else {
         comAlvos(d);
       }

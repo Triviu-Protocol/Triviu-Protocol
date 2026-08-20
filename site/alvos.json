@@ -1,9 +1,14 @@
 {
   "versao": 1,
-  "geradoEm": "2026-08-20T13:25:06.915Z",
+  "geradoEm": "2026-08-20T14:02:16.679Z",
   "origem": "oracle/ponte.mjs",
   "assina": false,
   "monta_transacao": false,
   "alvos": [],
-  "motivo": "a decisao tem 6.4h e o limite e 6h — o oraculo esta cego. Rode `node oracle/oraculo.mjs` e depois `decisao.mjs`"
+  "motivo": "a decisao tem 7.0h e o limite e 6h — o oraculo esta cego. Rode `node oracle/oraculo.mjs` e depois `decisao.mjs`",
+  "motivoCodigo": "ORACULO_CEGO",
+  "motivoDados": {
+    "idadeHoras": 7.05,
+    "limiteHoras": 6
+  }
 }
