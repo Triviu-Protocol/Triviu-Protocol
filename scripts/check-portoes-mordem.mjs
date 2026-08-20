@@ -285,6 +285,13 @@ $(alvo).innerHTML = "x";` },
     nome: "PoC N1R-01 · js que nenhuma pagina carrega, alcancado por import dinamico",
     codigo: 'export function enviar(p){ return window.ethereum.request({method:"eth_sendTransaction",params:[p]}); }' },
 
+  /* PoC do ESCORPIAO sobre a arvore congelada · a DECIMA instancia era DUAS
+     LISTAS da mesma verdade. A tela some do portao de DOM e ele imprime o visto.
+     Exercido aqui pelo lado do piso de cobertura, que e o mecanismo geral. */
+  { portao: "check-alcance-dom", tipo: "mordida", onde: "site/calldata/index.html", modo: "trocar",
+    nome: "PoC E-10 · a tela que assina sai do mapa de carga e a cobertura encolhe",
+    ancora: '<script src="/js/console.js"', codigo: '<script data-src="/js/console.js" src="/js/tema.js"' },
+
   /* PoCs da QUARTA passagem · a OITAVA instancia era um conjunto de NOMES de
      diretorio, e a NONA era proteger por igualdade de id num documento que e
      arvore. As duas nasceram dentro do conserto das anteriores. */
@@ -563,7 +570,12 @@ if (existsSync(OUT)) {
 
 /* Os portoes sob teste sao os DESTA arvore, nao os do indice: um conserto ainda
    nao estagiado tem de ser exercido, senao o corpus so confirma o passado. */
-for (const f of readdirSync(join(RAIZ, "scripts")).filter((f) => f.endsWith(".mjs")))
+/* TUDO de `scripts/`, e nao so os `.mjs`.
+   O piso de cobertura do `check-alcance-dom` mora num `.json`; com o filtro por
+   extensao ele nao chegava ao laboratorio, o portao morria por arquivo ausente e
+   a linha de base nascia vermelha. Recorte por extensao, de novo — desta vez
+   dentro do proprio arnes que existe para pegar recorte. */
+for (const f of readdirSync(join(RAIZ, "scripts")))
   cpSync(join(RAIZ, "scripts", f), join(lab, "scripts", f));
 
 /* O portao roda DENTRO da arvore que esta sendo julgada — e por isso `casa` e

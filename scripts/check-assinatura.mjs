@@ -59,6 +59,7 @@
 import vm from "node:vm";
 import { codigoNormalizado } from "./_comentarios.mjs";
 import { executaveis, carregadosPorPagina , raizPublicada } from "./_arvore.mjs";
+import { ASSINANTES as ASSINANTES_CANON } from "./_assinantes.mjs";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { webcrypto } from "node:crypto";
@@ -69,20 +70,10 @@ const SITE = raizPublicada(RAIZ).abs;
 
 /* Todo arquivo que tem permissao de falar com uma carteira. Cada um passa pelas
    quatro checagens inteiras, sem excecao e sem modo reduzido. */
-const ASSINANTES = [
-  "js/console.js",     /* /calldata/ — o leitor de bytes do ciclo do Executor */
-  "js/console-lp.js",  /* /console/  — o ciclo de vida de uma posicao no LPVault */
-  /* `js/modelo-2.js` esteve nesta lista de 2026-08-13 a 2026-08-19 e saiu porque
-     o arquivo saiu de `site/`. Ele nunca foi commitado: ficou seis dias sob a
-     raiz que a Vercel publica, com 91 pontos de regra de assinatura reprovando,
-     sem allowlist, sem checagem de origem, e com quase quarenta escritas por
-     `innerHTML`. Estava listado aqui — o guardiao o pegou no instante em que
-     virou arquivo — e listar nao impede publicar.
-     O conserto foi tirar o modelo da raiz publicada (`modelo/`, mesmo layout,
-     hash a hash), e cravar `check-arvore-publicavel.mjs`, que recusa QUALQUER
-     arquivo sob `site/` fora do git. Se o modelo voltar, ele volta commitado e
-     sob as quatro checagens — e ai o nome volta para esta lista. */
-];
+/* Importada de `_assinantes.mjs`. Ate 2026-08-20 esta lista vivia aqui e uma
+   COPIA dela vivia no `check-alcance-dom`; as duas nao se falavam, e o portao de
+   alcance de DOM perdia telas em silencio quando esta mudava. */
+const ASSINANTES = ASSINANTES_CANON;
 
 const falhas = [];
 const notas = [];

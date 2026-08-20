@@ -65,6 +65,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { codigoNormalizado } from "./_comentarios.mjs";
 import { executaveis, carregadosPorPagina, raizPublicada } from "./_arvore.mjs";
+import { ASSINANTES } from "./_assinantes.mjs";
 import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -84,7 +85,9 @@ const JS = join(RAIZ, "site", "js");
  * mapa de carga: qualquer pagina que carregue um arquivo da lista de assinantes
  * E uma tela que assina, e todas sao julgadas. Acrescentar uma terceira tela nao
  * exige lembrar deste arquivo. */
-const ASSINANTES_REL = ["js/console.js", "js/console-lp.js"];
+/* Importada de `_assinantes.mjs`. Estava cravada aqui, e um rename rotineiro
+   fazia este portao perder uma tela inteira em silencio — ver o cabecalho de la. */
+const ASSINANTES_REL = ASSINANTES;
 const TELAS = (() => {
   const mapa = carregadosPorPagina(RAIZ);
   const paginas = new Set();
@@ -481,7 +484,31 @@ function funcaoQueEnvolve(src, pos) {
   return null;   // escopo do modulo · nao ha funcao que envolva
 }
 
+/* PISO DE COBERTURA · cobertura que encolhe sozinha reprova.
+ *
+ * A fonte unica de ASSINANTES fecha o caso que o Escorpiao isolou. Isto fecha a
+ * CLASSE: qualquer caminho futuro que faca este portao enxergar menos — outro
+ * rename, um namespace que muda, uma tela que sai do mapa de carga por um
+ * atributo diferente — reprova em vez de aprovar com menos alvos.
+ *
+ * O piso e um arquivo commitado, nao uma constante: baixa-lo aparece no diff e
+ * tem de vir com razao escrita. */
+const PISO = JSON.parse(readFileSync(join(RAIZ, "scripts", "_cobertura-minima.json"), "utf8"));
+
 const falhas = [];
+
+for (const [campo, obtido] of [
+  ["telas", TELAS.length],
+  ["ids", IDS_PROTEGIDOS.size],
+  ["namespaces", PREFIXOS.length],
+]) {
+  if (obtido < PISO[campo])
+    falhas.push(
+      `cobertura ENCOLHEU: ${campo} caiu de ${PISO[campo]} (piso cravado) para ${obtido}. ` +
+      "Este portao carrega VETO de Lei #1 e nao aprova enxergando menos do que ja enxergou. " +
+      "Se a arvore mudou de verdade, suba scripts/_cobertura-minima.json no mesmo commit, com a razao"
+    );
+}
 let lidos = 0, alvos = 0, leiturasOk = 0, prefixos = 0, concatenacoes = 0, indiretas = 0;
 
 const idsHtml = new Set(

@@ -1,0 +1,7 @@
+{
+  "_porque": "Piso de cobertura do check-alcance-dom, cravado em 2026-08-20. O Escorpiao mostrou que um rename rotineiro fazia o portao passar de 2 telas e 151 ids para 1 tela e 93 ids -- e imprimir o visto. Um portao que perde alvo tem de RECUSAR, nunca aprovar com menos alvos. Cobertura que encolhe sozinha e a assinatura desta classe de defeito.",
+  "_como_atualizar": "Se a arvore mudar de verdade (uma tela sai, um namespace e renomeado), este arquivo sobe no MESMO commit que a mudanca, com a razao no corpo da mensagem. Subir o piso e barato; baixa-lo tem de doer o suficiente para alguem perguntar por que.",
+  "telas": 2,
+  "ids": 151,
+  "namespaces": 3
+}
