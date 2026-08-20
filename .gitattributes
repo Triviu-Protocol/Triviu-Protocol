@@ -41,6 +41,27 @@
 
 *.sol            -text
 
+# O QR carrega uma promessa.
+# ---------------------------------------------------------------------------
+# `site/selo/qr-contrato.svg` decodifica para o endereco do TriviuExecutor no
+# explorador, e essa decodificacao e a UNICA prova de que o codigo leva onde a
+# cena do selo e a faixa da home dizem que leva.
+#
+# Ele nao estava aqui, e em 2026-08-20 o N2 do Tubarao-branco comparou o sha256
+# do disco contra o do commit e obteve divergencia:
+#
+#     disco   9356c996af8fd7b5   4404 bytes   8 CRLF
+#     commit  57dc8ca59ce3a944   4396 bytes   0 CRLF
+#
+# Nao era nada: so quebra de linha, e o `<path>` com os modulos escuros — o que
+# o leitor de QR de fato le — e byte-identico. Mas o juiz esteve a um passo de
+# declarar que a prova nao valia mais, e QUALQUER conferencia futura por hash
+# devolveria o mesmo susto.
+#
+# O dano nao e ao QR. E a verificabilidade dele. `-text` torna a conferencia por
+# hash uma resposta em vez de uma investigacao.
+site/selo/qr-contrato.svg  -text
+
 site/vendor/**   -text
 *.min.js         -text
 *.woff2          -text
