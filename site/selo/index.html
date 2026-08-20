@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="/vendor/fonts/fontes.css">
 <link rel="stylesheet" href="/vendor/estilos/selo.css">
 </head>
-<body>
+<body class="selo-palco selo-pagina">
 
 <nav class="voltar" aria-label="Breadcrumb">
   <a href="/">
@@ -32,46 +32,72 @@
   <span>the seal</span>
 </nav>
 
-<div class="spacer" id="hint">scroll down — four acts, four seals</div>
+<!-- Cabecalho recortado, nao ausente. Quem navega por cabecalhos — que e como a
+     maioria dos usuarios de leitor de tela varre uma pagina — pulava esta inteira,
+     porque `grep -cE "<h[1-6]"` devolvia 0. Ele e recortado e nao visivel porque a
+     peca deliberadamente nao tem titulo na tela: a cena E o titulo. Recortar da o
+     marco de navegacao sem alterar um desenho que o cliente aprovou. -->
+<h1 class="apenas-leitor">The seal — four acts, four seals</h1>
 
-<section class="scene" id="scene" aria-label="Four acts: ideas from Tesla, Bernoulli and Kelly are paraphrased by hand and sealed with each author's name; the smart contract answers each one with the consequence its author could not foresee. In the fourth act the wax seal gives way to a QR code linking to the verified contract on the explorer — from sealed by a name to verified by anyone.">
-  <p class="chap" id="chap"></p>
+<div class="spacer" id="selo-hint">scroll down — four acts, four seals</div>
+
+<!-- A cena troca de ato sozinha a cada ~7,4s e reescreve tudo. Sem aviso, quem usa
+     leitor de tela esta no meio de um ato e o conteudo vira outro em silencio
+     (WCAG 4.1.3). Esta regiao anuncia a MUDANCA, nao o conteudo — marcar a cena
+     inteira como viva reanunciaria as seis linhas a cada troca, quatro vezes, por
+     cima de uma narrativa que ja esta sendo lida. -->
+<p class="apenas-leitor" id="selo-anuncio" role="status" aria-live="polite" aria-atomic="true"></p>
+
+<section class="scene" id="selo-scene" aria-live="off" aria-label="Four acts: ideas from Tesla, Bernoulli and Kelly are paraphrased by hand and sealed with each author's name; the smart contract answers each one with the consequence its author could not foresee. In the fourth act the wax seal gives way to a QR code linking to the verified contract on the explorer — from sealed by a name to verified by anyone.">
+  <p class="chap" id="selo-chap"></p>
   <div class="doc">
     <div class="head">
       <div class="brand">
-        <svg width="26" height="26" viewBox="0 0 60 60" aria-hidden="true">
-          <path d="M8 48 L30 10 L52 48 L16 48" fill="none" stroke="currentColor"
-                stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="16" cy="48" r="2.6" fill="currentColor"/>
+        <!-- Build SOLIDO. O guia de marca define dois builds e proibe um terceiro:
+             Dotted a partir de 64px (traco pontilhado, tres vertices, ponto de
+             entrada) e Solid abaixo de 64 ("vertices and dots are dropped: they
+             turn to mud below 64 px"). Isto renderiza a 26px, e o ponto de entrada
+             que estava aqui media 1,1px de diametro. O traco e o do
+             triviu-favicon.svg oficial, sem o ladrilho de fundo e com currentColor
+             para o .brand poder virar acafrao no estado de codigo.
+             O VAO CONTINUA ABERTO: a base vai de x=12.5 a x=6 e o vertice esquerdo
+             esta em x=3.5 — 15,6% da base sem traco. "The gap is the point." -->
+        <svg width="26" height="26" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M3.5 11.5 L8 4.5 L12.5 11.5 L6 11.5" fill="none" stroke="currentColor"
+                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <span class="bname">TRIVIU</span>
       </div>
-      <div class="date"><span class="d1" id="d1"></span><span class="d2" id="d2"></span></div>
+      <div class="date"><span class="d1" id="selo-d1"></span><span class="d2" id="selo-d2"></span></div>
     </div>
-    <div class="row r1"><span class="ms"></span><span class="cd"></span></div>
-    <div class="row r2"><span class="ms"></span><span class="cd"></span></div>
-    <div class="row rx r3"><span class="ms"></span><span class="cd"></span></div>
-    <div class="row r4"><span class="ms"></span><span class="cd"></span></div>
-    <div class="row r5"><span class="ms"></span><span class="cd"></span></div>
-    <div class="row r6"><span class="ms"></span><span class="cd"></span></div>
+    <!-- `.cd` nasce com aria-hidden="true" e `.ms` com "false": no estado inicial o
+         documento e manuscrito. Dai em diante quem espelha e espelharEstadoNaArvore()
+         no selo.js. Sem isto, leitor de tela le manuscrito e Solidity intercalados,
+         linha a linha (WCAG 1.3.2, nivel A). -->
+    <div class="row r1"><span class="ms" aria-hidden="false"></span><span class="cd" aria-hidden="true"></span></div>
+    <div class="row r2"><span class="ms" aria-hidden="false"></span><span class="cd" aria-hidden="true"></span></div>
+    <div class="row rx r3"><span class="ms" aria-hidden="false"></span><span class="cd" aria-hidden="true"></span></div>
+    <div class="row r4"><span class="ms" aria-hidden="false"></span><span class="cd" aria-hidden="true"></span></div>
+    <div class="row r5"><span class="ms" aria-hidden="false"></span><span class="cd" aria-hidden="true"></span></div>
+    <div class="row r6"><span class="ms" aria-hidden="false"></span><span class="cd" aria-hidden="true"></span></div>
 
     <div class="hash">
       <span class="ok" aria-hidden="true">✓</span>
-      <a id="clink" href="https://polygonscan.com/address/0xEdB5Aa01fd055B3755439cE41B92b575eea1d273#code"
+      <a id="selo-clink" href="https://polygonscan.com/address/0xEdB5Aa01fd055B3755439cE41B92b575eea1d273#code"
          target="_blank" rel="noopener">0xEdB5…d273</a>
-      <span id="hashtxt"></span>
+      <span id="selo-hashtxt"></span>
     </div>
-    <div class="tag" id="tag"></div>
+    <div class="tag" id="selo-tag"></div>
 
     <div class="sealwrap">
       <div class="seal">
-        <div class="wax" aria-hidden="true"><span id="sealname"></span><small id="sealyear"></small></div>
+        <div class="wax" aria-hidden="true"><span id="selo-sealname"></span><small id="selo-sealyear"></small></div>
         <!-- O QR aponta para o CONTRATO VERIFICADO, não para o whitepaper: a peça
              inteira é a travessia do papel para o contrato digital, e o destino do
              código tem de ser o contrato, senão a metáfora não fecha.
              O SVG é estático e foi provado por decodificação antes de entrar —
              ver o cabeçalho de qr-contrato.svg. -->
-        <a class="qr" id="qrlink" href="https://polygonscan.com/address/0xEdB5Aa01fd055B3755439cE41B92b575eea1d273#code"
+        <a class="qr" id="selo-qrlink" href="https://polygonscan.com/address/0xEdB5Aa01fd055B3755439cE41B92b575eea1d273#code"
            target="_blank" rel="noopener"
            aria-label="Open the verified Triviu contract on the block explorer">
           <span class="qq">
@@ -85,24 +111,24 @@
           </span>
         </a>
       </div>
-      <span class="sealcap" id="sealcap"></span>
+      <span class="sealcap" id="selo-sealcap"></span>
     </div>
   </div>
 </section>
 
 <div class="bar" role="group" aria-label="Animation controls">
-  <button class="cbtn" id="pp" type="button" aria-label="Pause">
-    <svg id="ppIcon" width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
+  <button class="cbtn" id="selo-pp" type="button" aria-label="Pause">
+    <svg id="selo-ppIcon" width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
       <rect x="2" y="1" width="3.4" height="12" rx="1"/><rect x="8.6" y="1" width="3.4" height="12" rx="1"/>
     </svg>
   </button>
-  <button class="cbtn" id="rp" type="button" aria-label="Play from the beginning">
+  <button class="cbtn" id="selo-rp" type="button" aria-label="Play from the beginning">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
          stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M12.2 7 A5.2 5.2 0 1 1 9.6 2.5"/><path d="M9.1 0.6 L9.8 3 L7.4 3.6"/>
     </svg>
   </button>
-  <div class="dots" id="dots"></div>
+  <div class="dots" id="selo-dots"></div>
 </div>
 
 <script src="/js/selo.js"></script>

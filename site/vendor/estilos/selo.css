@@ -15,10 +15,25 @@
       apareceria sem fonte e sem QR. Aqui a fonte vem de /vendor/fonts e o QR é
       um SVG estático, gerado uma vez e PROVADO por decodificação.
 
-   2. A serifa é a Libre Caslon Text, não a IM Fell English. Não é substituição
-      por conveniência: a Caslon já É a serifa da marca (`--fd` no site inteiro),
-      é inglesa, e é de 1725 — vizinha histórica da Fell, de Oxford. Trocar por
-      ela deixa o selo MAIS dentro da marca, não menos.
+   2. A serifa histórica é a IM Fell English — REVERTIDO em 2026-08-20, e a
+      divergência fica escrita porque o argumento que perdeu era bom.
+
+      O que este arquivo dizia antes: *"a Caslon já É a serifa da marca (`--fd` no
+      site inteiro), é inglesa, e é de 1725 — vizinha histórica da Fell, de
+      Oxford. Trocar por ela deixa o selo MAIS dentro da marca, não menos."*
+
+      O que decidiu: o guia de marca do cliente (v2, 2026-08-13) separa QUATRO
+      papéis tipográficos, e a separação é o ponto — Display: Libre Caslon Text ·
+      Body: Public Sans · Mono: IBM Plex Mono · **Historic: IM Fell English, "the
+      parchment sequence only. Never in UI"**. Com Caslon, o manuscrito de 1713
+      passa a falar com a mesma letra da manchete do topo da home, e o registro de
+      "documento envelhecido" — que é a peça inteira — morre na fusão das duas
+      vozes.
+
+      A restrição de CSP nunca pediu substituição; pediu a fonte em casa. Está em
+      casa: `/vendor/fonts/im-fell-english-400{,i}-latin.woff2`, SIL OFL 1.1,
+      subset, 80 888 bytes pelas duas. A Caslon fica no fallback, então o argumento
+      de 1725 continua valendo se a Fell não carregar.
 
    3. A peça é escura nos dois temas, de propósito. Ela é um palco: documento
       envelhecido sobre fundo de noite. Um selo que muda de cor com o tema do
@@ -26,18 +41,29 @@
       declarados — nenhuma herda do host, nenhuma vira.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-:root{
+/* OS TOKENS VIVEM NUM ESCOPO, NAO EM :root.
+   Esta folha e carregada por DUAS paginas: /selo/ (peca solta) e a home, onde a
+   faixa das eras a monta. Em `:root`, `--bg`, `--ink`, `--faint`, `--rule` e
+   `--saffron` sobrescreveriam os tokens de tema da home — os mesmos nomes existem
+   la com outros valores e com dois temas. A peca e um palco: ela carrega o proprio
+   chao, e o chao dela nao vaza para a sala. */
+.selo-palco{
   --bg:#131519; --ink:#E8EAE6; --faint:#9AA0A7; --rule:#2A2D33;
   --saffron:#E8B23A; --syn-key:#8FA1F2; --syn-com:#7E848D;
   --paper:#E4CF9E; --paper-edge:#B3924F; --paper-ink:#2E1F0E; --paper-mid:#6B4A1C;
   --code-bg:#0F1319; --code-edge:#1F2733; --code-ink:#9FB3C8;
-  --fell:"Libre Caslon Text",Georgia,serif;
+  --fell:"IM Fell English","Libre Caslon Text",Georgia,serif;
   --body:"Public Sans",system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,monospace;
 }
-*{box-sizing:border-box;margin:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--body);min-height:100vh;
+.selo-palco *{box-sizing:border-box;margin:0}
+/* So a pagina solta pinta o corpo inteiro. Na home, quem pinta e a <section>. */
+body.selo-pagina{background:var(--bg);color:var(--ink);font-family:var(--body);min-height:100vh;
      display:flex;flex-direction:column;align-items:center;padding:40px 16px}
+/* Montada na home: a faixa e o palco, com o proprio chao e o proprio centro. */
+section.selo-palco{background:var(--bg);color:var(--ink);font-family:var(--body);
+     display:flex;flex-direction:column;align-items:center;padding:var(--s6,72px) 16px;
+     border-top:1px solid #2A2D33;border-bottom:1px solid #2A2D33}
 
 /* ── a barra de volta ─────────────────────────────────────────────────────
    O original era um arquivo solto. Servido em /selo, ele precisa de saída:
@@ -113,8 +139,13 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);min-height:10
    Cera vermelha girada e fora de esquadro no ato 1..3; no ato 4 ela endireita,
    embranquece e vira um quadrado com o QR dentro. É a única transição da peça
    que carrega o argumento inteiro: de "quem assinou" para "quem confere". */
+/* O morfismo do lacre anima `width` e `height` (78px -> 116px), que sao
+   propriedades de LAYOUT. E uma vez por visita, num elemento de 116px, e nao
+   um laco — mas `contain:layout` confina o refluxo a esta subarvore, para que
+   a mudanca de tamanho nao possa reflowar o documento nem a pagina. E
+   contencao, nao eliminacao, e esta dito como contencao. */
 .sealwrap{position:absolute;right:26px;bottom:-40px;width:120px;
-          display:flex;flex-direction:column;align-items:center;gap:7px}
+          display:flex;flex-direction:column;align-items:center;gap:7px;contain:layout}
 .seal{width:78px;height:78px;border-radius:50%;
       background:#7C2434;border:3px solid #A54455;opacity:0;
       transform:scale(2.1) rotate(-14deg);position:relative;
@@ -171,14 +202,34 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);min-height:10
 .bar:hover,.bar:focus-within{opacity:1}
 .cbtn{width:34px;height:34px;border-radius:50%;border:1px solid var(--rule);
       background:transparent;color:var(--faint);cursor:pointer;padding:0;
-      display:inline-flex;align-items:center;justify-content:center;transition:all .17s ease}
+      display:inline-flex;align-items:center;justify-content:center;
+      transition:border-color .17s ease,color .17s ease}
 .cbtn:hover{border-color:var(--faint);color:var(--ink)}
 .cbtn:focus-visible,.dot:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
-.dots{display:flex;gap:9px;align-items:center}
-.dot{width:8px;height:8px;border-radius:50%;border:1px solid var(--faint);
-     background:transparent;cursor:pointer;padding:0;transition:all .2s ease}
-.dot:hover{border-color:var(--ink)}
-.dot[aria-current="true"]{background:var(--saffron);border-color:var(--saffron)}
+.dots{display:flex;gap:2px;align-items:center}   /* 24 + 2 = 26px centro a centro */
+/* 8px de TINTA, 24px de ALVO. WCAG 2.2 SC 2.5.8 pede 24x24 no minimo, e a
+   excecao de espacamento nao salvava: com 8px de ponto e 9px de vao, dois circulos
+   de 24 centrados a 17px de distancia se cruzam.
+
+   A PRIMEIRA TENTATIVA FOI `padding:8px` COM `background-clip:content-box`, E ELA
+   QUEBROU O DESENHO: `border` e pintada na caixa de PADDING, nao na de conteudo,
+   entao o anel de 1px passou a ser desenhado com 24px de diametro e os quatro
+   pontos viraram argolas grandes. Medido em captura, nao deduzido.
+
+   O botao agora tem 24px e nenhuma borda; o ponto de 8px e pintado por gradiente
+   radial dentro dele. Geometria visivel identica ao original (anel de 8px com 1px
+   de traco; cheio quando corrente), alvo tres vezes maior.
+
+   Sem transicao: gradiente nao interpola entre paradas de cor de forma confiavel
+   entre motores, e um ponto que pisca e melhor que um que borra. */
+.dot{width:24px;height:24px;padding:0;border:0;border-radius:50%;
+     background:transparent;cursor:pointer;
+     background-image:radial-gradient(circle at 50% 50%,
+       transparent 0 3px, var(--faint) 3px 4px, transparent 4px)}
+.dot:hover{background-image:radial-gradient(circle at 50% 50%,
+       transparent 0 3px, var(--ink) 3px 4px, transparent 4px)}
+.dot[aria-current="true"]{background-image:radial-gradient(circle at 50% 50%,
+       var(--saffron) 0 4px, transparent 4px)}
 
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 
@@ -191,3 +242,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);min-height:10
   .doc{padding:1.4rem 1.2rem 3.2rem}
   .tag{max-width:100%}
 }
+
+/* Recorte para leitor de tela. NUNCA `display:none`, que remove da arvore — o
+   ponto desta classe e estar na arvore e fora da tela. */
+.apenas-leitor{position:absolute;width:1px;height:1px;margin:-1px;padding:0;
+               overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}

@@ -575,6 +575,37 @@ $(alvo).innerHTML = "x";` },
       'node "$(git rev-parse --show-toplevel)/scripts/portoes.mjs"',
       "exit $?",
     ].join("\n") },
+
+  /* ------------------------ check-pausa-fora-da-tela ---------------------- */
+  /* A mordida e o defeito EXATO que o N2 do Tubarao-branco encontrou na
+     ONDA-TRIVIU-SELO-DO-MODELO: com `if (!playing) return` no comeco de
+     `pausarAuto`, a saida da tela nao e registrada quando a peca ja esta parada
+     por outra causa, e a retomada dessa outra causa toca com a peca FORA DA
+     TELA. Duas rotas: foco na barra, e aba escondida. O guia de marca do cliente
+     chama isso de battery bug e o lista como non-negotiable. */
+  { portao: "check-pausa-fora-da-tela", tipo: "mordida", onde: "site/js/selo.js", modo: "trocar",
+    nome: "o early return volta e a peca retoma fora da tela",
+    ancora: "pausas[causa] = true;",
+    codigo: "if (!playing) return; pausas[causa] = true;" },
+
+  { portao: "check-pausa-fora-da-tela", tipo: "mordida", onde: "site/js/selo.js", modo: "trocar",
+    nome: "a pausa manual perde bandeira propria e a automatica desfaz a da pessoa",
+    ancora: "if (pausadoManual) return;",
+    codigo: "if (false) return;" },
+
+  { portao: "check-pausa-fora-da-tela", tipo: "mordida", onde: "site/js/selo.js", modo: "trocar",
+    nome: "o observador volta a se demitir depois de iniciar",
+    ancora: "io.observe(scene);",
+    codigo: "io.observe(scene); io.disconnect();" },
+
+  /* O calado tem de ser mudanca REAL no mesmo arquivo, senao prova apenas que o
+     portao nao reage a nada. O rotulo do botao mexe no selo.js e nao toca a
+     maquina de pausa. */
+  { portao: "check-pausa-fora-da-tela", tipo: "calado", onde: "site/js/selo.js", modo: "trocar",
+    nome: "mudar o rotulo do botao nao e defeito de pausa",
+    ancora: 'pause: "Pause", play: "Resume"',
+    codigo: 'pause: "Hold", play: "Continue"' },
+
 ];
 
 /* ===========================================================================

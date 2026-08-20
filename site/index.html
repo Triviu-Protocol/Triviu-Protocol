@@ -33,6 +33,9 @@
 <link href="/vendor/fonts/fontes.css" rel="stylesheet">
 <link href="/vendor/estilos-inline.css" rel="stylesheet">
 <link href="/vendor/estilos/index.css" rel="stylesheet">
+<!-- a peca dos quatro atos, montada na secao de linhagem. Tokens em escopo
+     `.selo-palco` — ver o cabecalho do arquivo. -->
+<link href="/vendor/estilos/selo.css" rel="stylesheet">
 </head>
 <body>
 
@@ -127,53 +130,129 @@
 
 <main>
 
-<section class="eras" id="eras" aria-labelledby="eras-t">
-  <div class="wrap">
-    <div class="cab">
-      <p class="olho">Four hundred years of the same question</p>
-      <h2 id="eras-t">Who did you have to trust?</h2>
+<!-- == O SELO, NA PORTA =======================================================
+     O fundador pediu o selo no INICIO do site. O que estava aqui era um RESUMO
+     dele: quatro celulas estaticas com tres icones cinzas e um QR, apontando para
+     a peca de verdade em /selo/. Ele viu e disse "esse selo estar ridiculo, te
+     mandei o modelo e nao foi esse". Estava certo.
+
+     Agora esta a PECA, nao o resumo — a mesma cena, o mesmo `selo.css`, o mesmo
+     `selo.js` que /selo/ usa. Uma implementacao, dois pontos de montagem: o motor
+     nao foi copiado, foi montado outra vez.
+
+     O guia de marca do cliente autoriza este lugar e proibe o outro:
+       "triviu-selos-en.html | Four acts | The lineage section. NOT the hero"
+       "One effect per territory. Hero: the cycle. Lineage section: the four acts.
+        Never two on one screen — they cancel out."
+     O heroi (o ciclo em three.js) tem 100vh e termina antes daqui. Sao duas telas,
+     nao uma.
+
+     `.selo-palco` carrega os tokens da peca em ESCOPO. Sem ele, `--bg`, `--ink`,
+     `--faint` e `--rule` do selo.css sobrescreveriam os tokens de tema da home,
+     que tem os mesmos nomes com outros valores e com dois temas. O selo e um
+     palco: traz o proprio chao e nao vaza para a sala. -->
+<section class="eras selo-palco" id="eras" aria-labelledby="eras-t" aria-describedby="selo-desc">
+  <div class="eras-cab">
+    <p class="olho">Four hundred years of the same question</p>
+    <h2 id="eras-t">Who did you have to trust?</h2>
+  </div>
+
+<p class="apenas-leitor" id="selo-desc">Four acts: ideas from Tesla, Bernoulli and Kelly are paraphrased by hand and sealed with each author's name; the smart contract answers each one with the consequence its author could not foresee. In the fourth act the wax seal gives way to a QR code linking to the verified contract on the explorer — from sealed by a name to verified by anyone.</p>
+<p class="apenas-leitor" id="selo-anuncio" role="status" aria-live="polite" aria-atomic="true"></p>
+
+<!-- `<div>`, nao `<section>`. O `index.css` da home tem `section{...}` como
+     SELETOR DE ELEMENTO NU, e ele pinta `background:var(--veu-secao)` e aplica
+     `overflow:hidden` em toda secao da pagina. Aninhar a cena como <section>
+     causava DOIS defeitos, ambos medidos:
+       1. um veu claro de 88%% sobre o palco escuro — invisivel no tema escuro
+          (rgba(19,21,25,.88) sobre #131519) e devastador no claro: 32 pares
+          de texto caindo abaixo de AA, o `.chap` a 1,97:1 e o acafrao a 1,44:1
+       2. `overflow:hidden` recortaria o lacre, que pende `bottom:-40px` fora
+          do documento
+     A cena nao e uma regiao de marco: quem e regiao aqui e a <section id="eras">,
+     que carrega `aria-labelledby` e `aria-describedby`. A descricao longa foi
+     para um paragrafo recortado, que e onde `aria-describedby` a alcanca. -->
+  <div class="scene" id="selo-scene" aria-live="off">
+  <p class="chap" id="selo-chap"></p>
+  <div class="doc">
+    <div class="head">
+      <div class="brand">
+        <!-- Build SOLIDO. O guia de marca define dois builds e proibe um terceiro:
+             Dotted a partir de 64px (traco pontilhado, tres vertices, ponto de
+             entrada) e Solid abaixo de 64 ("vertices and dots are dropped: they
+             turn to mud below 64 px"). Isto renderiza a 26px, e o ponto de entrada
+             que estava aqui media 1,1px de diametro. O traco e o do
+             triviu-favicon.svg oficial, sem o ladrilho de fundo e com currentColor
+             para o .brand poder virar acafrao no estado de codigo.
+             O VAO CONTINUA ABERTO: a base vai de x=12.5 a x=6 e o vertice esquerdo
+             esta em x=3.5 — 15,6% da base sem traco. "The gap is the point." -->
+        <svg width="26" height="26" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M3.5 11.5 L8 4.5 L12.5 11.5 L6 11.5" fill="none" stroke="currentColor"
+                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="bname">TRIVIU</span>
+      </div>
+      <div class="date"><span class="d1" id="selo-d1"></span><span class="d2" id="selo-d2"></span></div>
     </div>
+    <!-- `.cd` nasce com aria-hidden="true" e `.ms` com "false": no estado inicial o
+         documento e manuscrito. Dai em diante quem espelha e espelharEstadoNaArvore()
+         no selo.js. Sem isto, leitor de tela le manuscrito e Solidity intercalados,
+         linha a linha (WCAG 1.3.2, nivel A). -->
+    <div class="row r1"><span class="ms" aria-hidden="false"></span><span class="cd" aria-hidden="true"></span></div>
+    <div class="row r2"><span class="ms" aria-hidden="false"></span><span class="cd" aria-hidden="true"></span></div>
+    <div class="row rx r3"><span class="ms" aria-hidden="false"></span><span class="cd" aria-hidden="true"></span></div>
+    <div class="row r4"><span class="ms" aria-hidden="false"></span><span class="cd" aria-hidden="true"></span></div>
+    <div class="row r5"><span class="ms" aria-hidden="false"></span><span class="cd" aria-hidden="true"></span></div>
+    <div class="row r6"><span class="ms" aria-hidden="false"></span><span class="cd" aria-hidden="true"></span></div>
 
-    <ol>
-      <li>
-        <div class="era-marca"><div class="m-cera" aria-hidden="true">T</div></div>
-        <p class="era-nome">Paper</p>
-        <p class="era-linha">Wax carried the signature of whoever pressed it. To believe the page, you had to believe the person.</p>
-        <p class="era-conf">You trusted <b>the name</b></p>
-      </li>
+    <div class="hash">
+      <span class="ok" aria-hidden="true">✓</span>
+      <a id="selo-clink" href="https://polygonscan.com/address/0xEdB5Aa01fd055B3755439cE41B92b575eea1d273#code"
+         target="_blank" rel="noopener">0xEdB5…d273</a>
+      <span id="selo-hashtxt"></span>
+    </div>
+    <div class="tag" id="selo-tag"></div>
 
-      <li>
-        <div class="era-marca"><div class="m-pagina" aria-hidden="true"></div></div>
-        <p class="era-nome">Web</p>
-        <p class="era-linha">A page could claim anything, and be copied in a second. The address bar was what you had, and it was never proof.</p>
-        <p class="era-conf">You trusted <b>the domain</b></p>
-      </li>
+    <div class="sealwrap">
+      <div class="seal">
+        <div class="wax" aria-hidden="true"><span id="selo-sealname"></span><small id="selo-sealyear"></small></div>
+        <!-- O QR aponta para o CONTRATO VERIFICADO, não para o whitepaper: a peça
+             inteira é a travessia do papel para o contrato digital, e o destino do
+             código tem de ser o contrato, senão a metáfora não fecha.
+             O SVG é estático e foi provado por decodificação antes de entrar —
+             ver o cabeçalho de qr-contrato.svg. -->
+        <a class="qr" id="selo-qrlink" href="https://polygonscan.com/address/0xEdB5Aa01fd055B3755439cE41B92b575eea1d273#code"
+           target="_blank" rel="noopener"
+           aria-label="Open the verified Triviu contract on the block explorer">
+          <span class="qq">
+            <img src="/selo/qr-contrato.svg" alt="" width="96" height="96">
+            <span class="qm" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 60 60">
+                <path d="M10 46 L30 12 L50 46 L17 46" fill="none" stroke="currentColor"
+                      stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </span>
+        </a>
+      </div>
+      <span class="sealcap" id="selo-sealcap"></span>
+    </div>
+  </div>
+</div>
 
-      <li>
-        <div class="era-marca"><div class="m-plataforma" aria-hidden="true"></div></div>
-        <p class="era-nome">Web2</p>
-        <p class="era-linha">The record moved behind a login. It could be edited, and you would not be told.</p>
-        <p class="era-conf">You trusted <b>the company</b></p>
-      </li>
-
-      <li>
-        <div class="era-marca">
-          <a class="m-qr" href="https://polygonscan.com/address/0xEdB5Aa01fd055B3755439cE41B92b575eea1d273#code"
-             target="_blank" rel="noopener noreferrer"
-             aria-label="Open the verified TriviuExecutor contract on Polygonscan">
-            <img src="/selo/qr-contrato.svg" alt="" width="72" height="72">
-          </a>
-        </div>
-        <p class="era-nome">Now</p>
-        <p class="era-linha">The contract is compiled, published and verified. You still trust the chain and your own reading &mdash; but not a name.</p>
-        <p class="era-conf">You trust <b>the bytes</b></p>
-      </li>
-    </ol>
-
-    <p class="fecho">
-      <span>The seal did not disappear. It became something anyone can check.</span>
-      <a href="/selo/">Read the four acts &rarr;</a>
-    </p>
+  <div class="bar" role="group" aria-label="Act controls">
+    <button class="cbtn" id="selo-pp" type="button" aria-label="Pause">
+      <svg id="selo-ppIcon" width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
+        <rect x="2" y="1" width="3.4" height="12" rx="1"/><rect x="8.6" y="1" width="3.4" height="12" rx="1"/>
+      </svg>
+    </button>
+    <button class="cbtn" id="selo-rp" type="button" aria-label="Play from the beginning">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+           stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12.2 7 A5.2 5.2 0 1 1 9.6 2.5"/><path d="M9.1 0.6 L9.8 3 L7.4 3.6"/>
+      </svg>
+    </button>
+    <div class="dots" id="selo-dots"></div>
   </div>
 </section>
 
@@ -390,5 +469,6 @@
 <script src="/vendor/three-r128.min.js"></script>
 <script src="/js/tema.js"></script>
 <script src="/js/home.js"></script>
+<script src="/js/selo.js"></script>
 </body>
 </html>

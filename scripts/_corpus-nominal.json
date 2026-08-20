@@ -94,6 +94,10 @@
     "CRLF encenado FORA de -text nao e da alcada deste portao",
     "escreve na faixa que vira tickLower/tickUpper na calldata",
     "a casca desenhar o painel de custo dela NAO e invasao da subarvore",
-    "lpSize NAO chega na calldata, e o portao nao o protege — a fronteira, cravada"
+    "lpSize NAO chega na calldata, e o portao nao o protege — a fronteira, cravada",
+    "o early return volta e a peca retoma fora da tela",
+    "a pausa manual perde bandeira propria e a automatica desfaz a da pessoa",
+    "o observador volta a se demitir depois de iniciar",
+    "mudar o rotulo do botao nao e defeito de pausa"
   ]
 }

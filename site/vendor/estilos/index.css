@@ -289,82 +289,17 @@ footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44p
   padding-bottom:1px;display:inline-block;margin-bottom:10px}
 .rodape-selo:hover{color:var(--tinta);border-color:var(--tinta);text-decoration:none}
 
-/* == A FAIXA DAS QUATRO ERAS =================================================
-   "De quem voce precisava confiar?" — o argumento historico do titulo que a home
-   ja tem. Ela NAO reimplementa a cena de quatro atos de `/selo/`: leva a ela.
+/* == A SECAO DE LINHAGEM =====================================================
+   A peca dos quatro atos e montada aqui (ver index.html). Todo o visual dela vem
+   de `selo.css`, em escopo `.selo-palco` — este bloco cuida SO do cabecalho da
+   secao, que e da home e segue o tema da home.
 
-   Zero cor inventada. A cera usa `--lacre` (que quer dizer lacre, e ja existe
-   nos tres estados de tema) e a moldura do QR usa `--acafrao`. O QR e o MESMO
-   arquivo que a cena usa, `/selo/qr-contrato.svg`, e nao uma copia — endereco
-   duplicado em dois arquivos e reprovacao de aceite nesta casa.
-
-   As marcas sao formas em CSS e nao SVG novo: um circulo de cera, uma pagina,
-   uma plataforma, e o QR real. A progressao circulo -> retangulo -> retangulo ->
-   quadrado e a mesma transformacao que `.seal` faz em `.scene.chain`, contada
-   numa linha em vez de numa rolagem. */
-.eras{border-top:1px solid var(--fio);border-bottom:1px solid var(--fio);
-      padding:var(--s6) 0;margin:0}
-.eras .cab{max-width:52ch;margin:0 0 var(--s5)}
+   O que existia aqui antes: 68 linhas descrevendo quatro celulas com um circulo
+   de cera em CSS, uma pagina, uma plataforma e um QR. Era um resumo da peca,
+   escrito enquanto a peca ja existia em `triviu-selos-en.html` no disco. Saiu
+   inteiro em 2026-08-20. */
+.eras .eras-cab{width:min(620px,100%);margin:0 0 var(--s5)}
 .eras .olho{font-family:var(--fm);font-size:11px;letter-spacing:.14em;
-            text-transform:uppercase;color:var(--grafite);margin:0 0 10px}
+            text-transform:uppercase;color:var(--faint);margin:0 0 10px}
 .eras h2{font-family:var(--fd);font-weight:400;font-size:clamp(26px,3.4vw,38px);
-         line-height:1.12;margin:0;text-wrap:balance}
-
-.eras ol{list-style:none;margin:0;padding:0;display:grid;gap:1px;
-         background:var(--fio);border:1px solid var(--fio)}
-@media(min-width:760px){.eras ol{grid-template-columns:repeat(4,1fr)}}
-.eras li{background:var(--papel);padding:var(--s4);display:flex;
-         flex-direction:column;gap:14px;min-width:0}
-
-/* a marca — 92px de altura em todas, para a linha nao balancar */
-.era-marca{height:92px;display:flex;align-items:center;justify-content:flex-start}
-
-.m-cera{width:62px;height:62px;border-radius:50%;background:var(--lacre);
-        display:flex;align-items:center;justify-content:center;
-        transform:rotate(-6deg);
-        font-family:var(--fd);font-style:italic;font-size:22px;
-        color:var(--papel);line-height:1}
-.m-pagina{width:54px;height:66px;border:2px solid var(--grafite);
-          background:var(--nevoa);position:relative}
-.m-pagina::before,.m-pagina::after{content:"";position:absolute;left:9px;right:9px;
-          height:2px;background:var(--fio)}
-.m-pagina::before{top:16px}
-.m-pagina::after{top:26px;right:22px}
-.m-plataforma{width:70px;height:52px;border:2px solid var(--grafite);border-radius:6px;
-          background:var(--nevoa);position:relative}
-.m-plataforma::before{content:"";position:absolute;left:50%;top:50%;
-          width:16px;height:14px;margin:-11px 0 0 -8px;border-radius:3px 3px 0 0;
-          border:2px solid var(--grafite);border-bottom:0}
-.m-plataforma::after{content:"";position:absolute;left:50%;top:50%;
-          width:20px;height:12px;margin:3px 0 0 -10px;background:var(--grafite)}
-/* O RESPIRO BRANCO NAO E ESTILO, E FUNCAO.
-   `qr-contrato.svg` tem viewBox 0 0 57 57 e o retangulo branco cobre EXATAMENTE
-   a area do QR: nao ha zona de silencio dentro do arquivo. A norma pede 4 modulos
-   de margem, e quem renderiza tem de dar.
-
-   A 72px, um modulo mede 72/57 = 1,26px. O respiro de 5px da 3,96 modulos —
-   um por cento abaixo do minimo, e marginal e o que falha em parte dos leitores.
-   Com 7px sao 5,6 modulos. A cena do selo ja acerta isto por outro caminho:
-   96px de imagem dentro de 116px da 10px, ou 5,95 modulos.
-
-   O branco e literal e nao token de proposito: ele nao acompanha o tema. Um QR
-   sobre fundo escuro perde o contraste que o leitor precisa, e o tema nao pode
-   decidir se o codigo escaneia. */
-.m-qr{display:inline-flex;padding:7px;background:#FFFFFF;
-      border:2px solid var(--acafrao);border-radius:8px;line-height:0}
-.m-qr img{display:block;width:72px;height:72px}
-a.m-qr:hover,a.m-qr:focus-visible{outline:none;
-      box-shadow:0 0 0 3px var(--acafrao-fundo),0 0 0 5px var(--acafrao)}
-
-.era-nome{font-family:var(--fm);font-size:11.5px;letter-spacing:.13em;
-          text-transform:uppercase;color:var(--grafite);margin:0}
-.era-linha{margin:0;font-size:14.5px;line-height:1.55;color:var(--tinta)}
-.era-conf{margin:auto 0 0;padding-top:12px;border-top:1px solid var(--fio-fantasma);
-          font-size:13px;color:var(--grafite)}
-.era-conf b{font-family:var(--fm);font-size:12px;letter-spacing:.05em;
-            text-transform:uppercase;color:var(--tinta);font-weight:500}
-.eras li:last-child .era-conf b{color:var(--acafrao-texto)}
-
-.eras .fecho{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 18px;
-             margin:var(--s4) 0 0;font-size:14.5px;color:var(--grafite)}
-.eras .fecho a{color:var(--ultramar);font-weight:500}
+         line-height:1.15;margin:0;color:var(--ink);text-wrap:balance}

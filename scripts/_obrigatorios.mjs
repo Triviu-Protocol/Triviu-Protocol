@@ -33,6 +33,7 @@ export const OBRIGATORIOS = [
   "check-hook-vivo.mjs",
   "check-multichain-honesty.mjs",
   "check-origem-unica.mjs",
+  "check-pausa-fora-da-tela.mjs",
   "check-provedor-unico.mjs",
   "check-portoes-mordem.mjs",
   "check-procedencia-byte.mjs",
