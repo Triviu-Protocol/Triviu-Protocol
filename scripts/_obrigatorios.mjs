@@ -35,6 +35,7 @@ export const OBRIGATORIOS = [
   "check-origem-unica.mjs",
   "check-provedor-unico.mjs",
   "check-portoes-mordem.mjs",
+  "check-procedencia-byte.mjs",
   "check-regra6-magnitude.mjs",
   "check-sem-estilo-inline.mjs",
   "check-tesouraria-viva.mjs",

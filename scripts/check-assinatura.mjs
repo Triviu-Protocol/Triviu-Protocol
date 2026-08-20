@@ -762,6 +762,7 @@ for (const rel of ASSINANTES) provarRegra6(rel);
     "js/simulate.js":    "sem-carteira",
     "js/tema.js":        "sem-carteira",
     "js/selo.js":        "sem-carteira", /* a peca dos quatro atos · zero sinal de carteira */
+    "js/alvos.js":       "sem-carteira", /* le /alvos.json e pinta em orac-* · nunca escreve em lp-* */
   };
 
   /* ALCANCAR A CARTEIRA e ALCANCAR A CHAIN sao coisas diferentes, e a lista

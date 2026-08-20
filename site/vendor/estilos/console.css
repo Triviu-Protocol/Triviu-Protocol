@@ -863,3 +863,13 @@ footer .rod .nota{flex-basis:100%;line-height:1.7;max-width:82ch}
   color:var(--graphite);padding-top:3px}
 .falta dd{min-width:0;word-break:break-word}
 @media(max-width:640px){.falta dl{grid-template-columns:1fr}.falta dt{padding-top:var(--s2)}}
+
+/* ── bloco do oraculo · classes em vez de atributo style ────────────────────
+   A CSP desta origem e `style-src 'self'`: atributo `style=` nao e autorizado
+   e o navegador o DESCARTA EM SILENCIO — o layout quebraria sem erro nenhum no
+   console. O portao F-3 recusou a primeira versao deste bloco por isso.
+   E este arquivo mora sob `site/vendor/`, que o .gitattributes marca `-text`:
+   aqui a quebra de linha NAO e traduzida, e escrever CRLF muda 872 linhas de
+   verdade no objeto do git. Estas linhas foram escritas em LF de proposito. */
+.orac-espaco{margin-top:8px}
+.orac-quebra{word-break:break-all}

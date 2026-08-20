@@ -503,6 +503,29 @@ $(alvo).innerHTML = "x";` },
     nome: 'afirma "live on Arbitrum", que nao esta implantada',
     codigo: '<html><body><p>Triviu is live on Arbitrum today.</p></body></html>' },
 
+  /* ── check-procedencia-byte ───────────────────────────────────────────────
+     Os quatro controles precisam de git: o portao pergunta ao git quais
+     caminhos carregam `-text` e compara com o blob do INDICE. Sem as duas
+     pontas ele declara que nao exerceu — e declarar corretamente que nao mediu
+     nao e o mesmo que medir. */
+  { portao: "check-procedencia-byte", tipo: "mordida", precisaGit: true, modo: "crlf",
+    onde: "contracts/src/GasTank.sol",
+    nome: "fonte .sol vira CRLF no disco e o keccak do artefato deixa de bater" },
+  { portao: "check-procedencia-byte", tipo: "mordida", precisaGit: true, modo: "crlf",
+    onde: "site/vendor/estilos/learn-mev.css",
+    nome: "arquivo sob site/vendor vira CRLF — a outra familia que o -text protege" },
+  { portao: "check-procedencia-byte", tipo: "calado", precisaGit: true, modo: "crlf",
+    onde: "site/enderecos.js",
+    nome: "CRLF em caminho SEM -text e legitimo e nao pode ser acusado" },
+  { portao: "check-procedencia-byte", tipo: "calado", onde: "contracts/src/ZZRascunho.sol",
+    precisaGit: true,
+    nome: "fonte nova, ainda fora do git, nao e deriva de byte",
+    codigo: [
+      "// SPDX-License-Identifier: MIT",
+      "pragma solidity ^0.8.24;",
+      "contract ZZRascunho { uint256 public x; }",
+    ].join("\n") },
+
   { portao: "check-hook-vivo", tipo: "mordida", onde: ".githooks/pre-commit",
     nome: "hook que julga a arvore de trabalho em vez do indice",
     codigo: [
@@ -718,6 +741,22 @@ for (const c of CORPUS) {
       continue;
     }
     writeFileSync(alvo, original.split(c.ancora).join(c.codigo), "utf8");
+  } else if (c.modo === "crlf") {
+    /* CRLF, e nao conteudo novo.
+       A deriva que `check-procedencia-byte` existe para pegar e a SILENCIOSA:
+       o arquivo continua com o mesmo texto, so muda a quebra de linha, e
+       `git status` segue dizendo LIMPO. Um fixture de conteudo curto tambem
+       faria o portao morder, mas por outro ramo — e o ramo que produz a frase
+       mais importante deste portao ("so quebra de linha") nunca seria exercido.
+       Embutir os bytes do arquivo no corpus seria pior: criaria uma segunda
+       copia de um `.sol`, que e o que `check-duas-fontes` guarda. Entao o modo
+       le o arquivo que ja esta la e converte. */
+    if (original === null) {
+      falhas.push(`[${c.portao}] ${c.nome}: ${c.onde} nao existe no laboratorio — nao ha o que converter`);
+      for (const e of extras) { if (e.antes !== null) writeFileSync(e.caminho, e.antes, "utf8"); else unlinkSync(e.caminho); }
+      continue;
+    }
+    writeFileSync(alvo, original.split("\r\n").join("\n").split("\n").join("\r\n"), "utf8");
   } else if (c.modo === "copiar") {
     /* Reproduz a fonte canonica no lugar da copia: o guardiao de deriva TEM de
        aprovar quando as duas batem. Sem este sentido, "deriva" seria so uma

@@ -553,6 +553,31 @@
       refusal is a check on the bytes rather than on anyone's intentions.</p>
     </div>
 
+    <!-- ══ O QUE O ORACULO MEDIU ═══════════════════════════════════════════════
+         Entra ANTES do passo 1 porque o oraculo ja escolheu um tamanho: ele
+         informa a escolha em vez de competir com ela.
+
+         Os ids sao `orac-*` DE PROPOSITO. A subarvore que assina e `lp-*`, e
+         `check-alcance-dom` recusa qualquer script fora do motor que escreva
+         num `lp-*`. Este bloco e desenho: ele le um arquivo e pinta texto, e
+         nao encosta em nada que va para a carteira.
+
+         O que ele NUNCA mostra: tickLower, tickUpper, amount0Min, amount1Min.
+         Esses quatro sao decisao de quem assina, e a ponte declara por escrito
+         que nao os decide. Repetir a recusa aqui e o terceiro andar da mesma
+         casa. -->
+    <div class="panel u-bfa31e80" id="orac-bloco" hidden>
+      <div class="chead"><h2 class="hsec">What the oracle measured, live</h2>
+        <div class="spacer"></div>
+        <span class="pill" id="orac-selo">reading…</span></div>
+      <p class="small faint">The table further down is a fixed seven-day study.
+        <b>This block is different</b>: it is the oracle's own rolling series, re-read
+        from chain, and it names how many candidates each target beat. It never fills
+        the band or the slippage bounds — those are yours, and the contract says so
+        itself.</p>
+      <div id="orac-corpo"></div>
+    </div>
+
     <div class="panel u-bfa31e80">
       <div class="chead"><h2 class="hsec">1 · How much are you bringing</h2><div class="spacer"></div>
         <span class="pill" id="lpSizeState">choose a size</span></div>
@@ -1614,6 +1639,7 @@
 <script src="/js/motor.js"></script>
 <script src="/js/console-lp.js"></script>
 <script src="/js/console-app.js"></script>
+<script src="/js/alvos.js"></script>
 </body>
 </html>
 

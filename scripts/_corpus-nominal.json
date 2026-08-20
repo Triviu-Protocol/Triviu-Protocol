@@ -84,6 +84,10 @@
     "seletor de classe .lp-*",
     "tela que so le anexando ouvinte a mao · nao afrouxa para ninguem",
     "tiposPorPalavra sai do motor · a regra volta a lancar ReferenceError",
-    "um segundo host entra no config · a origem deixa de ser unica"
+    "um segundo host entra no config · a origem deixa de ser unica",
+    "fonte .sol vira CRLF no disco e o keccak do artefato deixa de bater",
+    "arquivo sob site/vendor vira CRLF — a outra familia que o -text protege",
+    "CRLF em caminho SEM -text e legitimo e nao pode ser acusado",
+    "fonte nova, ainda fora do git, nao e deriva de byte"
   ]
 }

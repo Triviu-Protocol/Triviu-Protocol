@@ -1,0 +1,9 @@
+{
+  "versao": 1,
+  "geradoEm": "2026-08-20T13:25:06.915Z",
+  "origem": "oracle/ponte.mjs",
+  "assina": false,
+  "monta_transacao": false,
+  "alvos": [],
+  "motivo": "a decisao tem 6.4h e o limite e 6h — o oraculo esta cego. Rode `node oracle/oraculo.mjs` e depois `decisao.mjs`"
+}
