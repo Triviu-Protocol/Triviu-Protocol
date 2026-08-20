@@ -88,6 +88,9 @@
     "fonte .sol vira CRLF no disco e o keccak do artefato deixa de bater",
     "arquivo sob site/vendor vira CRLF — a outra familia que o -text protege",
     "CRLF em caminho SEM -text e legitimo e nao pode ser acusado",
-    "fonte nova, ainda fora do git, nao e deriva de byte"
+    "fonte nova, ainda fora do git, nao e deriva de byte",
+    "CRLF ENCENADO sob -text: disco e indice concordam sobre a forma errada",
+    "apagar as linhas -text zera o rol, e zero impresso nao e recusa",
+    "CRLF encenado FORA de -text nao e da alcada deste portao"
   ]
 }

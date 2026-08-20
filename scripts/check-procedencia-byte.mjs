@@ -34,6 +34,28 @@
  *    indice e o que o commit vai gravar, e essa distincao ja custou uma cicatriz
  *    a esta casa.
  *
+ * 1b. FORMA CANONICA  ·  o blob do INDICE, para as familias de TEXTO sob
+ *    `-text`, nao pode conter nenhum byte CR. Isto NAO e uma comparacao: e uma
+ *    afirmacao sobre o conteudo.
+ *
+ *    A camada 1 sozinha nao bastava, e o Tubarao-branco mediu por que
+ *    (handoff 13, 2026-08-20): converter um arquivo para CRLF e ENCENA-LO faz
+ *    disco e indice concordarem, e a camada 1 cala. O que segurava era a camada
+ *    2 — que depende de `contracts/out/`, ausente por .gitignore em todo clone
+ *    novo. Nas duas condicoes juntas o portao saia VERDE sobre um `.sol` CRLF
+ *    ja no indice, e clone novo e exatamente o estado do CI.
+ *
+ *    Nao era hipotese. `site/vendor/estilos/index.css` (259 CR) e `selo.css`
+ *    (193 CR) foram commitados assim horas antes, no `bf66cab`, e nada acusou.
+ *
+ * 1c. O ROL NAO PODE SER APAGADO  ·  todo `.sol` e todo `site/vendor/**`
+ *    rastreado TEM de carregar `-text`.
+ *
+ *    Mesmo handoff: removidas as linhas `-text` do `.gitattributes`, este portao
+ *    imprimia `caminhos com -text ... 0` e aprovava. Zero impresso nao e recusa.
+ *    Um portao que se desliga editando o arquivo de que ele depende — e editar
+ *    `.gitattributes` e um ato plausivel e bem-intencionado — nao guarda nada.
+ *
  * 2. PROCEDENCIA DA FONTE  ·  quando `contracts/out/` existe, cada artefato
  *    declara `metadata.sources[x].keccak256`. Este portao recalcula o keccak256
  *    da fonte no disco e compara. E a medicao DIRETA da frase da capa; a camada
@@ -204,10 +226,17 @@ if (ehEntrada) {
   const git = (...a) =>
     spawnSync("git", a, { cwd: RAIZ, encoding: "buffer", maxBuffer: 64 * 1024 * 1024 });
 
+  /* Extensoes em que um byte CR e conteudo legitimo, nao quebra de linha. A
+     regra da forma canonica NAO se aplica a elas — um .woff2 com 0x0D dentro
+     esta certo, e reprova-lo seria o portao inventando defeito. */
+  const BINARIO = /\.(woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|ico|pdf|zip|gz|wasm|mp4|webm)$/i;
+
   const eol = git("ls-files", "--eol", "-z");
   let semGit = false;
   const comAtributo = [];
+  const todosRastreados = [];
   const derivados = [];
+  const comCR = [];
 
   if (eol.error || eol.status !== 0) {
     semGit = true;
@@ -223,6 +252,7 @@ if (ehEntrada) {
       if (corte < 0) continue;
       const cabeca = linha.slice(0, corte);
       const caminho = linha.slice(corte + 1);
+      todosRastreados.push(caminho);
       if (!/attr\/\S*-text/.test(cabeca)) continue;
       comAtributo.push(caminho);
 
@@ -230,6 +260,14 @@ if (ehEntrada) {
       if (blob.error || blob.status !== 0) {
         falhas.push(caminho + " carrega -text e o git nao devolveu o blob do indice para ele");
         continue;
+      }
+
+      /* 1b · forma canonica, medida NO INDICE. Encenar o CRLF faz disco e indice
+         concordarem e a comparacao abaixo calar; esta afirmacao nao depende de
+         comparacao nenhuma. */
+      if (!BINARIO.test(caminho)) {
+        const crs = blob.stdout.filter((b) => b === 0x0d).length;
+        if (crs) comCR.push({ caminho, crs });
       }
       let disco;
       try {
@@ -244,6 +282,37 @@ if (ehEntrada) {
       const soQuebra = Buffer.compare(semCR(disco), semCR(blob.stdout)) === 0;
       derivados.push({ caminho, delta: disco.length - blob.stdout.length, soQuebra });
     }
+  }
+
+  /* 1c · as familias cuja promessa e o hash TEM de estar sob -text. Sem isto o
+     rol e apagavel: some do `.gitattributes`, o rol vai a zero, e o portao
+     aprova imprimindo o zero. */
+  const FAMILIAS = [
+    { nome: "*.sol", casa: (p) => p.endsWith(".sol"),
+      porque: "o keccak256 em contracts/out/ prova que esta fonte gerou o bytecode vivo" },
+    { nome: "site/vendor/**", casa: (p) => p.startsWith("site/vendor/"),
+      porque: "o sha512 fixado em check-csp so sobrevive a um clone se o byte nao for traduzido" },
+  ];
+  const semAtributo = new Set(comAtributo);
+  for (const f of FAMILIAS) {
+    if (semGit) break;
+    const daFamilia = todosRastreados.filter(f.casa);
+    const fora = daFamilia.filter((p) => !semAtributo.has(p));
+    if (fora.length)
+      falhas.push(
+        fora.length + " de " + daFamilia.length + " arquivo(s) de `" + f.nome + "` NAO carregam -text: " +
+        fora.slice(0, 3).join(" · ") + (fora.length > 3 ? " (e mais " + (fora.length - 3) + ")" : "") +
+        ". " + f.porque + ". Sem o atributo, um clone traduz a quebra de linha e a promessa morre calada"
+      );
+  }
+
+  for (const c of comCR) {
+    falhas.push(
+      c.caminho + " esta no INDICE com " + c.crs + " byte(s) CR, e carrega -text. " +
+      "O disco pode estar de acordo com o indice e ainda assim errado: encenar o CRLF faz as duas " +
+      "pontas concordarem sobre a forma errada. A forma canonica sob -text e LF, e ela nao depende " +
+      "de comparacao com nada"
+    );
   }
 
   for (const d of derivados) {
@@ -350,8 +419,11 @@ if (ehEntrada) {
   const unicas = [...new Set(falhas)];
 
   console.log("portao da procedencia do byte · onde o hash e uma promessa");
-  console.log("  caminhos com -text ........... " + (semGit ? "NAO SEI — sem git" : comAtributo.length));
+  console.log("  caminhos com -text ........... " + (semGit ? "NAO SEI — sem git" : comAtributo.length) +
+    (semGit ? "" : " de " + todosRastreados.length + " rastreados"));
   console.log("  divergentes do indice ........ " + (semGit ? "nao conferido" : derivados.length));
+  console.log("  com CR no indice ............. " + (semGit ? "nao conferido" : comCR.length) +
+    "  (forma canonica sob -text e LF)");
   console.log("  artefatos lidos .............. " + artefatos);
   console.log("  fontes conferidas por hash ... " + conferidas +
     (ausentes ? "  (" + ausentes + " nao estao no disco)" : ""));

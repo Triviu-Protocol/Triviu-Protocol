@@ -517,6 +517,25 @@ $(alvo).innerHTML = "x";` },
   { portao: "check-procedencia-byte", tipo: "calado", precisaGit: true, modo: "crlf",
     onde: "site/enderecos.js",
     nome: "CRLF em caminho SEM -text e legitimo e nao pode ser acusado" },
+  /* Os dois seguintes vieram do ataque do Tubarao-branco ao portao recem-cravado
+     (handoff 13 · ONDA-TRIVIU-ORDEM-E-EXECUCAO). Um portao que nasce verde nao
+     provou nada ate alguem tentar cala-lo, e as duas formas de calar este
+     estavam abertas. */
+  { portao: "check-procedencia-byte", tipo: "mordida", precisaGit: true, modo: "crlf-encenado",
+    onde: "site/vendor/estilos/learn-mev.css",
+    nome: "CRLF ENCENADO sob -text: disco e indice concordam sobre a forma errada" },
+  { portao: "check-procedencia-byte", tipo: "mordida", precisaGit: true,
+    onde: ".gitattributes",
+    nome: "apagar as linhas -text zera o rol, e zero impresso nao e recusa",
+    codigo: [
+      "# Sem nenhuma linha -text: o rol do portao vai a zero.",
+      "# Antes do conserto ele imprimia `caminhos com -text ... 0` e APROVAVA.",
+      ".githooks/**     text eol=lf",
+    ].join("\n") },
+  { portao: "check-procedencia-byte", tipo: "calado", precisaGit: true, modo: "crlf-encenado",
+    onde: "site/enderecos.js",
+    nome: "CRLF encenado FORA de -text nao e da alcada deste portao" },
+
   { portao: "check-procedencia-byte", tipo: "calado", onde: "contracts/src/ZZRascunho.sol",
     precisaGit: true,
     nome: "fonte nova, ainda fora do git, nao e deriva de byte",
@@ -757,6 +776,20 @@ for (const c of CORPUS) {
       continue;
     }
     writeFileSync(alvo, original.split("\r\n").join("\n").split("\n").join("\r\n"), "utf8");
+  } else if (c.modo === "crlf-encenado") {
+    /* CRLF **no indice**, e nao so no disco.
+       O Tubarao-branco mediu (handoff 13) que converter e ENCENAR faz disco e
+       indice concordarem — a comparacao entre os dois cala, e o portao ficava
+       verde sobre um arquivo ja errado no indice. Este modo reproduz o ataque
+       inteiro: converte E encena. Exige `precisaGit`, obviamente: sem indice
+       nao ha o que encenar. */
+    if (original === null) {
+      falhas.push(`[${c.portao}] ${c.nome}: ${c.onde} nao existe no laboratorio — nao ha o que converter`);
+      for (const e of extras) { if (e.antes !== null) writeFileSync(e.caminho, e.antes, "utf8"); else unlinkSync(e.caminho); }
+      continue;
+    }
+    writeFileSync(alvo, original.split("\r\n").join("\n").split("\n").join("\r\n"), "utf8");
+    spawnSync("git", ["add", "--", c.onde], { cwd: casa, encoding: "utf8" });
   } else if (c.modo === "copiar") {
     /* Reproduz a fonte canonica no lugar da copia: o guardiao de deriva TEM de
        aprovar quando as duas batem. Sem este sentido, "deriva" seria so uma
@@ -774,6 +807,12 @@ for (const c of CORPUS) {
   }
   if (original !== null) writeFileSync(alvo, original, "utf8");
   else unlinkSync(alvo);
+  /* O `crlf-encenado` mexeu no INDICE do laboratorio, e restaurar so o disco
+     deixaria o blob errado la para todo controle seguinte — que passaria a
+     medir uma arvore contaminada pelo controle anterior. E o mesmo defeito que
+     ja custou dois falsos positivos nesta casa, uma camada abaixo. */
+  if (c.modo === "crlf-encenado")
+    spawnSync("git", ["add", "--", c.onde], { cwd: casa, encoding: "utf8" });
 
   if (c.tipo === "mordida") {
     if (saiu === 0) falhas.push(`[${c.portao}] NAO MORDEU: ${c.nome}`);
