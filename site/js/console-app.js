@@ -734,10 +734,31 @@
     txt($("ct-medicao"), "Measured at block " + L.MEDICAO.bloco + " on chain " + L.MEDICAO.chainId +
       " · wave " + L.MEDICAO.onda);
     txt($("ct-safe"), L.CUSTODIA.safe);
-    txt($("ct-safe-nota"), "Gnosis Safe " + L.CUSTODIA.safeVersao + ", threshold " + L.CUSTODIA.safeThreshold +
-      ", and its only owner is " + L.CUSTODIA.safeDonos[0] + " — the same account that signed the deploy. " +
+    /* A FRASE E MONTADA A PARTIR DOS DADOS, E NAO ESCRITA SOBRE ELES.
+       Ate 2026-08-20 este trecho dizia, em texto fixo, "its ONLY owner is
+       <primeiro dono> — the same account that signed the deploy". Era verdade
+       quando foi escrito: o Safe era 1-de-1 e o dono unico era o deployer.
+       Naquele dia a custodia subiu para 2-de-3, o livro-razao foi corrigido, e
+       esta frase passou a renderizar DOIS erros de fato para o visitante: chamava
+       de "unico" um entre tres, e chamava de deployer um endereco que nao e o
+       deployer. O dado ficou certo e a prosa que o descreve ficou mentindo.
+       Agora ela deriva de `safeDonos.length` e COMPARA com `deployer` em vez de
+       presumir, e carrega o bloco em que foi lida. */
+    var _donos = L.CUSTODIA.safeDonos || [];
+    var _temDeployer = _donos.some(function (d) {
+      return String(d).toLowerCase() === String(L.CUSTODIA.deployer).toLowerCase();
+    });
+    var _quem = _donos.length === 1
+      ? ", whose only owner is " + _donos[0] +
+        (_temDeployer ? " — the same account that signed the deploy" : "")
+      : (_temDeployer
+          ? ", one of them the account that signed the deploy"
+          : ", none of them the account that signed the deploy");
+    txt($("ct-safe-nota"), "Gnosis Safe " + L.CUSTODIA.safeVersao + ", threshold " +
+      L.CUSTODIA.safeThreshold + " of " + _donos.length + _quem + ". " +
       "Key separation today: " + (L.CUSTODIA.separacaoDeChave ? "yes" : "NO") + ". Timelock: " +
-      (L.CUSTODIA.timelock ? L.CUSTODIA.timelock : "none") + ".");
+      (L.CUSTODIA.timelock ? L.CUSTODIA.timelock : "none") +
+      ". Read at block " + L.CUSTODIA.medidoNoBloco + ".");
 
     /* p-layers le o mesmo livro. Um segundo lugar com o mesmo endereco e a
        duplicata que o criterio 3 do aceite reprova. */
