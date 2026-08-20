@@ -2,13 +2,44 @@
   --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
   --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
   --violeta:#7B3FE4;
+  --fio-fantasma:rgba(22,24,29,.028);--veu:rgba(250,250,247,.92);--veu-secao:rgba(250,250,247,.88);--fio-controle:#8E918F;
   --fd:"Libre Caslon Text",Georgia,serif;--ft:"Public Sans",system-ui,sans-serif;--fm:"IBM Plex Mono",monospace;
 }
+/* ââ TEMA Â· a home adota o mecanismo que o resto do site ja usa ââââââââââââââââ
+   `site/js/tema.js` existe desde antes desta onda e roda em chains, dashboard e
+   learn. A home nunca o adotou â por isso ela era a unica pagina sem modo escuro.
+   Aqui nao se escreve tema novo: adota-se o que esta la (Escada de Reuso, degrau 2).
+
+   Tres estados, nao dois. O visitante que nunca escolheu nao carrega atributo
+   nenhum, e so `prefers-color-scheme` o separa. Por isso o bloco de midia vem
+   guardado por `:not([data-theme="light"])`: sem essa guarda, quem escolhe claro
+   num sistema escuro continua vendo escuro, e o botao mente. */
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --papel:#131519;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--tinta:#ECEDEA;
+    --ultramar:#8FA1F2;--lacre:#E4736A;--acafrao:#E8B23A;--acafrao-texto:#E8B23A;--acafrao-fundo:#241F14;
+    --violeta:#A78BFA;
+    --fio-fantasma:rgba(236,237,234,.030);--veu:rgba(19,21,25,.92);--veu-secao:rgba(19,21,25,.88);--fio-controle:#606368;
+  }
+}
+:root[data-theme="dark"]{
+  --papel:#131519;--nevoa:#1B1E24;--fio:#2A2E36;--grafite:#9BA1AC;--tinta:#ECEDEA;
+  --ultramar:#8FA1F2;--lacre:#E4736A;--acafrao:#E8B23A;--acafrao-texto:#E8B23A;--acafrao-fundo:#241F14;
+  --violeta:#A78BFA;
+  --fio-fantasma:rgba(236,237,234,.030);--veu:rgba(19,21,25,.92);--veu-secao:rgba(19,21,25,.88);--fio-controle:#606368;
+}
+:root[data-theme="light"]{
+  --papel:#FAFAF7;--nevoa:#E9EBE7;--fio:#DDE0DA;--grafite:#52575D;--tinta:#16181D;
+  --ultramar:#2743C7;--lacre:#C13327;--acafrao:#E8B23A;--acafrao-texto:#8A6414;--acafrao-fundo:#FBF3DF;
+  --violeta:#7B3FE4;
+  --fio-fantasma:rgba(22,24,29,.028);--veu:rgba(250,250,247,.92);--veu-secao:rgba(250,250,247,.88);--fio-controle:#8E918F;
+}
+
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
 body{background:var(--papel);color:var(--tinta);font-family:var(--ft);font-size:16.5px;line-height:1.65;-webkit-font-smoothing:antialiased;
-  background-image:repeating-linear-gradient(90deg,rgba(22,24,29,.028) 0 1px,transparent 1px 90px)}
+  background-image:repeating-linear-gradient(90deg,var(--fio-fantasma) 0 1px,transparent 1px 90px)}
 ::selection{background:var(--acafrao);color:var(--tinta)}
 a{color:var(--ultramar);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
 a:hover{text-decoration-thickness:2px}
@@ -32,7 +63,7 @@ a:hover{text-decoration-thickness:2px}
 #loader .pct{font-family:var(--fm);font-size:13px;color:var(--grafite);letter-spacing:.1em}
 
 /* ---------- nav ---------- */
-nav{position:sticky;top:0;z-index:50;background:rgba(250,250,247,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--fio)}
+nav{position:sticky;top:0;z-index:50;background:var(--veu);backdrop-filter:blur(6px);border-bottom:1px solid var(--fio)}
 .nav-inner{max-width:1120px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:22px}
 .nav-mark{display:flex;align-items:center;gap:10px;flex:none;text-decoration:none;color:var(--tinta)}
 .nav-mark svg{width:26px;height:26px}
@@ -41,6 +72,44 @@ nav{position:sticky;top:0;z-index:50;background:rgba(250,250,247,.92);backdrop-f
 .nav-links::-webkit-scrollbar{display:none}
 .nav-links a{font-family:var(--fm);font-size:11.5px;letter-spacing:.05em;color:var(--grafite);text-decoration:none;white-space:nowrap;padding:4px 0}
 .nav-links a:hover{color:var(--tinta)}
+
+/* ââ o menu passa a dizer que continua ââââââââââââââââââââââââââââââââââââââââ
+   Eram 12 links num `overflow-x:auto` com `scrollbar-width:none`: a barra rolava
+   e nada dizia isso. Na captura do fundador o ultimo link aparecia cortado como
+   "Veri" â uma palavra pela metade nao e um menu, e uma barra invisivel nao e um
+   aviso. A mascara faz a borda direita desvanecer quando ha mais adiante, e some
+   quando nao ha. Ela e decoracao com significado, nao decoracao. */
+.nav-links{
+  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);
+          mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);
+}
+.nav-links.fim{-webkit-mask-image:none;mask-image:none}
+@media(prefers-reduced-motion:reduce){.nav-links{scroll-behavior:auto}}
+
+/* ââ a porta que faltava âââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   O console esta no ar em /console/ desde antes desta onda e a home nao tinha
+   um unico link para ele: `grep -c 'href="/console'` devolvia 0. */
+.nav-console{
+  flex:none;font-family:var(--fm);font-size:11.5px;letter-spacing:.05em;
+  text-decoration:none;color:var(--tinta);border:1.5px solid var(--tinta);
+  border-radius:999px;padding:5px 13px;white-space:nowrap;
+  transition:background .15s ease,color .15s ease;
+}
+.nav-console:hover{background:var(--tinta);color:var(--papel);text-decoration:none}
+
+/* ââ o botao de tema ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+   Mesma forma de `.themebtn` que safety.css/learn.css ja usam, para que a home
+   nao invente um controle proprio para uma funcao que o site inteiro ja tem. */
+.themebtn{
+  width:30px;height:30px;padding:0;flex:none;border:1px solid var(--fio-controle);
+  background:transparent;color:var(--grafite);border-radius:6px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.themebtn:hover{color:var(--tinta);border-color:var(--tinta)}
+.themebtn svg{width:16px;height:16px}
+.themebtn:focus-visible,.nav-console:focus-visible{outline:2px solid var(--ultramar);outline-offset:2px}
+
+@media(max-width:720px){.nav-console{display:none}}
 .lang{display:flex;gap:2px;border:1.5px solid var(--tinta);border-radius:999px;padding:2px;flex:none}
 .lang button{font-family:var(--fm);font-size:11px;letter-spacing:.06em;border:0;background:transparent;color:var(--grafite);padding:4px 10px;border-radius:999px;cursor:pointer}
 .lang button[aria-pressed="true"]{background:var(--tinta);color:var(--papel)}
@@ -85,7 +154,7 @@ h1{font-family:var(--fd);font-weight:700;font-size:clamp(44px,7vw,82px);line-hei
 
 /* ---------- seções ---------- */
 main{position:relative;z-index:1}
-section{position:relative;padding:88px 0;border-bottom:1px solid var(--fio);scroll-margin-top:64px;background:rgba(250,250,247,.88);backdrop-filter:blur(2px);overflow:hidden}
+section{position:relative;padding:88px 0;border-bottom:1px solid var(--fio);scroll-margin-top:64px;background:var(--veu-secao);backdrop-filter:blur(2px);overflow:hidden}
 .gnum{position:absolute;top:8px;right:-6px;font-family:var(--fd);font-weight:700;font-size:clamp(120px,20vw,230px);line-height:1;color:rgba(22,24,29,.05);pointer-events:none;user-select:none}
 h2{font-family:var(--fd);font-weight:700;font-size:clamp(30px,4.6vw,46px);line-height:1.1;letter-spacing:-.01em;margin-bottom:18px;max-width:24ch}
 .lead{font-size:18px;max-width:62ch}
@@ -140,8 +209,10 @@ h2{font-family:var(--fd);font-weight:700;font-size:clamp(30px,4.6vw,46px);line-h
 .badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--fm);font-size:11.5px;letter-spacing:.08em;padding:5px 12px;border-radius:999px;background:var(--tinta);color:var(--papel)}
 .badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--violeta)}
 
-section.not{background:rgba(22,24,29,.94);color:var(--papel);border-bottom:none}
-section.not h2{color:var(--papel);max-width:26ch}
+/* invertida nos DOIS temas de proposito: literais fixos, porque --papel vira
+   com o tema e o fundo daqui nao vira â o par tem de andar junto. */
+section.not{background:#16181DF0;color:#FAFAF7;border-bottom:none}
+section.not h2{color:#FAFAF7;max-width:26ch}
 section.not .gnum{color:rgba(250,250,247,.06)}
 .notlist{list-style:none;margin-top:36px;max-width:640px}
 .notlist li{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid #2A2D33;font-size:16px}
@@ -173,10 +244,16 @@ summary::after{content:"+";font-family:var(--fm);color:var(--grafite)}
 details[open] summary::after{content:"−"}
 details p{padding:0 0 18px;font-size:15px;max-width:66ch}
 
-.final{position:relative;z-index:1;padding:88px 0;background:rgba(250,250,247,.88)}
+.final{position:relative;z-index:1;padding:88px 0;background:var(--veu-secao)}
 footer{position:relative;z-index:1;border-top:2px solid var(--tinta);padding:44px 0 64px;background:var(--papel)}
 .foot-grid{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:flex-end}
 .colofao{font-family:var(--fm);font-size:12px;color:var(--grafite);line-height:2;text-align:right}
 .reveal{opacity:0;transform:translateY(12px);transition:opacity .2s ease-out,transform .2s ease-out}
 .reveal.in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}}
+
+/* o caminho para a peca dos quatro atos Â· rodape, nao nav */
+.rodape-selo{font-family:var(--fm);font-size:12px;letter-spacing:.04em;
+  color:var(--acafrao-texto);text-decoration:none;border-bottom:1px solid var(--acafrao);
+  padding-bottom:1px;display:inline-block;margin-bottom:10px}
+.rodape-selo:hover{color:var(--tinta);border-color:var(--tinta);text-decoration:none}

@@ -1,0 +1,193 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TRIVIU · SELO — a transição do papel para o contrato digital
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Quatro atos. Em cada um, uma paráfrase manuscrita é lacrada com o nome de quem
+   a pensou; o contrato responde com a consequência que o autor não podia prever.
+   No quarto ato o lacre de cera dá lugar ao QR — de "selado por um nome" para
+   "verificável por qualquer um".
+
+   TRÊS COISAS QUE ESTE ARQUIVO FAZ DIFERENTE DO ORIGINAL, E POR QUÊ
+
+   1. Nenhum terceiro. O original carregava `fonts.googleapis.com` e
+      `cdnjs.cloudflare.com/qrcodejs`. A CSP desta origem é `script-src 'self'`,
+      `style-src 'self'`, `font-src 'self'` — os dois seriam bloqueados e a peça
+      apareceria sem fonte e sem QR. Aqui a fonte vem de /vendor/fonts e o QR é
+      um SVG estático, gerado uma vez e PROVADO por decodificação.
+
+   2. A serifa é a Libre Caslon Text, não a IM Fell English. Não é substituição
+      por conveniência: a Caslon já É a serifa da marca (`--fd` no site inteiro),
+      é inglesa, e é de 1725 — vizinha histórica da Fell, de Oxford. Trocar por
+      ela deixa o selo MAIS dentro da marca, não menos.
+
+   3. A peça é escura nos dois temas, de propósito. Ela é um palco: documento
+      envelhecido sobre fundo de noite. Um selo que muda de cor com o tema do
+      visitante deixa de ser um selo. Por isso todas as cores aqui são literais
+      declarados — nenhuma herda do host, nenhuma vira.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root{
+  --bg:#131519; --ink:#E8EAE6; --faint:#9AA0A7; --rule:#2A2D33;
+  --saffron:#E8B23A; --syn-key:#8FA1F2; --syn-com:#7E848D;
+  --paper:#E4CF9E; --paper-edge:#B3924F; --paper-ink:#2E1F0E; --paper-mid:#6B4A1C;
+  --code-bg:#0F1319; --code-edge:#1F2733; --code-ink:#9FB3C8;
+  --fell:"Libre Caslon Text",Georgia,serif;
+  --body:"Public Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);min-height:100vh;
+     display:flex;flex-direction:column;align-items:center;padding:40px 16px}
+
+/* ── a barra de volta ─────────────────────────────────────────────────────
+   O original era um arquivo solto. Servido em /selo, ele precisa de saída:
+   uma peça sem porta de volta é um beco. */
+.voltar{width:min(620px,100%);display:flex;align-items:center;gap:10px;
+        margin-bottom:26px;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em}
+.voltar a{color:var(--faint);text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.voltar a:hover{color:var(--ink)}
+.voltar svg{width:20px;height:20px}
+.voltar .sep{color:var(--rule)}
+
+.spacer{height:46vh;display:flex;align-items:center;color:var(--faint);font-size:13px;
+        text-align:center;transition:opacity .6s ease}
+/* cumprida a instrucao, ela sai de cena. Nao desaparece do DOM: continua legivel
+   por leitor de tela e volta se a peca for reiniciada. */
+.spacer.cumprido{opacity:0}
+/* o lacre pende 39px para fora do .doc por ser absoluto, e o fluxo nao sabe disso.
+   Sem esta folga os controles de reproducao subiam por baixo da legenda: medido a
+   390px, .sealcap ocupava x263-363 e .bar x118-273, sobrepondo em x263-273. */
+.scene{width:min(620px,100%);padding-bottom:56px}
+.chap{text-align:center;font-family:var(--mono);font-size:12px;letter-spacing:2px;
+      color:var(--faint);margin-bottom:10px;min-height:16px}
+.chap b{color:var(--saffron);font-weight:500}
+.doc{background:var(--paper);border:1px solid var(--paper-edge);
+     border-radius:2% 5% 3% 6%/5% 3% 6% 3%;
+     padding:1.7rem 1.9rem 3.4rem;position:relative;
+     transition:background .9s ease,border-color .9s ease,border-radius .9s ease}
+.scene.code .doc{background:var(--code-bg);border-color:var(--code-edge);border-radius:10px}
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:1.2rem}
+.brand{display:flex;align-items:center;gap:10px;color:var(--paper-ink);transition:color .8s ease}
+.scene.code .brand{color:var(--saffron)}
+.bname{font-family:var(--fell);font-size:15px;letter-spacing:3px}
+.date{display:grid;text-align:right}
+.date span{grid-area:1/1;white-space:nowrap;transition:opacity .7s ease}
+.d1{font-family:var(--fell);font-style:italic;font-size:12.5px;color:var(--paper-mid)}
+.d2{font-family:var(--mono);font-size:11px;color:var(--faint);opacity:0;align-self:center}
+.scene.code .d1{opacity:0}
+.scene.code .d2{opacity:1}
+.row{display:grid;align-items:center;min-height:30px;
+     border-bottom:1px solid rgba(90,58,24,.16);transition:border-color .8s ease}
+.row.rx{min-height:56px}
+.scene.epi .rx .ms{white-space:normal;line-height:1.35}
+.scene.epi .rx{min-height:70px}
+.scene.code .row{border-color:transparent}
+.row.codeonly{border-color:transparent}
+.ms,.cd{grid-area:1/1;white-space:nowrap;overflow:hidden}
+.ms{font-family:var(--fell);font-style:italic;font-size:15.5px;color:var(--paper-ink);
+    clip-path:inset(0 100% 0 0);transition:opacity .55s ease,color .8s ease}
+.rx .ms{font-size:clamp(18px,4vw,24px)}
+.cd{font-family:var(--mono);font-size:12.5px;color:var(--code-ink);opacity:0;clip-path:inset(0 100% 0 0)}
+.cd b{color:var(--syn-key);font-weight:500}
+.cd i{font-style:normal;color:var(--syn-com)}
+.cd u{text-decoration:none;color:var(--saffron)}
+.cd em{font-style:normal;color:var(--saffron)}
+.scene.play .r1 .ms{animation:w .55s ease .15s forwards}
+.scene.play .r2 .ms{animation:w .6s ease .65s forwards}
+.scene.play .r3 .ms{animation:w .85s ease 1.2s forwards}
+.scene.play .r4 .ms{animation:w .6s ease 2.1s forwards}
+.scene.play .r5 .ms{animation:w .5s ease 2.6s forwards}
+.scene.play .r6 .ms{animation:w .5s ease 3s forwards}
+@keyframes w{to{clip-path:inset(0 0 0 0)}}
+.scene.code .ms{opacity:0}
+.scene.code .r1 .cd{animation:t .4s steps(24) .05s forwards}
+.scene.code .r2 .cd{animation:t .4s steps(24) .4s forwards}
+.scene.code .r3 .cd{animation:t .55s steps(34) .8s forwards}
+.scene.code .r4 .cd{animation:t .5s steps(32) 1.3s forwards}
+.scene.code .r5 .cd{animation:t .5s steps(34) 1.75s forwards}
+.scene.code .r6 .cd{animation:t .5s steps(34) 2.2s forwards}
+@keyframes t{0%{opacity:1;clip-path:inset(0 100% 0 0)}100%{opacity:1;clip-path:inset(0 0 0 0)}}
+.scene.hold *{animation-play-state:paused!important}
+
+/* ── o lacre, e o que ele vira ───────────────────────────────────────────
+   Cera vermelha girada e fora de esquadro no ato 1..3; no ato 4 ela endireita,
+   embranquece e vira um quadrado com o QR dentro. É a única transição da peça
+   que carrega o argumento inteiro: de "quem assinou" para "quem confere". */
+.sealwrap{position:absolute;right:26px;bottom:-40px;width:120px;
+          display:flex;flex-direction:column;align-items:center;gap:7px}
+.seal{width:78px;height:78px;border-radius:50%;
+      background:#7C2434;border:3px solid #A54455;opacity:0;
+      transform:scale(2.1) rotate(-14deg);position:relative;
+      transition:transform .5s cubic-bezier(.2,1.3,.4,1),opacity .3s,
+                 border-radius .8s ease,background .8s ease,border-color .8s ease,
+                 width .8s ease,height .8s ease}
+.scene.sealed .seal{opacity:1;transform:rotate(-6deg) scale(1)}
+.scene.chain .seal{width:116px;height:116px;border-radius:10px;background:#FFFFFF;
+                   border-color:var(--saffron);transform:rotate(0) scale(1)}
+/* mais larga que o .sealwrap de proposito: "the verified contract" quebrava depois
+   de "verified", e uma legenda de tres linhas com quebra no meio do substantivo le
+   pior que uma de duas. As margens negativas mantem o centro sobre o lacre. */
+.sealcap{white-space:pre-line;font-family:var(--mono);font-size:10px;letter-spacing:.6px;
+         color:var(--paper-mid);opacity:0;text-align:center;line-height:1.35;
+         width:152px;margin-inline:-16px;
+         transition:opacity .5s ease .35s,color .8s ease}
+.scene.sealed .sealcap{opacity:1}
+.scene.code .sealcap{color:var(--faint)}
+.scene.chain .sealcap{color:var(--saffron)}
+.wax,.qr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+         transition:opacity .5s ease}
+.wax{color:#F0D6C0;font-family:var(--fell);font-style:italic;font-size:14px;
+     flex-direction:column;line-height:1.15;text-align:center;padding:0 6px}
+.wax small{font-size:9px;letter-spacing:1px;font-style:normal;opacity:.85;margin-top:2px}
+.qr{opacity:0;text-decoration:none;cursor:pointer;border-radius:6px;
+    transition:opacity .5s ease,transform .22s cubic-bezier(.2,1,.4,1),box-shadow .22s ease}
+.scene.chain .qr:hover,.scene.chain .qr:focus-visible{transform:scale(1.045);
+    box-shadow:0 0 0 3px rgba(232,178,58,.35);outline:none}
+.scene.chain .qr:active{transform:scale(.99)}
+.sealwrap:hover .sealcap,.sealwrap:focus-within .sealcap{color:var(--saffron)}
+.scene.chain .wax{opacity:0}
+.scene.chain .qr{opacity:1;transition-delay:.3s}
+.qr .qq{position:relative;line-height:0}
+.qr .qq img{width:96px;height:96px;display:block;border-radius:3px}
+/* A marca no centro do QR come módulos de dados. Cabe porque o nível de correção
+   é H (recupera 30%), e o QR foi decodificado COM ela em cima antes de entrar. */
+.qr .qm{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+        width:25px;height:25px;background:#FFFFFF;border-radius:5px;
+        display:flex;align-items:center;justify-content:center;color:#131519}
+
+.hash{margin-top:1.6rem;font-family:var(--mono);font-size:12px;color:var(--saffron);
+      display:flex;align-items:center;gap:8px;flex-wrap:wrap;opacity:0;
+      transform:translateY(6px);transition:opacity .55s ease .35s,transform .55s ease .35s}
+.scene.chain .hash{opacity:1;transform:none}
+.hash a{color:var(--saffron)}
+.hash .ok{width:18px;height:18px;border-radius:50%;border:1px solid var(--saffron);
+          display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex:none}
+.tag{margin-top:.65rem;font-size:12px;color:var(--faint);max-width:68%;
+     opacity:0;transition:opacity .7s ease .9s;line-height:1.55}
+.scene.chain .tag{opacity:1}
+
+.bar{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:18px;
+     opacity:.5;transition:opacity .25s ease}
+.bar:hover,.bar:focus-within{opacity:1}
+.cbtn{width:34px;height:34px;border-radius:50%;border:1px solid var(--rule);
+      background:transparent;color:var(--faint);cursor:pointer;padding:0;
+      display:inline-flex;align-items:center;justify-content:center;transition:all .17s ease}
+.cbtn:hover{border-color:var(--faint);color:var(--ink)}
+.cbtn:focus-visible,.dot:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+.dots{display:flex;gap:9px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;border:1px solid var(--faint);
+     background:transparent;cursor:pointer;padding:0;transition:all .2s ease}
+.dot:hover{border-color:var(--ink)}
+.dot[aria-current="true"]{background:var(--saffron);border-color:var(--saffron)}
+
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+
+@media (prefers-reduced-motion: reduce){
+  .ms,.cd,.seal,.hash,.tag,.doc,.brand,.date span,.row,.sealcap{transition:none!important;animation:none!important}
+  .bar{opacity:1}
+}
+@media (max-width:560px){
+  .sealwrap{right:10px;width:100px}
+  .doc{padding:1.4rem 1.2rem 3.2rem}
+  .tag{max-width:100%}
+}

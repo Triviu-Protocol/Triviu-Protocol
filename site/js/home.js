@@ -3,7 +3,7 @@
 var LANG="en";
 var T={
 en:{
- nav_protocol:"Protocol",nav_how:"How it works",nav_math:"The math",nav_trilemma:"Trilemma",nav_education:"Education",nav_sim:"Simulate",nav_chains:"Chains",nav_learn:"Learn",nav_verify:"Verify",nav_road:"Roadmap",nav_code:"Read the code",
+ nav_protocol:"Protocol",nav_how:"How it works",nav_math:"The math",nav_trilemma:"Trilemma",nav_education:"Education",nav_sim:"Simulate",nav_chains:"Chains",nav_learn:"Learn",nav_verify:"Verify",nav_road:"Roadmap",nav_code:"Read the code",nav_console:"Console",
  hero_eyebrow:"Open protocol · EVM · Polygon first · no token",
  hero_h1:"Don't trust.<br>Verify.",
  hero_sub:"Triviu is an open, non-custodial protocol for atomic triangular arbitrage on Polygon, with the same audited contracts designed for Arbitrum and BSC — built to be read, audited and run by you. Educational infrastructure, with every rule public and every limit documented.",
@@ -88,7 +88,7 @@ en:{
  title:"Triviu · Open source. Verifiable math. No promises."
 },
 es:{
- nav_protocol:"Protocolo",nav_how:"Cómo funciona",nav_math:"La matemática",nav_trilemma:"Trilema",nav_education:"Educación",nav_sim:"Simular",nav_chains:"Cadenas",nav_learn:"Aprender",nav_verify:"Verificar",nav_road:"Hoja de ruta",nav_code:"Leer el código",
+ nav_protocol:"Protocolo",nav_how:"Cómo funciona",nav_math:"La matemática",nav_trilemma:"Trilema",nav_education:"Educación",nav_sim:"Simular",nav_chains:"Cadenas",nav_learn:"Aprender",nav_verify:"Verificar",nav_road:"Hoja de ruta",nav_code:"Leer el código",nav_console:"Consola",
  hero_eyebrow:"Protocolo abierto · EVM · Polygon primero · sin token",
  hero_h1:"No confíes.<br>Verifica.",
  hero_sub:"Triviu es un protocolo abierto y sin custodia para arbitraje triangular atómico en Polygon, con los mismos contratos auditados diseñados para Arbitrum y BSC — hecho para que tú lo leas, lo audites y lo ejecutes. Infraestructura educativa, con cada regla pública y cada límite documentado.",
@@ -194,6 +194,24 @@ function setLang(lang){
 document.getElementById("btn-en").addEventListener("click",function(){setLang("en")});
 document.getElementById("btn-es").addEventListener("click",function(){setLang("es")});
 
+/* ââ o menu diz onde acaba ââââââââââââââââââââââââââââââââââââââââââââââââââ
+   A mascara de desvanecimento em `.nav-links` anuncia que ha mais links a
+   direita. Ela precisa SUMIR quando nao ha mais â uma borda que desvanece sobre
+   o fim da lista promete conteudo que nao existe, e isso e pior que barra
+   nenhuma. `-1` de folga porque scrollLeft e fracionario em zoom nao-inteiro e
+   a comparacao exata nunca fecha. */
+(function(){
+  var links=document.querySelector(".nav-links");
+  if(!links) return;
+  function marcaFim(){
+    var fim = links.scrollLeft + links.clientWidth >= links.scrollWidth - 1;
+    links.classList.toggle("fim", fim);
+  }
+  links.addEventListener("scroll", marcaFim, {passive:true});
+  window.addEventListener("resize", marcaFim);
+  marcaFim();
+})();
+
 /* ================= 3D — o Ciclo ancorado à própria coluna ================= */
 /* Correção central: o objeto é projetado matematicamente no retângulo de
    #stage-hit (a coluna reservada do hero) — nunca sobre o texto. Ao rolar,
@@ -203,12 +221,27 @@ var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 var three={ok:false};
 var OBJ_W=3.3; // largura do objeto no mundo (nós r=1 + arcos f=0.6 + esferas)
 
+/* ââ o canvas tem de saber que tema esta no ar âââââââââââââââââââââââââââââââ
+   `#scene` e `position:fixed` atras de TUDO. Sua cor de fundo era `0xFAFAF7`
+   cravada: no tema escuro ele pintava a viewport inteira de creme por cima do
+   fundo do body, e o texto claro do heroi ficava claro sobre claro. O DOM media
+   15,55:1 e estava certo â o que enganava nao era um elemento, era a tela de
+   WebGL atras deles. Nenhum medidor de contraste que le o DOM pega isto.
+   Agora as duas cores saem dos tokens, e mudam quando o tema muda. */
+function tokenCor(nome, padrao){
+  var v = getComputedStyle(document.documentElement).getPropertyValue(nome).trim();
+  if(!/^#[0-9a-fA-F]{6}$/.test(v)) return padrao;
+  return parseInt(v.slice(1), 16);
+}
+var corPapel = function(){ return tokenCor("--papel", 0xFAFAF7); };
+var corTinta = function(){ return tokenCor("--tinta", 0x16181D); };
+
 function init3D(){
   if(typeof THREE==="undefined"){document.body.classList.add("no3d");return}
   try{
     var canvas=document.getElementById("scene");
     var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true});
-    renderer.setClearColor(0xFAFAF7,1);
+    renderer.setClearColor(corPapel(),1);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
     var scene=new THREE.Scene();
     var camera=new THREE.PerspectiveCamera(38,1,0.1,60);
@@ -387,7 +420,7 @@ function loop3D(t){
   if(!("IntersectionObserver" in window))return;
   new IntersectionObserver(function(es){es.forEach(function(en){
     if(!three.ok)return;
-    three.inkTgt.set(en.isIntersecting?0xFAFAF7:0x16181D);
+    three.inkTgt.set(en.isIntersecting?corPapel():corTinta());
     if(reduce){three.inkCur.copy(three.inkTgt);apply3D();render3D()}
   })},{threshold:0.35}).observe(dark);
 })();
@@ -412,4 +445,20 @@ function loop3D(t){
     if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}
   })},{threshold:0.12});
   document.querySelectorAll(".reveal").forEach(function(el){io.observe(el)});
+})();
+
+/* ââ o canvas reage ao botao de tema âââââââââââââââââââââââââââââââââââââââââ
+   Ler o token so na carga resolve a primeira pintura e deixa a segunda errada:
+   quem clicasse no sol/lua veria o texto virar e o fundo do canvas ficar. O
+   MutationObserver escuta `data-theme` na raiz â o mesmo atributo que tema.js
+   escreve â e repinta. Sem acoplar os dois arquivos: um escreve, o outro observa. */
+(function(){
+  if(!("MutationObserver" in window)) return;
+  new MutationObserver(function(){
+    if(!three || !three.ok) return;
+    three.renderer.setClearColor(corPapel(), 1);
+    three.inkTgt.set(corTinta());
+    three.inkCur.copy(three.inkTgt);
+    apply3D(); render3D();
+  }).observe(document.documentElement, {attributes:true, attributeFilter:["data-theme"]});
 })();

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M40 25.36 Q76 32.3 100 60' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M100 60 Q76 87.7 40 94.64' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M40 94.64 Q28 60 40 25.36' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='40' cy='25.36' r='11' fill='%232743C7'/%3E%3Ccircle cx='100' cy='60' r='11' fill='%23C13327'/%3E%3Ccircle cx='40' cy='94.64' r='11' fill='%23E8B23A'/%3E%3C/svg%3E">
 <title>Triviu · Open source. Verifiable math. No promises.</title>
 <meta name="description" content="Triviu is an open, non-custodial protocol for atomic triangular arbitrage on Polygon, with the same audited contracts designed for Arbitrum and BSC — built to be read, audited and run by you. Educational infrastructure. No token. No promises.">
 <meta name="robots" content="index, follow">
@@ -71,6 +72,12 @@
       <a href="#roadmap" data-i18n="nav_road">Roadmap</a>
       <a href="#faq">FAQ</a>
     </div>
+    <a class="nav-console" href="/console/" data-i18n="nav_console">Console</a>
+    <!-- O botao de tema usa `id="theme"` porque `js/tema.js` procura exatamente
+         esse id â mesmo contrato que chains, dashboard e learn ja cumprem. O
+         conteudo nasce vazio: tema.js pinta o sol ou a lua conforme o estado. -->
+    <button class="themebtn" id="theme" type="button"
+            aria-label="Toggle light or dark theme" title="Theme"></button>
     <div class="lang" role="group" aria-label="Language">
       <!-- Sem onclick= inline: o CSP desta origem nao concede 'unsafe-inline' a
            script, e handler em atributo e script inline. O listener esta em
@@ -312,6 +319,10 @@
       </div>
     </div>
     <div class="colofao">
+      <!-- O selo entra pelo rodape e nao pela nav de proposito: a nav ja carrega
+           doze links e acabou de ganhar mascara por transbordar. Um decimo
+           terceiro pioraria o que a mesma onda consertou. -->
+      <a class="rodape-selo" href="/selo">The seal — four acts, from paper to chain</a><br>
       <em class="u-f7dd1da8" data-i18n="foot_tag">Open source. Verifiable math. No promises.</em><br>
       <span data-i18n="foot_col">Set in Libre Caslon Text, Public Sans &amp; IBM Plex Mono · July 2026</span>
     </div>
@@ -327,6 +338,7 @@
      O onerror inline saiu porque era redundante: js/home.js ja checa
      `typeof THREE === "undefined"` e liga a classe .no3d. -->
 <script src="/vendor/three-r128.min.js"></script>
+<script src="/js/tema.js"></script>
 <script src="/js/home.js"></script>
 </body>
 </html>

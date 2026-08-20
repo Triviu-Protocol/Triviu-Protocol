@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triviu · sealed by a name, verified by anyone</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M40 25.36 Q76 32.3 100 60' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M100 60 Q76 87.7 40 94.64' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M40 94.64 Q28 60 40 25.36' fill='none' stroke='%2352575D' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='40' cy='25.36' r='11' fill='%232743C7'/%3E%3Ccircle cx='100' cy='60' r='11' fill='%23C13327'/%3E%3Ccircle cx='40' cy='94.64' r='11' fill='%23E8B23A'/%3E%3C/svg%3E">
+<meta name="description" content="Four acts: Tesla, Bernoulli and Kelly, paraphrased and sealed — then answered by the contract. The wax seal gives way to a QR: from sealed by a name to verified by anyone.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://triviu.vercel.app/selo">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Triviu">
+<meta property="og:title" content="Sealed by a name, verified by anyone · Triviu">
+<meta property="og:description" content="Four acts. A paraphrase sealed in wax with its author's name, answered by the contract. The seal becomes a QR — paper becomes chain.">
+<meta property="og:url" content="https://triviu.vercel.app/selo">
+<link rel="stylesheet" href="/vendor/estilos-inline.css">
+<link rel="stylesheet" href="/vendor/fonts/fontes.css">
+<link rel="stylesheet" href="/vendor/estilos/selo.css">
+</head>
+<body>
+
+<nav class="voltar" aria-label="Breadcrumb">
+  <a href="/">
+    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+      <path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+      <path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
+    </svg>
+    <span>Triviu</span>
+  </a>
+  <span class="sep">·</span>
+  <span>the seal</span>
+</nav>
+
+<div class="spacer" id="hint">scroll down — four acts, four seals</div>
+
+<section class="scene" id="scene" aria-label="Four acts: ideas from Tesla, Bernoulli and Kelly are paraphrased by hand and sealed with each author's name; the smart contract answers each one with the consequence its author could not foresee. In the fourth act the wax seal gives way to a QR code linking to the verified contract on the explorer — from sealed by a name to verified by anyone.">
+  <p class="chap" id="chap"></p>
+  <div class="doc">
+    <div class="head">
+      <div class="brand">
+        <svg width="26" height="26" viewBox="0 0 60 60" aria-hidden="true">
+          <path d="M8 48 L30 10 L52 48 L16 48" fill="none" stroke="currentColor"
+                stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="48" r="2.6" fill="currentColor"/>
+        </svg>
+        <span class="bname">TRIVIU</span>
+      </div>
+      <div class="date"><span class="d1" id="d1"></span><span class="d2" id="d2"></span></div>
+    </div>
+    <div class="row r1"><span class="ms"></span><span class="cd"></span></div>
+    <div class="row r2"><span class="ms"></span><span class="cd"></span></div>
+    <div class="row rx r3"><span class="ms"></span><span class="cd"></span></div>
+    <div class="row r4"><span class="ms"></span><span class="cd"></span></div>
+    <div class="row r5"><span class="ms"></span><span class="cd"></span></div>
+    <div class="row r6"><span class="ms"></span><span class="cd"></span></div>
+
+    <div class="hash">
+      <span class="ok" aria-hidden="true">✓</span>
+      <a id="clink" href="https://polygonscan.com/address/0xEdB5Aa01fd055B3755439cE41B92b575eea1d273#code"
+         target="_blank" rel="noopener">0xEdB5…d273</a>
+      <span id="hashtxt"></span>
+    </div>
+    <div class="tag" id="tag"></div>
+
+    <div class="sealwrap">
+      <div class="seal">
+        <div class="wax" aria-hidden="true"><span id="sealname"></span><small id="sealyear"></small></div>
+        <!-- O QR aponta para o CONTRATO VERIFICADO, não para o whitepaper: a peça
+             inteira é a travessia do papel para o contrato digital, e o destino do
+             código tem de ser o contrato, senão a metáfora não fecha.
+             O SVG é estático e foi provado por decodificação antes de entrar —
+             ver o cabeçalho de qr-contrato.svg. -->
+        <a class="qr" id="qrlink" href="https://polygonscan.com/address/0xEdB5Aa01fd055B3755439cE41B92b575eea1d273#code"
+           target="_blank" rel="noopener"
+           aria-label="Open the verified Triviu contract on the block explorer">
+          <span class="qq">
+            <img src="/selo/qr-contrato.svg" alt="" width="96" height="96">
+            <span class="qm" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 60 60">
+                <path d="M10 46 L30 12 L50 46 L17 46" fill="none" stroke="currentColor"
+                      stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </span>
+        </a>
+      </div>
+      <span class="sealcap" id="sealcap"></span>
+    </div>
+  </div>
+</section>
+
+<div class="bar" role="group" aria-label="Animation controls">
+  <button class="cbtn" id="pp" type="button" aria-label="Pause">
+    <svg id="ppIcon" width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
+      <rect x="2" y="1" width="3.4" height="12" rx="1"/><rect x="8.6" y="1" width="3.4" height="12" rx="1"/>
+    </svg>
+  </button>
+  <button class="cbtn" id="rp" type="button" aria-label="Play from the beginning">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12.2 7 A5.2 5.2 0 1 1 9.6 2.5"/><path d="M9.1 0.6 L9.8 3 L7.4 3.6"/>
+    </svg>
+  </button>
+  <div class="dots" id="dots"></div>
+</div>
+
+<script src="/js/selo.js"></script>
+</body>
+</html>

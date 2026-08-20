@@ -761,6 +761,7 @@ for (const rel of ASSINANTES) provarRegra6(rel);
     "js/safety.js":      "sem-carteira", /* le a CHAIN por fetch (`rpc("eth_call")`), nao a carteira */
     "js/simulate.js":    "sem-carteira",
     "js/tema.js":        "sem-carteira",
+    "js/selo.js":        "sem-carteira", /* a peca dos quatro atos · zero sinal de carteira */
   };
 
   /* ALCANCAR A CARTEIRA e ALCANCAR A CHAIN sao coisas diferentes, e a lista
