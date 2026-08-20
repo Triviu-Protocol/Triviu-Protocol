@@ -57,10 +57,36 @@
 import { readdirSync, statSync, existsSync, readFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 
-/* Extensões que o navegador executa como script. Fechada de propósito e curta:
-   a rede de segurança para o que ela não prevê é a união com o que as páginas
-   referenciam, logo abaixo. */
+/* Extensões, comparadas SEM CAIXA. E a caixa foi a décima segunda instância.
+ *
+ * Este módulo nasceu para matar o corte por extensão — `.js` contra `.mjs` — e
+ * deixou aberta a dimensão da CAIXA. O Tubarão-branco mediu:
+ *
+ *     site/adm/PAINEL.HTML + APP.JS   ->  0 portões recusam
+ *     os MESMOS bytes, minúsculo      ->  7 portões recusam
+ *
+ * `APP.JS` envia `eth_sendTransaction` e reescreve `#c-passos` — o cartão que o
+ * usuário lê antes de clicar — e atravessava 15 de 15 nas três árvores, com o
+ * commit feito. O host serve `/adm/APP.JS` no caminho exato; o lookup de MIME
+ * normaliza a extensão antes de consultar, então ele executa.
+ *
+ * O Escorpião tinha registrado "maiúscula refutada" — mas testou a caixa da
+ * MARCAÇÃO (`<SCRIPT SRC>`, e a regex já tinha flag `i`) e concluiu que a caixa
+ * estava coberta. A caixa da EXTENSÃO não estava. Refutação que mede a dimensão
+ * errada é pior que ataque não tentado, porque fecha a investigação.
+ *
+ * `.htm` entra junto, e fecha o `E-11` que ficara declarado aberto: uma página
+ * `.htm` não era varrida, e combinada com um script de extensão não-script as
+ * duas metades da união falhavam ao mesmo tempo. */
 const EXT_SCRIPT = [".js", ".mjs", ".cjs"];
+const EXT_PAGINA = [".html", ".htm", ".xhtml"];
+
+/* Uma comparação, um lugar. Toda pergunta "este arquivo é X?" passa por aqui —
+   e por isso a caixa não pode voltar por outro caminho. */
+const temExtensao = (caminho, lista) => {
+  const baixo = caminho.toLowerCase();
+  return lista.some((e) => baixo.endsWith(e));
+};
 
 export function raizPublicada(RAIZ) {
   const cfg = join(RAIZ, "vercel.json");
@@ -70,7 +96,14 @@ export function raizPublicada(RAIZ) {
     try {
       const j = JSON.parse(readFileSync(cfg, "utf8"));
       if (typeof j.outputDirectory === "string" && j.outputDirectory.trim()) {
-        dir = j.outputDirectory.trim();
+        /* NORMALIZADA. A barra final foi a decima quarta instancia.
+           `raizPublicada` era fonte unica, mas quem a consome compara por
+           PREFIXO de string: `c === r || c.startsWith(r + "/")`. Com
+           `outputDirectory: "site/"` o prefixo vira `site//` e nao casa com
+           caminho nenhum — o portao de pre-publicacao imprimia
+           `modificado .... 0` com o disco divergindo do commit. Fonte unica que
+           devolve forma nao-canonica nao e fonte unica. */
+        dir = j.outputDirectory.trim().replace(/[\/]+$/, "") || ".";
         fonte = "vercel.json -> outputDirectory";
       }
     } catch { /* JSON quebrado e materia de outro portao; aqui cai no padrao */ }
@@ -123,7 +156,7 @@ export function tudoSobAraiz(RAIZ) {
 }
 
 export function paginas(RAIZ) {
-  return tudoSobAraiz(RAIZ).filter((p) => p.endsWith(".html"));
+  return tudoSobAraiz(RAIZ).filter((p) => temExtensao(p, EXT_PAGINA));
 }
 
 /* rel do script -> páginas que o carregam. Casa QUALQUER caminho e QUALQUER
@@ -150,9 +183,9 @@ export function carregadosPorPagina(RAIZ) {
 }
 
 export function executaveis(RAIZ) {
-  const porExtensao = tudoSobAraiz(RAIZ).filter((p) => EXT_SCRIPT.some((e) => p.endsWith(e)));
+  const porExtensao = tudoSobAraiz(RAIZ).filter((p) => temExtensao(p, EXT_SCRIPT));
   const porReferencia = [...carregadosPorPagina(RAIZ).keys()];
   return [...new Set([...porExtensao, ...porReferencia])].sort();
 }
 
-export { EXT_SCRIPT };
+export { EXT_SCRIPT, EXT_PAGINA, temExtensao };

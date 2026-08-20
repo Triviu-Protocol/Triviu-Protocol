@@ -292,6 +292,18 @@ $(alvo).innerHTML = "x";` },
     nome: "PoC E-10 · a tela que assina sai do mapa de carga e a cobertura encolhe",
     ancora: '<script src="/js/console.js"', codigo: '<script data-src="/js/console.js" src="/js/tema.js"' },
 
+  /* PoCs da QUINTA passagem · a 12a era a CAIXA da extensao, a 14a era uma BARRA
+     a mais no vercel.json. A 13a — corpus contado e nao nomeado — nao entra como
+     fixture porque o mecanismo dela e o proprio rol nominal deste arquivo. */
+  { portao: "check-assinatura", tipo: "mordida", onde: "site/adm/APP.JS",
+    nome: "PoC 12a · assinatura num arquivo com extensao em MAIUSCULA",
+    codigo: 'window.e=function(p){return window.ethereum.request({method:"eth_sendTransaction",params:[p]});};' },
+
+  { portao: "check-assinatura", tipo: "mordida", onde: "site/assets/app.txt",
+    nome: "PoC E-11 · pagina .htm carregando script de extensao nao-script",
+    mais: [{ onde: "site/painel.htm", codigo: '<!doctype html><html><body><script src="/assets/app.txt"></script></body></html>' }],
+    codigo: 'window.e=function(p){return window.ethereum.request({method:"eth_sendTransaction",params:[p]});};' },
+
   /* PoCs da QUARTA passagem · a OITAVA instancia era um conjunto de NOMES de
      diretorio, e a NONA era proteger por igualdade de id num documento que e
      arvore. As duas nasceram dentro do conserto das anteriores. */
@@ -520,6 +532,14 @@ const SEM_CORPUS = {
     "nominal e por si mesmo. Quem cobre isto e o N2 em agua limpa, fora da sessao que construiu",
 };
 
+/* Modo de manutencao: imprime os nomes dos controles em RUNTIME, para gerar o rol
+   nominal. Extrair por regex sobre o fonte erra em escape — errou duas vezes ao
+   gerar este rol. O valor certo e o que o programa ve. */
+if (process.argv.includes("--nomes")) {
+  for (const c of CORPUS) console.log(c.nome);
+  process.exit(0);
+}
+
 /* ===================== laboratorio ===================================== */
 
 const lab = mkdtempSync(join(tmpdir(), "triviu-corpus-"));
@@ -728,6 +748,38 @@ for (const c of CORPUS) {
 /* ------------------------------------------------------------- cobertura */
 
 const cobertos = new Set(CORPUS.map((c) => c.portao + ".mjs"));
+/* O CORPUS E NOMEADO, e nao contado.
+ *
+ * Decima terceira instancia da classe desta onda, e a licao ja estava escrita no
+ * `portoes.mjs`: "CONTAR nao basta. Um numero e satisfeito por qualquer coisa que
+ * ocupe o espaco. A lista cobra NOME." Ela tinha sido aplicada aos PORTOES — a
+ * lista nominal, a bijecao — e nunca aos CONTROLES.
+ *
+ * O Tubarao-branco apagou UM controle de 81 e este arquivo imprimiu
+ * "mordidas confirmadas 59 de 59 · todos os portoes do corpus mordem o defeito".
+ * Nenhum numero denuncia o que sumiu, porque o numero se ajusta ao que sobrou.
+ *
+ * O rol vive em `_corpus-nominal.json`, commitado. Controle que some tem de sumir
+ * de la tambem, e a remocao aparece no diff. */
+{
+  const rol = JSON.parse(readFileSync(join(RAIZ, "scripts", "_corpus-nominal.json"), "utf8"));
+  const presentes = new Set(CORPUS.map((c) => c.nome));
+  const sumidos = rol.controles.filter((n) => !presentes.has(n));
+  if (sumidos.length)
+    falhas.push(
+      sumidos.length + " controle(s) do rol nominal sumiram do corpus: " + sumidos.slice(0, 3).join(" · ") +
+      (sumidos.length > 3 ? " (e mais " + (sumidos.length - 3) + ")" : "") +
+      ". Contar nao denuncia o que sumiu — o numero se ajusta ao que sobrou. Se o controle saiu de " +
+      "proposito, tire o nome de scripts/_corpus-nominal.json no mesmo commit, com a razao"
+    );
+  const novos = [...presentes].filter((n) => !rol.controles.includes(n));
+  if (novos.length)
+    falhas.push(
+      novos.length + " controle(s) no corpus e fora do rol nominal: " + novos.slice(0, 3).join(" · ") +
+      ". Controle que ninguem nomeou nao e cobrado quando some. Acrescente ao rol"
+    );
+}
+
 const semNenhum = OBRIGATORIOS.filter((o) => !cobertos.has(o) && !SEM_CORPUS[o]);
 const semMordida = OBRIGATORIOS.filter(
   (o) => cobertos.has(o) && !CORPUS.some((c) => c.portao + ".mjs" === o && c.tipo === "mordida")
