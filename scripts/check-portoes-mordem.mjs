@@ -606,6 +606,32 @@ $(alvo).innerHTML = "x";` },
     ancora: 'pause: "Pause", play: "Resume"',
     codigo: 'pause: "Hold", play: "Continue"' },
 
+
+  /* -------------------------- check-alvos-honesto ------------------------ */
+  /* A ASSIMETRIA E O PONTO: recusar custa uma tela vazia, servir sem poder custa
+     capital movido sobre numero velho. As mordidas atacam so a direcao cara. */
+  { portao: "check-alvos-honesto", tipo: "mordida", onde: "site/alvos.json", modo: "trocar",
+    nome: "serve alvo E declara recusa na mesma resposta",
+    ancora: '"alvos": [],',
+    codigo: '"alvos": [{"par":"forjado"}],' },
+
+  { portao: "check-alvos-honesto", tipo: "mordida", onde: "site/alvos.json", modo: "trocar",
+    nome: "a ponte declara que assina, e ela nao assina",
+    ancora: '"assina": false',
+    codigo: '"assina": true' },
+
+  { portao: "check-alvos-honesto", tipo: "mordida", onde: "site/alvos.json", modo: "trocar",
+    nome: "motivoCodigo fora do rol fechado que a tela conhece",
+    ancora: '"motivoCodigo": "ORACULO_CEGO"',
+    codigo: '"motivoCodigo": "MOTIVO_QUE_A_TELA_NAO_CONHECE"' },
+
+  /* O calado tem de ser mudanca REAL no mesmo arquivo. Trocar a versao do formato
+     mexe no alvos.json e nao e desonestidade da ponte. */
+  { portao: "check-alvos-honesto", tipo: "calado", onde: "site/alvos.json", modo: "trocar",
+    nome: "mudar a versao do formato nao e a ponte fingindo",
+    ancora: '"versao": 1',
+    codigo: '"versao": 2' },
+
 ];
 
 /* ===========================================================================
@@ -623,6 +649,11 @@ const SEM_CORPUS = {
   "check-tesouraria-viva.mjs":
     "le a chain em dois endpoints. Um fixture exigiria rede no CI e no hook, e portao que " +
     "depende de rede para ser testado falha por motivo alheio ao defeito",
+  "check-custodia-viva.mjs":
+    "le a chain em dois endpoints, pela mesma razao que o da tesouraria. E ele tem prova " +
+    "propria: `--controle th=,donos=,ver=` injeta valores sem tocar a rede, e o controle 1 " +
+    "reproduz o estado exato que o livro-razao carregava em 2026-08-20 — threshold e donos " +
+    "divergindo e `separacaoDeChave` errado por consequencia",
   "check-portoes-mordem.mjs":
     "este arquivo. Um portao nao se audita: esvazia-lo mantendo o nome passa pela lista " +
     "nominal e por si mesmo. Quem cobre isto e o N2 em agua limpa, fora da sessao que construiu",

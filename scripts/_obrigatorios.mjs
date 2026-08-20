@@ -24,10 +24,12 @@
  */
 export const OBRIGATORIOS = [
   "check-alcance-dom.mjs",
+  "check-alvos-honesto.mjs",
   "check-arvore-publicavel.mjs",
   "check-assinatura.mjs",
   "check-console-abi.mjs",
   "check-csp.mjs",
+  "check-custodia-viva.mjs",
   "check-duas-fontes.mjs",
   "check-enderecos-drift.mjs",
   "check-hook-vivo.mjs",

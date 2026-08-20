@@ -1,0 +1,105 @@
+# VIGIA DO ORACULO · le PRODUCAO, nao o disco · 2026-08-20
+#
+# POR QUE ELE EXISTE
+# Em 2026-08-20 `https://triviu.vercel.app/alvos.json` respondia 200 com:
+#
+#     { "alvos": [], "motivoCodigo": "ORACULO_CEGO",
+#       "motivo": "a decisao tem 7.0h e o limite e 6h — o oraculo esta cego" }
+#
+# A ponte estava certa — recusar alvo velho e o comportamento desejado. O defeito
+# era outro e era mudo: **ninguem era avisado.** O console mostrava a recusa para
+# quem abrisse a tela, e mais ninguem no mundo sabia que o produto estava cego.
+#
+# A observabilidade deste produto era zero. Este arquivo e o primeiro grama dela.
+#
+# POR QUE ELE FALHA EM VEZ DE AVISAR
+# Um passo que imprime "atencao" e verde no fim nao e vigia: e comentario. Esta
+# casa ja escreveu isso — "aviso sem consequencia nao e guarda". Execucao agendada
+# que FALHA notifica o dono do repositorio; execucao que passa nao notifica
+# ninguem. Entao ele falha, e o barulho para quando o oraculo voltar a rodar.
+#
+# POR QUE ELE LE A REDE E NAO O ARQUIVO
+# Doutrina desta casa, paga com commit: "disco nao e producao". O repositorio pode
+# ter um `alvos.json` fresco e a producao servir o de tres dias atras, porque
+# `vercel --prod` sobe a arvore quando alguem manda, e nao ha integracao
+# git->Vercel neste projeto. Quem julga producao le producao.
+#
+# ZERO SEGREDO. Ele busca uma URL publica e usa o `GITHUB_TOKEN` embutido apenas
+# para o proprio registro de execucao. Nao precisa de RPC, nao precisa de token
+# cruzado, nao toca o repositorio privado do motor.
+#
+# O QUE ELE NAO FAZ
+# Nao religa o oraculo. Religar exige execucao agendada do motor, e ela esta
+# travada por tres coisas medidas — RPC proprio da Polygon, repositorio do motor
+# privado contra site publico, e ausencia de integracao git->Vercel. Ver o
+# handoff 03 da ONDA-TRIVIU-TRES-FRENTES-2026-08-20. Este arquivo tira a cegueira
+# do silencio; nao a cura.
+
+name: vigia do oraculo
+
+on:
+  schedule:
+    # 4x ao dia. A ponte cega em 6h; olhar a cada 6h garantiria descobrir sempre
+    # tarde. A cada 6h com deslocamento de 3h da margem para agir dentro da janela.
+    - cron: "0 3,9,15,21 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vigia-oraculo
+  cancel-in-progress: false
+
+jobs:
+  producao-esta-vendo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: a producao responde?
+        run: |
+          set -euo pipefail
+          código=$(curl -s -o /tmp/alvos.json -w "%{http_code}" --max-time 30 \
+                   -H "cache-control: no-cache" "https://triviu.vercel.app/alvos.json")
+          echo "HTTP $código"
+          if [ "$código" != "200" ]; then
+            echo "::error::/alvos.json respondeu HTTP $código. O console fica sem fonte."
+            exit 1
+          fi
+          echo "--- servido ---"
+          cat /tmp/alvos.json
+
+      - name: a ponte esta vendo, e o que ela serve e coerente
+        run: |
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const CEGO_APOS_HORAS = 6;   // espelha oracle/ponte.mjs
+            let d;
+            try { d = JSON.parse(readFileSync("/tmp/alvos.json", "utf8")); }
+            catch (e) { console.log(`::error::alvos.json nao e JSON valido: ${e.message}`); process.exit(1); }
+
+            const alvos = Array.isArray(d.alvos) ? d.alvos.length : null;
+            const t = d.geradoEm ? Date.parse(d.geradoEm) : NaN;
+            const idade = Number.isNaN(t) ? null : (Date.now() - t) / 3600000;
+
+            console.log(`alvos servidos ... ${alvos}`);
+            console.log(`motivoCodigo ..... ${d.motivoCodigo ?? "(nenhum)"}`);
+            console.log(`geradoEm ......... ${d.geradoEm ?? "(ausente)"}`);
+            console.log(`idade ............ ${idade === null ? "(desconhecida)" : idade.toFixed(1) + "h"}`);
+
+            const erros = [];
+            if (idade === null) erros.push("geradoEm ausente ou ilegivel — nao da para medir idade");
+            else if (idade > CEGO_APOS_HORAS)
+              erros.push(
+                `a decisao publicada tem ${idade.toFixed(1)}h e a ponte cega em ${CEGO_APOS_HORAS}h. ` +
+                "O console esta servindo recusa a quem abrir a tela. " +
+                "Religar: rode o oraculo, regenere alvos.json pela ponte, e publique."
+              );
+            if (d.assina === true || d.monta_transacao === true)
+              erros.push("a ponte declarou que assina ou monta transacao — ela nao faz nem uma coisa nem outra");
+            if (alvos !== null && alvos > 0 && d.motivoCodigo)
+              erros.push(`serve ${alvos} alvo(s) E declara motivo de recusa "${d.motivoCodigo}" na mesma resposta`);
+
+            for (const e of erros) console.log(`::error::${e}`);
+            process.exit(erros.length ? 1 : 0);
+          '

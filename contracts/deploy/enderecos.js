@@ -144,40 +144,79 @@
   /* -------------------------------------------------------------- CUSTODIA --
    * Escrito como foi MEDIDO, nao como foi pretendido.
    *
-   * O Safe 0x73e344... e um Gnosis Safe 1.4.1 de verdade, threshold 1, e o seu
-   * UNICO dono e 0xb5Fb0CDa... — exatamente o EOA que assinou o deploy e que
-   * hoje ainda e o owner() do Registry.
+   * ESTE BLOCO JA MENTIU DUAS VEZES, E A SEGUNDA E A LICAO.
    *
-   * Consequencia dita sem enfeite: transferir a posse move o controle da chave K
-   * para um cofre controlado exclusivamente pela chave K. NAO HA SEPARACAO DE
-   * CHAVE HOJE. O que o acceptOwner() entrega de real e ESTABILIDADE DE
-   * ENDERECO — subir para 2/3 ou instalar timelock depois nao exige nova
-   * transferencia de posse.
+   * Em 2026-08-12 os campos `ownerAtual`, `pendingOwner` e `aceiteConcluido`
+   * sairam daqui porque diziam owner = EOA enquanto a chain respondia owner() =
+   * Safe. A justificativa para MANTER os que ficaram estava escrita logo abaixo
+   * deles: "o que fica aqui e o que NAO expira: o Safe e 1-de-1 e o dono unico
+   * dele e o proprio deployer, logo nao ha separacao de chave, E ISSO NAO MUDA
+   * SOZINHO."
    *
-   * Raio de explosao se a chave for comprometida, medido contra o codigo e nao
-   * estimado: o portao atomico do Executor exige
+   * Mudou. Em 2026-08-20 a chain respondia getThreshold() = 2 e getOwners() com
+   * TRES enderecos, e o arquivo ainda dizia 1-de-1 e `separacaoDeChave: false`.
+   * O erro apontava para o lado seguro — subestimava a protecao real — e por isso
+   * ninguem notou. Um registro que erra a favor tambem esta errado.
+   *
+   * A conclusao nao e "corrigir os numeros". A doutrina deste arquivo ja estava
+   * certa e foi aplicada pela metade: posse E ESTADO DE CHAIN, e constante que
+   * espelha estado de chain e uma afirmacao com prazo de validade. O que faltava
+   * nao era honestidade — era ALARME.
+   *
+   * Por isso os campos ficam, agora com o bloco em que foram lidos, e existe
+   * `scripts/check-custodia-viva.mjs`, que re-le a chain em DUAS origens e REPROVA
+   * quando eles divergirem. E o mesmo desenho que `check-enderecos-drift` usa para
+   * a copia: "uma copia sem alarme de deriva e como dois enderecos comecam a
+   * discordar em silencio".
+   *
+   * ------------------------------------------------------------------- MEDIDO --
+   * Chain 137, bloco 92373564, 2026-08-20, duas origens concordando:
+   *
+   *     getThreshold()  2
+   *     getOwners()     0x930BB359… (nonce 97)
+   *                     0xD6A6d289… (nonce 1141)
+   *                     0xb5Fb0CDa… (nonce 1702, o deployer)
+   *     nonce()         16
+   *     VERSION()       "1.4.1"
+   *     modulos         [] — nenhum, logo nao ha caminho de execucao paralelo
+   *                          ao threshold
+   *
+   * HA SEPARACAO DE CHAVE. Os tres sao EOAs (codigo = 0) com historicos de
+   * transacao independentes, e nenhum deles move o cofre sozinho.
+   *
+   * O QUE A CHAIN NAO DIZ, e ninguem deve ler como se dissesse: se os tres
+   * enderecos estao em maos de tres PESSOAS distintas. Tres chaves distintas e
+   * fato on-chain; tres custodiantes distintos e conhecimento de fora. O campo
+   * abaixo se chama `separacaoDeChave` e nao `separacaoDePessoas` por isso.
+   *
+   * Raio de explosao se UMA chave for comprometida, medido contra o codigo e nao
+   * estimado: com threshold 2, uma chave sozinha nao move o Safe. E mesmo que o
+   * Safe inteiro caisse, o portao atomico do Executor exige
    *     finalBalance >= startBalance + principal + minProfit
    * logo o PRINCIPAL DO USUARIO E INALCANCAVEL. O teto do atacante e
    * MAX_FEE_BPS = 5000 (50% do lucro) mais captura de spread limitada pelo
    * minProfit que o proprio usuario assina.
+   *
+   * TIMELOCK CONTINUA AUSENTE. Threshold 2 exige conluio de duas chaves; nao
+   * impoe espera. Uma mudanca de parametro hostil aprovada por duas chaves e
+   * instantanea, e ninguem tem janela para reagir.
    */
   var CUSTODIA = {
     safe: '0x73e344Be290c0D53Badbe528e45877296F6dAf6E',
     safeVersao: '1.4.1',
-    safeThreshold: 1,
-    safeDonos: ['0xb5Fb0CDaab5784cBE05CcB9D843DaFe4663883C5'],
+    safeThreshold: 2,
+    safeDonos: [
+      '0x930BB359901426a0D3139848a6C09f0C9EA0851a',
+      '0xD6A6d289F65F72b8eAC7364c53506cbde2e2FCD8',
+      '0xb5Fb0CDaab5784cBE05CcB9D843DaFe4663883C5'
+    ],
     deployer: '0xb5Fb0CDaab5784cBE05CcB9D843DaFe4663883C5',
-    separacaoDeChave: false,
-    timelock: null
-    /* ownerAtual, pendingOwner e aceiteConcluido SAIRAM daqui em 2026-08-12.
-       Eles diziam owner = EOA e aceiteConcluido = false; a chain respondia
-       owner() = Safe e pendingOwner() = 0x0 desde que a posse foi aceita. Ou
-       seja: estavam MENTINDO, e ninguem notou porque constante nao avisa que
-       envelheceu. Posse e ESTADO DE CHAIN. Constante que espelha estado de
-       chain e uma afirmacao com prazo de validade que ninguem anota — quem
-       precisa do dado le owner() na hora. O que fica aqui e o que NAO expira:
-       o Safe e 1-de-1 e o dono unico dele e o proprio deployer, logo nao ha
-       separacao de chave, e isso nao muda sozinho. */
+    separacaoDeChave: true,
+    timelock: null,
+    /* O bloco existe para que o leitor saiba a idade do que esta lendo, e para
+       que `check-custodia-viva` tenha contra o que comparar. Quem atualizar os
+       campos acima atualiza este numero na mesma edicao. */
+    medidoNoBloco: 92373564
   };
 
   var MEDICAO = { chainId: CHAIN, bloco: 91859211, onda: 'ONDA-TRIVIU-MAINNET-FECHO-2026-08-11' };

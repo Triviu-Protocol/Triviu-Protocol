@@ -98,6 +98,10 @@
     "o early return volta e a peca retoma fora da tela",
     "a pausa manual perde bandeira propria e a automatica desfaz a da pessoa",
     "o observador volta a se demitir depois de iniciar",
-    "mudar o rotulo do botao nao e defeito de pausa"
+    "mudar o rotulo do botao nao e defeito de pausa",
+    "serve alvo E declara recusa na mesma resposta",
+    "a ponte declara que assina, e ela nao assina",
+    "motivoCodigo fora do rol fechado que a tela conhece",
+    "mudar a versao do formato nao e a ponte fingindo"
   ]
 }
