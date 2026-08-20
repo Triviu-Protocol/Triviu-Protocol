@@ -43,9 +43,16 @@ import { readdirSync, statSync, existsSync } from "node:fs";
 import { join, dirname, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { raizPublicada } from "./_arvore.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
-const SITE = join(RAIZ, "site");
+/* A RAIZ SAI DO `vercel.json`, e nao daqui.
+   Este portao fundava a propria regra em "vercel.json declara outputDirectory:
+   site" e nunca lia o campo de volta. Trocar para "." fazia a raiz publicada
+   virar o repositorio inteiro — `scripts/`, `contracts/`, `.githooks/` — com
+   este guardiao seguindo em `site/` e dizendo OK. Afirmar sobre uma config sem
+   le-la e a mesma familia de defeito que esta onda persegue. */
+const { abs: SITE, dir: DIR_PUBLICADO, fonte: FONTE_DA_RAIZ } = raizPublicada(RAIZ);
 const falhas = [];
 const notas = [];
 
@@ -71,7 +78,7 @@ const noDisco = [];
  * temporario) nao ha `.git` nenhum — e ali a resposta e trivialmente sim, porque
  * cada byte daquela arvore SAIU do indice. Declarar isso e diferente de aprovar
  * calado: quem le o relatorio precisa saber qual das duas coisas aconteceu. */
-const ls = spawnSync("git", ["-C", RAIZ, "ls-files", "site"], { encoding: "utf8" });
+const ls = spawnSync("git", ["-C", RAIZ, "ls-files", DIR_PUBLICADO === "." ? "." : DIR_PUBLICADO], { encoding: "utf8" });
 const temGit = !ls.error && ls.status === 0;
 
 let conhecidos = null;
@@ -91,8 +98,8 @@ if (temGit) {
   );
 }
 
-console.log("portao da arvore publicavel · `vercel.json` -> outputDirectory: site");
-console.log(`  arquivos sob site/ ............ ${noDisco.length}`);
+console.log(`portao da arvore publicavel · raiz: ${DIR_PUBLICADO}  (${FONTE_DA_RAIZ})`);
+console.log(`  arquivos sob a raiz ........... ${noDisco.length}`);
 console.log(`  conhecidos pelo git ........... ${temGit ? conhecidos.size : "n/a — sem git aqui"}`);
 console.log(`  fora do git ................... ${temGit ? noDisco.filter((p) => !conhecidos.has(p)).length : "NAO CONFERIDO"}`);
 for (const n of notas) console.log(`  nota: ${n}`);

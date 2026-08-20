@@ -37,15 +37,20 @@ import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { codigoNormalizado } from "./_comentarios.mjs";
+import { executaveis, raizPublicada } from "./_arvore.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
+const SITE = raizPublicada(RAIZ).abs;
 const JS = join(RAIZ, "site", "js");
 
 /* Descobre quem confirma efeito, em vez de listar — a licao que o portao do F-4
    pagou com um commit acidental no mesmo dia. */
-const CONFIRMADORES = readdirSync(JS)
-  .filter((f) => f.endsWith(".js"))
-  .filter((f) => /conferirEstadoNaChain/.test(codigoNormalizado(readFileSync(join(JS, f), "utf8"))));
+/* A descoberta vem de `_arvore.mjs`. Este portao tinha recorte proprio por
+   extensao (`endsWith(".js")`), e o Tubarao-branco atravessou os oito recortes
+   desta casa com os mesmos bytes renomeados para `.mjs`. Uma pergunta, um lugar
+   que responde. */
+const CONFIRMADORES = executaveis(RAIZ)
+  .filter((rel) => /conferirEstadoNaChain/.test(codigoNormalizado(readFileSync(join(SITE, rel), "utf8"))));
 
 const falhas = [];
 let comDuplo = 0;
@@ -55,7 +60,7 @@ if (!CONFIRMADORES.length)
               "esta procurando o nome errado. Falha fechada: portao que nao acha o alvo nao aprova");
 
 for (const arq of CONFIRMADORES) {
-  const src = codigoNormalizado(readFileSync(join(JS, arq), "utf8"));
+  const src = codigoNormalizado(readFileSync(join(SITE, arq), "utf8"));
   const linhaDe = (i) => src.slice(0, i).split("\n").length;
 
   /* 1 · existe */
@@ -135,7 +140,7 @@ function corpoDaFuncao(src, nome) {
 
 let exercidos = 0;
 for (const arq of CONFIRMADORES) {
-  const src = codigoNormalizado(readFileSync(join(JS, arq), "utf8"));
+  const src = codigoNormalizado(readFileSync(join(SITE, arq), "utf8"));
   const corpo = corpoDaFuncao(src, "rpcDuplo");
   if (!corpo) continue;   /* a regra 1 acima ja reprovou a ausencia */
 

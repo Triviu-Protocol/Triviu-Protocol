@@ -58,6 +58,7 @@
  */
 import vm from "node:vm";
 import { codigoNormalizado } from "./_comentarios.mjs";
+import { executaveis, carregadosPorPagina } from "./_arvore.mjs";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { webcrypto } from "node:crypto";
@@ -674,30 +675,20 @@ for (const rel of ASSINANTES) provarRegra6(rel);
    reprova se algum deles falar com carteira sem estar sob as quatro checagens.
    Um arquivo novo que abra a carteira e um arquivo novo que passa por aqui. */
 {
-  const htmls = [];
-  (function andar(d) {
-    for (const nome of readdirSync(d)) {
-      const p = join(d, nome);
-      if (statSync(p).isDirectory()) andar(p);
-      else if (nome.endsWith(".html")) htmls.push(p);
-    }
-  })(SITE);
-
-  const carregados = new Map();   /* rel do js -> paginas que o carregam */
-  for (const arquivo of htmls) {
-    const html = readFileSync(arquivo, "utf8");
-    const pagina = relative(SITE, arquivo).split(sep).join("/");
-    /* CASA QUALQUER CAMINHO, nao so `/js/`.
-       O padrao anterior era `"\/(js\/[^"]+\.js)"`, e o N2 em agua limpa passou por
-       fora dele com um arquivo que tres telas de assinatura ja carregam:
-       `<script src="/enderecos.js">`. O mapa nao o via, o rol nao o conhecia, e
-       `eth_sendTransaction` cru la dentro subia com quinze portoes verdes. */
-    for (const m of html.matchAll(/<script\b[^>]*\bsrc\s*=\s*"\/([^"]+\.js)"/gi)) {
-      const rel = m[1];
-      if (!carregados.has(rel)) carregados.set(rel, []);
-      carregados.get(rel).push(pagina);
-    }
-  }
+  /* A DESCOBERTA VEM DE `_arvore.mjs`, e nao daqui.
+   *
+   * Havia dois recortes proprios nesta altura: um andava `site/` procurando
+   * `.html`, outro casava `src="/(js/...\.js)"`. O segundo ja tinha sido
+   * alargado uma vez, para casar qualquer caminho. O Tubarao-branco atravessou o
+   * que sobrou — a EXTENSAO — com os mesmos bytes renomeados de `.js` para
+   * `.mjs`, carregados por `<script type="module">` na tela que assina: 15 de 15.
+   *
+   * Sexta aparicao da mesma classe. O conserto nao foi alargar o recorte pela
+   * setima vez: foi tirar a pergunta daqui. Quem responde "o que roda sob a raiz
+   * publicada" e um modulo so, e ele responde pela UNIAO de extensao-de-script
+   * com referencia-em-pagina — de modo que errar a lista de extensoes nao basta
+   * para escapar, e nao ser citado por pagina nenhuma tambem nao. */
+  const carregados = carregadosPorPagina(RAIZ);
 
   /* Dois niveis, e a distincao nao e burocratica: ela e a diferenca entre pedir
      um endereco e mover dinheiro.
@@ -766,7 +757,7 @@ for (const rel of ASSINANTES) provarRegra6(rel);
        alcanca a carteira. */
     "enderecos.js":                "sem-carteira",   /* tabela de enderecos · 3 telas */
     "api/safety.js":               "sem-carteira",
-    "vendor/three-r128.min.js":    "sem-carteira",   /* render · SRI cobrado no check-csp */
+    "vendor/three-r128.min.js":    "vendor-fixo",    /* bundle de terceiro · ver classe abaixo */
 
     "js/motor.js":       "primitivas",   /* a captura do provedor · nao assina sozinho */
     "js/console.js":     "assina",       /* /calldata/ */
@@ -827,18 +818,10 @@ for (const rel of ASSINANTES) provarRegra6(rel);
    * humanos, depois `<script src>` sem `import()`, e agora o diretorio `js/`.
    * A forma que resolve e sempre a mesma: cobrir TUDO e deixar a omissao
    * reprovar. */
-  const JS_EM_DISCO = (() => {
-    const achados = [];
-    (function andar(d) {
-      for (const nome of readdirSync(d)) {
-        const abs = join(d, nome);
-        if (statSync(abs).isDirectory()) andar(abs);
-        else if (nome.endsWith(".js"))
-          achados.push(relative(SITE, abs).split(sep).join("/"));
-      }
-    })(SITE);
-    return achados;
-  })();
+  /* Todo executavel sob a raiz publicada — por extensao OU por referencia de
+     pagina. Ver o cabecalho de `_arvore.mjs` para por que a uniao, e nao uma
+     das duas. */
+  const JS_EM_DISCO = executaveis(RAIZ);
 
   for (const rel of JS_EM_DISCO) {
     if (!Object.prototype.hasOwnProperty.call(ROL_JS, rel)) {
@@ -870,6 +853,34 @@ for (const rel of ASSINANTES) provarRegra6(rel);
 
   /* A CLASSIFICACAO E COBRADA CONTRA O CODIGO, senao o rol vira papel: bastaria
      escrever `sem-carteira` ao lado do arquivo que assina. */
+  /* `sem-carteira` PROVA que nao alcanca; nao basta escapar de uma lista.
+   *
+   * A versao anterior cobrava 6 regexes de notacao-ponto, e o Tubarao-branco
+   * passou por elas dentro de um arquivo JA classificado `sem-carteira`:
+   *
+   *     var __s = ["eth","ereum"].join("");
+   *     var __r = ["req","uest"].join("");
+   *     window[__s][__r]({ method: __m, params: [p] });
+   *
+   * `window[k]` nao e `window.ethereum`; `p[r](` nao e `.request(`. A dobra de
+   * literais casa `+`, nao `.join`. E o cabecalho de `_literais.mjs` afirmava
+   * que a defesa contra o disfarce caro era o rol fechado — mas o rol reprova
+   * OMISSAO, e aqui a classificacao estava presente e era falsa.
+   *
+   * A regra inverte de novo: um arquivo `sem-carteira` nao pode conter acesso
+   * que este portao NAO CONSIGA resolver. Indice em global e despacho dinamico
+   * `x[y](` sao exatamente isso. Nao os declaramos perigosos — declaramos
+   * INVERIFICAVEIS, e classificacao inverificavel nao e classificacao.
+   *
+   * Custo medido antes de cravar: dos 13 executaveis, os unicos com acesso
+   * dinamico sao `js/console.js` (assina, passa pelas quatro checagens),
+   * `js/motor.js` (primitivas, tem regra propria) e o bundle do three, que ganha
+   * a classe `vendor-fixo` abaixo. Nenhum `sem-carteira` de hoje paga nada. */
+  const INVERIFICAVEIS = [
+    [/\b(window|globalThis|self)\s*\[/, "indexa um global por chave calculada"],
+    [/\]\s*\(/, "despacha metodo por chave calculada (`x[y](`)"],
+  ];
+
   for (const [rel, classe] of Object.entries(ROL_JS)) {
     if (classe !== "sem-carteira") continue;
     let src = "";
@@ -881,6 +892,15 @@ for (const rel of ASSINANTES) provarRegra6(rel);
         falhar(
           `${rel} esta classificado como \`sem-carteira\` e ${porque}. A classificacao e uma afirmacao ` +
           "sobre o codigo, e esta e falsa: mude a classe e aceite as checagens, ou tire o alcance do arquivo"
+        );
+    }
+    for (const [re, porque] of INVERIFICAVEIS) {
+      if (re.test(exec))
+        falhar(
+          `${rel} esta classificado como \`sem-carteira\` e ${porque}. Este portao nao consegue ` +
+          "provar que um arquivo assim nao alcanca a carteira, e classificacao que nao se verifica nao " +
+          "e classificacao. Escreva o acesso de forma resolvivel, ou aceite a classe que corresponde ao " +
+          "que ele faz"
         );
     }
   }
@@ -913,11 +933,47 @@ for (const rel of ASSINANTES) provarRegra6(rel);
     }
   }
 
+  /* `vendor-fixo` · bundle de terceiro, minificado, com bytes pregados por hash.
+   *
+   * Analise de fonte nao se aplica: 600 KB minificados sao inverificaveis por
+   * construcao, e fingir que a varredura conclui algo sobre eles seria a mesma
+   * afirmacao sem lastro que esta onda persegue. O que se cobra e outra coisa,
+   * e ela e verificavel:
+   *
+   *   1. os bytes estao pregados — `check-csp` confere o hash publicado;
+   *   2. ele NAO e carregado por nenhuma tela que assina. Contencao, nao
+   *      confianca: se o bundle nunca esta na pagina onde ha calldata, o que ele
+   *      faz deixa de alcancar assinatura.
+   *
+   * Se um dia uma tela de assinatura precisar dele, esta regra reprova — e a
+   * decisao volta para quem a tomou, em vez de passar calada. */
+  for (const [rel, classe] of Object.entries(ROL_JS)) {
+    if (classe !== "vendor-fixo") continue;
+    const pags = carregados.get(rel) || [];
+    const assinantesPorPagina = new Set();
+    for (const [r2, p2] of carregados) if (ASSINANTES.includes(r2)) for (const pg of p2) assinantesPorPagina.add(pg);
+    const colisao = pags.filter((pg) => assinantesPorPagina.has(pg));
+    if (colisao.length)
+      falhar(
+        `${rel} e \`vendor-fixo\` e esta carregado por ${colisao.join(", ")}, que e tela de assinatura. ` +
+        "Bundle de terceiro minificado nao se audita por leitura; a trava dele e nao dividir pagina com " +
+        "calldata. Tire-o dessa tela, ou traga-o para uma classe que aceite as checagens"
+      );
+    let csp = "";
+    try { csp = readFileSync(join(RAIZ, "scripts", "check-csp.mjs"), "utf8"); } catch { csp = ""; }
+    if (csp && !csp.includes(rel.split("/").pop()))
+      falhar(
+        `${rel} e \`vendor-fixo\` e NAO aparece na tabela de hash do check-csp. Bytes de terceiro sem ` +
+        "hash pregado sao bytes que mudam sem aviso"
+      );
+  }
+
   let n2 = 0;
   for (const [rel, paginas] of carregados) {
     if (ASSINANTES.includes(rel)) continue;
     if (ROL_JS[rel] === "sem-carteira") continue;   /* cobrado acima, contra o codigo */
     if (ROL_JS[rel] === "primitivas") continue;     /* cobrado acima, com regra propria */
+    if (ROL_JS[rel] === "vendor-fixo") continue;    /* cobrado acima, por contencao */
     let src = "";
     try { src = readFileSync(join(SITE, rel), "utf8"); } catch { continue; }
 

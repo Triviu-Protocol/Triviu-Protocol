@@ -41,8 +41,10 @@ import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { codigoNormalizado } from "./_comentarios.mjs";
+import { executaveis, raizPublicada } from "./_arvore.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
+const SITE = raizPublicada(RAIZ).abs;
 const JS = join(RAIZ, "site", "js");
 const MOTOR = "motor.js";
 
@@ -58,10 +60,14 @@ const MOTOR = "motor.js";
  * lista") e que eu reintroduzi aqui. Varre `site/js/*.js` inteiro: qualquer
  * arquivo que mencione o slot ou os eventos de carteira e consumidor, tenha nome
  * previsto ou nao. O motor sai da varredura porque ele e a captura. */
-const CONSUMIDORES = readdirSync(JS)
-  .filter((f) => f.endsWith(".js") && f !== MOTOR)
+/* A descoberta vem de `_arvore.mjs`. Este portao tinha recorte proprio por
+   extensao (`endsWith(".js")`), e o Tubarao-branco atravessou os oito recortes
+   desta casa com os mesmos bytes renomeados para `.mjs`. Uma pergunta, um lugar
+   que responde. */
+const CONSUMIDORES = executaveis(RAIZ)
+  .filter((rel) => rel !== "js/" + MOTOR)
   .filter((f) => {
-    const src = codigoNormalizado(readFileSync(join(JS, f), "utf8"));
+    const src = codigoNormalizado(readFileSync(join(SITE, f), "utf8"));
     return /\bwindow\s*\.\s*ethereum\b/.test(src) ||
            /\.\s*on\s*\(\s*["'`](chainChanged|accountsChanged)["'`]/.test(src) ||
            /MOTOR\s*\.\s*(provedor|ouvir|descobrirProvedor|aoTrocarProvedor)\s*\(/.test(src);
@@ -71,14 +77,14 @@ const falhas = [];
 const notas = [];
 
 const ler = (arq) => {
-  const p = join(JS, arq);
+  const p = join(SITE, arq);
   if (!existsSync(p)) { falhas.push(`${arq} nao existe — o portao nao consegue olhar, entao recusa`); return null; }
   return codigoNormalizado(readFileSync(p, "utf8"));
 };
 
 /* ------------------------------------------------- 1 · a captura e unica -- */
 
-const motor = ler(MOTOR);
+const motor = ler("js/" + MOTOR);
 if (motor) {
   for (const [nome, re] of [
     ["provedor()", /\bfunction\s+provedor\s*\(/],

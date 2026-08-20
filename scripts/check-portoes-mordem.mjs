@@ -120,10 +120,15 @@ abrir("temaOv");` },
     nome: "LEITURA de lp-* · livre por desenho",
     codigo: `const e = document.querySelector("#lp-ler");\nif (e) { console.log(e.textContent); }` },
 
+  /* O id destes dois controles era `c-ler` ate 2026-08-19. Naquele dia a tela
+     `/calldata/` entrou na cobertura do check-alcance-dom e `c-` virou namespace
+     protegido — entao um fixture que usava `c-ler` passou a ser, corretamente,
+     uma violacao. O fixture e que envelheceu: a intencao dele e provar a amarra
+     por atribuicao literal, e isso nao depende de qual namespace o id usa. */
   { portao: "check-alcance-dom", tipo: "calado", onde: "site/js/zz.js",
     nome: "C-5 · atribuicao literal em statement ANTERIOR (a amarra 2 documentada)",
     codigo: `const $ = i => document.getElementById(i);
-var id = "c-ler";
+var id = "zz-ler";
 $(id).innerHTML = "x";` },
 
   { portao: "check-alcance-dom", tipo: "calado", onde: "site/js/zz.js",
@@ -134,7 +139,7 @@ $(id).innerHTML = "x";` },
   { portao: "check-alcance-dom", tipo: "mordida", onde: "site/js/zz.js",
     nome: "atribuicao literal a OUTRO nome nao amarra este",
     codigo: `const $ = i => document.getElementById(i);
-var outro = "c-ler";
+var outro = "zz-ler";
 $(alvo).innerHTML = "x";` },
 
   { portao: "check-alcance-dom", tipo: "mordida", onde: "site/js/zz.js",
@@ -279,6 +284,24 @@ $(alvo).innerHTML = "x";` },
   { portao: "check-assinatura", tipo: "mordida", onde: "site/js/oculto.js",
     nome: "PoC N1R-01 · js que nenhuma pagina carrega, alcancado por import dinamico",
     codigo: 'export function enviar(p){ return window.ethereum.request({method:"eth_sendTransaction",params:[p]}); }' },
+
+  /* PoCs da TERCEIRA passagem do Tubarao · a SEXTA instancia da classe era a
+     EXTENSAO: os mesmos bytes que 5 portoes recusam com .js passavam em 15 de 15
+     com .mjs. E a SETIMA estava dentro do conserto da sexta — a regex de mencao
+     do check-alcance-dom continuava com `lp-` cravado depois de as telas virarem
+     duas. */
+  { portao: "check-assinatura", tipo: "mordida", onde: "site/js/carteira.mjs",
+    nome: "PoC N2T-01 · assinatura num .mjs sob a raiz publicada",
+    codigo: 'export function enviar(p){ return window.ethereum.request({method:"eth_sendTransaction",params:[p]}); }' },
+
+  { portao: "check-assinatura", tipo: "mordida", onde: "site/js/tema.js", modo: "inserir",
+    ancora: "",
+    nome: "PoC N2T-02 · chave computada dentro de arquivo classificado sem-carteira",
+    codigo: 'var __s=["eth","ereum"].join(""); var __r=["req","uest"].join(""); window[__s][__r]({});' },
+
+  { portao: "check-alcance-dom", tipo: "mordida", onde: "site/js/zz.js",
+    nome: "PoC N2T-03 · escrita no cartao da /calldata/, o outro namespace que assina",
+    codigo: 'document.querySelector("#c-passos").innerHTML = "<pre>0x095ea7b3</pre>";' },
 
   /* PoCs da RE-AUDITORIA do Tubarao · o rol terminava em site/js/ e a raiz
      publicada nao termina ali. As tres telas que assinam ja carregavam

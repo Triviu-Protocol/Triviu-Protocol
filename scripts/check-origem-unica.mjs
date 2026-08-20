@@ -41,8 +41,10 @@ import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { codigoNormalizado } from "./_comentarios.mjs";
+import { executaveis, raizPublicada } from "./_arvore.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
+const SITE = raizPublicada(RAIZ).abs;
 const JS = join(RAIZ, "site", "js");
 const CONFIG = join(RAIZ, "site", "domain.config.json");
 const falhas = [];
@@ -72,9 +74,12 @@ if (cfg) {
 
 /* ------------------------------- 2 · quem assina cobra a cardinalidade --- */
 
-const ASSINAM = readdirSync(JS)
-  .filter((f) => f.endsWith(".js"))
-  .filter((f) => /eth_sendTransaction/.test(codigoNormalizado(readFileSync(join(JS, f), "utf8"))));
+/* A descoberta vem de `_arvore.mjs`. Este portao tinha recorte proprio por
+   extensao (`endsWith(".js")`), e o Tubarao-branco atravessou os oito recortes
+   desta casa com os mesmos bytes renomeados para `.mjs`. Uma pergunta, um lugar
+   que responde. */
+const ASSINAM = executaveis(RAIZ)
+  .filter((rel) => /eth_sendTransaction/.test(codigoNormalizado(readFileSync(join(SITE, rel), "utf8"))));
 
 if (!ASSINAM.length)
   falhas.push("nenhum arquivo que assina foi encontrado — ou a superficie sumiu, ou este portao procura " +
@@ -82,7 +87,7 @@ if (!ASSINAM.length)
 
 let comCardinalidade = 0;
 for (const arq of ASSINAM) {
-  const src = codigoNormalizado(readFileSync(join(JS, arq), "utf8"));
+  const src = codigoNormalizado(readFileSync(join(SITE, arq), "utf8"));
   if (!/knownHosts/.test(src)) {
     falhas.push(`${arq}: assina e nao le knownHosts — nao confere de que origem esta sendo servido`);
     continue;
@@ -145,7 +150,7 @@ function corpoDaFuncao(src, nome) {
 
 let exercidos = 0;
 for (const arq of ASSINAM) {
-  const src = codigoNormalizado(readFileSync(join(JS, arq), "utf8"));
+  const src = codigoNormalizado(readFileSync(join(SITE, arq), "utf8"));
   const corpo = corpoDaFuncao(src, "conferirOrigem");
   if (!corpo) {
     falhas.push(`${arq}: nao achei conferirOrigem() para EXECUTAR. Portao que nao consegue exercer a regra ` +

@@ -64,15 +64,137 @@
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { codigoNormalizado } from "./_comentarios.mjs";
+import { executaveis, carregadosPorPagina, raizPublicada } from "./_arvore.mjs";
 import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
+const SITE = raizPublicada(RAIZ).abs;
 const JS = join(RAIZ, "site", "js");
-const HTML = join(RAIZ, "site", "console", "index.html");
+/* AS TELAS QUE ASSINAM SAO DERIVADAS, NAO CRAVADAS.
+ *
+ * Este portao julgava `site/console/index.html` e o prefixo `lp-`, escritos a
+ * mao. Mas a lista de assinantes do `check-assinatura` tem DUAS telas, e a outra
+ * — `/calldata/`, prefixo `c-` — e justamente onde o cartao da transacao e
+ * desenhado antes da assinatura. O Tubarao-branco reescreveu `#c-passos` a
+ * partir de um script qualquer e passou em 15 de 15; o controle dele foi o mesmo
+ * ataque em `#lp-erro`, que reprovou em quatro portoes. So mudava o namespace.
+ *
+ * Setima aparicao do mesmo erro de metodo nesta onda. Agora as telas saem do
+ * mapa de carga: qualquer pagina que carregue um arquivo da lista de assinantes
+ * E uma tela que assina, e todas sao julgadas. Acrescentar uma terceira tela nao
+ * exige lembrar deste arquivo. */
+const ASSINANTES_REL = ["js/console.js", "js/console-lp.js"];
+const TELAS = (() => {
+  const mapa = carregadosPorPagina(RAIZ);
+  const paginas = new Set();
+  for (const [rel, pags] of mapa)
+    if (ASSINANTES_REL.includes(rel)) for (const pg of pags) paginas.add(pg);
+  return [...paginas].sort();
+})();
 
-const MOTOR = "console-lp.js";          // o unico dono da subarvore que assina
-const PREFIXO = "lp-";
+const MOTOR = "console-lp.js";          // so para as mensagens que citam um nome
+/* OS NAMESPACES SAO DERIVADOS DAS TELAS, e nao escritos aqui.
+ *
+ * Era `const PREFIXO = "lp-"` — uma tela, um prefixo, os dois cravados. A outra
+ * tela que assina usa `c-` e nao era coberta. Agora cada tela entrega os seus
+ * ids, e o prefixo de cada uma sai da contagem: um namespace real aparece em
+ * dezenas de ids, um id solto nao vira namespace. O piso de 5 e arbitrario e
+ * esta declarado como tal; o que ele evita e um `id="ok"` virar o namespace
+ * `ok-`. */
+const PISO_DE_NAMESPACE = 5;
+
+const IDS_POR_TELA = new Map(
+  TELAS.map((tela) => [
+    tela,
+    [...readFileSync(join(SITE, tela), "utf8").matchAll(/id="([\w-]+)"/g)].map((m) => m[1]),
+  ])
+);
+
+const PREFIXOS = (() => {
+  /* UM namespace por tela: o DOMINANTE.
+     A primeira derivacao pegou todo prefixo com 5 ou mais ids e trouxe `i-`
+     (icones), `ct-` (tabela), `g-`, `h-`, `p-` junto — e o portao passou a
+     reprovar `console-app.js` por trocar o atributo de um icone de tema. Falso
+     alarme treina gente a ignorar guardiao, que e o oposto do que este arquivo
+     existe para fazer.
+     A subarvore que assina e a espinha da tela, entao ela e o prefixo mais
+     frequente dela: `/console/` -> `lp-` (85 ids), `/calldata/` -> `c-` (58).
+     Os outros namespaces da mesma pagina sao decoracao e nao recebem calldata. */
+  const escolhidos = new Set();
+  for (const ids of IDS_POR_TELA.values()) {
+    const conta = new Map();
+    for (const id of ids) {
+      const i = id.indexOf("-");
+      if (i <= 0) continue;
+      const pre = id.slice(0, i + 1);
+      conta.set(pre, (conta.get(pre) || 0) + 1);
+    }
+    let campeao = null, max = 0;
+    for (const [pre, n] of conta) if (n > max) { max = n; campeao = pre; }
+    if (campeao && max >= PISO_DE_NAMESPACE) escolhidos.add(campeao);
+  }
+  return [...escolhidos].sort();
+})();
+
+const IDS_PROTEGIDOS = new Set(
+  [...IDS_POR_TELA.values()].flat().filter((id) => PREFIXOS.some((p) => id.startsWith(p)))
+);
+
+const PREFIXO = PREFIXOS[0] || "lp-";   /* compat: mensagens que citam um so */
+
+/* AS REGEX SAO CONSTRUIDAS DOS PREFIXOS DERIVADOS, e nao escritas com um deles.
+ *
+ * Aqui morava o SETIMO recorte desta onda, e ele estava DENTRO do conserto do
+ * sexto: as telas passaram a ser derivadas, os ids passaram a ser 227 em vez de
+ * 85, e o laco que procura mencao continuou com `(lp-[\w-]+)` cravado. O
+ * conjunto protegido conhecia `c-passos`; a regex nunca o casava. Reescrever o
+ * cartao da `/calldata/` seguia passando.
+ *
+ * Consertar um recorte escrevendo outro e o que esta onda vem repetindo. As
+ * expressoes abaixo nascem de `PREFIXOS`, que nasce das telas, que nascem do
+ * mapa de carga. */
+const escapar = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const ALT_PREFIXOS = PREFIXOS.map(escapar).join("|");
+const RE_MENCAO = new RegExp('["\'`][^"\'`\n]*?((?:' + ALT_PREFIXOS + ')[\\w-]+)', "g");
+const RE_SELETOR_PREFIXO = new RegExp('\\[\\s*id\\s*\\^?=\\s*["\']?(?:' + ALT_PREFIXOS + ')', "gi");
+const RE_PREFIXO_NU = new RegExp('["\'`](?:' + ALT_PREFIXOS + ')["\'`]', "g");
+
+/* A POSSE E DERIVADA, e ela e por TELA.
+ *
+ * Era `const MOTOR = "console-lp.js"` — um dono, um namespace, os dois cravados.
+ * Com duas telas que assinam isso deixa de fazer sentido: `console-lp.js` e dono
+ * de `lp-*` porque a tela `/console/` o carrega, e `console.js` e dono de `c-*`
+ * pela mesma razao na `/calldata/`. Cravar um deles transformava o outro em
+ * invasor da propria subarvore.
+ *
+ * A posse sai do mapa de carga: quem a tela carrega, e da lista de assinantes,
+ * responde pelos ids daquela tela. Uma terceira tela nao exige editar nada. */
+const DONO_DO_NAMESPACE = (() => {
+  const mapa = carregadosPorPagina(RAIZ);
+  const posse = new Map();   /* prefixo -> Set de scripts */
+  for (const [tela, ids] of IDS_POR_TELA) {
+    const pres = new Set();
+    for (const id of ids) {
+      const i = id.indexOf("-");
+      if (i > 0) { const pre = id.slice(0, i + 1); if (PREFIXOS.includes(pre)) pres.add(pre); }
+    }
+    for (const [rel, pags] of mapa)
+      if (pags.includes(tela) && ASSINANTES_REL.includes(rel))
+        for (const pre of pres) {
+          if (!posse.has(pre)) posse.set(pre, new Set());
+          posse.get(pre).add(rel);
+        }
+  }
+  return posse;
+})();
+
+const eDono = (arq, id) => {
+  for (const [pre, donos] of DONO_DO_NAMESPACE)
+    if (id.startsWith(pre) && donos.has(arq)) return true;
+  return false;
+};
+
 
 /* Escritas no DOM que podem alterar o que o usuario LE antes de assinar.
    `classList` e `style` entram: quem controla a aparencia pode esconder uma
@@ -178,12 +300,16 @@ const falhas = [];
 let lidos = 0, alvos = 0, leiturasOk = 0, prefixos = 0, concatenacoes = 0, indiretas = 0;
 
 const idsHtml = new Set(
-  [...readFileSync(HTML, "utf8").matchAll(/id="(lp-[\w-]+)"/g)].map((m) => m[1])
+  [...IDS_PROTEGIDOS]
 );
 
-for (const arq of readdirSync(JS).filter((f) => f.endsWith(".js"))) {
-  if (arq === MOTOR) continue;
-  const src = codigoNormalizado(readFileSync(join(JS, arq), "utf8"));
+for (const arq of executaveis(RAIZ)) {
+  /* O dono da subarvore daquela tela escreve nela; qualquer outro nao. A
+     comparacao e por id, e nao por arquivo, porque um script pode ser dono de um
+     namespace e invasor de outro — que e exatamente o caso das duas telas. */
+  if (ASSINANTES_REL.includes(arq) && [...DONO_DO_NAMESPACE.values()].some((d) => d.has(arq)))
+    continue;
+  const src = codigoNormalizado(readFileSync(join(SITE, arq), "utf8"));
   lidos++;
 
   const linhaDe = (i) => src.slice(0, i).split("\n").length;
@@ -205,7 +331,7 @@ for (const arq of readdirSync(JS).filter((f) => f.endsWith(".js"))) {
    *
    * Agora casa o id onde quer que ele apareca dentro da string — `"#lp-x"`,
    * `".lp-x"`, `"[id^=lp-]"`, `"lp-x"`. */
-  for (const m of src.matchAll(/["'`][^"'`\n]*?(lp-[\w-]+)/g)) {
+  for (const m of src.matchAll(RE_MENCAO)) {
     const id = m[1];
     if (!idsHtml.has(id)) continue;          // id que nao existe no HTML: inerte
     alvos++;
@@ -431,7 +557,10 @@ for (const arq of readdirSync(JS).filter((f) => f.endsWith(".js"))) {
   }
 }
 
-console.log(`portao de alcance de escrita no DOM · subarvore '${PREFIXO}*' · motor: ${MOTOR}`);
+console.log(
+  "portao de alcance de escrita no DOM · namespaces " + PREFIXOS.map((p) => "'" + p + "*'").join(" e ") +
+  " · telas: " + TELAS.join(", ")
+);
 console.log(`  ids da subarvore no HTML .......... ${idsHtml.size}`);
 console.log(`  scripts varridos (fora do motor) .. ${lidos}`);
 console.log(`  mencoes a ids da subarvore ........ ${alvos}  (leitura: ${leiturasOk})`);
