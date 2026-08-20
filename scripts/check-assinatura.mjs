@@ -58,13 +58,14 @@
  */
 import vm from "node:vm";
 import { codigoNormalizado } from "./_comentarios.mjs";
-import { executaveis, carregadosPorPagina } from "./_arvore.mjs";
+import { executaveis, carregadosPorPagina , raizPublicada } from "./_arvore.mjs";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { webcrypto } from "node:crypto";
 
 const RAIZ = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
-const SITE = join(RAIZ, "site");
+/* raiz lida do vercel.json, nao cravada — ver `_arvore.mjs` */
+const SITE = raizPublicada(RAIZ).abs;
 
 /* Todo arquivo que tem permissao de falar com uma carteira. Cada um passa pelas
    quatro checagens inteiras, sem excecao e sem modo reduzido. */

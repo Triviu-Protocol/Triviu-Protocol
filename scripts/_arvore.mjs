@@ -88,10 +88,31 @@ function andar(dir, acc, RAIZ, ignorar) {
   }
 }
 
-/* Diretórios que nunca são servidos, mesmo quando a raiz é o repositório
-   inteiro. Sem isto, `outputDirectory: "."` faria o portão varrer `.git` e
-   `node_modules` e morrer por mecânica em vez de medir. */
-const NUNCA = new Set([".git", "node_modules", ".vercel", "out", "dist", ".next"]);
+/* SÓ `.git`, e só porque varrê-lo não significa nada.
+ *
+ * Aqui morava a OITAVA instância da classe desta onda, e ela foi escrita no
+ * mesmo commit que fechou a sexta e a sétima. O conjunto era
+ * `[".git","node_modules",".vercel","out","dist",".next"]`, criado para impedir
+ * que `outputDirectory: "."` varresse a pasta do git — preocupação legítima, de
+ * RAIZ — e aplicado RECURSIVAMENTE, em toda profundidade.
+ *
+ * O Tubarão-branco mediu a consequência, e ela é total:
+ *
+ *     site/.next/wallet.js         -> 0 portões recusam
+ *     site/out/wallet.js           -> 0
+ *     site/dist/wallet.js          -> 0
+ *     site/node_modules/wallet.js  -> 0
+ *     site/nx/wallet.js            -> 5      <- a única variável é o NOME
+ *
+ * A Vercel publica `site/` inteiro. Uma pasta chamada `dist` lá dentro é
+ * servida como qualquer outra, e ficava fora de toda descoberta — do rol
+ * fechado, do alcance de DOM, da origem única, do provedor único.
+ *
+ * `node_modules` sob a raiz publicada NÃO é exceção: é achado. Se ele está lá,
+ * está sendo servido, e o portão tem de dizer isso. O único nome que sobra é
+ * `.git`, porque varrer objetos do git não responde nenhuma pergunta e custa
+ * tempo — e o git nunca é servido. */
+const NUNCA = new Set([".git"]);
 
 export function tudoSobAraiz(RAIZ) {
   const { abs } = raizPublicada(RAIZ);
@@ -112,8 +133,15 @@ export function carregadosPorPagina(RAIZ) {
   const mapa = new Map();
   for (const pag of paginas(RAIZ)) {
     const html = readFileSync(join(abs, pag), "utf8");
-    for (const m of html.matchAll(/<script\b[^>]*\bsrc\s*=\s*"\/([^"]+)"/gi)) {
-      const rel = m[1].split("?")[0].split("#")[0];
+    for (const m of html.matchAll(/<script\b[^>]*\bsrc\s*=\s*(["'])([^"']+)\1/gi)) {
+      const bruto = m[2].split("?")[0].split("#")[0];
+      if (/^[a-z]+:/i.test(bruto) || bruto.startsWith("//")) continue;   /* externo: materia do check-csp */
+      let rel;
+      if (bruto.startsWith("/")) rel = bruto.slice(1);
+      else {
+        const dirDaPagina = pag.includes("/") ? pag.slice(0, pag.lastIndexOf("/")) : "";
+        rel = join(dirDaPagina, bruto).split(sep).join("/");
+      }
       if (!mapa.has(rel)) mapa.set(rel, []);
       mapa.get(rel).push(pag);
     }

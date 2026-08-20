@@ -53,11 +53,13 @@
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { codigoNormalizado } from "./_comentarios.mjs";
+import { raizPublicada } from "./_arvore.mjs";
 import { join, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
-const SITE = join(RAIZ, "site");
+/* raiz lida do vercel.json, nao cravada — ver `_arvore.mjs` */
+const SITE = raizPublicada(RAIZ).abs;
 
 const htmls = [];
 const jss = [];

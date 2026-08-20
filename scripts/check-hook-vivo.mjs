@@ -158,6 +158,20 @@ if (naEsteira) {
     hookLigado = "nao se aplica · esta arvore nao e um clone git (indice materializado)";
   } else if (valor === ".githooks") {
     hookLigado = "sim · core.hooksPath = .githooks";
+  } else if (!valor && process.env.CI) {
+    /* NO RUNNER, ESTA PERGUNTA NAO SE APLICA — e a resposta errada quebrava o CI.
+     *
+     * `actions/checkout` produz um clone novo, e clone novo nunca tem
+     * `core.hooksPath`. O runner tambem nunca commita: ele roda o trilho e vai
+     * embora. Cobrar dele a configuracao de hook de desenvolvedor fazia o job
+     * `portoes` falhar por motivo alheio ao codigo auditado — o Tubarao-branco
+     * mediu isso num clone limpo e o job estava vermelho sem ninguem ter visto,
+     * porque o workflow so dispara em PR e em push para main.
+     *
+     * O que continua sendo cobrado no runner: que o hook EXISTA, esteja no
+     * indice com bit de execucao, e invoque o trilho — tudo verificado acima.
+     * O que sai e so a pergunta "este clone esta configurado para usa-lo". */
+    hookLigado = "nao se aplica · runner de CI (clone efemero, nao commita)";
   } else if (!valor) {
     falhas.push(
       "core.hooksPath nao esta configurado neste clone: nenhum commit passa pelos portoes. " +

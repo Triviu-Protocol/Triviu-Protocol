@@ -70,6 +70,7 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { OBRIGATORIOS } from "./_obrigatorios.mjs";
+import { raizPublicada } from "./_arvore.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -148,7 +149,13 @@ const PONTES = {};
 
 /* Raizes que um deploy publica. Arquivo fora do git aqui e arquivo que sobe
    sem ter passado por revisao nenhuma. */
-const RAIZES_PUBLICADAS = ["site"];
+/* A RAIZ PUBLICADA SAI DO `vercel.json`. Ela estava cravada aqui.
+   O N2T-04 foi declarado fechado quando `_arvore.mjs` e `check-arvore-publicavel`
+   passaram a ler o campo — e esta linha continuou com "site" escrito a mao. O
+   Tubarao-branco moveu `site/` para `sitio/`, ajustou o `vercel.json`, e o resumo
+   do trilho seguiu dizendo "fora do git ... 0" sobre um diretorio que nao era mais
+   a raiz publicada. Conserto declarado fechado pela metade e conserto que mente. */
+const RAIZES_PUBLICADAS = [raizPublicada(RAIZ).dir].filter((d) => d && d !== ".");
 
 const modoIndice = process.argv.includes("--indice");
 const prePublicacao = process.argv.includes("--pre-publicacao");

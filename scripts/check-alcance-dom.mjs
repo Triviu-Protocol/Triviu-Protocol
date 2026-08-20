@@ -112,34 +112,128 @@ const IDS_POR_TELA = new Map(
 );
 
 const PREFIXOS = (() => {
-  /* UM namespace por tela: o DOMINANTE.
-     A primeira derivacao pegou todo prefixo com 5 ou mais ids e trouxe `i-`
-     (icones), `ct-` (tabela), `g-`, `h-`, `p-` junto — e o portao passou a
-     reprovar `console-app.js` por trocar o atributo de um icone de tema. Falso
-     alarme treina gente a ignorar guardiao, que e o oposto do que este arquivo
-     existe para fazer.
-     A subarvore que assina e a espinha da tela, entao ela e o prefixo mais
-     frequente dela: `/console/` -> `lp-` (85 ids), `/calldata/` -> `c-` (58).
-     Os outros namespaces da mesma pagina sao decoracao e nao recebem calldata. */
+  /* O NAMESPACE SAI DE QUEM ESCREVE NELE, e nao de quem tem mais ids.
+   *
+   * A derivacao anterior elegia o prefixo DOMINANTE de cada tela. O
+   * Tubarao-branco a virou acrescentando 90 `<span id="zz-xNNN">` a `/console/`:
+   * `zz-` passou a campeao com 90 contra os 85 de `lp-`, e a subarvore que
+   * assina saiu inteira da protecao com o portao imprimindo o visto. Decidir
+   * protecao por contagem de elementos deixa a protecao na mao de quem edita o
+   * HTML.
+   *
+   * O criterio certo e outro e nao se manipula pelo HTML: a subarvore que assina
+   * e a que o SCRIPT QUE ASSINA escreve. Cada tela entrega o seu assinante pelo
+   * mapa de carga; do fonte dele saem os ids citados; deles saem os prefixos. Um
+   * atacante que queira mover o namespace tem de editar o proprio arquivo que
+   * passa pelas quatro checagens — e ai o `check-assinatura` responde.
+   *
+   * O piso continua, e continua declarado: prefixo citado menos de 5 vezes pelo
+   * assinante e ocorrencia solta, nao namespace. */
+  const mapa = carregadosPorPagina(RAIZ);
   const escolhidos = new Set();
-  for (const ids of IDS_POR_TELA.values()) {
+  for (const [tela, ids] of IDS_POR_TELA) {
+    const donos = [...mapa].filter(([rel, pags]) => ASSINANTES_REL.includes(rel) && pags.includes(tela));
     const conta = new Map();
-    for (const id of ids) {
-      const i = id.indexOf("-");
-      if (i <= 0) continue;
-      const pre = id.slice(0, i + 1);
-      conta.set(pre, (conta.get(pre) || 0) + 1);
+    for (const [rel] of donos) {
+      let fonte = "";
+      try { fonte = codigoNormalizado(readFileSync(join(SITE, rel), "utf8")); } catch { continue; }
+      for (const id of new Set(ids)) {
+        const i = id.indexOf("-");
+        if (i <= 0) continue;
+        if (!fonte.includes(id)) continue;          /* o assinante nao cita este id */
+        const pre = id.slice(0, i + 1);
+        conta.set(pre, (conta.get(pre) || 0) + 1);
+      }
     }
-    let campeao = null, max = 0;
-    for (const [pre, n] of conta) if (n > max) { max = n; campeao = pre; }
-    if (campeao && max >= PISO_DE_NAMESPACE) escolhidos.add(campeao);
+    for (const [pre, n] of conta) if (n >= PISO_DE_NAMESPACE) escolhidos.add(pre);
   }
   return [...escolhidos].sort();
 })();
 
-const IDS_PROTEGIDOS = new Set(
+/* OS ANCESTRAIS DOS CAMPOS TAMBEM SAO PROTEGIDOS. O DOM e uma arvore.
+ *
+ * Aqui morava a NONA instancia da classe desta onda. A protecao era por
+ * IGUALDADE de id: um script so era acusado se citasse `lp-q0` ou `c-passos`.
+ * Mas `lp-q0` e `lp-q1` — os campos de quantia — vivem dentro de
+ * `<div id="g-quantias">`, e `g-` nao era protegido porque nao era o prefixo
+ * dominante da tela.
+ *
+ * O Tubarao-branco destruiu os campos de quantia, os pisos de slippage e o teto
+ * SEM CITAR UM UNICO ID PROTEGIDO:
+ *
+ *     document.getElementById("g-quantias").innerHTML = "...";
+ *     document.getElementById("g-minimos").hidden = true;
+ *
+ * e o portao imprimiu "nenhum script fora do motor escreve na subarvore que
+ * assina" — a frase que o cabecalho deste arquivo chama de pior que portao
+ * nenhum.
+ *
+ * Contencao nao e igualdade: quem alcanca o PAI alcanca o filho. O conjunto
+ * protegido passa a incluir todo elemento que CONTENHA um id protegido na
+ * subarvore dele. A ancestralidade sai de uma varredura de profundidade sobre o
+ * HTML — sem parser, contando abertura e fechamento de tag. */
+function ancestraisDe(html, idsAlvo, cascas) {
+  const achados = new Set();
+  const presentes = new Set();
+  const cobertura = new Map();
+  const contar = (id) => cobertura.set(id, (cobertura.get(id) || 0) + 1);
+  const pilha = [];
+  const TAG = /<(\/?)([a-zA-Z][\w-]*)([^>]*)>/g;
+  const AUTO = new Set(["br", "hr", "img", "input", "meta", "link", "source", "track", "wbr", "col", "area", "base", "embed", "param"]);
+  let m;
+  while ((m = TAG.exec(html))) {
+    const fecha = m[1] === "/";
+    const tag = m[2].toLowerCase();
+    const atrs = m[3] || "";
+    if (AUTO.has(tag) || atrs.trim().endsWith("/")) {
+      const id = (atrs.match(/\bid\s*=\s*["']([^"']+)["']/) || [])[1];
+      if (id && idsAlvo.has(id)) { presentes.add(id); for (const a of pilha) if (a) contar(a); }
+      continue;
+    }
+    if (fecha) { pilha.pop(); continue; }
+    const id = (atrs.match(/\bid\s*=\s*["']([^"']+)["']/) || [])[1] || null;
+    if (id && idsAlvo.has(id)) { presentes.add(id); for (const a of pilha) if (a) contar(a); }
+    pilha.push(id);
+  }
+  /* CASCA DE PAGINA NAO E GRUPO DE CAMPO.
+     Medido em 2026-08-20: `main` e `p-lp` cobrem 100% dos 85 ids de /console/, e
+     `conteudo` cobre 100% dos 58 de /calldata/; os grupos reais cobrem de 4% a
+     20%. Proteger a casca fazia a palavra `main` — que aparece em qualquer
+     bundle, inclusive no do three — virar mencao a subarvore que assina, e a base
+     nascia vermelha por ruido.
+     LIMITE DECLARADO, porque ele existe: destruir a casca inteira nao e pego por
+     esta regra. A diferenca com o grupo de campo e que apagar a pagina toda e
+     visivel para quem olha, e trocar um grupo de campo por outro nao. */
+  /* O DENOMINADOR E O DA PAGINA, e nao o do conjunto global.
+     A primeira redacao usava `idsAlvo.size` — os 143 ids das duas telas. Numa
+     tela com 85, a casca cobria 85 de 143 e passava por "grupo de campo". O
+     denominador certo e quantos alvos existem NESTA pagina. */
+  const total = presentes.size;
+  for (const [id, n] of cobertura) (n < total ? achados : cascas).add(id);
+  return achados;
+}
+
+const IDS_DIRETOS = new Set(
   [...IDS_POR_TELA.values()].flat().filter((id) => PREFIXOS.some((p) => id.startsWith(p)))
 );
+
+const IDS_PROTEGIDOS = (() => {
+  const todos = new Set(IDS_DIRETOS);
+  /* A CASCA E EXCLUIDA GLOBALMENTE, e nao por pagina.
+     `conteudo` cobre 100% dos ids de /calldata/ — e casca la — e menos que 100%
+     em /console/, entao entrava pela outra porta e o portao passava a acusar
+     `console-app.js` por montar a propria pagina. Quem e casca em alguma tela e
+     casca em todas. */
+  const cascas = new Set();
+  const achadosPorTela = [];
+  for (const [tela] of IDS_POR_TELA) {
+    const html = readFileSync(join(SITE, tela), "utf8");
+    achadosPorTela.push(ancestraisDe(html, IDS_DIRETOS, cascas));
+  }
+  for (const conj of achadosPorTela) for (const a of conj) if (!cascas.has(a)) todos.add(a);
+  return todos;
+})();
+
 
 const PREFIXO = PREFIXOS[0] || "lp-";   /* compat: mensagens que citam um so */
 
@@ -156,7 +250,24 @@ const PREFIXO = PREFIXOS[0] || "lp-";   /* compat: mensagens que citam um so */
  * mapa de carga. */
 const escapar = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const ALT_PREFIXOS = PREFIXOS.map(escapar).join("|");
-const RE_MENCAO = new RegExp('["\'`][^"\'`\n]*?((?:' + ALT_PREFIXOS + ')[\\w-]+)', "g");
+
+/* A ALTERNATIVA DE MENCAO SAI DO CONJUNTO PROTEGIDO, e nao dos prefixos.
+ *
+ * Pela SEGUNDA vez nesta onda eu alarguei o conjunto de ids e deixei a regex
+ * atras dele. Da primeira, as telas viraram duas e a regex continuou com `lp-`
+ * cravado. Desta, os ancestrais entraram no conjunto — `g-quantias` contem
+ * `lp-q0` e `lp-q1` — e a regex continuou saindo so dos PREFIXOS dominantes,
+ * que nao incluem `g-`. O id estava protegido e nunca era casado.
+ *
+ * Alargar um conjunto sem alargar quem o consulta nao alarga nada. A alternativa
+ * abaixo e a UNIAO dos prefixos com os ids protegidos literais: os prefixos
+ * pegam ids que o HTML ainda nao tem, os literais pegam os ancestrais, que nao
+ * compartilham prefixo com ninguem. */
+const ALT_PROTEGIDOS = [
+  ...PREFIXOS.map(escapar),
+  ...[...IDS_PROTEGIDOS].filter((id) => !PREFIXOS.some((p) => id.startsWith(p))).map(escapar),
+].join("|");
+const RE_MENCAO = new RegExp('["\'`][^"\'`\n]*?((?:' + ALT_PROTEGIDOS + ')[\\w-]*)', "g");
 const RE_SELETOR_PREFIXO = new RegExp('\\[\\s*id\\s*\\^?=\\s*["\']?(?:' + ALT_PREFIXOS + ')', "gi");
 const RE_PREFIXO_NU = new RegExp('["\'`](?:' + ALT_PREFIXOS + ')["\'`]', "g");
 
@@ -199,13 +310,87 @@ const eDono = (arq, id) => {
 /* Escritas no DOM que podem alterar o que o usuario LE antes de assinar.
    `classList` e `style` entram: quem controla a aparencia pode esconder uma
    linha do cartao sem trocar um caractere do texto. */
-const ESCRITAS = [
-  /\.textContent\s*=/, /\.innerText\s*=/, /\.innerHTML\s*=/, /\.outerHTML\s*=/,
-  /\.value\s*=/, /\.className\s*=/, /\.src\s*=/, /\.href\s*=/,
-  /\.setAttribute\s*\(/, /\.removeAttribute\s*\(/, /\.insertAdjacent\w*\s*\(/,
-  /\.append\w*\s*\(/, /\.prepend\s*\(/, /\.replaceChildren\s*\(/, /\.remove\s*\(\s*\)/,
-  /\.classList\s*\.\s*(add|remove|toggle|replace)\s*\(/, /\.style\s*\./, /\.style\s*=/,
+/* A LEITURA E QUE E LISTADA. Escrita e o resto.
+ *
+ * Aqui morava a lista de 18 formas de escrever no DOM, e o Tubarao-branco a
+ * atravessou com sete linhas que escrevem em ids EXPLICITAMENTE protegidos:
+ *
+ *     el.hidden = true;              el.disabled = true;
+ *     el.replaceWith(novo);          el.after(novo);      el.before(novo);
+ *     el.insertBefore(novo, null);   Object.assign(el, { innerHTML: t });
+ *
+ * `.append\w*` cobria `append` e `appendChild` e nao cobria nenhuma dessas. A
+ * API de escrita do DOM e ABERTA — `hidden`, `disabled`, `inert`, `contentEditable`,
+ * qualquer propriedade refletida, e os metodos de insercao que nao comecam por
+ * "append". Enumera-las e a mesma classe de erro que esta onda ja pagou nove
+ * vezes.
+ *
+ * Entao o onus inverte, como no rol fechado do guardiao de assinatura: o que se
+ * enumera e a LEITURA, que e um conjunto pequeno e fechado. Depois de uma mencao
+ * a id protegido, se a janela contem qualquer atribuicao a propriedade ou
+ * qualquer chamada de metodo que NAO esteja na lista de leitura, e escrita.
+ *
+ * Falha para o lado de acusar, e isso e deliberado num portao que carrega VETO
+ * de Lei #1: um falso alarme custa uma linha de allowlist declarada; uma escrita
+ * nao vista custa o cartao que o usuario le antes de assinar. */
+const LEITURAS = [
+  "textContent", "innerText", "innerHTML", "outerHTML", "value", "checked",
+  "getAttribute", "hasAttribute", "getAttributeNames", "closest", "matches",
+  "querySelector", "querySelectorAll", "contains", "length", "dataset",
+  "children", "parentElement", "parentNode", "firstChild", "lastChild",
+  "nextElementSibling", "previousElementSibling", "getBoundingClientRect",
+  "id", "tagName", "className", "classList", "style", "options", "selectedIndex",
+  "files", "form", "labels", "validity", "type", "name", "disabled", "hidden",
+  "scrollTop", "scrollHeight", "offsetWidth", "offsetHeight", "clientWidth",
+
+  /* Registro de ouvinte e foco: nao escrevem conteudo nenhum. */
+  "addEventListener", "removeEventListener", "focus", "blur",
+
+  /* Metodos de String e Array que caem na janela por vizinhanca — a janela tem
+     220 caracteres e alcanca o que vem DEPOIS da leitura do elemento.
+     `($("lp-erro").textContent || "").trim()` e leitura, e o `.trim()` e da
+     string, nao do elemento. */
+  "trim", "toLowerCase", "toUpperCase", "split", "replace", "includes",
+  "startsWith", "endsWith", "padStart", "padEnd", "slice", "indexOf", "test",
+  "match", "toString", "then", "catch", "forEach", "map", "filter", "join",
+
+  /* `click()` · o unico item desta lista que exige justificativa, e ela e
+     CRUZADA e verificavel, nao conveniencia.
+     Disparar clique num elemento da subarvore executa o handler daquele
+     elemento — nao o codigo de quem clicou. E os handlers da subarvore que
+     assina vivem, por construcao, nos arquivos da classe `assina`, porque o rol
+     fechado do `check-assinatura` recusa qualquer arquivo que alcance a carteira
+     fora dessa classe. Entao um clique so pode acionar codigo que ja passou pelas
+     quatro checagens.
+     Se o rol fechado cair, esta permissao cai junto — e por isso ela esta escrita
+     aqui, apontando para a garantia de que depende, em vez de parecer obvia.
+     Uso medido: `console-app.js:366` dispara `lp-ler` (botao de LEITURA da chain)
+     a partir de `ct-ler`, para nao duplicar o caminho de leitura em dois lugares. */
+  "click",
+
+  /* Console e diagnostico: nao tocam o DOM. Entram aqui porque a janela alcanca
+     `console.log(e.textContent)` logo depois de uma LEITURA legitima, e o portao
+     passava a chamar leitura de escrita. */
+  "log", "warn", "error", "info", "debug", "table", "assert",
 ];
+
+/* Uma escrita e: `.prop =` (e nao `==`/`===`/`=>`), OU `.metodo(` cujo nome nao
+   esteja em LEITURAS, OU a propriedade aparecendo como chave de objeto — que foi
+   como `Object.assign(el, { innerHTML: t })` passou pelo `/\.innerHTML\s*=/`. */
+const RE_ATRIBUICAO = /\.\s*([A-Za-z_$][\w$]*)\s*=(?!=|>)/g;
+const RE_CHAMADA = /\.\s*([A-Za-z_$][\w$]*)\s*\(/g;
+const RE_CHAVE_DE_OBJETO = /\{[^{}]*\b(textContent|innerText|innerHTML|outerHTML|value|className|src|href|hidden|disabled|inert|contentEditable)\s*:/;
+
+function escritaNaJanela(janela) {
+  for (const m of janela.matchAll(RE_ATRIBUICAO)) return "atribuicao a ." + m[1];
+  for (const m of janela.matchAll(RE_CHAMADA))
+    if (!LEITURAS.includes(m[1])) return "chamada de ." + m[1] + "()";
+  const k = RE_CHAVE_DE_OBJETO.exec(janela);
+  if (k) return "propriedade '" + k[1] + "' escrita como chave de objeto";
+  return null;
+}
+
+
 
 /* O removedor de comentario vem de `_comentarios.mjs` e preserva a numeracao de
    linha. Este arquivo tinha a versao ingenua ate 2026-08-19; a razao de o
@@ -303,7 +488,16 @@ const idsHtml = new Set(
   [...IDS_PROTEGIDOS]
 );
 
+/* Bundle de terceiro minificado nao entra nesta varredura, e a razao esta
+   declarada: 600 KB de nomes de uma letra produzem `$(n)` a cada linha, e cada
+   um vira "alvo irresoluvel". Isso nao e deteccao, e ruido — e ruido treina
+   gente a ignorar guardiao. A contencao do bundle e outra e vive no
+   `check-assinatura`: a classe `vendor-fixo` exige bytes pregados por hash e
+   proibe que ele divida pagina com calldata. */
+const VENDOR = /(^|\/)vendor\//;
+
 for (const arq of executaveis(RAIZ)) {
+  if (VENDOR.test(arq)) continue;
   /* O dono da subarvore daquela tela escreve nela; qualquer outro nao. A
      comparacao e por id, e nao por arquivo, porque um script pode ser dono de um
      namespace e invasor de outro — que e exatamente o caso das duas telas. */
@@ -337,7 +531,7 @@ for (const arq of executaveis(RAIZ)) {
     alvos++;
     // A janela que segue a mencao e onde uma escrita apareceria.
     const janela = src.slice(m.index, m.index + 220);
-    const escreve = ESCRITAS.find((r) => r.test(janela));
+    const escreve = escritaNaJanela(janela);
     if (escreve) {
       falhas.push(`${arq}:${linhaDe(m.index)} escreve em '${id}', que pertence a subarvore que assina — ${escreve}`);
     } else {
@@ -421,7 +615,24 @@ for (const arq of executaveis(RAIZ)) {
     const antes = src.slice(Math.max(0, m.index - 90), m.index);
     if (/\$\s*=[^;]*$/.test(antes)) continue;          // a definicao do proprio helper
 
-    const escreve = ESCRITAS.find((r) => r.test(src.slice(m.index, m.index + 200)));
+    /* Este consumidor ficou para tras quando a decisao de "o que e escrita" saiu
+       da lista `ESCRITAS` e passou para `escritaNaJanela()`. Com a lista vazia,
+       a regra de ALVO IRRESOLUVEL parou de disparar — e ela e a falha fechada
+       deste portao, a parte que recusa quando nao consegue provar. Migrar o
+       primeiro laco e esquecer o segundo e o mesmo erro de alargar um conjunto e
+       deixar quem o consulta para tras, que ja aconteceu duas vezes aqui. */
+    /* A JANELA TERMINA NO STATEMENT, e nao em 200 caracteres.
+       Com a deteccao de escrita aberta (qualquer metodo fora da lista de
+       leitura), 200 caracteres alcancam a linha seguinte: `localStorage.setItem`
+       na linha de baixo passou a contar como escrita no alvo de cima. Janela
+       larga com deteccao larga produz acusacao por vizinhanca. */
+    const resto = src.slice(m.index, m.index + 200);
+    const fimDoStatement = Math.min(
+      ...[resto.indexOf(";"), resto.indexOf(String.fromCharCode(10))]
+        .filter((i) => i >= 0)
+        .concat([resto.length])
+    );
+    const escreve = escritaNaJanela(resto.slice(0, fimDoStatement));
     if (!escreve) continue;                             // so leitura: livre
 
     const esc = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

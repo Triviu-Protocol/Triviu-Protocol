@@ -36,7 +36,7 @@
  * `calado` prova que ele nao pega o codigo legitimo. Sem os dois, a unica
  * forma de fazer o portao "passar" e afrouxa-lo.
  */
-import { readdirSync, mkdtempSync, rmSync, writeFileSync, readFileSync, cpSync, existsSync, unlinkSync, symlinkSync } from "node:fs";
+import { readdirSync, mkdtempSync, rmSync, writeFileSync, readFileSync, cpSync, existsSync, unlinkSync, symlinkSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -284,6 +284,25 @@ $(alvo).innerHTML = "x";` },
   { portao: "check-assinatura", tipo: "mordida", onde: "site/js/oculto.js",
     nome: "PoC N1R-01 · js que nenhuma pagina carrega, alcancado por import dinamico",
     codigo: 'export function enviar(p){ return window.ethereum.request({method:"eth_sendTransaction",params:[p]}); }' },
+
+  /* PoCs da QUARTA passagem · a OITAVA instancia era um conjunto de NOMES de
+     diretorio, e a NONA era proteger por igualdade de id num documento que e
+     arvore. As duas nasceram dentro do conserto das anteriores. */
+  { portao: "check-assinatura", tipo: "mordida", onde: "site/dist/wallet.js",
+    nome: "PoC A-1 · assinatura numa pasta cujo NOME estava no conjunto NUNCA",
+    codigo: 'window.p=function(p){return window.ethereum.request({method:"eth_sendTransaction",params:[p]});};' },
+
+  { portao: "check-alcance-dom", tipo: "mordida", onde: "site/js/zz.js",
+    nome: "PoC A-2 · destruir o CONTEINER dos campos, sem citar id protegido",
+    codigo: 'document.getElementById("g-quantias").innerHTML = "<span>x</span>";' },
+
+  { portao: "check-alcance-dom", tipo: "mordida", onde: "site/js/zz.js",
+    nome: "PoC A-3 · escrita por forma fora da antiga lista de 18",
+    codigo: 'document.getElementById("lp-q0").hidden = true;' },
+
+  { portao: "check-alcance-dom", tipo: "mordida", onde: "site/js/zz.js",
+    nome: "PoC A-4 · innerHTML como chave de objeto (Object.assign)",
+    codigo: 'Object.assign(document.getElementById("lp-erro"), { innerHTML: "<b>x</b>" });' },
 
   /* PoCs da TERCEIRA passagem do Tubarao · a SEXTA instancia da classe era a
      EXTENSAO: os mesmos bytes que 5 portoes recusam com .js passavam em 15 de 15
@@ -609,6 +628,10 @@ function laboratorioComGit() {
 for (const c of CORPUS) {
   const casa = c.precisaGit ? laboratorioComGit() : lab;
   const alvo = join(casa, c.onde);
+  /* O fixture pode morar num diretorio que a arvore ainda nao tem — foi o caso
+     do PoC que assina dentro de `site/dist/`, a pasta cujo NOME estava no
+     conjunto de exclusao. Criar o pai faz parte de montar o laboratorio. */
+  mkdirSync(dirname(alvo), { recursive: true });
 
   /* FIXTURE DE MAIS DE UM ARQUIVO.
      `check-assinatura` so enxerga um `.js` se alguma pagina o CARREGAR — e esta
