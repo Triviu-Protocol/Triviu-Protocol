@@ -140,11 +140,40 @@ printf '  tesouraria  %s\n  operador    %s\n  deployer    %s\n  moeda-base  %s (
 
 # ---------------------------------------------------------------- 3 · ensaio no fork ---------
 azul "3 · Ensaio contra um fork da Polygon (nao gasta nada)"
-anvil --fork-url "$RPC" --port 8545 --silent &
-ANVIL=$!
-trap 'kill $ANVIL 2>/dev/null || true' EXIT
-sleep 12
-cast block-number --rpc-url http://127.0.0.1:8545 >/dev/null || morre "anvil nao subiu"
+
+# RPC publico e balanceado entre varios nos, e no publico e podado. Forkar na cabeca faz o anvil
+# pedir o estado de uma conta num bloco que o PROXIMO no ja descartou:
+#   error -32000: historical state ... is not available
+# Fixar o bloco alguns atras da cabeca tira a corrida. E se a origem ainda assim nao servir,
+# troca-se de origem em vez de culpar a configuracao de quem roda.
+RECUO=30
+ORIGENS=("$RPC" https://polygon.drpc.org https://1rpc.io/matic https://polygon-bor-rpc.publicnode.com)
+
+sobe_fork() {
+    local origem bloco alvo
+    for origem in "${ORIGENS[@]}"; do
+        bloco=$(cast block-number --rpc-url "$origem" 2>/dev/null) || { amarelo "  $origem nao respondeu"; continue; }
+        alvo=$((bloco - RECUO))
+
+        anvil --fork-url "$origem" --fork-block-number "$alvo" --port 8545 --silent &
+        ANVIL=$!
+        sleep 12
+
+        # O teste nao e se o anvil subiu: e se ele consegue LER o estado que vai precisar.
+        if cast balance "$DEPLOYER" --rpc-url http://127.0.0.1:8545 >/dev/null 2>&1; then
+            verde "  fork de $origem no bloco $alvo"
+            return 0
+        fi
+
+        kill "$ANVIL" 2>/dev/null || true
+        wait "$ANVIL" 2>/dev/null || true
+        amarelo "  $origem nao serve de origem (no podado) — tentando a proxima"
+    done
+    return 1
+}
+
+trap 'kill ${ANVIL:-0} 2>/dev/null || true' EXIT
+sobe_fork || morre "nenhuma origem de fork serviu — tente de novo ou use um RPC de arquivo"
 
 set +e
 forge script script/01_Deploy.s.sol --tc Deploy \
