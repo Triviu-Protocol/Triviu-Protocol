@@ -104,7 +104,9 @@ if [ -n "${TRIVIU_DEPLOYER:-}" ]; then
     case "$ASSINATURA" in
         ledger) FORGE_SIGN=(--ledger) ;;
         trezor) FORGE_SIGN=(--trezor) ;;
-        *)      FORGE_SIGN=(-i 1); ASSINATURA="interativo (a chave nao fica em disco)" ;;
+        # -i nao recebe argumento. Quem recebe numero e --interactives <NUM>. Passar `-i 1` faz o
+        # forge ler o 1 como argumento do script e morrer com "encode length mismatch".
+        *)      FORGE_SIGN=(-i); ASSINATURA="interativo (a chave nao fica em disco)" ;;
     esac
     verde "  deployer (seu): $DEPLOYER  ·  assinatura: $ASSINATURA"
 else
