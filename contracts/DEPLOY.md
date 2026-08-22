@@ -77,6 +77,27 @@ forge script script/01_Deploy.s.sol --tc Deploy --rpc-url http://127.0.0.1:8545 
 This runs the real genesis against a copy of real Polygon state. If `validate()` is going to refuse
 your configuration, it refuses here, for free.
 
+**Clean up after the rehearsal, and this is not tidiness.** The fork reports itself as chain 137,
+so the run writes `deployments/137.json`, `broadcast/01_Deploy.s.sol/137/` and the matching cache —
+the same paths a real mainnet genesis writes. `.gitignore` excludes only the `999999` local-chain
+records, so a rehearsal left behind and committed makes the repository claim a mainnet deployment
+that never happened:
+
+```bash
+rm -rf deployments/137.json broadcast cache
+```
+
+Rehearsed on 2026-08-22 at fork block 92474476, and the numbers below came from that run rather
+than from an estimate:
+
+| | |
+|---|---|
+| Gas for the whole genesis | **10,928,358** |
+| Cost at that block's price (578 gwei) | 6.32 POL |
+
+The five post-deploy checks in section 5 were run against the fork and returned `true true true
+true false` in that order — including the last one, the deployer no longer holding admin.
+
 ## 4 · The genesis
 
 ```bash
