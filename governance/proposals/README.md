@@ -33,10 +33,14 @@ ADM Owner console, which composes the file and opens the PR for you.
 on Polygon PoS and both carry applied parameters, read from the chain rather than
 from a document:
 
-| Contract | Live since | `feeBps` | Ceiling |
-|---|---|---:|---|
-| `ParameterRegistry` `0x1Adab61ef019d853BBcFaf65E929961b11897856` | 2026-08-12 | **3000** (30%) | — |
-| `ProtocolRegistry` `0x7D1D8EacA0ce96cFAb5937b88Ba5d43d7e0Ad8dC` | 2026-08-22 | **50** (0.5%) | `100`, immutable |
+| Contract | Live since | `feeBps` | Charged on | Ceiling |
+|---|---|---:|---|---|
+| `ParameterRegistry` `0x1Adab61ef019d853BBcFaf65E929961b11897856` | 2026-08-12 | **3000** (30%) | **profit** | `5000`, in bytecode |
+| `ProtocolRegistry` `0x7D1D8EacA0ce96cFAb5937b88Ba5d43d7e0Ad8dC` | 2026-08-22 | **50** (0.5%) | **traded amount** | `100`, immutable |
+
+The two rates are not comparable as written: one is a share of profit, the other a
+share of what moved. Reading 3000 against 50 without the base makes the first look
+like six hundred times the second, and it is not that.
 
 Every one of those was set at genesis, by the deploy script, and none of them went
 through `forum → PR → merge → on-chain`. That is not a defect of the flow — a

@@ -32,21 +32,41 @@ nothing.
 | Scalability | **HOLDS** | One extra transfer on profitable cycles only; negligible gas, none on reverts. |
 | Decentralization | **COSTS** | The fee rate and treasury are owner-controlled parameters. A user must trust that the rate — though capped at 50% and emitted on every cycle — is set fairly. Mitigation: hardcoded ceiling, on-chain PR provenance, event transparency, and the option to run the open-source engine against any executor. **Custody as deployed — see the note below; it is not what an earlier revision of this row projected.** |
 
-### Custody as actually deployed (Polygon, 2026-08-11)
+### Custody as actually deployed (Polygon, measured 2026-08-22)
 
-An earlier revision of the row above said the owner would be a *"timelocked
-multisig before mainnet"*. Mainnet happened first. This note states what is on
-the chain, measured at block 91859211, and replaces that projection.
+The revision before this one described the state at block 91859211 and asked to be
+replaced before the first `setToken` call. That call happened and the note was not
+replaced, so it went stale in five places at once — every one of them understating
+the custody that actually exists. This replaces it with values read from the chain.
 
-- `ParameterRegistry` owner is still the **deployer EOA**
-  `0xb5Fb0CDaab5784cBE05CcB9D843DaFe4663883C5`. A two-step handoff to Safe
-  `0x73e344Be290c0D53Badbe528e45877296F6dAf6E` is *pending* — `transferOwner`
-  was called, `acceptOwner` has not been.
-- **That Safe is 1-of-1, and its only owner is the same deployer EOA.** Completing
-  the handoff will therefore **not** separate keys today. What it does buy is a
-  stable owner address: raising the threshold or adding a timelock later needs no
-  further ownership transfer.
-- **There is no timelock.**
+| | Previous note said | On chain now |
+|---|---|---|
+| `ParameterRegistry.owner` | deployer EOA, handoff pending | **the Safe** — `acceptOwner` completed, `pendingOwner` is zero |
+| Safe shape | 1-of-1, sole owner the deployer | **2-of-3** across three distinct addresses |
+| `treasury` | `address(0)` | **the Safe** |
+| `feeBps` | `0` | **3000** |
+| whitelist | everything `false`, nothing transactable | **four tokens allowed** |
+
+**The handoff completed and the Safe now separates keys.** That was the worry the
+previous note raised and could not resolve; it is resolved. Owner is
+`0x73e344Be290c0D53Badbe528e45877296F6dAf6E`, threshold two of three.
+
+**There is still no timelock.** Two of three signatures change a parameter with no
+delay and no window for anyone to react.
+
+**The fee is 3000 bps, and that is 30% of *profit*, not of volume.** It is
+deliberate and stands. The bytecode ceiling remains `MAX_FEE_BPS = 5000`, so the
+rate sits at 60% of what the contract would permit. Stating the base matters:
+compared against a fee on traded amount it would read an order of magnitude
+larger than it is.
+
+**Not transactable, and it has never traded.** Four tokens are allowed — USDC,
+USDC.e, WMATIC, WETH — but **no target is**: ten routers were checked, including
+Uniswap V3 and Router02 and UniversalRouter, QuickSwap, SushiSwap, 1inch, 0x,
+Paraswap, OpenOcean and KyberSwap, and all ten read `false`. `executeCycle`
+therefore reverts for want of an allowed target. The treasury holds zero of all
+four tokens, which corroborates it independently: no fee has ever landed, so no
+profitable cycle has ever closed.
 
 **What that owner can and cannot do.** The Executor's profit gate requires
 `finalBalance >= startBalance + principal + minProfit` in the same transaction, so
@@ -55,13 +75,9 @@ a compromised owner **cannot reach a user's principal**. The ceiling is
 `minProfit` the user signs. The Executor is bound to this Registry by an
 `immutable` field set in its constructor and cannot be repointed.
 
-**Nothing is transactable at the time of writing.** Every token and router in the
-whitelist reads `false`, `treasury` is `address(0)` and `feeBps` is `0`, so
-`executeCycle` reverts for every asset and no user funds are at risk.
-
-**This note must be replaced with the real custody arrangement before the first
-`setToken` call.** That call is what makes the protocol usable, and from that
-moment a reader is acting on this page.
+**The trigger for the next revision of this note is the first `setTarget` call.**
+That is what makes the protocol usable — `setToken` alone did not, as the state
+above shows — and from that moment a reader is acting on this page.
 
 ## Alternatives considered
 
