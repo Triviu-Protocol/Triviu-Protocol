@@ -88,7 +88,30 @@ chave() {
     printf '%s' "$end"
 }
 
-DEPLOYER=$(chave "$DEPLOYER_ALIAS" "deployer (descartavel)")
+# Da para usar uma carteira que voce ja tem, em vez da descartavel:
+#
+#   TRIVIU_DEPLOYER=0xSeuEndereco bash script/genesis.sh
+#
+# Nesse caso o forge pede a chave na hora (-i) e NADA fica em disco. Importar uma carteira
+# principal para um keystore seria deixar mais uma copia dela gravada, o que e o contrario do
+# motivo de ela ser a segura.
+#
+#   TRIVIU_ASSINATURA=ledger   (ou trezor) se for hardware — a chave nem sai do aparelho.
+ASSINATURA="${TRIVIU_ASSINATURA:-}"
+
+if [ -n "${TRIVIU_DEPLOYER:-}" ]; then
+    DEPLOYER="$TRIVIU_DEPLOYER"
+    case "$ASSINATURA" in
+        ledger) FORGE_SIGN=(--ledger) ;;
+        trezor) FORGE_SIGN=(--trezor) ;;
+        *)      FORGE_SIGN=(-i 1); ASSINATURA="interativo (a chave nao fica em disco)" ;;
+    esac
+    verde "  deployer (seu): $DEPLOYER  ·  assinatura: $ASSINATURA"
+else
+    DEPLOYER=$(chave "$DEPLOYER_ALIAS" "deployer (descartavel)")
+    FORGE_SIGN=(--account "$DEPLOYER_ALIAS")
+fi
+
 OPERATOR=$(chave "$OPERATOR_ALIAS" "operator (chave quente do servico)")
 
 [ "$DEPLOYER" != "$GOVERNANCE" ] || morre "deployer igual a governanca"
@@ -123,7 +146,7 @@ cast block-number --rpc-url http://127.0.0.1:8545 >/dev/null || morre "anvil nao
 
 set +e
 forge script script/01_Deploy.s.sol --tc Deploy \
-    --rpc-url http://127.0.0.1:8545 --account "$DEPLOYER_ALIAS" --broadcast >/tmp/genesis-ensaio.log 2>&1
+    --rpc-url http://127.0.0.1:8545 "${FORGE_SIGN[@]}" --broadcast >/tmp/genesis-ensaio.log 2>&1
 ENSAIO=$?
 set -e
 
@@ -166,7 +189,7 @@ read -r OK
 [ "$OK" = "GENESIS" ] || { echo "  abortado, nada foi gasto"; exit 0; }
 
 forge script script/01_Deploy.s.sol --tc Deploy \
-    --rpc-url "$RPC" --account "$DEPLOYER_ALIAS" --broadcast --slow
+    --rpc-url "$RPC" "${FORGE_SIGN[@]}" --broadcast --slow
 
 # ---------------------------------------------------------------- 6 · conferir na chain ------
 azul "6 · Conferindo na chain, nao no log"
