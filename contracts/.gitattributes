@@ -1,0 +1,12 @@
+# Sources reach every clone byte-identical.
+#
+# This is not cosmetic for a contracts repository: solc hashes the source text into the contract
+# metadata, so a clone checked out with CRLF compiles to a different metadata hash than one checked
+# out with LF. The bytecode verification on a block explorer then fails against a build made on
+# another machine, and the cause is invisible in a diff.
+
+* text=auto eol=lf
+
+# Foundry's lockfile and the deployment records are read by tooling, never by a human editor.
+foundry.lock text eol=lf
+deployments/**/*.json text eol=lf

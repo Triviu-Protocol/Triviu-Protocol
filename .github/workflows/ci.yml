@@ -11,10 +11,27 @@ jobs:
       - uses: actions/checkout@v4
         with: { submodules: recursive }
       - uses: foundry-rs/foundry-toolchain@v1
-      - run: forge build
+      - run: forge fmt --check
+        working-directory: contracts
+
+      # O gate de tamanho recorta test/**: os limites EIP-170 e EIP-3860 valem para o que chega a
+      # uma chain, e o `--sizes` ja descarta quem herda Test/Script. O `Handler` de invariante nao
+      # herda nenhum dos dois de proposito, entao entraria no relatorio com o initcode dos nove
+      # contratos que o construtor dele instancia.
+      - run: forge build --sizes --skip 'test/**'
         working-directory: contracts
       - run: forge test -vvv
         working-directory: contracts
+
+      # abi/ e commitado para que um consumidor nao precise de Foundry, e arquivo gerado commitado
+      # apodrece em silencio. Roda o mesmo script que o contribuidor roda, entao a checagem compara
+      # conteudo e nao dois modos de produzir.
+      - name: ABIs are current
+        working-directory: contracts
+        run: |
+          sh script/abi.sh
+          git diff --exit-code -- abi/ \
+            || { echo "::error::abi/ esta velho — rode 'sh script/abi.sh' e commite o resultado"; exit 1; }
   engine:
     runs-on: ubuntu-latest
     steps:
