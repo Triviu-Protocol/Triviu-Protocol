@@ -2,11 +2,27 @@
 
 ## What is deployed
 
-**Nothing.** No contract of this codebase has ever been deployed to a public network.
-`deployments/` holds only `999999.json`, which is the local chain. There is no version tag, no
-audited release, and no user funds at risk anywhere, because there are no users.
+**Live on Polygon PoS (137) since 2026-08-22, block 92478492.** Sources verified on Sourcify with
+an exact bytecode match:
 
-This matters for reading everything below: findings here are about code that has not yet met money.
+```
+ProtocolRegistry        0x7D1D8EacA0ce96cFAb5937b88Ba5d43d7e0Ad8dC
+ImplementationRegistry  0x660ca39A7fbC39dFD0ab4403ff3812519Ed4c0B0
+TriviuVault (impl)      0x5F5bFe6b6019beACFa95e9778917977881A19c7B
+VaultFactory            0xF4e60C6Bf2c5479935abf1A9F82554E5CD2D843c
+Executor                0x323C4192b269EA56aCd147dDbd3F71056E63E835
+EscapeHatch             0x877c4BC26371bD835E48db6C2B11eB715333b490
+```
+
+Governance is a 2-of-3 Safe. The deploying address renounced admin on both registries inside the
+same run; `hasRole(0x00, deployer)` returns `false` on each, which you can check yourself.
+
+**No vault holds funds yet.** `VaultFactory` is live and has not been called, so the protocol
+exists and nobody has money in it. That is the state as of this writing, and it will change without
+this file necessarily changing with it — read the chain.
+
+**No external audit has been performed.** The reviews on record are internal, and that did not
+change by deploying. Weigh the section below accordingly.
 
 ## Scope
 

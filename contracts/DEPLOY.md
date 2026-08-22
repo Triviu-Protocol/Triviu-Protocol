@@ -18,9 +18,8 @@ before running the script the first time.
 
 ---
 
-Nothing of this line is deployed. `deployments/` holds only `999999.json`, the local chain. This
-file is the runbook for the first genesis, written to be followed once and then re-read before any
-repeat.
+**The genesis ran on 2026-08-22**, block 92478492. The addresses are in `deployments/137.json` and
+in the README. This file stays the runbook: re-read it before any repeat, on this chain or another.
 
 ## The Safe is governance, not the deployer
 

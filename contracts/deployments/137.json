@@ -1,0 +1,9 @@
+{
+  "baseCurrency": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+  "escapeHatch": "0x877c4BC26371bD835E48db6C2B11eB715333b490",
+  "executor": "0x323C4192b269EA56aCd147dDbd3F71056E63E835",
+  "factory": "0xF4e60C6Bf2c5479935abf1A9F82554E5CD2D843c",
+  "implementation": "0x5F5bFe6b6019beACFa95e9778917977881A19c7B",
+  "implementationRegistry": "0x660ca39A7fbC39dFD0ab4403ff3812519Ed4c0B0",
+  "protocolRegistry": "0x7D1D8EacA0ce96cFAb5937b88Ba5d43d7e0Ad8dC"
+}

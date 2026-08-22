@@ -3,10 +3,9 @@
 Format from [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-**Nothing here has been released.** No version is tagged, no contract of this line has ever been
-deployed to a public network — `deployments/` holds only `999999.json`, the local chain — and the
-protocol is under a security block that has not been lifted. The entries below are the record of
-what changed, not an invitation to use it.
+**Live on Polygon PoS since 2026-08-22**, block 92478492, sources verified on Sourcify with an
+exact bytecode match. No version is tagged, no external audit has been performed, and no vault
+holds funds yet. The entries below are the record of what changed.
 
 ## [Unreleased]
 

@@ -17,12 +17,30 @@ the vault itself imposes.
 
 ## Deployment status — read this before matching code to a chain
 
-**Nothing in this directory is deployed.** `deployments/` holds only `999999.json`, the local chain.
-The runbook for the first genesis is [`DEPLOY.md`](DEPLOY.md).
+**Live on Polygon PoS since block 92478492, 2026-08-22.** Sources verified on Sourcify with an
+exact bytecode match, so the code below is readable against the code running.
 
-What **is** live on Polygon PoS is the previous line, whose source is no longer at `HEAD` — it is one
-commit back, at `11d2c5f`. The console under `site/` operates those, and that is why it references
-contracts you will not find here:
+```
+ProtocolRegistry        0x7D1D8EacA0ce96cFAb5937b88Ba5d43d7e0Ad8dC
+ImplementationRegistry  0x660ca39A7fbC39dFD0ab4403ff3812519Ed4c0B0
+TriviuVault (impl)      0x5F5bFe6b6019beACFa95e9778917977881A19c7B
+VaultFactory            0xF4e60C6Bf2c5479935abf1A9F82554E5CD2D843c
+Executor                0x323C4192b269EA56aCd147dDbd3F71056E63E835
+EscapeHatch             0x877c4BC26371bD835E48db6C2B11eB715333b490
+```
+
+Governance is a 2-of-3 Safe at `0x73e344Be290c0D53Badbe528e45877296F6dAf6E`, which also receives
+the fee. The address that deployed holds no role: it was admin for the length of one run and
+renounced on both registries within it, which is checkable rather than assertable —
+`hasRole(0x00, deployer)` returns `false` on each.
+
+**No vault holds money yet.** The genesis creates the protocol, not a position: `VaultFactory` is
+live and nobody has called it. Onboarding is [`DEPLOY.md`](DEPLOY.md) and the client flow below.
+
+### The previous line, still live
+
+Four contracts of the earlier line remain on the same chain, and the console under `site/` operates
+those. Their source is no longer at `HEAD` — it is one commit back, at `11d2c5f`:
 
 ```
 parameterRegistry  0x1Adab61ef019d853BBcFaf65E929961b11897856
@@ -33,12 +51,9 @@ triviuRegistry     0xac89E63F4F7d26A5CefDc6bA5a13d8F507A7EF1D
 triviuFactory      0x862fD93E6106F07D9395FF14fFE6d828994e8Ee8
 ```
 
-Measured against the chain at block 91859211, not read from a deploy log. To read the code behind
-any of them: `git show 11d2c5f:contracts/src`.
-
-So: the code here is the next line and it has never held money; the addresses above hold money and
-their code is one commit back. Anyone reviewing a live contract should be reading the chain and the
-history, not this directory.
+Measured against the chain at block 91859211, not read from a deploy log. `git show
+11d2c5f:contracts/src` for their code. Two lines are live at once, and only one of them is in this
+directory: check the address before matching either to source.
 
 ---
 
@@ -386,8 +401,8 @@ deployments/       Record of what was deployed, per chain and per user
 ## Reporting a vulnerability
 
 Privately, never in a public issue or pull request. Scope, safe harbour and the channel are in
-[`SECURITY.md`](SECURITY.md). Nothing here has been deployed to a public network, so there are no
-funds at risk and no bug bounty.
+[`SECURITY.md`](SECURITY.md). The protocol is live on Polygon; no vault holds funds yet, and there
+is no bug bounty.
 
 ## Contributing
 
