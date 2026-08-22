@@ -1,5 +1,23 @@
 # Deploy · Polygon PoS
 
+## One command
+
+```bash
+bash script/genesis.sh
+```
+
+It creates the two keys that do not exist yet, writes the `.env`, rehearses the whole genesis
+against a Polygon fork, cleans the rehearsal, shows you the cost against your balance, stops for an
+explicit confirmation, runs the genesis, and then reads the result **from the chain**. It refuses to
+continue at any step that fails, and nothing is spent before the confirmation.
+
+Run it twice if the deployer needs funding: it reuses the keys and picks up where it stopped.
+
+The sections below are that same procedure by hand, and the reasoning behind each step. Read them
+before running the script the first time.
+
+---
+
 Nothing of this line is deployed. `deployments/` holds only `999999.json`, the local chain. This
 file is the runbook for the first genesis, written to be followed once and then re-read before any
 repeat.
