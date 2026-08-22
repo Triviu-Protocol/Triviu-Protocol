@@ -15,6 +15,31 @@ the vault itself imposes.
 | Toolchain | [Foundry](https://book.getfoundry.sh/) |
 | Standards | ERC-1967 (proxy), ERC-7201 (namespaced storage), CREATE2 |
 
+## Deployment status — read this before matching code to a chain
+
+**Nothing in this directory is deployed.** `deployments/` holds only `999999.json`, the local chain.
+The runbook for the first genesis is [`DEPLOY.md`](DEPLOY.md).
+
+What **is** live on Polygon PoS is the previous line, whose source is no longer at `HEAD` — it is one
+commit back, at `11d2c5f`. The console under `site/` operates those, and that is why it references
+contracts you will not find here:
+
+```
+parameterRegistry  0x1Adab61ef019d853BBcFaf65E929961b11897856
+triviuExecutor     0xEdB5Aa01fd055B3755439cE41B92b575eea1d273
+gasTank            0xFF0Dc2fC461E28bbAC7964496535989311e93f56
+triviuLPVault      0xC52BaD280809672D8EC5D1fcF2d7eCa45a2a423E
+triviuRegistry     0xac89E63F4F7d26A5CefDc6bA5a13d8F507A7EF1D
+triviuFactory      0x862fD93E6106F07D9395FF14fFE6d828994e8Ee8
+```
+
+Measured against the chain at block 91859211, not read from a deploy log. To read the code behind
+any of them: `git show 11d2c5f:contracts/src`.
+
+So: the code here is the next line and it has never held money; the addresses above hold money and
+their code is one commit back. Anyone reviewing a live contract should be reading the chain and the
+history, not this directory.
+
 ---
 
 ## Contents
@@ -25,7 +50,7 @@ the vault itself imposes.
 - [Security guarantees](#security-guarantees)
 - [Getting started](#getting-started)
 - [Tests](#tests)
-- [Protocol deployment](#protocol-deployment)
+- [Protocol deployment](#protocol-deployment) · runbook in [`DEPLOY.md`](DEPLOY.md)
 - [Client onboarding](#client-onboarding)
 - [Repository layout](#repository-layout)
 - [Known limits](#known-limits)
@@ -371,4 +396,7 @@ repository learned the hard way. [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE). Every source file carries the matching `SPDX-License-Identifier`.
+AGPL-3.0-only, the licence of the repository — see [`LICENSE`](../LICENSE) at the root. Every
+source file here carries the matching `SPDX-License-Identifier`.
+
+One protocol, one licence. There is no separate licence for this directory.

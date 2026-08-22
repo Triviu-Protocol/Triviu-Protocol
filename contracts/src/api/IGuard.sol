@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity <0.9.0;
 
 import {VaultView} from "./types/VaultView.sol";

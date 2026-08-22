@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.28;
 
 import {Limits, LimitsLib} from "../../../src/api/types/Limits.sol";
