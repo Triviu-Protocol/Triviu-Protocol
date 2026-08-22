@@ -22,3 +22,6 @@ docs/
 .env
 .env.*
 !.env.example
+
+# Enderecos publicos em cache, para nao repetir a senha do keystore a cada execucao
+.genesis-enderecos

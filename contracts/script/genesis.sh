@@ -49,25 +49,47 @@ verde "  bloco $(cast block-number --rpc-url "$RPC") · $RPC"
 azul "1 · Chaves"
 
 KEYSTORES="${HOME}/.foundry/keystores"
+CACHE=.genesis-enderecos   # so enderecos, que sao publicos. Nenhuma chave. Gitignored.
+
+# A saida do cast vem com prompt de senha e quebras de linha no meio. Interpolar isso direto no
+# .env produziu `OPERATOR=` vazio e o endereco numa linha solta, e o forge recusou. Recorta-se o
+# endereco e nada mais.
+so_o_endereco() { grep -o '0x[a-fA-F0-9]\{40\}' | head -1; }
+
+# O keystore v3 do Foundry NAO guarda o endereco em claro - so crypto, id e version - entao le-lo
+# custa uma digitacao de senha. O endereco e publico, entao fica em cache para que reexecutar
+# depois de fundar a chave nao cobre a senha de novo.
+do_cache() { [ -f "$CACHE" ] && grep -o "^$1=0x[a-fA-F0-9]\{40\}$" "$CACHE" 2>/dev/null | cut -d= -f2 | head -1; }
 
 chave() {
-    local alias=$1 papel=$2
-    if [ -f "$KEYSTORES/$alias" ]; then
-        verde "  $papel ja existe: $(cast wallet address --account "$alias")"
+    local alias=$1 papel=$2 saida cacheado
+    cacheado=$(do_cache "$alias" || true)
+    if [ -n "$cacheado" ]; then
+        verde "  $papel: $cacheado  (do cache, sem senha)" >&2
+        printf '%s' "$cacheado"
         return
     fi
-    amarelo "  criando $papel ($alias) — escolha uma senha para o keystore"
-    mkdir -p "$KEYSTORES"
-    # PATH e ACCOUNT_NAME sao posicionais; a chave privada nasce cifrada e nunca e impressa.
-    cast wallet new "$KEYSTORES" "$alias" >/dev/null
-    verde "  $papel criado: $(cast wallet address --account "$alias")"
+
+    if [ -f "$KEYSTORES/$alias" ]; then
+        amarelo "  $papel ja existe ($alias) — digite a senha do keystore:" >&2
+        saida=$(cast wallet address --account "$alias" 2>&1)
+    else
+        amarelo "  criando $papel ($alias) — escolha uma senha:" >&2
+        mkdir -p "$KEYSTORES"
+        # PATH e ACCOUNT_NAME sao posicionais, nao --account. A chave nasce cifrada.
+        saida=$(cast wallet new "$KEYSTORES" "$alias" 2>&1)
+    fi
+
+    local end; end=$(printf '%s' "$saida" | so_o_endereco)
+    [ -n "$end" ] || { printf '%s\n' "$saida" >&2; morre "nao consegui ler o endereco de $alias"; }
+
+    printf '%s=%s\n' "$alias" "$end" >> "$CACHE"
+    verde "  $papel: $end" >&2
+    printf '%s' "$end"
 }
 
-chave "$DEPLOYER_ALIAS" "deployer (descartavel)"
-chave "$OPERATOR_ALIAS" "operator (chave quente do servico)"
-
-DEPLOYER=$(cast wallet address --account "$DEPLOYER_ALIAS")
-OPERATOR=$(cast wallet address --account "$OPERATOR_ALIAS")
+DEPLOYER=$(chave "$DEPLOYER_ALIAS" "deployer (descartavel)")
+OPERATOR=$(chave "$OPERATOR_ALIAS" "operator (chave quente do servico)")
 
 [ "$DEPLOYER" != "$GOVERNANCE" ] || morre "deployer igual a governanca"
 [ "$OPERATOR" != "$DEPLOYER"   ] || morre "operator igual ao deployer"
