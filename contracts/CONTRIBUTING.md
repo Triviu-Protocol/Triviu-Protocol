@@ -83,14 +83,22 @@ slither .
 and drops informational and low findings; `script` stays **in**, because the genesis decides what
 the protocol looks like on day one and deserves to be analysed.
 
-**No detector is suppressed, including ones that produce known false positives here.** A suppressed
-detector is a gate that stopped measuring, and it stops silently. Twelve findings are expected at
-the moment, and three of them are false:
+**No detector is suppressed.** A suppressed detector is a gate that stopped measuring, and it stops
+silently. What is suppressed instead is two individual findings, by content, in
+`slither.db.json` — the triage database Slither reads.
 
-`Executor.run` and both `TriviuVault` entrypoints are flagged for reentrancy. The guards are
-`bool private transient` (EIP-1153) — `_running` in `Executor`, `_entered` in `TriviuVault`, with a
-check-set-clear pattern — and Slither 0.11.6 does not model transient storage. Read the guard before
-you accept or dismiss any of the three.
+Both are `reentrancy-balance` on `Executor.run`, and both are false here: the guard is
+`bool private transient _running` (EIP-1153), with a check-set-clear pattern, and Slither 0.11.6
+does not model transient storage. `TriviuVault._entered` is the same pattern and produces the
+`reentrancy-no-eth` findings that remain visible at Medium.
+
+The difference matters. With the triage database, zero HIGH; without it, those two return. A
+`reentrancy-balance` appearing anywhere else still fails the build, because the detector never
+stopped running. If you change `Executor.run`, the finding's content changes with it and the entry
+stops matching — which is the point.
+
+Twelve findings without the database, ten with it. CI fails only on HIGH
+(`.github/workflows/ci.yml`), so the ten Medium are visible and not blocking.
 
 The right way to judge a change is a **baseline comparison**, not a count. Run Slither on the parent
 commit in a separate worktree and compare sets:

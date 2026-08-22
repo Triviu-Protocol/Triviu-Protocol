@@ -63,8 +63,13 @@ jobs:
       - uses: actions/checkout@v4
         with: { submodules: recursive }
       - uses: foundry-rs/foundry-toolchain@v1
+      # A base de triagem silencia DOIS achados por conteudo, nunca o detector: os dois
+      # reentrancy-balance em Executor.run sao falso-positivo porque a trava e `transient`
+      # (EIP-1153) e o Slither 0.11.6 nao modela isso. Verificado: com a base, zero HIGH; sem
+      # ela, os dois voltam. Um reentrancy-balance novo em qualquer outro lugar ainda reprova.
       - uses: crytic/slither-action@v0.4.0
         with:
           target: contracts/
           slither-config: contracts/slither.config.json
+          slither-args: --triage-database contracts/slither.db.json
           fail-on: high
