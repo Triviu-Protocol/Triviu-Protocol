@@ -29,6 +29,24 @@ ADM Owner console, which composes the file and opens the PR for you.
 
 ## State of the ledger
 
-Nothing is deployed on any chain yet, so there are no applied parameters to
-mirror. This folder fills as proposals are opened. That is the honest state —
-"don't trust, verify": the record is here, in the open, or it does not exist.
+**This folder is empty, and not because nothing is deployed.** Two lines are live
+on Polygon PoS and both carry applied parameters, read from the chain rather than
+from a document:
+
+| Contract | Live since | `feeBps` | Ceiling |
+|---|---|---:|---|
+| `ParameterRegistry` `0x1Adab61ef019d853BBcFaf65E929961b11897856` | 2026-08-12 | **3000** (30%) | — |
+| `ProtocolRegistry` `0x7D1D8EacA0ce96cFAb5937b88Ba5d43d7e0Ad8dC` | 2026-08-22 | **50** (0.5%) | `100`, immutable |
+
+Every one of those was set at genesis, by the deploy script, and none of them went
+through `forum → PR → merge → on-chain`. That is not a defect of the flow — a
+genesis has no prior state to propose against — but it does mean the ledger does
+not yet mirror the chain, and saying the folder is empty because nothing is
+deployed would be the comfortable version rather than the true one.
+
+"Don't trust, verify" cuts here too: until a parameter is changed through this
+folder, the authority on any live value is the chain, not this record.
+
+```sh
+cast call 0x7D1D8EacA0ce96cFAb5937b88Ba5d43d7e0Ad8dC 'feeBps()(uint16)' --rpc-url polygon
+```
