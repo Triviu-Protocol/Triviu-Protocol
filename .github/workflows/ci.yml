@@ -45,15 +45,36 @@ jobs:
       - run: npm test
         working-directory: engine
 
-  # Multi-chain honesty sentinel: no public surface may claim a chain is "live"
-  # (nothing is deployed) or assert single-chain exclusivity. Fails on regression.
-  surfaces:
+  # Os portoes do site. Este job substituiu `surfaces`, que rodava UM dos oito.
+  #
+  # Medido em 2026-08-22 sobre a arvore 3d855c92: sete dos oito portoes em
+  # scripts/ nao eram invocados por workflow nenhum. Existiam, e tres deles
+  # estavam vermelhos. site/console/index.html chega a afirmar para quem le a
+  # pagina que check-console-abi.mjs "fails the build" — e ele nao estava ligado
+  # a coisa alguma.
+  #
+  # A lista NAO mora aqui: mora em scripts/portoes.mjs, e e a mesma que roda na
+  # maquina de quem contribui. Duas listas divergem no primeiro dia em que
+  # alguem acrescenta um portao e esquece a outra.
+  portoes:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
-      - run: node scripts/check-multichain-honesty.mjs
+      - run: node scripts/portoes.mjs
+
+  # Separado de proposito: este le RPC publico. Uma queda de RPC e
+  # indistinguivel de uma regressao de codigo quando as duas aparecem como o
+  # mesmo X vermelho na lista do PR, e a leitura errada custa uma investigacao
+  # inteira antes de chegar em "o no estava fora do ar".
+  portoes-chain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: node scripts/portoes.mjs --so-rede
 
   # Static analysis of the contracts. Fails the build only on HIGH findings;
   # the MEDIUM/INFO items are already triaged in docs/audits (Medusa report).

@@ -1,8 +1,11 @@
 # Allow the QuickSwap V2 router as an execution target
 
 - **Date:** 2026-08-22
-- **Status:** proposed
+- **Status:** **held** — see the note at the end of this file
 - **Contract:** `ParameterRegistry` `0x1Adab61ef019d853BBcFaf65E929961b11897856` (Polygon PoS, 137)
+
+> **Do not sign this yet.** It is held, not withdrawn, and nothing below has been
+> edited. Read the note at the end before collecting signatures.
 
 ## Parameter
 
@@ -69,3 +72,36 @@ exists: the measurement on record says the opposite, and it is our own.
 Record 0003 names the first `setTarget` call as the trigger for revising its custody note. This is
 that call. The note must be revised once this executes, and it should say what the previous
 revision failed to: that the protocol became transactable on this date.
+
+---
+
+## HELD · 2026-08-22 · Tubarão-Apex, direct
+
+**Nothing above this line was edited.** The identification, the measurement and the
+argument are exactly as first written, and they stay that way whether or not this call is
+ever made.
+
+**Why it is held.** The V0 line — `contracts/`, deployed at block 92478492 — was ratified
+as the product on the same day, in Tradeoff Record No. 0009. This proposal opens a target
+on the **previous** line, and the two lines gate execution by opposite designs:
+
+- the previous line uses an **allowlist**: `isAllowedTarget(router)` must be turned on,
+  and today every target is `false`, so `executeCycle` reverts for every asset;
+- the V0 uses a **denylist** (`VaultExecution.sol:422`): the executor must be curated, and
+  a target may be anything that is not the vault itself, the executor, a curated asset or a
+  curated base currency.
+
+Measured at block 92486643: on the V0, `paused() = false`, `isExecutor(0x323C4192…) = true`,
+`isOperator(0xB3eE4676…) = true`, `isBaseCurrency(USDC) = true`. **There is no routing gate
+to open on the product line.** Signing this would spend two of three Safe signatures on the
+line that is not the product.
+
+**Held, not withdrawn, and the distinction is the point.** Withdrawing would delete the work
+in it: `factory()` and `WETH()` were read on chain rather than taken from a list, the
+21,943-byte runtime was matched against `UniswapV2Router02`, and a second candidate router
+that shares the same factory was deliberately **not** allowed for want of confidence in its
+identity. If the previous line is ever revived, that reasoning is already done and does not
+need to be redone — which is the whole reason this file survives instead of being deleted.
+
+**What would unhold it:** a decision to trade on the previous line again, recorded as a new
+Tradeoff Record superseding No. 0009. Not a conversation, and not an edit to this file.

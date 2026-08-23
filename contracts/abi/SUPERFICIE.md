@@ -4,7 +4,7 @@ Gerado de `abi/*.json`, que o CI regera e compara byte a byte. Nenhum nome aqui 
 digitado a mao, e as tuplas estao expandidas: `execute(tuple)` nao e assinatura e daria
 seletor errado.
 
-Chamadas ao cofre vao para o **endereco do cofre do cliente**, nunca para a implementacao:
+Chamadas ao cofre vao para o **endereco do cofre do usuario**, nunca para a implementacao:
 o cofre e um proxy ERC-1967 e expoe a ABI de `TriviuVault`. O endereco listado ali e o da
 implementacao, e serve para ler codigo, nao para chamar.
 

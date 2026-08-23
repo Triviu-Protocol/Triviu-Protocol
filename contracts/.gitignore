@@ -15,6 +15,18 @@ out/
 deployments/999999.json
 deployments/user/999999/
 
+# Records of WHO deployed WHICH vault. `deployments/137.json` carries the
+# protocol's own addresses and belongs in a public repository; this does not.
+# The path itself is the data: `user/137/<owner>/vaults.json` states that a given
+# address opened a given vault, and the first folder to appear here was
+# 0x930BB359…, one of the Safe signers listed by `getOwners()`. On chain that
+# link is discoverable; committing it here is publishing it, and those are not
+# the same act.
+# Only 999999 (the fork) was ignored before, because `user/137/` came into
+# existence the first time someone ran against mainnet. Deleting these two lines
+# restores the previous behaviour — the decision to publish is the owner's.
+deployments/user/
+
 # Docs
 docs/
 

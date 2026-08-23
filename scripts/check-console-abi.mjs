@@ -44,9 +44,25 @@
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { gerado, DESTINO } from "./gerar-abi-console.mjs";
 
 const RAIZ = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
+const DESTINO = join(RAIZ, "site", "js", "abi-console.js");
+
+/* O import do gerador era estatico e o gerador le contracts/out no escopo do
+   modulo. Depois de caad24b — a linha V0 substituiu os contratos anteriores no
+   fonte — oito dos nove artefatos que ele abre deixaram de existir, e ESTE
+   arquivo passou a morrer no import com um ENOENT cru, sem chegar a rodar
+   nenhuma das cinco checagens.
+   O prejuizo nao era o item 1: era os outros quatro. Assinatura inventada na
+   tela, seletor a mao, endereco a mao e allowlist de carteira nao dependem do
+   gerador, e ficaram sem guardiao junto com ele. */
+let gerado = null;
+let semGerador = null;
+try {
+  ({ gerado } = await import("./gerar-abi-console.mjs"));
+} catch (e) {
+  semGerador = e?.code === "ENOENT" ? `artefato ausente em contracts/out (${e.path?.split(/[\\/]/).slice(-2).join("/")})` : String(e?.message ?? e);
+}
 
 /* As duas telas, e cada uma com o JS que a dirige e as tres tags que ela e
    obrigada a carregar. Uma tela que perde o /enderecos.js volta a ter endereco
@@ -105,7 +121,17 @@ const norm = (s) => s.replace(/\r\n/g, "\n");
 const semComentarioJs = (s) =>
   s.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:])\/\/[^\n]*/g, "$1 ");
 const semComentarioHtml = (s) => s.replace(/<!--[\s\S]*?-->/g, " ");
-if (norm(emDisco) !== norm(gerado)) {
+if (gerado === null) {
+  /* A prova byte-a-byte contra artefato local nao existe mais nesta arvore. Ela
+     NAO desapareceu: foi substituida por uma mais forte, que confere o mesmo
+     arquivo contra o bytecode IMPLANTADO na Polygon — o que o usuario assina
+     contra, e nao o que alguem compilou aqui.
+     Isto e delegacao declarada, nao item desligado: scripts/portoes.mjs exige
+     check-abi-vs-chain.mjs na lista, e a ausencia DELE reprova. Se este aviso
+     aparecer sem aquele portao existir, a protecao caiu de verdade. */
+  notas.push(`item 1 DELEGADO a scripts/check-abi-vs-chain.mjs — ${semGerador}`);
+  notas.push("  a prova vigente e contra a chain, nao contra contracts/out (job portoes-chain)");
+} else if (norm(emDisco) !== norm(gerado)) {
   falhar("site/js/abi-console.js DIVERGE do que os artefatos em contracts/out produzem agora.");
   falhar("  O contrato mudou e a tela nao, ou o arquivo foi editado a mao.");
   falhar("  Regere com: node scripts/gerar-abi-console.mjs");
@@ -129,11 +155,15 @@ for (const t of TELAS) {
   }
 }
 
-/* O JSON e lido do texto gerado, nao avaliado: `eval` num arquivo que este
-   proprio script acabou de montar seria teatro — e um dia deixaria de ser. */
-const casado = norm(gerado).match(/var ABI = ([\s\S]*?);\n  if \(typeof module/);
+/* O JSON e lido do texto, nao avaliado: `eval` num arquivo montado aqui seria
+   teatro — e um dia deixaria de ser.
+   Ele sai do arquivo EM DISCO, e nao do texto regerado. Duas razoes: o disco e
+   o que a Vercel serve, e quando o gerador nao roda (artefatos fora da arvore)
+   o texto regerado nao existe. Quando os dois existem, o item 1 acima ja provou
+   que sao o mesmo texto, entao ler do disco nao afrouxa nada. */
+const casado = norm(emDisco).match(/var ABI = ([\s\S]*?);\n  if \(typeof module/);
 if (!casado) {
-  console.error("✗ nao consegui extrair o JSON de abi-console.js — o formato do gerador mudou");
+  console.error("✗ nao consegui extrair o JSON de site/js/abi-console.js — o formato do arquivo mudou");
   process.exit(1);
 }
 const JSON_EMBUTIDO = JSON.parse(casado[1]);

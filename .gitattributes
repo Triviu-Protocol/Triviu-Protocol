@@ -1,0 +1,59 @@
+# O byte que chega em cada clone e o mesmo byte em toda plataforma.
+#
+# POR QUE NA RAIZ, E NAO SO EM contracts/
+# =======================================
+# contracts/.gitattributes ja dizia isto desde a publicacao, e dizia bem: o solc
+# embute o hash do texto-fonte no metadata, entao um clone CRLF verifica
+# diferente de um clone LF no explorer e a causa nao aparece em diff.
+#
+# O raciocinio nunca foi sobre o solc. Era sobre BYTE QUE E PROMESSA — e o site
+# tem um: site/vendor/three-r128.min.js e uma copia vendorizada cujo sha512 e
+# comparado, em scripts/check-csp.mjs, contra o SRI que o cdnjs publica.
+#
+# Medido em 2026-08-22, com core.autocrlf=true e sem este arquivo:
+#     blob no indice ... 603.445 bytes  (i/lf)
+#     disco no Windows . 603.451 bytes  (w/crlf) — seis CRLF de diferenca
+#     sha512 esperado .. dLxUelApnYxpLt6K2iomGngn...
+#     sha512 medido .... t71YLgysNFRr3DV5MBXVgNr7...
+#
+# A consequencia nao e "o portao reprova". E que ele reprova SO NO WINDOWS: o
+# runner Linux recebe LF e passa verde. Um portao que discorda de si mesmo
+# conforme a plataforma e pior que um portao vermelho — o vermelho voce
+# conserta, o intermitente voce aprende a ignorar, e o proximo grito, o
+# verdadeiro, tambem sera ignorado.
+#
+# ZERO BLOB MUDA COM ISTO. Medido antes de cravar: dos 299 arquivos rastreados,
+# 275 sao texto e ja estao `i/lf` no indice, 21 sao binarios, e NENHUM esta
+# `i/crlf` ou `i/mixed`. Este arquivo nao normaliza nada — impede a conversao no
+# checkout, que e onde o dano nascia.
+
+* text=auto eol=lf
+
+# Copias vendorizadas de terceiros: byte-exato, jamais normalizadas.
+#
+# Marcadas como binarias de proposito. O sha512 delas e conferido contra o hash
+# que o FORNECEDOR publica, entao qualquer byte que o git altere no caminho
+# torna a conferencia impossivel de passar por via honesta — a unica saida
+# restante seria editar o hash esperado, que e exatamente a adulteracao que a
+# conferencia existe para detectar.
+site/vendor/** -text
+
+# ARMADILHA, medida ao vivo em 2026-08-22 ao cravar este arquivo, num clone que
+# ja tinha CRLF na worktree:
+#
+#     git add --renormalize .
+#
+# NAO restaura a worktree a partir do blob. Ele RE-ESTAGIA o que esta no disco.
+# Sob `-text` o git nao converte nada, entao os 603.451 bytes CRLF do disco
+# viraram o novo blob e a linha do vendor passou de `i/lf` para `i/crlf` — o
+# arquivo poluido virou a fonte, silenciosamente, em 19 caminhos de uma vez.
+#
+# A ordem correta e a inversa: primeiro a worktree recebe o blob, depois nada
+# precisa ser renormalizado.
+#
+#     git reset
+#     git checkout --force -- site/vendor/
+#     git ls-files --eol -- site/vendor/   # exige i/lf w/lf
+#
+# `--renormalize` serve para adotar `text=auto` numa arvore historicamente suja.
+# Sobre caminho `-text` ele nao normaliza: ele captura.

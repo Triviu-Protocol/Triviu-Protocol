@@ -172,6 +172,122 @@ for (const host of hostsSubrecurso)
   if (!permitidos.has(host))
     falhar(`host ${host} e carregado pelo HTML mas nao esta em nenhuma diretiva do CSP — quebraria em producao`);
 
+/* ------------------------------------------- os hosts que o JS BUSCA ------- *
+ * O bloco acima confere os hosts que o HTML CARREGA. Isto confere os hosts que
+ * o JS CHAMA — e sao coisas diferentes, governadas por diretivas diferentes:
+ * `script-src`/`style-src` mandam no primeiro, `connect-src` manda no segundo.
+ * Nada olhava o segundo.
+ *
+ * O QUE PASSOU POR AQUI, em 2026-08-23. `site/js/console-v0.js` chamava
+ * `https://polygon-rpc.com`, um quarto endpoint que nao esta no `connect-src`.
+ * As outras tres telas usavam os tres liberados; essa era a unica fora, e este
+ * portao estava VERDE em cima disso porque o host nunca aparece no HTML.
+ *
+ * O sintoma teria sido cruel. Em producao a CSP corta a chamada antes de
+ * qualquer resposta: nao ha status, nao ha corpo, nao ha mensagem util — a
+ * pagina so nao le a chain. Foi por acaso que o defeito apareceu legivel: quem
+ * abriu a tela abriu por `python -m http.server`, que nao manda CSP, entao a
+ * chamada saiu e voltou um `HTTP 401` que dava para ler na tela.
+ *
+ * ALCANCE, dito para nao ser comprado por mais do que vale: isto le o primeiro
+ * argumento de cada `fetch(` e resolve literal ou identificador declarado no
+ * mesmo arquivo. Uma URL montada em tempo de execucao a partir de pedacos nao e
+ * resolvida — e nesse caso o portao REPROVA em vez de pular, porque guardiao que
+ * nao consegue medir e obrigado a dizer que nao mediu.
+ */
+{
+  const jsDoSite = [];
+  (function andar(d) {
+    for (const nome of readdirSync(d)) {
+      const p = join(d, nome);
+      if (statSync(p).isDirectory()) andar(p);
+      else if (nome.endsWith(".js")) jsDoSite.push(p);
+    }
+  })(join(SITE, "js"));
+
+  const connect = new Set((diretivas["connect-src"] || []).map((f) => f.replace(/^https?:\/\//, "")));
+  let conferidos = 0;
+  const deTela = [];
+
+  for (const arquivo of jsDoSite) {
+    const rel = "js/" + relative(join(SITE, "js"), arquivo).split(sep).join("/");
+    const src = readFileSync(arquivo, "utf8");
+    /* Comentarios fora antes de medir: prosa que cita um endpoint nao e uma
+       chamada, e ja houve falso alarme nesta casa por medir dentro de comentario. */
+    const codigo = src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+
+    for (const m of codigo.matchAll(/\bfetch\s*\(\s*([^,)]+)/g)) {
+      const arg = m[1].trim();
+      let urls = [];
+
+      /* MESMA ORIGEM. `fetch("/x.json")` ou um template que comeca com `/` nao
+         tem host: quem manda nele e o `'self'` do connect-src, que ja esta la.
+         Cobrar host de uma URL relativa seria inventar um problema. */
+      if (/^["'`]\/[^"'`]*["'`]$/.test(arg)) { conferidos += 1; continue; }
+
+      const lit = /^["'`](https?:\/\/[^"'`]+)["'`]$/.exec(arg);
+      if (lit) {
+        urls = [lit[1]];
+      } else if (/^[A-Za-z_$][\w$.[\]]*$/.test(arg)) {
+        const nome = arg.split(/[.[]/)[0];
+
+        /* RESOLVER VEM PRIMEIRO, e a ordem e o conserto de um erro que este
+           portao cometeu na sua primeira execucao: a heuristica de "veio da tela"
+           rodava antes, procurava a declaracao do nome em QUALQUER lugar do
+           arquivo, e casava com outra variavel homonima. O laco de failover de
+           console-v0.js — `for (const url of TRIVIU.rpcs)` — foi classificado
+           como endpoint digitado, e os tres hosts dele deixaram de ser
+           conferidos enquanto o portao imprimia "5 conferidos". Verde afirmando
+           cobertura que nao tinha e a forma exata de defeito que esta casa ja
+           pagou. Resolve-se o que da para resolver; a heuristica so recebe o que
+           sobrou. */
+        const doLaco = new RegExp(`\\bfor\\s*\\(\\s*(?:const|let|var)\\s+${nome}\\s+of\\s+([\\w$.]+)`).exec(codigo);
+        const alvoNome = doLaco ? doLaco[1].split(".").pop() : nome;
+        const decl = new RegExp(`\\b(?:const|let|var)\\s+${alvoNome}\\s*=\\s*([^;]+);`).exec(codigo)
+          || new RegExp(`\\b${alvoNome}\\s*:\\s*(\\[[^\\]]*\\])`).exec(codigo);
+        if (decl) urls = [...decl[1].matchAll(/["'`](https?:\/\/[^"'`]+)["'`]/g)].map((x) => x[1]);
+
+        /* DIGITADO PELA PESSOA. As telas deixam colar um endpoint proprio num
+           campo, e um valor que so existe em tempo de execucao nao tem como ser
+           conferido aqui. Isto NAO reprova, e a razao esta no efeito: sob esta
+           CSP, um endpoint colado que nao seja um dos liberados simplesmente nao
+           conecta — o navegador ja e o portao. O que se faz aqui e CONTAR e
+           DIZER, para que ninguem descubra isso pela reclamacao de um usuario. */
+        if (!urls.length) {
+          const daTela = new RegExp(
+            `\\b(?:const|let|var)\\s+${nome}\\s*=\\s*[^;\\n]*(?:\\$\\(|getElementById|\\.value)`
+          ).test(codigo);
+          if (daTela) { deTela.push(`${rel}: fetch(${nome})`); continue; }
+        }
+      }
+
+      if (!urls.length) {
+        falhar(`${rel}: fetch(${arg.slice(0, 40)}) — nao consegui resolver o host desta chamada, ` +
+          "e um host que este portao nao le e um host que ninguem confere contra o connect-src");
+        continue;
+      }
+      for (const u of urls) {
+        const host = new URL(u).host;
+        conferidos += 1;
+        if (!connect.has(host)) {
+          falhar(`${rel} chama ${host} e ele NAO esta no connect-src do vercel.json ` +
+            `(${[...connect].join(" ")}). Em producao a CSP corta essa chamada antes de qualquer ` +
+            "resposta — sem status e sem mensagem, a pagina so nao le a chain.");
+        }
+      }
+    }
+  }
+  notas.push(`${conferidos} host(s) de fetch conferido(s) contra o connect-src (${[...connect].join(" · ")})`);
+  /* Pular em silencio seria o mesmo defeito de sempre: o portao verde afirmando
+     cobertura que ele nao tem. O que ele nao consegue conferir, ele CONTA. */
+  if (deTela.length) {
+    notas.push(`${deTela.length} chamada(s) buscam um endpoint DIGITADO num campo — nao ha o que ` +
+      "conferir aqui, e sob esta CSP so os hosts acima conectam; qualquer outro o navegador recusa " +
+      "antes de sair:");
+    for (const d of deTela) notas.push("    " + d);
+  }
+}
+
 /* ------------------------------------------------------- copia vendorizada - */
 for (const [rel, sri] of Object.entries(VENDOR)) {
   let bytes;

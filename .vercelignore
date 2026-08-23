@@ -1,0 +1,38 @@
+# O que NAO sobe para producao, e por que.
+#
+# `vercel.json` declara `outputDirectory: "site"`, e o deploy sobe o DISCO — nao
+# o commit. Um arquivo que existe em site/ vai ao ar por URL direta no proximo
+# `vercel --prod`, mesmo sem link nenhum apontando para ele e mesmo sem estar
+# commitado. Estar fora do git nao e estar fora do ar.
+#
+# Hoje nao ha nada retido, e a lista vazia e uma decisao registrada, nao um
+# esquecimento.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# HISTORICO · site/v0/ esteve retido por algumas horas em 2026-08-23.
+#
+# A razao era real: a tela declarava na propria fonte "Wallet and chain are
+# SIMULATED. Nothing here reaches a real network", carregava enderecos digitados
+# a mao, `abi: null` em cinco plug-points, enderecos de cofre sorteados por
+# `Math.random()` e saldos semeados. Lei #6 nao permite que isso ocupe uma rota
+# de produto.
+#
+# A razao NAO justificava a retencao, e isso e o registro que importa aqui. A
+# arquitetura era a do fundador, e reter o que ele desenhou em vez de construir o
+# que faltava foi uma decisao que nao cabia a quem executa:
+#
+#     "Se eu te dei uma arquitetura, e tudo, ela PRECISA SER IGUAL ao que eu dei.
+#      E o que tiver faltado, geralmente a gente constroi."
+#
+# Entao foi construido. A tela passou a carregar `enderecos-v0.js`,
+# `abi-v0-console.js` e `motor.js` — os tres artefatos que ja existiam no disco e
+# que /cofre/ ja consumia; os enderecos passaram a sair do livro; os cinco
+# plug-points viraram calldata montada do artefato compilado, com os nomes REAIS
+# (`createVault(address,uint256)`, `deposit(address,uint256)`, e nao os quatro
+# nomes fantasma que os comentarios prometiam); a carteira real virou requisito
+# em vez de opcao; o endereco do cofre passou a vir de `vaultAddress(dono,indice)`
+# na propria factory; o saldo, de `balanceOf`; e a taxa, a tesouraria, a pausa e
+# os papeis, de leitura do ProtocolRegistry.
+#
+# Retencao levantada no mesmo dia. Quem guarda o lugar dela agora e
+# scripts/check-paginas-orfas.mjs, que exige que /v0/ esteja na navegacao.
