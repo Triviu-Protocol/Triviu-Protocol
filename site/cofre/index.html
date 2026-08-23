@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Triviu · o seu cofre</title>
+<meta name="description" content="Cria o seu cofre na linha V0, autoriza a moeda-base, deposita e saca. Quatro atos, cada um congelado e conferido antes de abrir a carteira.">
+
+<link rel="stylesheet" href="/vendor/fonts/fontes.css">
+<link rel="stylesheet" href="/vendor/estilos-inline.css">
+<link rel="stylesheet" href="/vendor/estilos/cofre.css">
+</head>
+<body>
+
+<main class="pagina">
+
+  <header class="cab">
+    <h1>O seu cofre</h1>
+    <p class="lede">Quatro atos, e cada um deles é uma transação que você assina na sua
+    carteira. A tela monta a chamada, congela, mostra byte a byte o que vai ser enviado, e
+    só então abre a carteira. O dinheiro é seu o tempo todo: <b>sacar não depende do
+    serviço</b>.</p>
+  </header>
+
+  <!-- Nada aqui é uma promessa: a chain é lida ao conectar, e o que estiver
+       desatualizado aparece como divergência em vez de ficar bonito. -->
+  <section class="painel" aria-labelledby="h-sessao">
+    <h2 id="h-sessao">A sessão</h2>
+    <div class="kv"><span class="k">rede</span><span class="v mono">Polygon PoS · 137 · live e implantada</span></div>
+    <div class="kv"><span class="k">sua conta</span><span class="v mono" id="conta">—</span></div>
+    <div class="kv"><span class="k">o seu cofre nascerá em</span><span class="v mono" id="cofre">—</span></div>
+    <div class="kv"><span class="k">estado</span><span class="v" id="existe">—</span></div>
+    <button class="primario" id="btnConectar" type="button">Conectar a carteira</button>
+    <p class="nota">A tela <b>não pede</b> troca de rede — ela recusa operar fora da 137.
+    Quem troca de rede é você, na sua carteira, sabendo o que está fazendo.</p>
+  </section>
+
+  <section class="painel" aria-labelledby="h-atos">
+    <h2 id="h-atos">Os quatro atos</h2>
+    <ol class="passos">
+      <li><b>Criar o cofre</b> — um contrato, e só o seu endereço o comanda.</li>
+      <li><b>Autorizar</b> — o cofre pode puxar <b>exatamente</b> a quantia digitada. Nunca ilimitado.</li>
+      <li><b>Depositar</b> — a quantia entra no cofre.</li>
+      <li><b>Sacar</b> — a quantia volta para a sua carteira, quando você quiser.</li>
+    </ol>
+
+    <div class="campo">
+      <label for="quantia">Quantia, na moeda-base (até 6 casas)</label>
+      <input id="quantia" inputmode="decimal" autocomplete="off" placeholder="1.00">
+    </div>
+
+    <div class="botoes">
+      <button class="secundario" id="btn-criar" type="button">1 · Montar “criar cofre”</button>
+      <button class="secundario" id="btn-aprovar" type="button">2 · Montar “autorizar”</button>
+      <button class="secundario" id="btn-depositar" type="button">3 · Montar “depositar”</button>
+      <button class="secundario" id="btn-sacar" type="button">4 · Montar “sacar”</button>
+    </div>
+  </section>
+
+  <!-- O cartão é desenhado por /js/cofre.js com createElement, nunca por
+       innerHTML: numa página que mostra o que você vai assinar, HTML injetado
+       reescreveria a própria frase que você está conferindo. -->
+  <section class="painel" aria-labelledby="h-cartao">
+    <h2 id="h-cartao">O que você vai assinar</h2>
+    <div id="cartao" class="cartao"><p class="nota">Monte um passo acima.</p></div>
+    <div class="kv"><span class="k">selo do congelamento</span><span class="v mono quebra" id="selo">—</span></div>
+    <p class="nota">O selo é o hash da carga congelada. No clique ele é refeito e comparado:
+    se qualquer byte tiver mudado entre você ler e clicar, <b>nada é enviado</b>. Antes de
+    abrir a carteira a transação ainda é simulada contra a chain — uma que reverteria não
+    chega a pedir assinatura.</p>
+    <button class="primario" id="btnEnviar" type="button" disabled>Assinar na carteira</button>
+  </section>
+
+  <section class="painel" aria-labelledby="h-saida">
+    <h2 id="h-saida">O que aconteceu</h2>
+    <div id="saida" class="saida" role="log" aria-live="polite">
+      <p class="nota">As falhas aparecem aqui também — sempre.</p>
+    </div>
+  </section>
+
+  <footer class="rodape">
+    <p class="nota">Os endereços vêm de <span class="mono">/enderecos-v0.js</span>, gerado de
+    <span class="mono">contracts/deployments/137.json</span> — a mesma fonte que os scripts
+    Solidity leem. Os seletores vêm de <span class="mono">/js/abi-v0-console.js</span>, gerado
+    dos ABIs que o CI mantém atuais. Nenhum endereço e nenhum seletor foi digitado nesta tela.</p>
+    <p class="nota">Sem auditoria externa e sem suíte de fork. Está escrito no
+    <span class="mono">SECURITY.md</span>, e continua verdadeiro.</p>
+  </footer>
+
+</main>
+
+<script src="/enderecos-v0.js"></script>
+<script src="/js/abi-v0-console.js"></script>
+<script src="/js/motor.js"></script>
+<script src="/js/cofre.js"></script>
+</body>
+</html>

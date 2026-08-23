@@ -138,3 +138,12 @@
 .u-5225e5b7{width:0% !important}   /* 1x */
 .u-90ea6944{color:var(--ultramar) !important}   /* 1x */
 .u-72e5bd85{width:100% !important; margin-top:6px !important}   /* 1x */
+
+/* ---- acrescentadas em 2026-08-22 pela extracao de site/v0/index.html.
+   Mesma convencao das de cima: u- + sha256[0:8] do valor, e !important pela
+   mesma razao de precedencia que o cabecalho deste arquivo explica. */
+.u-5e0c9e1b{font-family:var(--disp);font-size:16px !important}
+.u-83725d2c{flex:1 !important}
+.u-d4e8f245{pointer-events:none !important}
+.u-ddb95d9e{display:flex;align-items:center;gap:var(--s3) !important}
+.u-fec5f4cc{color:var(--ink);width:24px;height:24px !important}

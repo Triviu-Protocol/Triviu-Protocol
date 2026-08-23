@@ -734,10 +734,15 @@
     txt($("ct-medicao"), "Measured at block " + L.MEDICAO.bloco + " on chain " + L.MEDICAO.chainId +
       " · wave " + L.MEDICAO.onda);
     txt($("ct-safe"), L.CUSTODIA.safe);
-    txt($("ct-safe-nota"), "Gnosis Safe " + L.CUSTODIA.safeVersao + ", threshold " + L.CUSTODIA.safeThreshold +
-      ", and its only owner is " + L.CUSTODIA.safeDonos[0] + " — the same account that signed the deploy. " +
-      "Key separation today: " + (L.CUSTODIA.separacaoDeChave ? "yes" : "NO") + ". Timelock: " +
-      (L.CUSTODIA.timelock ? L.CUSTODIA.timelock : "none") + ".");
+    /* Ate 2026-08-22 esta linha imprimia "threshold 1 ... its only owner is ...
+       Key separation today: NO", tudo saido de constante. A chain respondia 2 de
+       3 no mesmo momento. A tela nao voltou a afirmar nenhum dos tres: quem quer
+       o numero le getThreshold() e getOwners() no endereco acima, que esta na
+       tela justamente para isso. Uma tela que nao sabe e diz que nao sabe vale
+       mais que uma que sabia. */
+    txt($("ct-safe-nota"), "Gnosis Safe. Owner of the registries, and the treasury the success fee is " +
+      "routed to. Threshold, owner set and timelock are chain state and are not restated here — read " +
+      "getThreshold() and getOwners() on the address above.");
 
     /* p-layers le o mesmo livro. Um segundo lugar com o mesmo endereco e a
        duplicata que o criterio 3 do aceite reprova. */

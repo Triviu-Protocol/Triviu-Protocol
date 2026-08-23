@@ -144,40 +144,42 @@
   /* -------------------------------------------------------------- CUSTODIA --
    * Escrito como foi MEDIDO, nao como foi pretendido.
    *
-   * O Safe 0x73e344... e um Gnosis Safe 1.4.1 de verdade, threshold 1, e o seu
-   * UNICO dono e 0xb5Fb0CDa... — exatamente o EOA que assinou o deploy e que
-   * hoje ainda e o owner() do Registry.
+   * O QUE ESTE BLOCO DIZIA, E POR QUE SAIU (2026-08-22)
+   * ==================================================
+   * Ate esta data ele afirmava, em constante e em prosa, que o Safe era
+   * `threshold 1` com um unico dono, e que NAO HAVIA SEPARACAO DE CHAVE. Medido
+   * na chain 137 no bloco 92483415:
    *
-   * Consequencia dita sem enfeite: transferir a posse move o controle da chave K
-   * para um cofre controlado exclusivamente pela chave K. NAO HA SEPARACAO DE
-   * CHAVE HOJE. O que o acceptOwner() entrega de real e ESTABILIDADE DE
-   * ENDERECO — subir para 2/3 ou instalar timelock depois nao exige nova
-   * transferencia de posse.
+   *     getThreshold()  ->  2
+   *     getOwners()     ->  0x930BB359...  0xD6A6d289...  0xb5Fb0CDa...
    *
-   * Raio de explosao se a chave for comprometida, medido contra o codigo e nao
-   * estimado: o portao atomico do Executor exige
-   *     finalBalance >= startBalance + principal + minProfit
-   * logo o PRINCIPAL DO USUARIO E INALCANCAVEL. O teto do atacante e
-   * MAX_FEE_BPS = 5000 (50% do lucro) mais captura de spread limitada pelo
-   * minProfit que o proprio usuario assina.
+   * DOIS de TRES. A separacao de chave existe. O livro estava errado, e errado
+   * A FAVOR DA SEGURANCA — dizia menos protecao do que ha. Por isso durou: um
+   * registro que assusta e conferido, um que se acusa injustamente nao e
+   * conferido por ninguem. E o erro nao ficava so aqui: console-app.js imprimia
+   * a frase inteira na tela do usuario.
+   *
+   * O paragrafo removido tambem DERIVAVA um raio de explosao daquele numero.
+   * Uma conclusao de seguranca tirada de um dado vencido nao e conservadora, e
+   * so parece.
+   *
+   * E o remedio ja estava escrito aqui embaixo, para outros dois campos. Em
+   * 2026-08-12 `ownerAtual`, `pendingOwner` e `aceiteConcluido` sairam por
+   * exatamente este motivo, com a licao anotada: POSSE E ESTADO DE CHAIN, e
+   * constante que espelha estado de chain e uma afirmacao com prazo de validade
+   * que ninguem anota. A conclusao valia para o bloco inteiro e foi aplicada a
+   * tres campos; os tres vizinhos imediatos, que sao estado de chain pela mesma
+   * definicao, ficaram. Corrigir a instancia e nao a classe adia o mesmo defeito
+   * em vez de fecha-lo.
+   *
+   * O QUE FICA: o endereco do Safe, que nao expira, e o deployer, que e um fato
+   * historico. Threshold, donos e separacao de chave leem-se na hora — e
+   * scripts/check-livro-vs-chain.mjs reprova se voltarem a ser constante aqui.
    */
   var CUSTODIA = {
     safe: '0x73e344Be290c0D53Badbe528e45877296F6dAf6E',
-    safeVersao: '1.4.1',
-    safeThreshold: 1,
-    safeDonos: ['0xb5Fb0CDaab5784cBE05CcB9D843DaFe4663883C5'],
-    deployer: '0xb5Fb0CDaab5784cBE05CcB9D843DaFe4663883C5',
-    separacaoDeChave: false,
-    timelock: null
-    /* ownerAtual, pendingOwner e aceiteConcluido SAIRAM daqui em 2026-08-12.
-       Eles diziam owner = EOA e aceiteConcluido = false; a chain respondia
-       owner() = Safe e pendingOwner() = 0x0 desde que a posse foi aceita. Ou
-       seja: estavam MENTINDO, e ninguem notou porque constante nao avisa que
-       envelheceu. Posse e ESTADO DE CHAIN. Constante que espelha estado de
-       chain e uma afirmacao com prazo de validade que ninguem anota — quem
-       precisa do dado le owner() na hora. O que fica aqui e o que NAO expira:
-       o Safe e 1-de-1 e o dono unico dele e o proprio deployer, logo nao ha
-       separacao de chave, e isso nao muda sozinho. */
+    /* Historico, nao estado: este endereco assinou o deploy. Isso nao muda. */
+    deployer: '0xb5Fb0CDaab5784cBE05CcB9D843DaFe4663883C5'
   };
 
   var MEDICAO = { chainId: CHAIN, bloco: 91859211, onda: 'ONDA-TRIVIU-MAINNET-FECHO-2026-08-11' };

@@ -1257,7 +1257,9 @@
       .then(function (r) {
         p.token0 = paraEndereco(palavra(r, 2));
         p.token1 = paraEndereco(palavra(r, 3));
-        p.fee = u(palavra(r, 4));
+        /* chain: `r` e a resposta de um eth_call decodificada palavra a palavra —
+       a taxa vem do contrato, nao desta pagina. */
+    p.fee = u(palavra(r, 4));
         p.tickBaixo = i256(palavra(r, 5));
         p.tickAlto = i256(palavra(r, 6));
         p.liquidez = u(palavra(r, 7));
