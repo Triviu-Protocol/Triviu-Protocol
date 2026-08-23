@@ -68,6 +68,44 @@ const SITE = join(RAIZ, "site");
 const ASSINANTES = [
   "js/console.js",     /* /calldata/ — o leitor de bytes do ciclo do Executor */
   "js/console-lp.js",  /* /console/  — o ciclo de vida de uma posicao no LPVault */
+  /* js/console-v0.js ESTEVE nesta lista, de 2026-08-22 a 2026-08-23, e a saida
+     dele e o registro de um veto — nao de um afrouxamento.
+
+     Ele entrou porque este guardiao o pegou: assim que o arquivo apareceu em
+     site/js/, o bloco de cobertura acusou "menciona eth_sendTransaction e NAO
+     esta na lista de assinantes". A tela assinava e nada a vigiava.
+
+     Ele saiu porque a auditoria N2 mediu O QUE ele assinava: `txParams` montado
+     como literal no instante do clique, sem congelamento, sem impressao digital
+     e sem ligacao entre o cartao e a calldata — e, ao mesmo tempo, um caminho
+     que nunca disparou, porque todos os construtores de calldata devolviam null.
+     O Tubarao-branco vetou (Lei do Sangue, TUBARAO-25) e o envio foi REMOVIDO do
+     arquivo. Sem envio, ele nao e um caminho de assinatura, e listar aqui um
+     arquivo que nao assina custa a atencao de quem le a lista.
+
+     Isto NAO e uma isencao declarada a mao. O bloco de cobertura la embaixo
+     cobra o arquivo do disco: se `eth_sendTransaction` voltar a aparecer nele,
+     ou se a allowlist crescer alem dos tres metodos de leitura, o guardiao
+     reprova sem que ninguem precise lembrar de vir aqui. A saida desta lista so
+     e sustentavel porque existe aquele bloco. */
+  /* Entrou em 2026-08-23, e nasceu para entrar. As outras quatro telas chegaram
+     aqui depois de escritas e tiveram de ser convertidas; esta foi escrita
+     contra as regras deste arquivo — zero innerHTML, allowlist de quatro,
+     primitivas vindas de js/motor.js, seletor de sig() sobre o artefato, e
+     nenhum endereco nem seletor digitado. */
+  "js/cofre.js",       /* /cofre/    — a tela fina que assina os quatro atos da V0 */
+  /* Entrou em 2026-08-23, e a entrada dele muda onde fica a fronteira.
+     Ate aqui, assinar exigia uma PAGINA limpa, e por isso o console do
+     fundador — 3.617 linhas e 75 innerHTML — nao podia assinar: ele mandava
+     o usuario para outra tela no meio do fluxo.
+     Medido antes de mover a fronteira: das 75 atribuicoes a innerHTML, UMA
+     fica perto do caminho de assinatura e 74 sao tabelas, paineis e
+     graficos. A fronteira certa nao era a pagina, era o MODULO.
+     Este arquivo tem zero innerHTML, monta o cartao por DOM, congela,
+     imprime a digital e abre a carteira. O console o chama e nunca toca em
+     eth_sendTransaction — entao ele continua cobrado como somente-leitura
+     pelo bloco de cobertura la embaixo, que le o disco e nao esta lista. */
+  "js/assinar-v0.js",  /* modulo · a assinatura acontece DENTRO do console */
 ];
 
 const falhas = [];
@@ -732,12 +770,21 @@ function regra11(rel) {
   };
   const mEnd = /var END = (\/.*\/);/.exec(src);
   if (!mEnd) { falhar(`${onde}: nao achei o regex END para montar a prova executada.`); return; }
+  /* A lista TEM de acompanhar as dependencias reais de conferirTelaContraCalldata.
+     Peca que falta aqui nao reprova nada: vira ReferenceError dentro do `catch`
+     logo abaixo, e o guardiao passa a dizer "a funcao nao carrega isolada" — ou,
+     pior, some com a checagem sem dizer. Foi exatamente assim que a REGRA 6
+     deixou de ser medida nos quatro caminhos ao mesmo tempo.
+     `larguraDe`/`limitesDe`/`valorDaTela`/`valorDaCalldata` entraram em
+     2026-08-23 com a separacao dos dois caminhos (TUBARAO-26). */
   const pecas = ["function pal(hex)", "function palNum(v)", "function palInt(v)",
+    "function larguraDe(tipo)", "function limitesDe(L)",
+    "function valorDaTela(tipo, v)", "function valorDaCalldata(tipo, palavra)",
     "var CODIFICADOR_POR_TIPO =", "function conferirTelaContraCalldata(p)"].map(pega).join("\n");
 
-  let conferir;
+  let conferir, COD;
   try {
-    conferir = new Function("SELETORES", `"use strict";
+    const par = new Function("SELETORES", `"use strict";
       var END = ${mEnd[1]};
       function sig(papel, assinatura) {
         var k = papel + "." + assinatura;
@@ -745,10 +792,63 @@ function regra11(rel) {
         return SELETORES[k];
       }
       ${pecas}
-      return conferirTelaContraCalldata;`)({ "erc20.approve(address,uint256)": "0x095ea7b3" });
+      return { conferir: conferirTelaContraCalldata, COD: CODIFICADOR_POR_TIPO };`)(
+        { "erc20.approve(address,uint256)": "0x095ea7b3",
+          "vault.setAllowedAsset(address,bool)": "0xdd2b0e29" });
+    conferir = par.conferir; COD = par.COD;
   } catch (e) {
     falhar(`${onde}: a funcao nao carrega isolada — ${e.message}`);
     return;
+  }
+
+  /* --- o CODIFICADOR, exercitado a parte ---------------------------------
+     Este bloco nasceu de uma mutacao que passou. Os vetores de conferencia
+     abaixo constroem `p.dados` a mao e nunca chamam CODIFICADOR_POR_TIPO —
+     entao revertendo `bool` para a truthiness original (o bug que liberava o
+     ativo que a tela dizia bloquear) o guardiao seguia 11/11 verde.
+     A conferencia continuaria recusando a operacao, e nisso ela esta certa;
+     mas o codificador voltaria a produzir a calldata errada, e nada media isso.
+     Teste que nao exerce a peca que quebrou nao guarda a peca que quebrou. */
+  const codRecusa = (tipo, v) => {
+    if (!COD || typeof COD[tipo] !== "function") return false;
+    try { COD[tipo](v); return false; } catch { return true; }
+  };
+  const codigos = [
+    ["bool codificando a STRING \"false\" como verdadeiro", "bool", "false", false],
+    ["bool codificando texto qualquer", "bool", "nao", true],
+    ["bool codificando o numero 2", "bool", 2, true],
+    ["uint8 aceitando 999, que a chain leria como 231", "uint8", "999", true],
+    ["uint16 aceitando 70000, que a chain leria como 4464", "uint16", "70000", true],
+    ["uint256 aceitando -1, que nem e hexadecimal valido", "uint256", -1, true],
+    ["uint256 aceitando string vazia como se fosse zero", "uint256", "", true],
+    ["uint112 ausente da tabela (setLimits nao assina sem ele)", "uint112", "1000", false],
+  ];
+  const furos = [];
+  for (const [rotulo, tipo, v, deveRecusar] of codigos) {
+    if (!COD || typeof COD[tipo] !== "function") { furos.push(`${rotulo} — tipo ${tipo} sem codificador`); continue; }
+    let saiu = null, recusou = false;
+    try { saiu = COD[tipo](v); } catch { recusou = true; }
+    if (deveRecusar && !recusou) { furos.push(rotulo); continue; }
+    /* Mesmo aceitando, a saida tem de ser uma palavra de 32 bytes bem formada. */
+    if (!recusou && !/^[0-9a-f]{64}$/.test(String(saiu))) {
+      furos.push(`${rotulo} — produziu algo que nao e palavra de 32 bytes: ${saiu}`);
+    }
+  }
+  /* `bool("false")` e o caso fundador: tem de codificar ZERO, nao recusar. */
+  if (COD && typeof COD.bool === "function") {
+    let b = null;
+    try { b = COD.bool("false"); } catch { b = "recusou"; }
+    if (b !== "0".repeat(64)) {
+      furos.push(`bool("false") codifica ${b === "recusou" ? "recusa" : "..." + String(b).slice(-4)} ` +
+        `e precisa codificar zero — e a cerca fechando quando o dono manda fechar`);
+    }
+  }
+  if (furos.length) {
+    falhar(`${onde}: o CODIFICADOR aceita ${furos.length} valor(es) que a tela nao pode prometer — ` +
+      `${furos.join(" · ")}. A tela imprime um numero e a chain executa outro.`);
+  } else {
+    notas.push(`${rel} · regra 11 · codificador: ${codigos.length} vetor(es) de range/tipo, ` +
+      `bool("false") codifica zero, uint112 presente`);
   }
 
   const A = "0xC52BaD280809672D8EC5D1fcF2d7eCa45a2a423E";
@@ -770,19 +870,57 @@ function regra11(rel) {
   let controleOk = true;
   try { conferir(passo()); } catch (e) { controleOk = false; falhar(`${onde}: recusa um passo LEGITIMO — ${e.message}`); }
 
+  /* O passo com bool. Existe porque os quatro vetores acima nunca exercitaram um
+     campo booleano, e era la que estava o furo: a tela imprimia `false`, a
+     calldata levava 1, e a conferencia — que codificava o valor da tela com a
+     MESMA funcao que montou a calldata — via os dois lados iguais e passava.
+     `bloqueando()` e o passo LEGITIMO de fechar a cerca de um cofre. */
+  const bloqueando = () => ({
+    papel: "vault", assinatura: "setAllowedAsset(address,bool)",
+    args: [{ nome: "token", tipo: "address", valor: A },
+           { nome: "allowed", tipo: "bool", valor: "false" }],
+    dados: "0xdd2b0e29" + pal(A) + num(0n),
+  });
+  const recusaBool = (mutar) => {
+    const p = bloqueando();
+    mutar(p);
+    try { conferir(p); return false; } catch { return true; }
+  };
+  try { conferir(bloqueando()); }
+  catch (e) {
+    controleOk = false;
+    falhar(`${onde}: recusa um passo LEGITIMO de bloquear ativo — ${e.message}`);
+  }
+
   const vetores = [
     ["valor exibido menor do que a calldata codifica", (p) => { p.args[1].valor = "1"; }],
     ["endereco exibido diferente do que vai na calldata", (p) => { p.args[0].valor = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"; }],
     ["palavra a mais na calldata que a tela nao mostra", (p) => { p.dados += num(1n); }],
     ["seletor de outra funcao", (p) => { p.dados = "0xdeadbeef" + p.dados.slice(10); }],
+    ["valor exibido nao cabe no tipo declarado (999 em uint8)",
+      (p) => { p.args[1].tipo = "uint8"; p.args[1].valor = "999"; p.dados = p.dados.slice(0, 10) + pal(A) + num(999n); }],
+    ["campo numerico vazio, que nao e zero", (p) => { p.args[1].valor = ""; }],
+    ["numero em hexadecimal onde o cartao imprime o texto cru", (p) => { p.args[1].valor = "0x989680"; }],
   ];
-  const cegos = vetores.filter(([, m]) => !recusa(m)).map(([n]) => n);
+  const vetoresBool = [
+    ["tela diz `false` e a calldata leva 1 — a cerca abrindo quando manda fechar",
+      (p) => { p.dados = p.dados.slice(0, 10) + pal(A) + num(1n); }],
+    ["campo bool com texto qualquer, que em JavaScript e verdadeiro",
+      (p) => { p.args[1].valor = "nao"; }],
+    ["campo bool recebendo 2, que nao e booleano", (p) => { p.args[1].valor = 2; }],
+    ["palavra de bool que nao e 0 nem 1 na calldata",
+      (p) => { p.dados = p.dados.slice(0, 10) + pal(A) + num(7n); }],
+  ];
+  const cegos = vetores.filter(([, m]) => !recusa(m)).map(([n]) => n)
+    .concat(vetoresBool.filter(([, m]) => !recusaBool(m)).map(([n]) => n));
+  const total = vetores.length + vetoresBool.length;
   if (cegos.length) {
-    falhar(`${onde}: a ligacao NAO recusa ${cegos.length} de ${vetores.length} mutacoes — ${cegos.join(" · ")}. ` +
+    falhar(`${onde}: a ligacao NAO recusa ${cegos.length} de ${total} mutacoes — ${cegos.join(" · ")}. ` +
       `Uma trava que nao tranca e pior que nenhuma, porque o cartao passa a afirmar que trancou.`);
   } else if (controleOk) {
-    notas.push(`${rel} · regra 11 executada: ${vetores.length}/${vetores.length} mutacoes recusadas, ` +
-      `controle legitimo passa, cartao desenha de p.carga`);
+    notas.push(`${rel} · regra 11 executada: ${total}/${total} mutacoes recusadas ` +
+      `(${vetoresBool.length} delas em campo bool), dois controles legitimos passam, ` +
+      `cartao desenha de p.carga`);
   }
 }
 

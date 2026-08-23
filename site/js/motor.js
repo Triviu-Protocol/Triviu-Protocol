@@ -81,15 +81,118 @@
 
   function palavra(hex, i) { var x = String(hex).replace(/^0x/, ""); return x.slice(i * 64, (i + 1) * 64); }
 
-  var CODIFICADOR_POR_TIPO = {
-    address: function (v) {
+  /* A largura que o tipo DECLARA. `palNum` nunca soube de qual tipo foi chamada:
+     uint8 e uint256 codificavam pela mesma funcao, e por isso 999 num campo de
+     oito bits saia como uma palavra de 256 bits que a tela dizia ser 999 e a
+     chain leria como 231. TUBARAO-25. */
+  function larguraDe(tipo) {
+    var m = /^(u?int)(\d+)$/.exec(String(tipo));
+    if (!m) return null;
+    var bits = Number(m[2]);
+    if (!(bits > 0 && bits <= 256 && bits % 8 === 0)) return null;
+    return { comSinal: m[1] === "int", bits: bits };
+  }
+
+  function limitesDe(L) {
+    if (L.comSinal) {
+      var meio = 1n << BigInt(L.bits - 1);
+      return { piso: -meio, teto: meio - 1n };
+    }
+    return { piso: 0n, teto: (1n << BigInt(L.bits)) - 1n };
+  }
+
+  /* O que a TELA mostra, lido como valor. Estrito de proposito — cada recusa
+     aqui corresponde a um jeito medido de a tela prometer uma coisa e a chain
+     executar outra. */
+  function valorDaTela(tipo, v) {
+    if (tipo === "address") {
       if (!END.test(String(v))) throw new Error("o valor exibido nao e um endereco: " + v);
-      return pal(v);
-    },
-    uint8: palNum, uint16: palNum, uint24: palNum, uint32: palNum,
-    uint64: palNum, uint128: palNum, uint256: palNum,
-    int24: palInt, int128: palInt, int256: palInt,
-    bool: function (v) { return palNum(v ? 1 : 0); }
+      return String(v).toLowerCase();
+    }
+    if (tipo === "bool") {
+      if (v === true || v === "true") return true;
+      if (v === false || v === "false") return false;
+      throw new Error("campo bool exibindo " + JSON.stringify(v) + ": aqui vale `true` ou " +
+        "`false`, e nada mais. Texto qualquer e verdadeiro em JavaScript — foi assim que a " +
+        "STRING \"false\" virou 1 e `setAllowedAsset(token, false)` liberou o ativo que a tela " +
+        "dizia estar bloqueando.");
+    }
+    var L = larguraDe(tipo);
+    if (!L) throw new Error("tipo sem largura conhecida: " + tipo);
+    var t = typeof v === "string" ? v.trim() : v;
+    if (t === "" || t === null || t === undefined) {
+      throw new Error("campo " + tipo + " vazio. Vazio nao e zero: zero se escreve `0`, e a " +
+        "diferenca entre os dois e a diferenca entre um numero e um descuido.");
+    }
+    if (typeof t === "string" && /^[+-]?0[xX]/.test(t)) {
+      throw new Error("campo " + tipo + " recebeu `" + v + "`: aqui o numero se escreve em " +
+        "decimal. `0x10` e dezesseis para a maquina e dez para quem le, e o cartao imprime o " +
+        "texto cru — um campo aceita uma forma so.");
+    }
+    if (typeof t === "number" && !Number.isInteger(t)) {
+      throw new Error("campo " + tipo + " recebeu " + t + ", que nao e inteiro.");
+    }
+    var n;
+    try { n = BigInt(t); }
+    catch (e) { throw new Error("campo " + tipo + " recebeu `" + v + "`, que nao e inteiro."); }
+    var lim = limitesDe(L);
+    if (n < lim.piso || n > lim.teto) {
+      throw new Error("o valor " + n + " nao cabe em " + tipo +
+        " (de " + lim.piso + " a " + lim.teto + ")");
+    }
+    return n;
+  }
+
+  /* O caminho INVERSO: a palavra que vai na calldata, lida de volta como valor.
+     Existe para que a conferencia deixe de derivar o esperado pela mesma funcao
+     que produziu o observado — comparar um erro contra ele mesmo sempre bate.
+     TUBARAO-26, o achado que sustenta os outros. */
+  function valorDaCalldata(tipo, palavra) {
+    var w = String(palavra).toLowerCase();
+    if (!/^[0-9a-f]{64}$/.test(w)) {
+      throw new Error("palavra de calldata malformada num campo " + tipo + ": " + palavra);
+    }
+    if (tipo === "address") {
+      if (!/^0{24}/.test(w)) {
+        throw new Error("a palavra do campo address carrega bytes altos nao-zerados: 0x" + w);
+      }
+      return "0x" + w.slice(24);
+    }
+    if (tipo === "bool") {
+      var b = BigInt("0x" + w);
+      if (b === 0n) return false;
+      if (b === 1n) return true;
+      throw new Error("a palavra de um campo bool nao e 0 nem 1: " + b);
+    }
+    var L = larguraDe(tipo);
+    if (!L) throw new Error("tipo sem largura conhecida: " + tipo);
+    var bruto = BigInt("0x" + w);
+    var n = L.comSinal ? BigInt.asIntN(256, bruto) : bruto;
+    var lim = limitesDe(L);
+    if (n < lim.piso || n > lim.teto) {
+      throw new Error("a calldata leva " + n + " num campo " + tipo + ", onde nao cabe");
+    }
+    return n;
+  }
+
+  /* Tabela escrita por extenso, e nao gerada: a lista de tipos que esta pagina
+     sabe assinar tem de ser LEGIVEL aqui. `uint112` entra agora porque
+     `setLimits(uint64,uint64,uint16,uint112)` o pede — e so entra depois de o
+     range passar a valer, que era a condicao do Tubarao. */
+  var CODIFICADOR_POR_TIPO = {
+    address: function (v) { return pal(valorDaTela("address", v)); },
+    bool: function (v) { return palNum(valorDaTela("bool", v) ? 1 : 0); },
+    uint8: function (v) { return palNum(valorDaTela("uint8", v)); },
+    uint16: function (v) { return palNum(valorDaTela("uint16", v)); },
+    uint24: function (v) { return palNum(valorDaTela("uint24", v)); },
+    uint32: function (v) { return palNum(valorDaTela("uint32", v)); },
+    uint64: function (v) { return palNum(valorDaTela("uint64", v)); },
+    uint112: function (v) { return palNum(valorDaTela("uint112", v)); },
+    uint128: function (v) { return palNum(valorDaTela("uint128", v)); },
+    uint256: function (v) { return palNum(valorDaTela("uint256", v)); },
+    int24: function (v) { return palInt(valorDaTela("int24", v)); },
+    int128: function (v) { return palInt(valorDaTela("int128", v)); },
+    int256: function (v) { return palInt(valorDaTela("int256", v)); }
   }
 
   function conferirTelaContraCalldata(p) {
@@ -117,24 +220,38 @@
     var ligadas = 0;
     var soltas = [];
 
+    /* Compara VALOR contra VALOR, e nao bytes contra bytes.
+       A versao anterior codificava `a.valor` com a MESMA funcao que montar() usa
+       para produzir a calldata, e comparava as duas saidas. Um erro dentro do
+       codificador aparecia identico dos dois lados e passava: foi assim que
+       `bool` recebendo a string "false" levou 1 para a chain enquanto o cartao
+       imprimia `false`, com esta conferencia dizendo que estava tudo certo.
+       Agora um lado vem da tela e o outro vem da calldata, pelo caminho inverso.
+       Verificador que deriva o esperado pela funcao que produziu o observado nao
+       verifica nada. */
     for (var i = 0; i < args.length; i++) {
       var a = args[i];
-      var cod = CODIFICADOR_POR_TIPO[a.tipo];
-      if (!cod) { soltas.push(a.tipo + " " + a.nome); continue; }
+      if (!CODIFICADOR_POR_TIPO[a.tipo]) { soltas.push(a.tipo + " " + a.nome); continue; }
       if (i >= palavras) {
         throw new Error(nome + ": o cartao imprime " + args.length +
           " argumentos e a calldata so tem " + palavras + " palavras");
       }
-      var esperada;
-      try { esperada = String(cod(a.valor)).toLowerCase(); }
+      var naTela;
+      try { naTela = valorDaTela(a.tipo, a.valor); }
       catch (e) {
-        throw new Error(nome + ": o valor exibido de `" + a.nome + "` nao codifica como " +
+        throw new Error(nome + ": o valor exibido de `" + a.nome + "` nao vale como " +
           a.tipo + " — " + (e && e.message ? e.message : String(e)));
       }
       var vinda = corpo.slice(i * 64, (i + 1) * 64);
-      if (esperada !== vinda) {
+      var naCalldata;
+      try { naCalldata = valorDaCalldata(a.tipo, vinda); }
+      catch (e) {
+        throw new Error(nome + ": a calldata nao se le como " + a.tipo + " no campo `" +
+          a.nome + "` — " + (e && e.message ? e.message : String(e)));
+      }
+      if (naTela !== naCalldata) {
         throw new Error(nome + ": o cartao imprime `" + a.nome + " = " + a.valor +
-          "`, que codifica " + esperada + ", e a calldata leva " + vinda + " nessa posicao");
+          "`, que vale " + naTela + ", e a calldata leva " + naCalldata + " nessa posicao");
       }
       ligadas += 1;
     }
@@ -150,6 +267,73 @@
     }
 
     return { ligadas: ligadas, palavras: palavras, soltas: soltas };
+  }
+
+  /** Os tipos, palavra a palavra, como o artefato compilado os declara. Tuplas
+      sao achatadas — um struct de dez campos estaticos ocupa dez palavras, na
+      ordem. Devolve null diante de qualquer tipo dinamico ou desconhecido,
+      porque com tipo dinamico a posicao da palavra deixa de ser a posicao do
+      argumento e a correspondencia que esta funcao promete some.
+
+      ESTAVA FALTANDO AQUI, e a falta foi medida em 2026-08-22 ao tentar consumir
+      o motor sozinho: `MOTOR.recusarAprovacaoInfinita(...)` lancava
+      `ReferenceError: tiposPorPalavra is not defined`.
+
+      Nao quebrou em producao por ACIDENTE DE ORDEM DE CARGA: as duas paginas que
+      trazem motor.js — /calldata/ e /console/ — tambem trazem console.js, que a
+      define como global, e o motor a alcancava por escopo lexico. Tirar
+      console.js de uma dessas paginas apagaria a recusa de aprovacao ilimitada
+      em SILENCIO, e o sintoma so apareceria no primeiro approve.
+      Guarda que depende de coincidencia nao e guarda.
+
+      O cabecalho deste arquivo diz que cada funcao aqui saiu VERBATIM de
+      console-lp.js. Esta saiu do mesmo lugar, e agora saiu inteira. As duas
+      telas mantem a copia delas: dentro deste IIFE vale esta, por escopo lexico,
+      e mexer em dois arquivos que ja passam nao estava no escopo desta onda. */
+  function tiposPorPalavra(papel, assinatura) {
+    /* A raiz do ABI e resolvida SEM alcancar o escopo deste modulo quando ela
+       ja existe, e a razao foi medida em 2026-08-23: o check-assinatura EXTRAI
+       esta funcao do arquivo e a EXECUTA isolada, injetando o ABI compilado
+       como `ABI`. A primeira versao chamava `abi()` — um helper que so existe
+       dentro deste IIFE — e la fora aquilo era um ReferenceError engolido pelo
+       `catch` do guardiao.
+       O efeito nao foi um teste vermelho apontando para ca. Foi a REGRA 6
+       deixar de ser medida nos quatro caminhos de assinatura ao mesmo tempo,
+       com o guardiao dizendo "nenhuma palavra sem sinal foi exercitada" —
+       uma frase que se le como ruido e significa que a trava contra aprovacao
+       ilimitada parou de ser exercitada.
+       A regra que sai daqui: funcao que um guardiao executa isolada nao pode
+       depender de escopo que so existe aqui dentro. */
+    /* `raizAbi`, e nao `raiz`: `raiz` ja e o parametro do IIFE deste arquivo
+       (linha 14) e significa o WINDOW. Declarar um `var raiz` aqui dentro com
+       outro significado nao muda nada hoje — muda o que a proxima edicao
+       encontra, dentro justamente da funcao que decide se uma aprovacao
+       ilimitada e recusada. TUBARAO-24. */
+    var raizAbi = (typeof ABI !== "undefined" && ABI) || abi();
+    var g = (raizAbi.contratos && raizAbi.contratos[papel]) ||
+            (raizAbi.extras && raizAbi.extras[papel]);
+    var f = g && g.funcoes && g.funcoes[assinatura];
+    if (!f || !f.entradas) return null;
+    var fora = [], ok = true;
+    function achatar(tipo) {
+      tipo = String(tipo).trim();
+      if (/^\(.*\)$/.test(tipo)) {
+        var s = tipo.slice(1, -1), n = 0, atual = "";
+        for (var i = 0; i < s.length; i++) {
+          var c = s.charAt(i);
+          if (c === "(") n += 1;
+          else if (c === ")") n -= 1;
+          if (c === "," && n === 0) { achatar(atual); atual = ""; continue; }
+          atual += c;
+        }
+        if (atual.trim()) achatar(atual);
+        return;
+      }
+      if (!/^(address|bool|uint\d+|int\d+|bytes\d+)$/.test(tipo)) { ok = false; return; }
+      fora.push(tipo);
+    }
+    f.entradas.forEach(function (e) { achatar(e.tipo); });
+    return ok ? fora : null;
   }
 
   function recusarAprovacaoInfinita(dados, papel, assinatura) {
@@ -177,7 +361,9 @@
     cargaDaTx: cargaDaTx, hashDaCarga: hashDaCarga, hashCanon: hashCanon,
     conferirTelaContraCalldata: conferirTelaContraCalldata,
     recusarAprovacaoInfinita: recusarAprovacaoInfinita,
-    CODIFICADOR_POR_TIPO: CODIFICADOR_POR_TIPO
+    CODIFICADOR_POR_TIPO: CODIFICADOR_POR_TIPO,
+    valorDaTela: valorDaTela, valorDaCalldata: valorDaCalldata,
+    larguraDe: larguraDe, limitesDe: limitesDe
   };
   if (typeof module !== "undefined" && module.exports) { module.exports = MOTOR; }
   if (raiz) { raiz.TRIVIU_MOTOR = MOTOR; }
