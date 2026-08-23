@@ -407,18 +407,23 @@ const ATOS = {
   /* Existem no artefato compilado e ainda nao tem tela de assinatura. Recusar
      nomeando a assinatura real e diferente de recusar em branco: o proximo a
      construir a tela sabe exatamente o que montar. */
-  /* Quatro que PASSARAM de recusa a assinatura em 2026-08-23. Todos sao
-     `_checkOwner()` no cofre — a politica de um cofre pertence ao dono dele — e
-     todos tem argumentos de tipo estatico, montaveis pelo codificador do motor. */
+  /* CINCO que passaram de recusa a assinatura. Todos sao `_checkOwner()` no
+     cofre — a politica de um cofre pertence ao dono dele — e todos tem
+     argumentos de tipo estatico, montaveis pelo codificador do motor. */
   ativo:        { cofre: 'ativo',        nome: 'vault.setAllowedAsset(address,bool)' },
   estrategia:   { cofre: 'estrategia',   nome: 'vault.setStrategy(address)' },
   moedaDoCofre: { cofre: 'moedaDoCofre', nome: 'vault.setBaseCurrency(address,bool)' },
   guarda:       { cofre: 'guarda',       nome: 'vault.addGuard/removeGuard(address)' },
-  /* Este continua recusando, e o motivo e tecnico e nomeado: a assinatura pede
-     `uint112` e o codificador do motor vai de uint64 a uint128 sem passar por
-     112. Somar um tipo la e mexer em superficie compartilhada pelas quatro telas
-     que assinam — isso pede o Tubarao antes, e nao depois. */
-  limites:    { falta: 'vault.setLimits(uint64,uint64,uint16,uint112) — falta uint112 no codificador do motor' },
+  /* `limites` recusou ate 2026-08-23 por falta de `uint112` no codificador, e a
+     ordem em que isso se resolveu importa mais que o resultado: somar o tipo
+     isolado foi VETADO pelo Tubarao-branco, que exigiu antes o conserto da
+     classe — todo `uint` passou a validar a propria largura, e a conferencia
+     tela-contra-calldata deixou de derivar o esperado da mesma funcao que
+     produzia o observado. So depois disso o tipo entrou.
+     A linha anterior aqui dizia "falta uint112 no codificador do motor" e
+     continuou dizendo isso depois de o tipo ter entrado — uma tela afirmando
+     um estado que deixara de ser verdade. */
+  limites:      { cofre: 'limites',      nome: 'vault.setLimits(uint64,uint64,uint16,uint112)' },
   saida:      { falta: 'escapeHatch.withdraw(address,uint256,address)' },
 
   /* NAO EXISTEM nesta linha. Cada um destes era um botao que prometia uma
@@ -459,7 +464,7 @@ const ATOS = {
     '`bytes`. Esta tela nao monta essa calldata, e nenhuma outra monta ainda.' }
 };
 
-async function tx({ato, to, fn, gas, label, apply, log, quantia, indice, alvo, ligado}){
+async function tx({ato, to, fn, gas, label, apply, log, quantia, indice, alvo, ligado, limites}){
   if (apply) {
     throw new Error('PARADO: este botao ainda tenta mudar o estado da tela sozinho. ' +
       'Nada foi enviado e nada foi alterado — o ponto de chamada precisa ser convertido.');
@@ -517,6 +522,7 @@ async function tx({ato, to, fn, gas, label, apply, log, quantia, indice, alvo, l
     moeda: S.moeda || TRIVIU.base.address,
     alvo: alvo === undefined ? null : alvo,
     ligado: ligado === undefined ? null : ligado,
+    limites: limites === undefined ? null : limites,
     quantia: quantia === undefined || quantia === null ? null : paraBase(quantia)
   });
   if (!r) { log?.('cancelado — nada foi enviado', 'dim'); return null; }
@@ -789,7 +795,82 @@ const LER = {
     }
     return fora;
   },
+  /* OS LIMITES, desempacotados da unica palavra que `limits()` devolve.
+     `Limits` e um user-defined value type sobre bytes32, e os quatro campos
+     moram em deslocamentos fixos (contracts/src/api/types/Limits.sol):
+        cooldown  uint64  >> 192
+        maxValidity uint64 >> 128
+        minRatioBps uint16 >> 112      (zero DESLIGA a checagem)
+        quantum   uint112  os 112 bits baixos
+     Ler a palavra como um numero so mostraria um inteiro de 78 digitos que nao
+     significa nada para quem le. */
+  limites: async (cofre) => {
+    const w = comoNumero(pal(await chamar(cofre, sig('vault','limits()')), 0));
+    return {
+      palavra: w,
+      cooldown: w >> 192n,
+      maxValidity: (w >> 128n) & 0xFFFFFFFFFFFFFFFFn,
+      minRatioBps: (w >> 112n) & 0xFFFFn,
+      quantum: w & ((1n << 112n) - 1n)
+    };
+  },
+  /* A SIMULACAO. `dryRunChecks` e `view`: nao gasta, nao assina, nao muda nada.
+     Ela roda a cadeia inteira — cooldown, moeda-base habilitada, pergunta a
+     estrategia, veta o intent e passa pelos guardioes — e devolve o Intent que
+     a estrategia quer executar.
+     O valor dela esta TAMBEM no que ela recusa: cada revert e uma resposta.
+     `StrategyCallFailed` significa que nao ha estrategia apontada;
+     `BaseNotEnabled`, que a moeda-base do cofre esta desligada. Traduzir isso e
+     a diferenca entre a tela dizer o que fazer e dizer "erro". */
+  simular: async (cofre, lotId, base) => {
+    try {
+      const r = await chamar(cofre, sig('vault','dryRunChecks(uint256,address)') +
+        CODIF.uint256(String(lotId)) + CODIF.address(base));
+      const hex = String(r || '').replace(/^0x/, '');
+      if (hex.length < 384) return { ok: false, cru: r, motivo: null };
+      return { ok: true, intent: {
+        lado: Number(comoNumero(pal(r, 0))) === 0 ? 'compra' : 'venda',
+        ativo: comoEndereco(pal(r, 1)),
+        base: comoEndereco(pal(r, 2)),
+        entra: comoNumero(pal(r, 3)),
+        saiMin: comoNumero(pal(r, 4)),
+        lote: comoNumero(pal(r, 5))
+      } };
+    } catch (e) {
+      return { ok: false, motivo: nomeDoRevert(e), erro: e };
+    }
+  },
   existe:    async (a) => { const c = await triviuRead('eth_getCode', [a, 'latest']); return !!c && c !== '0x'; }
+};
+
+/* O nome do erro NAO e decodificado aqui. `assinar-v0.js` ja tem
+   `decodificarRevert`, com a cicatriz de 2026-08-12 escrita dentro dela — a
+   versao herdada indexava as palavras sobre a string CRUA, que comeca com o
+   seletor, e todo argumento saia deslocado em quatro bytes enquanto o NOME saia
+   certo: a tela imprimia a verdade e a mentira com a mesma tipografia.
+   Escrever uma segunda copia aqui recriaria a separacao que o cabecalho de
+   motor.js descreve como o mecanismo do F-1. Uma definicao, dois consumidores. */
+function nomeDoRevert(e){
+  const texto = JSON.stringify((e && (e.data || e.message)) || e || '');
+  const m = /0x[0-9a-fA-F]{8,}/.exec(texto);
+  if (!m) return null;
+  const d = window.TRIVIU_ASSINAR?.decodificarRevert?.(m[0]);
+  if (!d) return null;
+  if (!d.nome) return d.seletor;            /* seletor cru ja e melhor que "erro" */
+  const i = d.nome.indexOf('(');
+  return i >= 0 ? d.nome.slice(0, i) : d.nome;
+}
+
+/* Cada erro do cofre, dito em portugues e virado em INSTRUCAO. A tabela nomeia
+   so os que a simulacao produz de verdade; o resto cai no nome cru, que ja e
+   melhor do que nada. */
+const O_QUE_FAZER = {
+  StrategyCallFailed: 'Nao ha estrategia apontada neste cofre, ou ela nao respondeu. Aponte uma estrategia na cerca acima.',
+  BaseNotEnabled: 'A moeda-base deste cofre esta desligada. Ligue-a na cerca acima — quem decide isso e voce, nao o protocolo.',
+  CooldownActive: 'O intervalo minimo entre execucoes ainda nao passou. Veja `cooldown` nos limites.',
+  AmountQuantizedToZero: 'A quantia ficou em zero depois de aplicada a granularidade (`quantum`). Baixe o quantum ou deposite mais.',
+  NoLots: 'Nao ha lote aberto para fechar, e a estrategia pediu um fechamento.',
+  BaseNotCurated: 'O registro do protocolo nao cura esta moeda-base. O ciclo so roda com uma moeda curada.'
 };
 
 /* Quem a chain diz que e a moeda-base, e nao quem a legenda dizia. */
@@ -1857,7 +1938,8 @@ $('btnDelVault').onclick = () => { S.vaults = S.vaults.filter(x => x.id !== S.ac
 let CERCA_LIDA = null;
 
 async function lerCercaReal(cofre){
-  const [ativos, moedas, guardas, estrategia] = await Promise.all([
+  const [limites, ativos, moedas, guardas, estrategia] = await Promise.all([
+    LER.limites(cofre).catch(() => null),
     Promise.all(MOEDAS_LIDAS.map(async (m) => ({
       ...m, casas: await LER.casasDoAtivo(cofre, m.addr).catch(() => null) }))),
     Promise.all(MOEDAS_LIDAS.map(async (m) => ({
@@ -1865,7 +1947,19 @@ async function lerCercaReal(cofre){
     LER.guardas(cofre).catch(() => null),
     LER.estrategia(cofre).catch(() => null)
   ]);
-  return { cofre, ativos, moedas, guardas, estrategia };
+  return { cofre, limites, ativos, moedas, guardas, estrategia };
+}
+
+/* Segundos viram algo que se le. `0` nao e "zero segundos" para quem configura
+   um cofre: e a checagem DESLIGADA, e dizer as duas coisas com a mesma palavra
+   e o que faz alguem desligar um piso sem perceber. */
+function emTempo(s){
+  const n = Number(s);
+  if (!n) return 'zero — sem intervalo minimo';
+  if (n < 60) return n + 's';
+  if (n < 3600) return (n / 60).toFixed(n % 60 ? 1 : 0) + ' min';
+  if (n < 86400) return (n / 3600).toFixed(n % 3600 ? 1 : 0) + ' h';
+  return (n / 86400).toFixed(n % 86400 ? 1 : 0) + ' dias';
 }
 
 function renderCercaReal(){
@@ -1940,6 +2034,79 @@ function renderCercaReal(){
     b.onclick = aoClicar;
     return b;
   };
+
+  /* --- os quatro tetos, numa palavra so na chain ----------------------- */
+  const tituloL = document.createElement('p');
+  tituloL.className = 'eyebrow';
+  tituloL.textContent = 'setLimits(uint64,uint64,uint16,uint112) · os tetos deste cofre';
+  corpo.appendChild(tituloL);
+  const L = C.limites;
+  const campoLim = (id, rot, valor) => {
+    const cx = document.createElement('div');
+    const lab = document.createElement('label');
+    lab.className = 'sr'; lab.htmlFor = id; lab.textContent = rot;
+    const inp = document.createElement('input');
+    inp.id = id; inp.placeholder = rot; inp.inputMode = 'decimal';
+    inp.value = valor === null || valor === undefined ? '' : String(valor);
+    cx.appendChild(lab); cx.appendChild(inp);
+    return cx;
+  };
+  if (!L){
+    corpo.appendChild(linha('limites', 'nao consegui ler limits()', true, []));
+  } else {
+    corpo.appendChild(linha('cooldown', emTempo(L.cooldown) + ' · intervalo minimo entre execucoes', false, []));
+    corpo.appendChild(linha('maxValidity', emTempo(L.maxValidity) + ' · validade maxima declaravel', false, []));
+    corpo.appendChild(linha('minRatioBps',
+      (L.minRatioBps === 0n ? 'ZERO — o piso de razao esta DESLIGADO'
+        : (Number(L.minRatioBps) / 100) + '% de razao minima saida/entrada'),
+      L.minRatioBps === 0n, []));
+    corpo.appendChild(linha('quantum', String(L.quantum) +
+      ' · granularidade de amountIn, em unidades-base', false, []));
+
+    const editar = document.createElement('div');
+    editar.className = 'row';
+    editar.appendChild(campoLim('lim_cd', 'cooldown (s)', L.cooldown));
+    editar.appendChild(campoLim('lim_mv', 'validade (s)', L.maxValidity));
+    editar.appendChild(campoLim('lim_mr', 'razao (bps)', L.minRatioBps));
+    editar.appendChild(campoLim('lim_qt', 'quantum', L.quantum));
+    const acaoL = document.createElement('div');
+    acaoL.className = 'tight';
+    acaoL.appendChild(botao('Gravar os quatro', 'primary', () => {
+      /* Os quatro vao JUNTOS na mesma palavra: mandar um apaga os outros tres.
+         Por isso os campos nascem preenchidos com o que a chain respondeu — quem
+         quiser mudar um so nao precisa saber os outros de cabeca. */
+      const v = (id) => String(document.getElementById(id)?.value ?? '').trim();
+      const quatro = { cooldown: v('lim_cd'), maxValidity: v('lim_mv'),
+                       minRatioBps: v('lim_mr'), quantum: v('lim_qt') };
+      const vazio = Object.entries(quatro).filter(([, x]) => x === '').map(([k]) => k);
+      if (vazio.length) return toast('Faltou: ' + vazio.join(', ') +
+        '. Os quatro gravam juntos — deixar um em branco apagaria o valor atual dele.', 'err');
+      const est = estadoDeZero(quatro.minRatioBps);
+      if (est !== ZERO_NAO && !confirmarDesligarPiso(est)) return;
+      mudarLimites(quatro);
+    }));
+    editar.appendChild(acaoL);
+    corpo.appendChild(editar);
+  }
+
+  /* --- a simulacao: view, custa zero ----------------------------------- */
+  const tituloS = document.createElement('p');
+  tituloS.className = 'eyebrow';
+  tituloS.textContent = 'dryRunChecks(uint256,address) · o que a estrategia quer fazer, sem gastar';
+  corpo.appendChild(tituloS);
+  const explS = document.createElement('p');
+  explS.className = 'faint small';
+  explS.textContent = 'Chamada de leitura: nao assina, nao gasta gas, nao muda nada. Roda a cadeia ' +
+    'inteira — intervalo, moeda-base, a pergunta a estrategia, o veto e os guardioes — e devolve a ' +
+    'intencao. Quando ela recusa, a recusa e a resposta: diz exatamente o que falta.';
+  corpo.appendChild(explS);
+  const saidaS = document.createElement('div');
+  saidaS.id = 'cercaSimulacao';
+  corpo.appendChild(saidaS);
+  const acaoS = document.createElement('div');
+  acaoS.className = 'tight';
+  acaoS.appendChild(botao('Simular', 'primary', () => simularCiclo(saidaS)));
+  corpo.appendChild(acaoS);
 
   /* --- ativos: liberar e BLOQUEAR ------------------------------------- */
   const tituloA = document.createElement('p');
@@ -2043,6 +2210,142 @@ function renderCercaReal(){
   }));
   apontarE.appendChild(acaoE);
   corpo.appendChild(apontarE);
+}
+
+/* Zero decidido pela MESMA regra que decide o que vai para a chain.
+   Duas versoes anteriores erraram, em direcoes opostas, e as duas foram medidas:
+     1. `v === '0'` — comparava a GRAFIA. `00`, `000` e `-0` viram zero na
+        calldata e nao disparavam a confirmacao: quem digitasse `00` desligava o
+        piso de razao do proprio cofre sem a tela perguntar nada.
+     2. `BigInt(v) === 0n` — permissiva demais na outra ponta. `BigInt("")` e
+        `BigInt("0x0")` devolvem `0n` em JavaScript, e o codificador RECUSA as
+        duas. A confirmacao apareceria para valores que nem chegam a chain, e
+        confirmacao que aparece a toa treina a pessoa a clicar sem ler.
+   `valorDaTela` e exatamente o juiz que decide se o valor vira calldata. Se ele
+   recusa, nao ha piso a desligar; se ele aceita e da zero, ha. Perguntar a ele e
+   o que impede esta funcao de divergir do codificador na proxima edicao. */
+/* TRES estados, e nao dois. Duas versoes anteriores colapsaram estados
+   diferentes num booleano so, cada uma para um lado:
+     · `v === '0'` comparava a GRAFIA: `00`, `000` e `-0` desligavam o piso sem
+       confirmacao nenhuma;
+     · o `catch` unico juntava "o motor disse que nao vale" com "o motor nao
+       estava la", e no segundo caso a guarda falhava ABERTA.
+   O terceiro estado existe porque nao saber nao e saber que nao, e tambem nao e
+   saber que sim: dizer "minRatioBps = 0 DESLIGA o piso" a quem digitou 9900
+   seria a tela afirmando um fato falso para poder ser cautelosa. Cautela nao
+   autoriza mentir. TUBARAO-27. */
+var ZERO_SIM = 'sim', ZERO_NAO = 'nao', ZERO_NAO_SEI = 'nao-sei';
+
+function estadoDeZero(v){
+  var motor = window.TRIVIU_MOTOR;
+  if (!motor || typeof motor.valorDaTela !== 'function') return ZERO_NAO_SEI;
+  try { return motor.valorDaTela('uint16', v) === 0n ? ZERO_SIM : ZERO_NAO; }
+  catch { return ZERO_NAO; }   /* o motor RESPONDEU: o valor nao vale como uint16 */
+}
+
+/* NAO ha um `ehZero` booleano aqui, e a ausencia e deliberada. Existiu por uma
+   rodada, "para quem so precisa do booleano" — e ninguem precisava: ficou
+   declarada e chamada zero vezes, viva apenas porque um vetor do ensaio a
+   exercitava. Teste que exercita codigo fora do caminho real mede a si mesmo.
+   Quem precisar do booleano escreve `estadoDeZero(v) !== ZERO_NAO` e ve, na
+   propria linha, que o `!== ZERO_NAO` e o que torna a coisa fail-closed. */
+
+/* Desligar um piso e uma decisao, e decisao pede um ato deliberado. Sem isto,
+   `minRatioBps = 0` sai igual a qualquer outro numero digitado, e o registro
+   `guarda-que-recusa-zero-e-aceita-um` desta casa e sobre exatamente isso: piso
+   que some sem ninguem ter escolhido que sumisse. */
+function confirmarDesligarPiso(estado){
+  if (estado === ZERO_NAO_SEI){
+    /* NAO afirma que o valor e zero — porque nao se sabe. Pergunta assim mesmo,
+       que e o lado seguro, e diz por que esta perguntando. */
+    return window.confirm(
+      'Nao foi possivel conferir este valor: o motor de assinatura nao respondeu, ' +
+      'e e ele quem decide o que vira calldata.\n\n' +
+      'Se o valor for zero, o piso de razao saida/entrada deste cofre sera DESLIGADO. ' +
+      'Como nao da para verificar, esta tela pergunta em vez de decidir por voce.\n\n' +
+      'Prosseguir mesmo assim?');
+  }
+  return window.confirm(
+    'minRatioBps = 0 DESLIGA o piso de razao saida/entrada deste cofre.\n\n' +
+    'Com ele desligado, a estrategia pode propor uma troca de qualquer razao e o ' +
+    'cofre nao recusa por esse motivo. Os outros tetos continuam valendo.\n\n' +
+    'Desligar mesmo assim?');
+}
+
+/* Os quatro tetos gravam JUNTOS: `setLimits` empacota tudo numa palavra. */
+async function mudarLimites(quatro){
+  const cofre = S.triad?.vault || activeV()?.addr;
+  if (!cofre) return toast('Abra um cofre primeiro.', 'err');
+  const fn = 'setLimits(' + quatro.cooldown + ', ' + quatro.maxValidity + ', ' +
+    quatro.minRatioBps + ', ' + quatro.quantum + ')';
+  try {
+    const r = await tx({ ato: 'limites', to: cofre, fn, gas: GAS.fence, label: fn,
+      limites: quatro });
+    if (r && r.ok){ CERCA_LIDA = null; renderCercaReal(); }
+  } catch (e) { toast(e.message, 'err'); }
+}
+
+/* A simulacao. Nao assina nada — e `eth_call`. O que ela devolve, e o que ela
+   RECUSA, sao os dois uteis: a recusa nomeia o que falta configurar. */
+async function simularCiclo(onde){
+  const cofre = S.triad?.vault || activeV()?.addr;
+  if (!cofre) return toast('Abra um cofre primeiro.', 'err');
+  const base = S.moeda || TRIVIU.base.address;
+  onde.textContent = '';
+  const p = document.createElement('p');
+  p.className = 'faint small';
+  p.textContent = 'Perguntando ao cofre…';
+  onde.appendChild(p);
+
+  /* lotId 0 = "sem lote candidato": e o caso de ABRIR posicao. Fechar um lote
+     especifico pede o id dele, e a lista de lotes ainda nao esta nesta tela. */
+  const r = await LER.simular(cofre, 0, base);
+  onde.textContent = '';
+  const bloco = document.createElement('div');
+  bloco.className = 'fitem';
+
+  if (r.ok){
+    const t = document.createElement('p');
+    t.className = 'small';
+    t.textContent = 'A estrategia propoe:';
+    bloco.appendChild(t);
+    const casas = (MOEDAS_LIDAS.find(m => m.addr.toLowerCase() === r.intent.base.toLowerCase())?.casas) ?? null;
+    const emUnidades = (v) => casas === null ? String(v) + ' (unidades-base)'
+      : (Number(v) / 10 ** casas).toFixed(Math.min(casas, 6));
+    for (const [rot, val] of [
+      ['lado', r.intent.lado],
+      ['ativo', r.intent.ativo],
+      ['moeda-base', r.intent.base],
+      ['entra', emUnidades(r.intent.entra)],
+      ['sai no minimo', emUnidades(r.intent.saiMin)],
+      ['lote', String(r.intent.lote)]
+    ]){
+      const l = document.createElement('div');
+      const b = document.createElement('b'); b.textContent = rot + ': ';
+      const s = document.createElement('span'); s.className = 'small'; s.textContent = String(val);
+      l.appendChild(b); l.appendChild(s);
+      bloco.appendChild(l);
+    }
+    const nota = document.createElement('p');
+    nota.className = 'faint small';
+    nota.textContent = 'Isto passou por intervalo, moeda-base, veto e guardioes. Executar ainda ' +
+      'exige a rota do swap, que esta tela nao monta.';
+    bloco.appendChild(nota);
+  } else {
+    const nome = r.motivo;
+    const t = document.createElement('p');
+    t.className = 'small warn';
+    t.textContent = nome ? ('O cofre recusou: ' + nome) : 'O cofre recusou, e nao reconheci o motivo.';
+    bloco.appendChild(t);
+    const oQue = nome && O_QUE_FAZER[nome];
+    const d = document.createElement('p');
+    d.className = 'faint small';
+    d.textContent = oQue || 'Nenhuma transacao foi feita — esta chamada e de leitura. ' +
+      (nome ? 'O nome acima e o do erro que o proprio contrato declara.'
+            : 'Sem o nome, o que da para dizer e que a leitura nao passou.');
+    bloco.appendChild(d);
+  }
+  onde.appendChild(bloco);
 }
 
 /* Um clique = uma transacao. Nada muda na tela por conta propria: depois de a

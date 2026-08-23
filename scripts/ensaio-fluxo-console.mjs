@@ -277,7 +277,13 @@ const ANEXO_DE_ENSAIO = `
   renderCustos: typeof renderCustos === "function" ? renderCustos : null,
   mudarCerca: typeof mudarCerca === "function" ? mudarCerca : null,
   renderCercaReal: typeof renderCercaReal === "function" ? renderCercaReal : null,
-  lerCercaReal: typeof lerCercaReal === "function" ? lerCercaReal : null
+  lerCercaReal: typeof lerCercaReal === "function" ? lerCercaReal : null,
+  mudarLimites: typeof mudarLimites === "function" ? mudarLimites : null,
+  simularCiclo: typeof simularCiclo === "function" ? simularCiclo : null,
+  estadoDeZero: typeof estadoDeZero === "function" ? estadoDeZero : null,
+  emTempo: typeof emTempo === "function" ? emTempo : null,
+  nomeDoRevert: typeof nomeDoRevert === "function" ? nomeDoRevert : null,
+  O_QUE_FAZER: typeof O_QUE_FAZER !== "undefined" ? O_QUE_FAZER : null
 }; }catch(e){ globalThis.__consoleErro = e; }
 `;
 
@@ -338,6 +344,15 @@ for (const id of ["pBase", "nvBase"]) {
   }
 }
 const formJs = JS_CONSOLE;
+/* O MESMO fonte, sem comentario. Asserção que mede o que a TELA diz tem de ler
+   isto, e não `formJs`: comentário não é dito a ninguém.
+   Quarta vez que esta casa tropeça no mesmo lugar, e desta vez o comentário que
+   enganou o detector foi escrito pelo próprio autor do detector, na linha que
+   explicava que a frase antiga tinha saído. Ver `comentario-engana-regex`. */
+const semComentarioJs = (s) => s
+  .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
+  .replace(/(^|[^:])\/\/[^\n]*/g, (m, p) => p + m.slice(p.length).replace(/./g, " "));
+const formJsLimpo = semComentarioJs(JS_CONSOLE);
 const optsEmJs = [...formJs.matchAll(/<select id="(wBase|pBase|nvBase)"[^>]*>\s*(<option[^>]*>[^<]*<\/option>\s*)+/g)];
 conferir(optsEmJs.length === 0,
   "nenhum <option> de moeda escrito a mao dentro do JS",
@@ -550,6 +565,156 @@ if (C && C.mudarCerca && C.S && C.S.triad && C.S.triad.vault) {
     "e nao a mesma coisa duas vezes, que era o defeito");
 } else {
   falhas.push("secao 9: sem cofre em S.triad.vault, a cerca nao pode ser exercida");
+}
+
+console.log("\n=== 10 · os tetos e a simulacao (Grupo A) ===");
+if (C && C.LER && C.S && C.S.triad && C.S.triad.vault) {
+  const cofre = C.S.triad.vault;
+  const USDC = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359";
+
+  /* --- limits(): uma palavra, quatro campos ---------------------------- */
+  let L = null, erroL = null;
+  try { L = await C.LER.limites(cofre); } catch (e) { erroL = e; }
+  conferir(!erroL && L, "limits() le e desempacota",
+    erroL ? String(erroL.message).slice(0, 90)
+      : `cooldown=${L.cooldown} maxValidity=${L.maxValidity} minRatioBps=${L.minRatioBps} quantum=${L.quantum}`);
+  if (L) {
+    /* Um cofre novo nasce com os quatro em zero, e a soma dos campos tem de
+       reconstruir a palavra: se o deslocamento estiver errado, um campo rouba
+       bits do vizinho e a conta nao fecha. */
+    const remontada = (L.cooldown << 192n) | (L.maxValidity << 128n) |
+      (L.minRatioBps << 112n) | L.quantum;
+    conferir(remontada === L.palavra,
+      "os quatro campos remontam a palavra original",
+      "se um deslocamento estiver errado, um campo rouba bits do vizinho");
+  }
+
+  /* --- setLimits: gravar e RELER da chain ------------------------------ */
+  const clicar = () => setInterval(() => {
+    const m = body.children.find((c) => String(c.className).includes("assfundo"));
+    const b = m && acharPorSeletor(m, ".assprim");
+    if (b && b.ouvintes.click && m.classList.contains("assaberto")) b.ouvintes.click[0]();
+  }, 120);
+  const ALVO = { cooldown: "300", maxValidity: "1800", minRatioBps: "9900", quantum: "1000" };
+  let t = clicar(), erroS = null;
+  try {
+    await Promise.race([
+      C.mudarLimites(ALVO),
+      new Promise((_, r) => setTimeout(() => r(new Error("setLimits nao resolveu em 40s")), 40000))
+    ]);
+  } catch (e) { erroS = e; }
+  clearInterval(t);
+  const depois = await C.LER.limites(cofre).catch(() => null);
+  const bateu = depois && String(depois.cooldown) === ALVO.cooldown &&
+    String(depois.maxValidity) === ALVO.maxValidity &&
+    String(depois.minRatioBps) === ALVO.minRatioBps &&
+    String(depois.quantum) === ALVO.quantum;
+  conferir(!erroS && bateu, "setLimits grava os QUATRO e a chain devolve os quatro",
+    erroS ? String(erroS.message).slice(0, 110)
+      : (depois ? `cooldown=${depois.cooldown} maxValidity=${depois.maxValidity} ` +
+          `minRatioBps=${depois.minRatioBps} quantum=${depois.quantum}` : "nao consegui reler"));
+
+  /* --- dryRunChecks: view, e a recusa e a resposta --------------------- */
+  let sim = null, erroD = null;
+  try { sim = await C.LER.simular(cofre, 0, USDC); } catch (e) { erroD = e; }
+  conferir(!erroD && sim, "dryRunChecks responde sem lancar",
+    erroD ? String(erroD.message).slice(0, 90) : (sim.ok ? "propos um intent" : `recusou: ${sim.motivo}`));
+  if (sim && !sim.ok) {
+    /* Um cofre sem estrategia apontada TEM de recusar, e o nome do erro e o que
+       torna a recusa util. `null` aqui significa que a tela diria "erro". */
+    conferir(sim.motivo !== null, "a recusa vem com o NOME do erro do contrato",
+      sim.motivo ? `${sim.motivo}` : "sem nome — a tela diria apenas 'erro'");
+    conferir(!!(C.O_QUE_FAZER && C.O_QUE_FAZER[sim.motivo]),
+      "o nome do erro tem tradução em instrucao",
+      C.O_QUE_FAZER && C.O_QUE_FAZER[sim.motivo]
+        ? String(C.O_QUE_FAZER[sim.motivo]).slice(0, 70) : `sem entrada para ${sim.motivo}`);
+  }
+
+  /* --- o ato deixou de recusar ----------------------------------------- */
+  conferir(!/falta uint112 no codificador/.test(formJsLimpo),
+    "o console parou de DIZER que falta uint112",
+    "medido sem comentario: a explicacao historica cita a frase antiga de proposito");
+  conferir(/limites:\s*\{\s*cofre:\s*'limites'/.test(formJsLimpo),
+    "o ato `limites` aponta para um passo em vez de recusar");
+  conferir(typeof C.emTempo === "function" && C.emTempo(0) !== "0s",
+    "zero segundos NAO e exibido como '0s'",
+    "zero desliga a checagem, e dizer as duas coisas igual esconde a diferenca");
+
+  /* O piso desligado, por VALOR e nao por grafia. Este bloco existe porque a
+     primeira versao comparava `v === '0'` e o Tubarao-branco mediu tres grafias
+     que passavam sem confirmacao. Cada uma delas vira zero na calldata: quem
+     digitasse `00` desligaria o piso de razao sem a tela perguntar nada. */
+  if (typeof C.estadoDeZero === "function") {
+    const zeros = ["0", "00", "000", "-0", " 0 ", "\t0\n"];
+    const naoZeros = ["1", "9900", "0.0", "0x0", "", "abc", null, undefined];
+    /* Aqui o motor ESTA carregado, entao a resposta e 'sim' ou 'nao' — nunca
+       'nao-sei'. Exigir os valores exatos, e nao "diferente de nao", e o que
+       separa medir do caminho feliz de medir a ausencia de resposta. */
+    const falhouZero = zeros.filter((z) => C.estadoDeZero(z) !== "sim");
+    const falhouNao = naoZeros.filter((z) => C.estadoDeZero(z) !== "nao");
+    conferir(falhouZero.length === 0,
+      `as ${zeros.length} grafias de zero disparam a confirmacao do piso`,
+      falhouZero.length ? `passaram sem confirmar: ${falhouZero.map((x) => JSON.stringify(x)).join(" ")}`
+        : "inclui 00, 000 e -0, que a versao por texto deixava passar");
+    conferir(falhouNao.length === 0,
+      `as ${naoZeros.length} entradas que NAO sao zero nao disparam a confirmacao`,
+      falhouNao.length ? `confirmaram a toa: ${falhouNao.map((x) => JSON.stringify(x)).join(" ")}`
+        : "confirmacao que aparece a toa treina a pessoa a clicar sem ler");
+    /* FAIL-CLOSED: sem o motor, a guarda confirma em vez de calar.
+       Recorto a funcao do fonte e a rodo num contexto SEM `TRIVIU_MOTOR`. Testar
+       isto pelo console carregado seria impossivel — la o motor sempre esta. */
+    const iZ = JS_CONSOLE.indexOf("function estadoDeZero(v){");
+    let corpoZ = "";
+    if (iZ >= 0) {
+      let d = 0;
+      for (let k = JS_CONSOLE.indexOf("{", iZ); k < JS_CONSOLE.length; k++) {
+        if (JS_CONSOLE[k] === "{") d += 1;
+        else if (JS_CONSOLE[k] === "}") { d -= 1; if (d === 0) { corpoZ = JS_CONSOLE.slice(iZ, k + 1); break; } }
+      }
+    }
+    /* `estadoDeZero` tem TRES respostas, e o vetor cobre as tres. Recorto as
+       a funcao e as constantes que ela usa. */
+    const recortar = (nome) => {
+      const ii = JS_CONSOLE.indexOf(nome);
+      if (ii < 0) return "";
+      let dd = 0;
+      for (let k = JS_CONSOLE.indexOf("{", ii); k < JS_CONSOLE.length; k++) {
+        if (JS_CONSOLE[k] === "{") dd += 1;
+        else if (JS_CONSOLE[k] === "}") { dd -= 1; if (dd === 0) return JS_CONSOLE.slice(ii, k + 1); }
+      }
+      return "";
+    };
+    const consts = "var ZERO_SIM='sim', ZERO_NAO='nao', ZERO_NAO_SEI='nao-sei';";
+    const pecasZ = consts + recortar("function estadoDeZero(v){");
+    let estSemMotor = null;
+    try {
+      estSemMotor = new Function("window", pecasZ + "; return estadoDeZero;")({});
+    } catch { estSemMotor = null; }
+    /* Mede `estadoDeZero`, que e o que o caminho real chama. A versao anterior
+       media `ehZero`, um booleano que ninguem chamava — o teste exercitava
+       codigo fora do caminho e passava sem provar nada sobre o produto. */
+    const fechado = typeof estSemMotor === "function" &&
+      estSemMotor("0") !== "nao" && estSemMotor("00") !== "nao";
+    conferir(fechado, "sem o motor a guarda do piso CONFIRMA em vez de calar",
+      typeof estSemMotor !== "function" ? "nao consegui recortar estadoDeZero do fonte"
+        : `estadoDeZero('0')=${estSemMotor("0")} — nao saber nao e saber que nao`);
+    conferir(!/function ehZero\s*\(/.test(JS_CONSOLE),
+      "nao ha booleano paralelo a estadoDeZero",
+      "duas funcoes decidindo a mesma coisa divergem na primeira edicao que toca uma so");
+    /* E a mensagem NAO pode afirmar que o valor e zero quando ninguem sabe. */
+    conferir(typeof estSemMotor === "function" && estSemMotor("9900") === "nao-sei",
+      "sem o motor o estado e 'nao-sei', e nao 'e zero'",
+      typeof estSemMotor !== "function" ? "nao recortei estadoDeZero"
+        : `estadoDeZero('9900')=${estSemMotor("9900")} — dizer 'minRatioBps = 0' a quem digitou 9900 seria falso`);
+    const msg = recortar("function confirmarDesligarPiso(");
+    conferir(/ZERO_NAO_SEI/.test(msg) && /Nao foi possivel conferir/.test(msg),
+      "ha uma mensagem SEPARADA para o caso em que nao se sabe",
+      "cautela nao autoriza a tela a afirmar um fato que ela nao verificou");
+  } else {
+    falhas.push("secao 10: estadoDeZero() nao esta exposta — o vetor do piso nao roda");
+  }
+} else {
+  falhas.push("secao 10: sem cofre em S.triad.vault");
 }
 
 /* ------------------------------------------------------------------ saida - */

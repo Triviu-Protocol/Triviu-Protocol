@@ -86,7 +86,7 @@
      governanca abrir. Eu tinha restringido a tela a uma moeda so, lendo o
      registro e presumindo que ele governava o deposito. Nao governa. */
   var CTX = { conta: null, cofre: null, indice: 0, quantia: null, moeda: null,
-              alvo: null, ligado: null };
+              alvo: null, ligado: null, limites: null };
   function moedaDoPasso() { return CTX.moeda || L.V0.baseCurrency; }
   var GERACAO = 0;
   var ENVIANDO = false;
@@ -235,14 +235,19 @@
   }
 
   /* ─── A CERCA ─────────────────────────────────────────────────────────────
-     Quatro atos que o cofre expoe e que sao `_checkOwner()`: quem manda na
+     Cinco atos que o cofre expoe e que sao `_checkOwner()`: quem manda na
      politica do cofre e o dono dele, e nao o protocolo. Todos com argumentos de
      tipo estatico, uma palavra cada, montaveis pelo codificador do motor.
-     O QUE NAO ESTA AQUI e por que: `setLimits(uint64,uint64,uint16,uint112)`
-     precisa de `uint112`, e o motor codifica ate `uint128` sem passar por 112.
-     Somar um tipo ao motor e mexer em superficie que as quatro telas de
-     assinatura compartilham — Lei do Sangue — e isso pede o Tubarao antes, nao
-     depois. Ate la o ato recusa nomeando a assinatura real. */
+     `setLimits(uint64,uint64,uint16,uint112)` esteve FORA desta lista ate
+     2026-08-23, e o motivo esta preservado porque a ordem importou: o motor nao
+     tinha `uint112`, e soma-lo mexeria na superficie que as quatro telas de
+     assinatura compartilham — Lei do Sangue, Tubarao ANTES e nao depois. O
+     Tubarao vetou soma-lo isolado, exigiu que a classe fosse consertada
+     primeiro (todo uint passou a validar a propria largura), e so entao o tipo
+     entrou. O ato existe agora porque aquela condicao foi cumprida, e nao
+     porque alguem cansou de esperar.
+     O QUE CONTINUA FORA: `executeAsOwner`, cujo `ExecutionParams` carrega
+     `bytes routeCalldata` — tipo dinamico, que este codificador nao monta. */
   function passoAtivo() {
     var args = [
       { nome: "token", tipo: "address", valor: CTX.alvo },
@@ -266,6 +271,22 @@
     ];
     return montar("vault", "setBaseCurrency(address,bool)", CTX.cofre, args,
       "Define a moeda-base DO SEU COFRE. Quem decide isto e voce, nao o protocolo.");
+  }
+
+  /* Os quatro tetos do cofre, numa palavra so na chain e em quatro campos aqui.
+     A ordem dos argumentos e a da assinatura, e nao a do layout empacotado —
+     sao coisas diferentes: `pack()` poe cooldown nos bits altos, e a chamada
+     recebe cooldown primeiro por coincidencia, nao por regra. */
+  function passoLimites() {
+    var args = [
+      { nome: "cooldown", tipo: "uint64", valor: CTX.limites.cooldown },
+      { nome: "maxValidity", tipo: "uint64", valor: CTX.limites.maxValidity },
+      { nome: "minRatioBps", tipo: "uint16", valor: CTX.limites.minRatioBps },
+      { nome: "quantum", tipo: "uint112", valor: CTX.limites.quantum }
+    ];
+    return montar("vault", "setLimits(uint64,uint64,uint16,uint112)", CTX.cofre, args,
+      "Define os quatro tetos do SEU cofre. `minRatioBps` em zero desliga o piso " +
+      "de razao — e desligar um piso e uma decisao, nao um descuido.");
   }
 
   function passoGuarda() {
@@ -639,6 +660,7 @@
     sacar: passoSacar,
     ativo: passoAtivo,
     estrategia: passoEstrategia,
+    limites: passoLimites,
     moedaDoCofre: passoMoedaDoCofre,
     guarda: passoGuarda
   };
@@ -659,7 +681,19 @@
     CTX.moeda = o.moeda || null;
     CTX.alvo = o.alvo || null;
     CTX.ligado = o.ligado === undefined ? null : !!o.ligado;
+    CTX.limites = o.limites || null;
     if (!CTX.conta) throw new Error("sem conta conectada: nao ha para quem montar estes bytes");
+    /* Recusa ANTES de construir a janela. Um `setLimits` sem os quatro campos
+       montaria a calldata com `undefined`, e o codificador recusaria depois de a
+       pessoa ja estar olhando um cartao pela metade. */
+    if (ato === "limites") {
+      var faltando = ["cooldown", "maxValidity", "minRatioBps", "quantum"]
+        .filter(function (k) { return !CTX.limites || CTX.limites[k] === undefined || CTX.limites[k] === null; });
+      if (faltando.length) {
+        throw new Error("setLimits pede os quatro tetos e faltou: " + faltando.join(", ") +
+          ". Os quatro vao juntos na mesma palavra — mandar so um apagaria os outros tres.");
+      }
+    }
 
     construirJanela();
     limpar(ELS.saida);
@@ -701,7 +735,12 @@
     return new Promise(function (resolve) { resolverPromessa = resolve; });
   }
 
-  var API = { assinar: assinar, atos: Object.keys(ATOS) };
+  /* `decodificarRevert` sai daqui porque o console precisou dela para traduzir a
+     recusa de `dryRunChecks`, e uma segunda copia la seria a mesma classe de
+     defeito que o cabecalho de motor.js descreve: duas canonicalizacoes do mesmo
+     objeto que se separam sem ninguem notar. Uma definicao, dois consumidores. */
+  var API = { assinar: assinar, atos: Object.keys(ATOS),
+              decodificarRevert: decodificarRevert };
   if (typeof module !== "undefined" && module.exports) { module.exports = API; }
   if (raiz) { raiz.TRIVIU_ASSINAR = API; }
 })(typeof window !== "undefined" ? window : null);
