@@ -143,6 +143,26 @@ export function montarSubmissao(args: {
    * estado real da chain escondeu o defeito por coincidência.
    */
   candidateLotId: bigint;
+  /**
+   * O piso APERTADO, calculado da profundidade real — o campo onde o motor
+   * protege o usuário melhor do que o contrato consegue sozinho.
+   *
+   * `minRatioBps` é uma guarda global sobre o valor DECLARADO, e é `uint16`, e
+   * exprime uma TAXA DE CÂMBIO em unidades inteiras — os `10^dec` do `mulDiv`
+   * cancelam. Compra exige `P`, venda exige `1/P`, e um valor único tem de caber
+   * em `min(P, 1/P)` com teto de 6,5535. Medido: no maior global que não trava a
+   * venda de WMATIC/USDC, a COMPRA fica protegida a **1,19%** do valor justo.
+   * Não é proteção fraca — é nenhuma. Por isso ele fica em zero.
+   *
+   * `operatorMinOut` não tem nenhum desses problemas: é `uint256`, é POR
+   * EXECUÇÃO (logo por perna, sem reciprocidade), e trava no `executionHash` no
+   * instante da assinatura — nem quem submeteu consegue afrouxá-lo depois.
+   *
+   * NUNCA fica abaixo de `intent.minOut`. O cofre já exige `net >= intent.minOut`
+   * (`VaultExecution:197`), então declarar menos seria promessa que o contrato
+   * não cumpre. Este parâmetro só APERTA.
+   */
+  pisoApertado?: bigint;
   escolhas: EscolhasDoSubmissor;
 }): Submissao {
   const { chainId, vault, estado, intent, escolhas } = args;
@@ -162,6 +182,14 @@ export function montarSubmissao(args: {
   }
   const validUntil = escolhas.agora + escolhas.janela;
 
+  /* `max`, e não substituição: um piso apertado que viesse ABAIXO do que a
+     estratégia exige seria afrouxamento disfarçado de melhoria, e o cofre
+     reverteria em `NetBelowStrategyMin` depois do gás pago. */
+  const piso =
+    args.pisoApertado !== undefined && args.pisoApertado > intent.minOut
+      ? args.pisoApertado
+      : intent.minOut;
+
   /* O `path` mínimo da abertura: paga-se com a base e recebe-se o ativo. Uma
      rota com mais saltos entra por aqui no dia em que o detector a produzir. */
   const path: readonly Address[] = intent.side === 0
@@ -170,7 +198,11 @@ export function montarSubmissao(args: {
 
   const montada = montarAbertura({
     amountIn: intent.amountIn,
-    minOut: intent.minOut,
+    /* O piso vai INTEIRO para `montarAbertura`, que o escreve nos dois lados —
+       `operatorMinOut` e o `amountOutMin` da rota. Apertar só um dos dois faria
+       os três pares voltarem a poder divergir, que é o defeito que o juiz da
+       onda anterior mandou tornar impossível. */
+    minOut: piso,
     validUntil,
     path,
     vault,
@@ -191,10 +223,10 @@ export function montarSubmissao(args: {
     target: escolhas.router,
     spender: escolhas.router,
     base: intent.base,
-    /* O MESMO piso que foi para a rota. `montarAbertura` já garantiu que os dois
-       lados recebem este valor; tirá-lo aqui de `intent.minOut` — e não de uma
-       variável solta — mantém a garantia. */
-    operatorMinOut: intent.minOut,
+    /* A MESMA variável `piso` que foi para a rota, e não uma segunda derivação
+       do mesmo valor: duas expressões que "deveriam dar o mesmo" é como os três
+       pares divergiam antes. */
+    operatorMinOut: piso,
     validUntil,
     declaredConfigEpoch: estado.configEpoch,
     declaredRefund: escolhas.declaredRefund ?? 0n,
