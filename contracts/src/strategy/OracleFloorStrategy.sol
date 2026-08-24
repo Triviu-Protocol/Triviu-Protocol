@@ -319,7 +319,35 @@ contract OracleFloorStrategy is IStrategy {
     ///      proposing a buy while a lot the vault can close is sitting open would spend base on
     ///      a second position instead of realising the first.
     function propose(VaultView calldata v) external view returns (Intent memory) {
-        Lot memory candidate = IVaultViews(v.vault).lot(v.candidateLotId);
+        /* A LEITURA DO LOTE É GUARDADA, e a guarda é a NEGAÇÃO EXATA da condição de revert do
+           cofre: `VaultPositions._lotRef` faz `if (lotId >= lots.length) revert LotNotFound`, e
+           `lotCount()` devolve o mesmo `lots.length`. Mesma variável de estado, condição
+           espelhada — zero falso positivo e zero falso negativo por construção, não por
+           aproximação. Guarda que espelha a condição real é a única que não envelhece.
+
+           SEM ELA O COFRE NOVO NÃO CONSEGUE COMPRAR. A `VaultFactory` entrega todo cofre com
+           `lots.length == 0`, e nesse estado NENHUM `candidateLotId` existe — nem o zero. A
+           leitura revertia antes da bifurcação lá embaixo, então o ramo de compra era
+           inalcançável: era preciso um lote para propor a compra que criaria o primeiro lote.
+           Medido em mainnet no cofre 0xDd2d…3508 (lotCount 0, nonce 0): quatro combinações de
+           id e saldo, todas `LotNotFound`. Saldo não mudava nada.
+
+           E o revert saía como `StrategyCallFailed` (`VaultExecution:324`), que por desenho
+           significa "o oráculo está inutilizável" — colapsando os dois modos de recusa que o
+           cabeçalho deste arquivo declara não-intercambiáveis. Um cofre vazio era reportado como
+           feed congelado, com os feeds sãos.
+
+           `try/catch` em volta da leitura foi RECUSADO em auditoria: engoliria falta de gás,
+           cofre com defeito real e qualquer mudança futura de interface, convertendo todos em
+           "não há lote" enquanto a estratégia segue propondo compra. Falha mascarada custa mais
+           que falha ruidosa.
+
+           `candidate` fica declarado fora e ZERADO quando não há lote: `remaining == 0` reprova
+           a condição abaixo e o fluxo cai no ramo de compra que já existe, sem reindentá-lo. */
+        Lot memory candidate;
+        if (v.candidateLotId < IVaultViews(v.vault).lotCount()) {
+            candidate = IVaultViews(v.vault).lot(v.candidateLotId);
+        }
 
         if (candidate.remaining > 0 && candidate.asset == ASSET && candidate.base == BASE) {
             /* `backing` and not `remaining`: it is the lesser of the two, and proposing more

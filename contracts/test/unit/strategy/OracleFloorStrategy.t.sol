@@ -56,15 +56,38 @@ contract VaultViewsStub {
     Lot private _lot;
     uint256 private _backing;
 
+    /* O DEFAULT É ZERO, e isso é o conserto, não um detalhe.
+       A versão anterior tinha `lot()` ignorando o id e nunca revertendo, e `lotCount()` fixo em
+       1. Um stub assim torna o caminho "cofre sem lotes" INALCANÇÁVEL — e foi por isso que
+       nenhum teste desta suíte pegou o defeito que trava todo cofre novo em mainnet. Os testes
+       não falharam por descuido: eles não podiam falhar.
+       Zero é o estado que a `VaultFactory` entrega. Um stub que nasce com um lote testa um mundo
+       que não existe. */
+    uint256 private _lotCount;
+
+    /* Byte-igual ao do cofre (`IVaultPositionsEE`), para que o seletor que chega aqui seja o
+       mesmo que chega em produção: 0x76aca2bd. */
+    error LotNotFound(uint256 lotId);
+
+    /* NÃO mexe em `_lotCount` de propósito: quem decide quantos lotes existem é quem monta o
+       cenário, e o id lido vem do `VaultView`, não daqui. Acoplar os dois faria o stub adivinhar
+       o id do teste — que é a classe de mentira que este conserto está removendo. */
     function setLot(Lot memory l) external {
         _lot = l;
+    }
+
+    function setLotCount(uint256 n) external {
+        _lotCount = n;
     }
 
     function setBacking(uint256 b) external {
         _backing = b;
     }
 
-    function lot(uint256) external view returns (Lot memory) {
+    /* Espelha `VaultPositions.sol:131` — `if (lotId >= lots.length) revert LotNotFound(lotId)`.
+       Enquanto isto mentir, esta família de defeito continua invisível. */
+    function lot(uint256 lotId) external view returns (Lot memory) {
+        if (lotId >= _lotCount) revert LotNotFound(lotId);
         return _lot;
     }
 
@@ -72,8 +95,8 @@ contract VaultViewsStub {
         return _backing;
     }
 
-    function lotCount() external pure returns (uint256) {
-        return 1;
+    function lotCount() external view returns (uint256) {
+        return _lotCount;
     }
 
     function limits() external pure returns (Limits) {
@@ -173,6 +196,11 @@ contract OracleFloorStrategyTest is Test {
             })
         );
         vault.setBacking(backing_);
+        /* Abrir um lote implica que o cofre TEM lotes. O número cobre os ids que esta suíte
+           usa — 0 e 7 — porque o id lido vem do `VaultView` de cada teste, não do lote.
+           Antes do conserto do stub isto era desnecessário: `lot()` respondia a qualquer id.
+           Era exatamente esse "qualquer id" que escondia o defeito. */
+        vault.setLotCount(8);
     }
 
     /* ---------------------------------------------------------------- the buy */
@@ -529,5 +557,80 @@ contract OracleFloorStrategyTest is Test {
             TICKET,
             "the vault calls through IStrategy, not through the concrete type"
         );
+    }
+
+    /* ------------------------------------------------- the vault that has never traded
+
+       Every test above this line now runs with `lotCount() == 0`, because that is the stub's
+       default and the state the factory ships. Before the stub was fixed they ran against a
+       `lot()` that answered any id, and 25 of them went green over a path that reverts in
+       mainnet. The block below names that state explicitly, so the next reader does not have to
+       infer it from a default. */
+
+    /// @dev The regression itself. A vault with no lots must still be able to open its first one
+    ///      — otherwise it needs a lot to make the buy that would create the first lot.
+    ///      REMOVE THE GUARD IN `propose` AND THIS TEST MUST GO RED. If it stays green without
+    ///      the guard it does not exercise the path and proves nothing.
+    function test_virginVault_canStillBuy() public view {
+        assertEq(vault.lotCount(), 0, "the factory ships every vault in this state");
+
+        Intent memory i = strategy.propose(_view(0, TICKET));
+
+        assertEq(uint256(i.side), uint256(Side.Buy));
+        assertEq(i.amountIn, TICKET);
+        assertEq(i.lotId, 0, "a buy opens a lot; it does not name one");
+    }
+
+    /// @dev Not "the floor is non-zero" — the floor is the NUMBER. The fix opens, for the first
+    ///      time in mainnet, the branch that reads both feeds and computes `minOut`, which is the
+    ///      user's only defence against slippage. A test that only asserted `> 0` would pass with
+    ///      a floor that protects nothing.
+    function test_virginVault_floorIsTheComputedNumberAndNotMerelyPositive() public view {
+        uint256 minOut = strategy.propose(_view(0, TICKET)).minOut;
+
+        assertGt(minOut, 0, "a floor of zero protects nothing");
+        assertEq(minOut, EXPECTED_BUY_OUT * (10_000 - BUY_TOL) / 10_000, "computed outside this contract");
+    }
+
+    /// @dev Staleness must still bite on the newly reachable branch. Before the fix this revert
+    ///      was unreachable from a virgin vault: `LotNotFound` fired first and masked it.
+    function test_virginVault_staleFeedStillReverts() public {
+        assetFeed.set(MATIC_USD, block.timestamp - MAX_AGE - 1);
+
+        vm.expectRevert(abi.encodeWithSelector(OracleFloorStrategy.FeedStale.selector, address(assetFeed), MAX_AGE + 1));
+        strategy.propose(_view(0, TICKET));
+    }
+
+    /// @dev Same for a non-positive answer: the sign check has to hold on the branch the fix opened.
+    function test_virginVault_nonPositiveFeedStillReverts() public {
+        assetFeed.set(0, block.timestamp);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(OracleFloorStrategy.FeedNotPositive.selector, address(assetFeed), int256(0))
+        );
+        strategy.propose(_view(0, TICKET));
+    }
+
+    /// @dev The boundary, where `<=` instead of `<` would hide. `candidateLotId == lotCount()` is
+    ///      OUT of range — ids run 0..lotCount()-1 — so it must fall through to the buy and never
+    ///      reach `lot()`.
+    function test_boundary_idEqualToCountIsOutOfRange() public {
+        _openLot(WMATIC, USDC, 1e18, 1e18);
+        vault.setLotCount(3);
+
+        Intent memory i = strategy.propose(_view(3, TICKET));
+
+        assertEq(uint256(i.side), uint256(Side.Buy), "id 3 does not exist when there are 3 lots");
+    }
+
+    /// @dev And the last valid id still reads the lot, so the guard did not close what worked.
+    function test_boundary_lastValidIdStillReadsTheLot() public {
+        _openLot(WMATIC, USDC, uint128(SELL_AMOUNT), SELL_AMOUNT);
+        vault.setLotCount(3);
+
+        Intent memory i = strategy.propose(_view(2, TICKET));
+
+        assertEq(uint256(i.side), uint256(Side.Sell), "id 2 is the last of 3 and must be read");
+        assertEq(i.lotId, 2);
     }
 }
