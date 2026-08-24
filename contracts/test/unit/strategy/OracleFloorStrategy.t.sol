@@ -154,11 +154,7 @@ contract OracleFloorStrategyTest is Test {
 
     function _view(uint256 lotId, uint256 baseBalance) internal view returns (VaultView memory) {
         return VaultView({
-            vault: address(vault),
-            configEpoch: 4,
-            lastExecAt: 0,
-            candidateLotId: lotId,
-            baseBalance: baseBalance
+            vault: address(vault), configEpoch: 4, lastExecAt: 0, candidateLotId: lotId, baseBalance: baseBalance
         });
     }
 
@@ -367,9 +363,7 @@ contract OracleFloorStrategyTest is Test {
     function test_feed_staleAssetIsRefused() public {
         assetFeed.set(MATIC_USD, block.timestamp - MAX_AGE - 1);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(OracleFloorStrategy.FeedStale.selector, address(assetFeed), MAX_AGE + 1)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OracleFloorStrategy.FeedStale.selector, address(assetFeed), MAX_AGE + 1));
         strategy.propose(_view(0, TICKET));
     }
 
@@ -378,9 +372,7 @@ contract OracleFloorStrategyTest is Test {
     function test_feed_staleBaseIsRefused() public {
         baseFeed.set(USDC_USD, block.timestamp - MAX_AGE - 1);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(OracleFloorStrategy.FeedStale.selector, address(baseFeed), MAX_AGE + 1)
-        );
+        vm.expectRevert(abi.encodeWithSelector(OracleFloorStrategy.FeedStale.selector, address(baseFeed), MAX_AGE + 1));
         strategy.propose(_view(0, TICKET));
     }
 
@@ -391,11 +383,15 @@ contract OracleFloorStrategyTest is Test {
 
     function test_feed_nonPositiveIsRefused() public {
         assetFeed.set(0, block.timestamp);
-        vm.expectRevert(abi.encodeWithSelector(OracleFloorStrategy.FeedNotPositive.selector, address(assetFeed), int256(0)));
+        vm.expectRevert(
+            abi.encodeWithSelector(OracleFloorStrategy.FeedNotPositive.selector, address(assetFeed), int256(0))
+        );
         strategy.propose(_view(0, TICKET));
 
         assetFeed.set(-1, block.timestamp);
-        vm.expectRevert(abi.encodeWithSelector(OracleFloorStrategy.FeedNotPositive.selector, address(assetFeed), int256(-1)));
+        vm.expectRevert(
+            abi.encodeWithSelector(OracleFloorStrategy.FeedNotPositive.selector, address(assetFeed), int256(-1))
+        );
         strategy.propose(_view(0, TICKET));
     }
 
@@ -515,10 +511,14 @@ contract OracleFloorStrategyTest is Test {
         b = uint16(bound(b, 100, 5000));
         vm.assume(a < b);
 
-        uint256 tight = _deploy(address(assetFeed), address(baseFeed), TICKET, MAX_AGE, a, SELL_TOL)
-            .propose(_view(0, TICKET)).minOut;
-        uint256 loose = _deploy(address(assetFeed), address(baseFeed), TICKET, MAX_AGE, b, SELL_TOL)
-            .propose(_view(0, TICKET)).minOut;
+        uint256 tight =
+            _deploy(address(assetFeed), address(baseFeed), TICKET, MAX_AGE, a, SELL_TOL)
+        .propose(_view(0, TICKET))
+        .minOut;
+        uint256 loose =
+            _deploy(address(assetFeed), address(baseFeed), TICKET, MAX_AGE, b, SELL_TOL)
+        .propose(_view(0, TICKET))
+        .minOut;
 
         assertGe(tight, loose);
     }

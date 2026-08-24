@@ -326,15 +326,13 @@ contract OracleFloorStrategy is IStrategy {
                asset than the vault actually holds produces a route that reverts on transfer. */
             uint256 amountIn = IVaultViews(v.vault).backing(v.candidateLotId);
             if (amountIn > 0) {
-                uint256 oracleFloor =
-                    _floor(amountIn, SELL_NUMERATOR, SELL_DENOMINATOR, SELL_TOLERANCE_BPS, false);
+                uint256 oracleFloor = _floor(amountIn, SELL_NUMERATOR, SELL_DENOMINATOR, SELL_TOLERANCE_BPS, false);
 
                 /* PRO RATA, and not the whole lot's capital. Selling half a lot must not demand
                    what the whole lot cost — that floor is unmeetable by construction and would
                    make every partial close revert while looking like a market problem. */
-                uint256 capitalAtRisk = Math.mulDiv(
-                    uint256(candidate.allocatedCapital), amountIn, uint256(candidate.remaining)
-                );
+                uint256 capitalAtRisk =
+                    Math.mulDiv(uint256(candidate.allocatedCapital), amountIn, uint256(candidate.remaining));
                 uint256 lossFloor = Math.mulDiv(capitalAtRisk, BPS - MAX_LOSS_BPS, BPS);
 
                 return Intent({
