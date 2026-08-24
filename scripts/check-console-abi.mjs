@@ -79,9 +79,9 @@ const TELAS = [
   {
     nome: "console",
     js: join(RAIZ, "site", "js", "console-lp.js"),
-    html: join(RAIZ, "site", "console", "index.html"),
+    html: join(RAIZ, "site", "lp", "index.html"),
     rotuloJs: "console-lp.js",
-    rotuloHtml: "console/index.html",
+    rotuloHtml: "lp/index.html",
     tags: ["/enderecos.js", "/js/abi-console.js", "/js/console-lp.js"],
   },
 ];

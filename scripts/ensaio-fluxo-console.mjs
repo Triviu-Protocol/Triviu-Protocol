@@ -79,7 +79,12 @@ await rpcFork("anvil_setBalance", [DONO, "0x" + (10n ** 22n).toString(16)]);
 /* Os ids saem do HTML REAL. Inventar a lista aqui faria o ensaio passar num
    console cujo HTML perdeu um elemento — que e exatamente um dos jeitos de a
    tela quebrar sem ninguem ver. */
-const HTML = readFileSync(join(SITE, "v0/index.html"), "utf8");
+/* `console/index.html` desde 2026-08-24. A V0 morava em `/v0/` e passou a
+   ocupar `/console/` por decisao do fundador — *"e para por nesse endereco"* — e
+   a linha ANTIGA mudou-se para `/lp/`. O caminho aqui e o do produto, e nao um
+   apelido: quando ele muda, este ensaio tem de mudar junto, senao passa a medir
+   um arquivo que ninguem serve. */
+const HTML = readFileSync(join(SITE, "console/index.html"), "utf8");
 /* Os ids vem do HTML **e** dos template literals do JS. Metade das telas deste
    console e montada em runtime — `shell()` escreve `<select id="wBase">` num
    template — e cobrar so o HTML estatico acusaria oito ids que existem, o que

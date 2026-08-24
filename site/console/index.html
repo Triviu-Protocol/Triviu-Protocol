@@ -6,78 +6,31 @@
 <meta name="color-scheme" content="light dark">
 <!-- Automatic translation rewrites column labels and venue names. In a console
      whose whole claim is that the numbers are measured, that is corruption with
-     a friendly face. Measured: Chrome flipped lang to "pt" and rewrote the page
-     before anyone could read a figure. -->
+     a friendly face. Measured today: Chrome flipped lang to "pt" and rewrote the
+     page before anyone could read a figure. -->
 <meta name="google" content="notranslate">
 <title>Triviu · Console</title>
-<meta name="description" content="Fourteen screens over the contracts that are actually live on chain 137. Provide liquidity for real — every step shown as the exact calldata, frozen and fingerprinted before your wallet sees it. What is not deployed is written down as missing.">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://triviu.vercel.app/console/">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="Triviu">
-<meta property="og:title" content="Console · fourteen screens, and only the deployed ones act · Triviu">
-<meta property="og:description" content="Open, authorise, collect from and close a Uniswap V3 position through TriviuLPVault on chain 137. The screens whose contracts do not exist say so instead of pretending.">
-<meta property="og:url" content="https://triviu.vercel.app/console/">
-<meta property="og:image" content="https://triviu.vercel.app/og.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://triviu.vercel.app/og.png">
-<link rel="icon" href="/icon.svg">
-
+<meta name="description" content="Start with the protocol, then run it: deploy your vault, slice capital across sub-accounts, fence the executor, and read every outcome including the failures.">
 <!--
-  ============================================================================
-  WHAT THIS PAGE WAS, AND WHAT CHANGED
-  ============================================================================
-  The 4850-line artefact this page was built from opened by declaring its own
-  engine a simulation: wallet, chain, contracts and events lived in memory and no
-  network call was made. It had no window.ethereum and no eth_sendTransaction. It
-  had a block of fake-wallet code that resolved a promise after a timeout and
-  returned a random address, and two banners at the top said as much.
-
-  The two strings those banners were made of are deliberately NOT reproduced
-  anywhere in this file, and the omission is the point rather than squeamishness:
-  the acceptance criterion was zero occurrences of them on the published console,
-  and a comment ships in the bytes exactly like anything else. They live in
-  scripts/check-console-abi.mjs, which fails the build if either reappears.
-
-  Deleting the banners and keeping the fake wallet would have been the worst
-  available outcome: a page that warned would have become a page that lied. So
-  the LAYER came out, and the banners came out with it.
-
-  WHY THE LABEL COULD COME OFF AT ALL
-  ===================================
-  p-instances lists what a licensed instance may never remove, and the second
-  item is "the simulation label, WHILE the instance is a simulation". That is a
-  conditional, not an ornament: it leaves in the same commit the simulation
-  leaves, never before and never after. After this change nothing on this page
-  simulates. The screens whose contracts are not deployed do not pretend to act —
-  they state what is missing, which is a different thing from a mock.
-
-  Items 1 and 3 of that same list — the full risk notice on the first screen, and
-  reverts carrying the same weight as wins — are unconditional and stay.
-
-  WHAT ACTS, AND WHAT DOES NOT, MEASURED ON 2026-08-12
-  ===================================================
-  Signing lives on ONE screen, Provide liquidity, and it is driven by
-  /js/console-lp.js — ported whole, not rewritten, because it had already been
-  audited and red-teamed. Contracts, Layers and Instances read and render real
-  state. Everything else states what it is waiting for.
-
-  Operate is the screen that changed meaning during the build. It was going to
-  carry the Executor cycle, and the chain said no: isAllowedTarget answered false
-  for all eight routers probed on the live ParameterRegistry, so executeCycle
-  reverts TargetNotAllowed at the first leg for every caller. The screen prints
-  that instead of offering a button, and points at /calldata/, where the bytes of
-  that same call can be read without anyone being invited to sign them.
+  TRIVIU · CONSOLE — one artefact, two lives.
+  ──────────────────────────────────────────
+  No triad yet  → INITIATION: connect, choose a path, read the contract or let the
+                  copilot sequence it, deploy your vault.
+  Triad exists  → CONSOLE: monitor, operate, fence, analyse, license.
+  Wallet, chain and contracts are REAL: the page reads Polygon PoS 137 with your
+  own account and shows what the contracts answer. It does NOT sign — the
+  signing path was removed by Blood Law veto (TUBARAO-25) and lives at /cofre/,
+  which freezes the payload and fingerprints it before the wallet opens.
+  What this never shows: how an opportunity is found.
 -->
-<link href="/vendor/fonts/fontes.css" rel="stylesheet">
-<link href="/vendor/estilos-inline.css" rel="stylesheet">
-<link href="/vendor/estilos/console.css" rel="stylesheet">
+<link rel="stylesheet" href="/vendor/fonts/fontes.css">
+<script src="/vendor/three-r128.min.js"></script>
+<link rel="stylesheet" href="/vendor/estilos-inline.css">
+  <link rel="stylesheet" href="/vendor/estilos/console-v0.css">
 </head>
-<body class="no3d">
+<body>
 
-<svg class="u-ff791649" width="0" height="0" aria-hidden="true"><defs>
+<svg width="0" height="0" class="u-ff791649" aria-hidden="true"><defs>
   <g id="mark">
     <path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
     <path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
@@ -140,139 +93,338 @@
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.7"/><path d="M12 11v5.5"/><path d="M12 7.8v.05"/></symbol>
 </defs></svg>
 
+<canvas id="scene" aria-hidden="true"></canvas>
 <div class="ambient-fallback" aria-hidden="true">
-  <svg class="u-632dffa6" viewBox="0 0 120 120"><use href="#markline"/></svg></div>
+  <svg viewBox="0 0 120 120" class="u-632dffa6"><use href="#markline"/></svg></div>
+<div id="tip" role="status"><span class="dot"></span><span id="tip-txt"></span></div>
 
 <a class="skip" href="#main">Skip to content</a>
 
 <div class="app">
-<header><div class="hd">
-  <span class="brandmark">
-    <svg class="mk u-632dffa6" viewBox="0 0 120 120" aria-hidden="true"><use href="#mark"/></svg>
-    <span><b translate="no">Triviu</b> <span class="faint" translate="no">· console</span></span>
-  </span>
-  <div class="spacer"></div>
+<div class="simstrip" role="status">
+  <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
+  <span><b>LIVE · POLYGON 137</b><span class="long"> — connect your wallet to read the chain and
+  operate the real contracts. You sign every transaction yourself; funds move on-chain. Execution is
+  gated until governance opens it — you can connect, read, deploy your vault and deposit today.</span></span>
+</div>
 
-  <!-- The chain is not a footnote in a web3 console. It is stated, not asked:
-       the wallet's own chain is read by the engine and shown on Provide
-       liquidity, next to the button that would use it. -->
-  <span class="chainbar" title="The only chain these contracts are deployed on">
-    <span class="chaindot"></span>
-    <span translate="no">Polygon PoS</span>
-    <span class="faint" translate="no">137</span>
-  </span>
+<!-- ═══════════════ INITIATION ═══════════════ -->
+<section id="viewInit">
+ <div class="initbar">
+   <div class="wrap u-ddb95d9e">
+     <span class="brandmark u-d4e8f245">
+       <span><svg class="mk" viewBox="0 0 120 120" aria-hidden="true" class="u-fec5f4cc"><use href="#mark"/></svg></span>
+       <span><b translate="no" class="u-5e0c9e1b">Triviu</b></span>
+     </span>
+     <span class="spacer u-83725d2c"></span>
+     <button class="iconbtn ghost" id="btnThemeInit" aria-label="Switch theme">
+       <svg class="ic ic-l" aria-hidden="true"><use href="#i-moon" id="themeIconInit"/></svg></button>
+   </div>
+ </div>
+ <div class="wrap init">
+  <div id="initHero">
+    <div class="hero">
+      <div>
+        <p class="eyebrow">the protocol · initiation</p>
+        <h1 class="u-bfa31e80">Two contracts <em>of yours</em>.<br>You deploy them. You close them.</h1>
+        <p class="lede">You register with the <b translate="no">TriviuRegistry</b>, then deploy
+        <b translate="no">TriviuVault</b> — the strongbox for your base currency, whose owner is set
+        at construction and can never be changed — and <b translate="no">TriviuCerca</b>, the policy
+        contract that limits what the keeper may ask for. Both are yours. The registry creates the
+        vault and steps away; it never owns anything.</p>
+        <p class="lede u-0173988c">Two contracts you do <em>not</em> deploy, because
+        they are ours and shared by everyone: <b translate="no">TriviuExecutor</b>, the atomic engine
+        that opens and closes inside one transaction, and <b translate="no">TriviuReferralVault</b>,
+        which splits our fee with whoever introduced you. Neither ever holds your capital.</p>
+        <p class="lede u-bfa31e80">Entering is connecting a wallet. There is no account
+        to create and no password to set.</p>
 
-  <button class="iconbtn ghost" id="btnTheme" type="button" aria-label="Theme">
-    <svg class="ic ic-l" aria-hidden="true"><use href="#i-moon" id="themeIcon"/></svg></button>
-  <button class="iconbtn ghost" type="button" data-ir="help" aria-label="How it works">
-    <svg class="ic ic-l" aria-hidden="true"><use href="#i-help"/></svg></button>
-</div></header>
+        <!-- On-chain state, measured at block 91859211 on 2026-08-11. Addresses are
+             mirrored from the canonical ledger, contracts/deploy/enderecos.js. Two
+             orphan Registries and one orphan GasTank from failed deploy runs are also
+             live and hold state identical to the real ones; only the address tells
+             them apart, which is why the full addresses are printed here. -->
+        <!-- RECOLHIDO POR PADRAO, e a seta e a mesma do rodape (.fdisc).
+             Este bloco tem sete enderecos e cinco paragrafos, e ocupava a altura
+             inteira da tela de entrada antes de o leitor chegar a qualquer coisa
+             que ele possa FAZER. O conteudo nao muda e nao encolhe: quem quer os
+             enderecos completos continua tendo os enderecos completos, e eles
+             continuam impressos por extenso porque existem duas linhas vivas na
+             mesma chain e so o endereco as distingue.
+             `<details>` nativo de proposito: abre por teclado, o navegador ja o
+             anuncia como expansivel, e nao precisa de uma linha de JS — uma seta
+             feita a mao teria de reimplementar tudo isso e faria pior. -->
+        <details class="fdisc lede u-0a00051d">
+          <summary><span class="fchev" aria-hidden="true"></span><b>On Polygon PoS (chain 137), right now</b> &mdash; os sete enderecos e o que muda entre eles</summary>
+          <div class="fbody">
+          <table class="u-1c20db1b">
+            <tbody>
+              <tr><td class="u-f53b9637"><span translate="no">ProtocolRegistry</span></td>
+                  <td class="mono u-5e268842">0x7D1D8EacA0ce96cFAb5937b88Ba5d43d7e0Ad8dC</td></tr>
+              <tr><td class="u-f53b9637"><span translate="no">Executor</span></td>
+                  <td class="mono u-5e268842">0x323C4192b269EA56aCd147dDbd3F71056E63E835</td></tr>
+              <tr><td class="u-f53b9637"><span translate="no">VaultFactory</span></td>
+                  <td class="mono u-5e268842">0xF4e60C6Bf2c5479935abf1A9F82554E5CD2D843c</td></tr>
+              <tr><td class="u-f53b9637"><span translate="no">TriviuVault (impl v1)</span></td>
+                  <td class="mono u-5e268842">0x5F5bFe6b6019beACFa95e9778917977881A19c7B</td></tr>
+              <tr><td class="u-f53b9637"><span translate="no">ImplementationRegistry</span></td>
+                  <td class="mono u-5e268842">0x660ca39A7fbC39dFD0ab4403ff3812519Ed4c0B0</td></tr>
+              <tr><td class="u-f53b9637"><span translate="no">EscapeHatch</span></td>
+                  <td class="mono u-5e268842">0x877c4BC26371bD835E48db6C2B11eB715333b490</td></tr>
+              <tr><td class="u-f53b9637"><span translate="no">Base currency (USDC)</span></td>
+                  <td class="mono u-5e268842">0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359</td></tr>
+            </tbody>
+          </table>
+          <p class="u-0f76b54b"><b>Execution is gated, and that is deliberate.</b> Until
+          governance opens the gates, <span class="mono">executeCycle</span> reverts by design — you can
+          connect, read the chain, create your vault and deposit, but no cycle runs yet. The fee, when
+          live, is <span class="mono">feeBps 50</span> (0.5%) to
+          <span class="mono">treasury 0x73e3…Af6E</span>, charged only on realised profit.</p>
+          <p class="u-0f76b54b"><b>Base currency is USDC</b> (native, 6 decimals) at
+          <span class="mono">0x3c49…c359</span>. Governance and treasury sit behind a
+          <span class="mono">2-of-3</span> Safe; the deployer key holds no admin role after genesis —
+          the chain is the proof, not this page.</p>
+          <p class="u-0f76b54b"><span translate="no">TriviuReferralVault</span> named above is
+          <b>not deployed</b>. It is written and audited; it is not on any chain.</p>
 
-<div class="shell">
-  <nav class="rail" id="rail" aria-label="Console sections">
-    <p class="cap">operation</p>
-    <button class="navb" type="button" data-p="over"><svg class="ic" aria-hidden="true"><use href="#i-overview"/></svg>Overview</button>
-    <button class="navb" type="button" data-p="vaults"><svg class="ic" aria-hidden="true"><use href="#i-vaults"/></svg>Sub-accounts<span class="st espera">waiting</span></button>
-    <button class="navb" type="button" data-p="liquidity"><svg class="ic" aria-hidden="true"><use href="#i-liquidity"/></svg>Liquidity &amp; gas<span class="st espera">waiting</span></button>
-    <button class="navb" type="button" data-p="fence"><svg class="ic" aria-hidden="true"><use href="#i-fence"/></svg>Fence<span class="st espera">waiting</span></button>
-    <button class="navb" type="button" data-p="strategy"><svg class="ic" aria-hidden="true"><use href="#i-strategy"/></svg>Strategies<span class="st espera">waiting</span></button>
-    <button class="navb" type="button" data-p="lp"><svg class="ic" aria-hidden="true"><use href="#i-liquidity"/></svg>Provide liquidity<span class="st age">acts</span></button>
-    <button class="navb" type="button" data-p="ops"><svg class="ic" aria-hidden="true"><use href="#i-operate"/></svg>Operate<span class="st espera">waiting</span></button>
-    <button class="navb" type="button" data-p="analytics"><svg class="ic" aria-hidden="true"><use href="#i-analytics"/></svg>Analytics<span class="st espera">waiting</span></button>
-    <p class="cap u-bfa31e80">protocol</p>
-    <button class="navb" type="button" data-p="layers"><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg>Layers · L1 / L2<span class="st age">reads</span></button>
-    <button class="navb" type="button" data-p="refs"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>Referrals<span class="st espera">waiting</span></button>
-    <button class="navb" type="button" data-p="contracts"><svg class="ic" aria-hidden="true"><use href="#i-contract"/></svg>Contracts<span class="st age">reads</span></button>
-    <p class="cap u-bfa31e80">account</p>
-    <button class="navb" type="button" data-p="instances"><svg class="ic" aria-hidden="true"><use href="#i-instances"/></svg>Instances<span class="st age">acts</span></button>
-    <button class="navb" type="button" data-p="profile"><svg class="ic" aria-hidden="true"><use href="#i-profile"/></svg>Profile</button>
-    <button class="navb" type="button" data-p="help"><svg class="ic" aria-hidden="true"><use href="#i-help"/></svg>How it works</button>
-  </nav>
+          <!-- N-1 (Nautilo, external process audit): the arb path hands the user
+               contracts of their own; the LP path does not. Saying so here rather
+               than letting the reader carry the arb promise across. -->
+          <p class="u-0173988c"><b>Providing liquidity works differently, and you should
+          know before you sign.</b> <span translate="no">TriviuLPVault</span>
+          (<span class="mono u-a83ce3a2">0xC52BaD280809672D8EC5D1fcF2d7eCa45a2a423E</span>)
+          is a <b>shared router</b> &mdash; one contract for everyone, not one deployed for you. The
+          <b>position stays yours</b>: minting names your own wallet as the recipient and this contract
+          is never its owner. But the sentence <i>&ldquo;the contracts are yours&rdquo;</i> describes the
+          arbitrage triad, and it does not describe this one.</p>
 
-  <main class="content" id="main" tabindex="-1">
+          <!-- T-6 (Tubarao-branco N2): a shared contract means a shared allowance.
+               The contract already pulls the exact amount and resets router
+               approval to zero; what it cannot control is what the wallet grants. -->
+          <p class="u-0173988c"><b>Approve the exact amount, never &ldquo;unlimited&rdquo;.</b>
+          Opening a position needs an ERC-20 allowance to that shared router, and your wallet will offer
+          you an unlimited one because most of them do. The contract itself pulls <b>only the amount you
+          passed</b> and resets every router approval to zero afterwards &mdash; but an unlimited
+          allowance lives in your wallet, outside what the contract can control. Approve the amount you
+          are opening with, and nothing more.</p>
+          </div>
+        </details>
+      </div>
+      <div id="stage-hit" aria-label="Interactive 3D mark: drag to turn, tap a node">
+        <svg class="mkbig" id="fallbackMark" viewBox="0 0 120 120" aria-label="The Triviu cycle"
+             class="mkbig u-632dffa6"><use href="#mark"/></svg>
+        <span class="hintline">drag · turn the cycle · tap a node</span>
+      </div>
+    </div>
 
-  <!-- ══ AS DUAS VOZES DA CASCA ══
-       Um <div hidden> nao anuncia nada: conteudo em display:none sai da arvore
-       de acessibilidade, e uma regiao viva que vive dentro de um painel
-       escondido e uma regiao viva que nunca fala. Era exatamente o caso de
-       p-contracts: o botao "Read the chain" de la aciona o motor, e o motor
-       escreve o "comecou / chegou / falhou" em #lp-estado, que mora em p-lp —
-       escondido nesse momento. Quem usa leitor de tela apertava o botao e a
-       pagina inteira ficava muda.
-       Estas duas vivem no <main>, sempre visiveis para a arvore, e por isso
-       falam de qualquer tela. A casca so ESPELHA o que o motor ja disse: nao
-       inventa mensagem, nao le chain, e so espelha quando p-lp NAO esta aberta,
-       para nao anunciar duas vezes a mesma frase. -->
-  <p class="sr" id="vozEstado" role="status" aria-live="polite"></p>
-  <p class="sr" id="vozAlerta" role="alert"></p>
-
-  <!-- ══════════════════════════ OVERVIEW ══════════════════════════ -->
-  <section class="pane" id="p-over" role="region" aria-label="Overview" tabindex="-1">
-    <div class="phead"><p class="eyebrow">console · overview</p>
-      <h1 class="u-0173988c">Fourteen screens.<br><em>Two of them can spend your money</em>.</h1>
-      <p class="lede">Most consoles show you everything as if it all worked. This one sorts its own
-      screens into the ones whose contracts are deployed and the ones whose contracts are not, and puts
-      the sorting where you choose — on the rail, next to the name.</p></div>
-
-    <!-- Item 1 of what a licensed instance may never remove: the risk notice, in
-         full, on the first screen. Unconditional, and it did not move. -->
-    <div class="risk" role="note">
+    <div class="risk" role="note" class="u-5e16fc71">
       <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
       <div><b>Read this first</b>
         <p>Triviu is education, not income. For most participants the expected result after fees and gas
         trends to zero or below. There is no Triviu token and no presale — anyone offering one is running
-        a scam. Possibility is not probability.</p>
-        <p class="u-0f76b54b">The one screen here that signs asks your wallet for a real
-        transaction, with real money, on Polygon PoS. Providing liquidity can return less than it took:
-        fees earned are real and so is impermanent loss, and this console shows you the second one
-        because the first one alone is an advertisement.</p></div>
+        a scam. Possibility is not probability.</p></div>
     </div>
 
-    <div class="panel u-39761cb3">
-      <div class="chead"><h2 class="hsec">What acts, and what is waiting</h2><div class="spacer"></div>
-        <span class="pill" translate="no">measured 2026-08-12 · chain 137</span></div>
-      <p class="small faint u-26b5a4e8">A screen is listed as waiting when the
-      contract behind it has no code at any address this page could point at, or when the chain refuses
-      the call for every caller. Neither case is a roadmap note: both were read off the chain.</p>
-      <div class="tscroll"><table translate="no">
-        <thead><tr><th>screen</th><th>state</th><th>what decides it</th></tr></thead>
-        <tbody>
-          <tr><td><b>Provide liquidity</b></td><td><span class="pill ok">acts</span></td>
-            <td>TriviuLPVault has code on 137 and needs nothing else deployed</td></tr>
-          <tr><td><b>Contracts</b></td><td><span class="pill ok">reads</span></td>
-            <td>reads rate, treasury, owner and code size off the live contracts</td></tr>
-          <tr><td><b>Layers</b></td><td><span class="pill ok">reads</span></td>
-            <td>the L1 registry address comes from the ledger, not from prose</td></tr>
-          <tr><td><b>Instances</b></td><td><span class="pill ok">acts</span></td>
-            <td>an L2 surface is a label; it needs no contract by definition</td></tr>
-          <tr><td>Sub-accounts · Fence · Strategies</td><td><span class="pill warn">waiting</span></td>
-            <td>TriviuRegistry and TriviuFactory have no code on 137</td></tr>
-          <tr><td>Operate</td><td><span class="pill warn">waiting</span></td>
-            <td><span class="mono">isAllowedTarget</span> is false for every router probed</td></tr>
-          <tr><td>Liquidity &amp; gas</td><td><span class="pill warn">waiting</span></td>
-            <td>GasTank is live; the path that would spend it is not deployed</td></tr>
-          <tr><td>Referrals</td><td><span class="pill warn">waiting</span></td>
-            <td>TriviuReferralVault is written, <b>not externally audited</b> (its own header says so), and on no chain</td></tr>
-          <tr><td>Analytics</td><td><span class="pill warn">waiting</span></td>
-            <td>it charted a simulation's history, and the simulation is gone</td></tr>
-        </tbody></table></div>
+    <div class="paths">
+      <button class="path" id="pickBuilder">
+        <span class="ph"><svg class="ic ic-l" aria-hidden="true"><use href="#i-eye"/></svg>
+          <span class="eyebrow u-e2e86c52">Builder</span></span>
+        <h2>Read the contract. Understand. Sign.</h2>
+        <p class="small muted">You see the code of every function before calling it, with a guided
+        walk-through inside the contract itself, a gas calculator per network, and each step in your hand.</p>
+        <ul>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Live code and calldata before each signature</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Guided reading, function by function</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Network choice and deploy cost</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Explorer verification instructions</li>
+        </ul>
+        <span class="pill brand u-bfa31e80">Build by reading
+          <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+      </button>
+
+      <button class="path" id="pickPilot">
+        <span class="ph"><svg class="ic ic-l" aria-hidden="true"><use href="#i-play"/></svg>
+          <span class="eyebrow u-e2e86c52">Copilot</span></span>
+        <h2>Connect. Confirm. Watch.</h2>
+        <p class="small muted">The copilot sequences everything, narrates each stage as it happens, and
+        hands over a console ready to operate. You only confirm when the wallet opens —
+        <b>three confirmations in total</b>.</p>
+        <ul>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Register, deploy and default fence, in sequence</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Live narration of what happens and why</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Console delivered configured</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>You sign; the copilot never holds your keys</li>
+        </ul>
+        <span class="pill u-bfa31e80">Let the copilot build
+          <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+      </button>
     </div>
 
-    <div class="panel u-bfa31e80">
-      <div class="chead"><h2 class="hsec">Why nine screens have no numbers in them</h2></div>
-      <p class="small">Until 2026-08-12 every one of them was full. The wallet was fake, the chain was
-      fake, the cycle outcomes were drawn from a generator, and the ledger, the charts and the strategy
-      cards were all downstream of that draw. Emptying them is not a loss of function — it is the
-      removal of a function that never existed.</p>
-      <p class="small u-0173988c">They read <b>&ldquo;&mdash;&rdquo;</b> rather than
-      <span class="mono">0</span> wherever nothing has been read. A missing record and a zero are not the
-      same fact, and a plausible figure in an empty field is an invention wearing a measurement's
-      clothes.</p>
+    <div class="trust">
+      <div><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>Non-custodial — your keys never leave your machine</div>
+      <div><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>The fence starts empty; without it nothing opens</div>
+      <div><svg class="ic" aria-hidden="true"><use href="#i-vaults"/></svg>Withdrawal is <span class="mono">onlyOwner</span> and uncapped</div>
+    </div>
+  </div>
+
+  <!-- builder -->
+  <div id="initBuilder" hidden>
+    <p class="eyebrow">initiation · builder</p>
+    <h1 class="u-0173988c">From zero to your pair.</h1>
+    <div class="stage">
+      <div class="side"><p class="cap eyebrow u-d2d1e3a5">steps</p>
+        <nav id="stepNav" aria-label="Build steps"></nav>
+        <p class="hint u-ef840c70">
+          Two contracts, two deploys, and the fence is born <b>closed</b>: empty asset list, empty
+          router list, zero ceilings, zero profit floor. Nothing opens until you arm it.</p></div>
+      <div class="main"><div id="stepPane"></div></div>
+    </div>
+  </div>
+
+  <!-- copilot -->
+  <div id="initPilot" hidden>
+    <p class="eyebrow">initiation · copilot</p>
+    <h1 class="u-0173988c">I sequence. You sign.</h1>
+    <p class="lede">Your wallet opens at <a href="/cofre/">/cofre/</a>, where each step is frozen and fingerprinted before it is offered for signature. Your keys never pass through this page.</p>
+    <div class="panel" id="pilotSetup" class="u-39761cb3">
+      <div class="row">
+        <div><label for="pBase">Base currency</label><select id="pBase">
+          </select></div>
+        <div class="tight"><button class="primary big" id="btnPilotGo">
+          <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Start</button></div>
+      </div>
+      <p class="hint">Network: Polygon PoS 137, live and deployed. This screen does not sign yet, and says so below. The default fence allows WETH and WBTC — you adjust
+      everything afterwards, in the console.</p>
+    </div>
+    <div class="stages" id="pStages"></div>
+    <div class="feed" id="pFeed" role="log" aria-live="polite">
+      <p class="faint">Ready when you are. Nothing happens without your click.</p></div>
+    <div class="u-fc976f6a">
+      <button id="btnPilotDone" hidden class="primary big">Open the console
+        <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+  </div>
+
+  <p class="u-7822b2fb">
+    <button class="ghost mini" id="btnBackHero" hidden>
+      <svg class="ic" aria-hidden="true"><use href="#i-left"/></svg>Back to the two ways in</button></p>
+ </div>
+</section>
+
+<!-- ═══════════════ CONSOLE ═══════════════ -->
+<section id="viewConsole" hidden>
+<header><div class="hd">
+  <button class="brandmark" id="bmark" aria-label="Overview">
+    <span id="bmarkLogo"><svg class="mk" viewBox="0 0 120 120" aria-hidden="true" class="u-632dffa6"><use href="#mark"/></svg></span>
+    <span><b id="bmarkName" translate="no">Triviu</b> <span id="bmarkSub" translate="no">· console</span></span>
+  </button>
+  <div class="instsel" id="instSelWrap" hidden>
+    <label for="instSel" class="sr">Active instance</label>
+    <span class="eyebrow">instance</span><select id="instSel" translate="no"></select>
+  </div>
+  <div class="spacer"></div>
+
+  <!-- the chain is not a footnote in a web3 console -->
+  <span class="chainbar" id="chainBar" title="Polygon PoS · chain 137">
+    <span class="chaindot" id="chainDot"></span>
+    <span id="chainName">Polygon</span>
+    <span class="faint" id="chainId">137</span>
+  </span>
+  <button class="chainbar" id="btnWallet" title="Connect wallet · read-only until you sign">
+    <svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg>
+    <span id="walletAddr">not connected</span>
+  </button>
+
+  <!-- The master switch lives in the header because a thing that spends on its own
+       must be reachable from every page, not buried three clicks deep. -->
+  <button class="autosw" id="autoSw" role="switch" aria-checked="false"
+          aria-label="Automation" title="Automation — the console opens cycles for you">
+    <svg class="ic" aria-hidden="true"><use href="#i-power"/></svg>
+    <span class="autolabel">auto</span>
+    <span class="autotrack"><i></i></span>
+  </button>
+
+  <span class="langsw" role="group" aria-label="Language">
+    <button id="langEN" aria-pressed="true">EN</button>
+    <button id="langES" aria-pressed="false">ES</button>
+  </span>
+
+  <button class="iconbtn ghost bell" id="btnBell" aria-label="Notifications">
+    <svg class="ic ic-l" aria-hidden="true"><use href="#i-bell"/></svg>
+    <span class="badge" id="bellBadge" hidden>0</span></button>
+  <button class="iconbtn ghost" id="btnSound" aria-label="Mute sound">
+    <svg class="ic ic-l" aria-hidden="true"><use href="#i-sound" id="soundIcon"/></svg></button>
+  <button class="iconbtn ghost" id="btnTheme" aria-label="Switch to dark theme">
+    <svg class="ic ic-l" aria-hidden="true"><use href="#i-moon" id="themeIcon"/></svg></button>
+  <button class="iconbtn ghost" id="btnHelpTop" aria-label="How it works">
+    <svg class="ic ic-l" aria-hidden="true"><use href="#i-help"/></svg></button>
+  <span id="avatarSlot"><span class="avatar ph">TU</span></span>
+</div>
+<div class="notif" id="notifPanel" role="region" aria-label="Notifications"></div>
+</header>
+
+<div class="shell">
+  <nav class="rail" id="rail" aria-label="Console sections">
+    <p class="cap">operation</p>
+    <button class="navb" data-p="over" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-overview"/></svg>Overview</button>
+    <button class="navb" data-p="vaults"><svg class="ic" aria-hidden="true"><use href="#i-vaults"/></svg>Sub-accounts</button>
+    <button class="navb" data-p="liquidity"><svg class="ic" aria-hidden="true"><use href="#i-liquidity"/></svg>Liquidity &amp; gas</button>
+    <button class="navb" data-p="fence"><svg class="ic" aria-hidden="true"><use href="#i-fence"/></svg>Fence</button>
+    <button class="navb" data-p="strategy"><svg class="ic" aria-hidden="true"><use href="#i-strategy"/></svg>Strategies</button>
+    <button class="navb" data-p="lp"><svg class="ic" aria-hidden="true"><use href="#i-liquidity"/></svg>Provide liquidity</button>
+    <button class="navb" data-p="ops"><svg class="ic" aria-hidden="true"><use href="#i-operate"/></svg>Operate</button>
+    <button class="navb" data-p="analytics"><svg class="ic" aria-hidden="true"><use href="#i-analytics"/></svg>Analytics</button>
+    <p class="cap u-bfa31e80">protocol</p>
+    <button class="navb" data-p="layers"><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg>Layers · L1 / L2</button>
+    <button class="navb" data-p="refs"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg>Referrals</button>
+    <button class="navb" data-p="contracts"><svg class="ic" aria-hidden="true"><use href="#i-contract"/></svg>Contracts</button>
+    <p class="cap u-bfa31e80">account</p>
+    <button class="navb" data-p="instances" id="navInstances" hidden><svg class="ic" aria-hidden="true"><use href="#i-instances"/></svg>Instances</button>
+    <button class="navb" data-p="profile"><svg class="ic" aria-hidden="true"><use href="#i-profile"/></svg>Profile</button>
+    <button class="navb" data-p="help"><svg class="ic" aria-hidden="true"><use href="#i-help"/></svg>How it works</button>
+  </nav>
+
+  <main class="content" id="main">
+
+  <section class="pane on" id="p-over" role="region" aria-label="Overview">
+    <div class="phead"><p class="eyebrow">console · overview</p>
+      <h1 class="u-0173988c">Everything that happened,<br><em>including what failed</em>.</h1>
+      <p class="lede">Most consoles show you the wins. This one gives reverts a column, a colour and a
+      line on the chart, because a number without its failures is an advertisement.</p></div>
+    <div class="ledger">
+      <div class="lead"><div class="k">Net result</div><div class="v" id="kNet">—</div>
+        <div class="pcts" id="kPcts"></div>
+        <div class="d" id="kNetSub">after gas and fee</div></div>
+      <div class="side">
+        <div class="lcell"><div class="k">Capital</div><div class="v num" id="kTvl">—</div><div class="d" id="kTvlSub">—</div></div>
+        <div class="lcell"><div class="k">Cycles</div><div class="v num" id="kCycles">—</div><div class="d" id="kCyclesSub">—</div></div>
+        <div class="lcell"><div class="k">Revert rate</div><div class="v num lose" id="kRev">—</div><div class="d">shown, never smoothed</div></div>
+      </div>
+    </div>
+    <div class="filterbar" data-range></div>
+    <div class="grid2">
+      <div class="panel"><div class="chead"><h3>Capital curve</h3><div class="spacer"></div>
+        <div class="legend"><span><i class="u-6166472e"></i>net</span>
+        <span><i class="u-7dd090e1"></i>gas burned</span></div></div>
+        <div id="curveWrap"></div>
+        <p class="hint">Every closed cycle is a point. The reverted ones are here too, pulling the line
+        down by the gas they cost — that is what an honest curve looks like.</p></div>
+      <div class="panel"><div class="chead"><h3>Outcome split</h3></div><div id="donutWrap"></div>
+        <div class="legend u-c3b78708">
+          <span><i class="u-2eeb30cb"></i>closed in profit</span>
+          <span><i class="u-7dd090e1"></i>reverted</span></div></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><div class="chead"><h3>Recent cycles</h3><div class="spacer"></div>
+        <button class="mini" data-go="ops">Operate <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+        <div class="tscroll"><table translate="no"><thead><tr><th>#</th><th>sub-account</th><th>route</th><th>result</th><th>gas</th><th>status</th></tr></thead>
+        <tbody id="ovRows"></tbody></table></div></div>
+      <div class="panel"><div class="chead"><h3>Your vault</h3></div>
+        <div class="tscroll"><table translate="no"><tbody id="triadRows"></tbody></table></div>
+        <p class="hint">Guard these addresses. They are yours and they do not depend on this page.</p></div>
     </div>
   </section>
 
-  <!-- ══════════════════════════ SUB-ACCOUNTS ══════════════════════════ -->
-  <section class="pane" id="p-vaults" role="region" aria-label="Sub-accounts" tabindex="-1">
+  <section class="pane" id="p-vaults" role="region" aria-label="Sub-accounts">
     <div class="phead"><p class="eyebrow">operation · sub-accounts</p>
       <h1 class="u-0173988c">Capital is sliced,<br><em>never stacked</em>.</h1>
       <p class="lede">A sub-account is its own vault: its own base currency, its own fence, its own
@@ -289,7 +441,7 @@
     </div>
     <div class="row u-39761cb3">
       <div><label for="nvName">Name</label><input id="nvName" placeholder="Conservative" maxlength="40" autocomplete="off"></div>
-      <div><label for="nvBase">Base</label><select id="nvBase"><option>USDT</option><option>USDC.e</option><option>DAI</option></select></div>
+      <div><label for="nvBase">Base</label><select id="nvBase"></select></div>
       <div><label for="nvSeed">Opening size <span class="faint">each</span></label><input id="nvSeed" placeholder="blank = open empty" inputmode="decimal"></div>
       <div><label for="nvCount">How many</label><select id="nvCount">
         <option value="1">1</option><option value="2">2</option><option value="3">3</option>
@@ -305,7 +457,7 @@
       blank to open them empty and fund them in one go from <b>Liquidity &amp; gas</b> — that is how a
       round number divides cleanly. Empty the fence at any time and that sub-account opens nothing.</p>
     <div class="vaults" id="vaultGrid"></div>
-    <div class="panel u-39761cb3" id="vaultDetail" hidden>
+    <div class="panel" id="vaultDetail" class="u-39761cb3" hidden>
       <div class="chead"><h3 id="vdName">—</h3><span class="pill" id="vdBase"></span><div class="spacer"></div>
         <button class="mini" data-go="fence"><svg class="ic" aria-hidden="true"><use href="#i-fence"/></svg>Fence</button>
         <button class="mini danger" id="btnDelVault"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Close</button></div>
@@ -331,7 +483,7 @@
     </div>
   </section>
 
-  <section class="pane" id="p-liquidity" role="region" aria-label="Liquidity and gas" tabindex="-1">
+  <section class="pane" id="p-liquidity" role="region" aria-label="Liquidity and gas">
     <div class="phead"><p class="eyebrow">operation · liquidity and gas</p>
       <h1 class="u-0173988c">Two reserves,<br><em>both of them yours</em>.</h1>
       <p class="lede">The <b>liquidity</b> is the base currency inside a sub-account vault — what the
@@ -388,7 +540,7 @@
         <div class="tscroll u-0173988c"><table translate="no">
           <thead><tr><th>sub-account</th><th>now</th><th>receives</th><th>after</th><th>headroom</th></tr></thead>
           <tbody id="spRows"></tbody></table></div>
-        <p class="small u-0173988c" id="spMath"></p>
+        <p class="small" id="spMath" class="u-0173988c"></p>
         <div class="row u-0173988c">
           <div class="tight"><button class="primary" id="btnSpread" disabled>
             <svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Spread</button></div>
@@ -398,7 +550,8 @@
       <!-- GAS -->
       <div class="panel u-905b7197">
         <div class="chead"><svg class="ic ic-l u-61dc39cf" aria-hidden="true"><use href="#i-fuel"/></svg>
-          <h3>Gas reserve · GasTank</h3><div class="spacer"></div>
+          <h3>Gas reserve · GasTank</h3>
+          <span class="pill warn">nao existe na linha V0</span><div class="spacer"></div>
           <button class="mini ghost" data-explain="gas" aria-label="What is this">
             <svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button></div>
         <div class="ledger u-d4a5bf59">
@@ -414,6 +567,31 @@
         </div>
         <div class="row u-0173988c">
           <div><label for="gtRem">Remove gas</label><input id="gtRem" placeholder="empty = all" inputmode="decimal"></div>
+        </div>
+        <!-- O QUE ABRE AS OPERACOES, preenchido por renderProntidao() lendo a
+             chain condicao a condicao. Nasce VAZIO de proposito: uma lista
+             escrita a mao aqui seria uma afirmacao sobre o estado de um cofre
+             que este HTML nao tem como conhecer.
+             As condicoes sao os `revert` do caminho de execucao, lidos de
+             VaultExecution.sol. Nenhuma delas e gas — e este bloco existe
+             porque o fundador clicou em "add gas" para abrir operacoes e a
+             tela deixou ele acreditar que era por ali. -->
+        <div class="panel"><h4 class="asscabeca">O que abre as operacoes — nenhuma delas e gas</h4>
+        <div id="gasProntidao"></div></div>
+
+        <!-- A CONTA DA TAXA, com os numeros de quem esta lendo. Quem paga tem de
+             ver antes de armar, e a aritmetica aqui e a do contrato: BigInt em
+             unidades-base, divisao truncada como em `Fees.protocolFee`. Uma
+             tela que arredondasse em ponto flutuante mostraria um centavo que o
+             contrato nao entrega.
+             Nasce sem numero nenhum: a taxa vem do ProtocolRegistry e as casas
+             decimais vem do token, e ate a carteira conectar nao ha o que
+             calcular — escrever 0,5% aqui porque "e o que costuma ser" seria o
+             numero sem medicao que este projeto ja pagou caro. -->
+        <div class="panel"><h4 class="asscabeca">Quanto custa uma operacao — e quem paga cada parte</h4>
+        <div><label for="custoQuanto">Valor negociado na operacao</label>
+          <input id="custoQuanto" placeholder="250" inputmode="decimal"></div>
+        <div id="custoTabela"></div>
           <div class="tight"><button id="btnGtRem">Withdraw</button></div>
         </div>
         <p class="hint">Native currency, one balance per account, and <b>only you can move it</b> —
@@ -441,32 +619,38 @@
     </div>
   </section>
 
-  <section class="pane" id="p-fence" role="region" aria-label="Fence" tabindex="-1">
+  <section class="pane" id="p-fence" role="region" aria-label="Fence">
     <div class="phead"><p class="eyebrow">operation · the fence</p>
-      <h1 class="u-0173988c">Sixteen ways to say no,<br><em>and no contract to say them to</em>.</h1>
-      <p class="lede">The fence is the policy contract that bounds what a keeper may ask for: allowed
-      assets, allowed routers, ceilings, a profit floor, a cadence, a window. It is born closed — empty
-      lists, zero ceilings — and only the owner ever touches it.</p></div>
-
-    <div class="falta">
-      <h2 class="hsec"><span class="mono" translate="no">TriviuCerca</span> is deployed per owner, by the factory</h2>
-      <p class="small">Which is the whole reason this screen cannot act: the fence is not one shared
-      contract with a global address, it is a clone minted for you when your triad is created. No triad
-      exists on chain 137 because the factory that would mint it has no code there. There is no address
-      this screen could read, and there is no address it could write to.</p>
-      <dl>
-        <dt>needs</dt><dd><span class="mono" translate="no">TriviuFactory</span> → <span class="mono" translate="no">TriviuCerca</span>, one per owner</dd>
-        <dt>state</dt><dd>source written, 6,546 B runtime measured against the EIP-170 ceiling</dd>
-        <dt>readable</dt><dd>the source, on the <button class="mini ghost" type="button" data-ir="contracts">Contracts screen</button></dd>
-      </dl>
-      <p class="small u-bfa31e80">The sixteen controls are not drawn here as a
-      disabled form. A greyed-out fence would suggest the fence exists and is merely locked, and what is
-      true is that it has never been created.</p>
+      <h1 class="u-0173988c">Sixteen ways to say no,<br><em>and none to say yes for you</em>.</h1>
+      <p class="lede">Each control below limits when and how much the executor may <b>open</b>. Tightening
+      the fence never traps a live position. The two exceptions that can reject a <i>close</i> are marked,
+      and both exist to protect you. Only the owner touches any of it — we cannot.</p></div>
+    <div class="row">
+      <div><label for="fenceVault">Sub-account</label><select id="fenceVault"></select></div>
+      <div class="tight"><button class="mini ghost" data-explain="fence" aria-label="What is this">
+        <svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>What is the fence</button></div>
+      <div class="tight"><button class="mini" id="btnFenceReload"><svg class="ic" aria-hidden="true"><use href="#i-shuffle"/></svg>Re-read</button></div>
     </div>
+    <!-- A CERCA QUE ESTE COFRE TEM DE VERDADE.
+         Os dezesseis controles logo abaixo nomeiam `TriviuCerca.sol`, que nao
+         esta implantada; eles recusam dizendo isso. Estes seis existem no
+         artefato compilado da V0, cada linha e lida da chain, e cada botao e uma
+         transacao assinada por voce. Liberar E bloquear: a metade que faltava. -->
+    <div class="panel" id="cercaReal">
+      <div class="chead">
+        <h3>A cerca deste cofre, lida da chain</h3>
+        <div class="tight"><button class="mini" id="btnCercaReler">
+          <svg class="ic" aria-hidden="true"><use href="#i-shuffle"/></svg>Re-ler</button></div>
+      </div>
+      <p class="faint small">Seis funcoes que o cofre V0 expoe de verdade. O estado ao lado de cada
+      linha e o que a chain responde agora — nao o que esta tela lembra. Bloquear e uma transacao
+      igual a liberar: nenhuma das duas passa por nos.</p>
+      <div id="cercaRealCorpo"></div>
+    </div>
+    <div class="fence" id="fenceGrid"></div>
   </section>
 
-  <!-- ══════════════════════════ STRATEGIES ══════════════════════════ -->
-  <section class="pane" id="p-strategy" role="region" aria-label="Strategies" tabindex="-1">
+  <section class="pane" id="p-strategy" role="region" aria-label="Strategies">
     <div class="phead"><p class="eyebrow">strategy · a fence with a name</p>
       <h1 class="u-0173988c">Nobody here will tell you<br><em>which one earns more</em>.</h1>
       <p class="lede">A strategy is not a secret — it is a set of limits: what may be bought, when,
@@ -525,18 +709,18 @@
   </section>
 
 
-  <section class="pane on" id="p-lp" role="region" aria-label="Provide liquidity" tabindex="-1">
+  <section class="pane" id="p-lp" role="region" aria-label="Provide liquidity">
     <div class="phead"><p class="eyebrow">operation · provide liquidity</p>
       <h1 class="u-0173988c">There is no best pool.<br><em>There is a best pool for your size</em>.</h1>
-      <p class="lede">This is the screen that signs. It opens, authorises, collects from and closes a
-      Uniswap V3 position through <b translate="no">TriviuLPVault</b>, the shared router live on chain
-      137 — and the position is minted in <b>your own name</b>, with the router never its owner. Every
-      step is shown as the <b>exact calldata</b> your wallet would receive, then frozen and
-      fingerprinted, and the frozen object is the one that gets sent.</p></div>
+      <p class="lede">Every number on this screen came from reading the chain, one
+      <span class="mono">Swap</span> event at a time, over seven days — <b>100% of the blocks in the
+      window</b>, not a sample. Fees are counted only while the position was inside its band,
+      impermanent loss is the real path the pool walked, and the cost of opening, closing and
+      re-centring is already subtracted. Nothing here is projected. Nothing here is a promise.</p></div>
 
     <div class="panel">
       <div class="chead"><svg class="ic ic-l u-61dc39cf" aria-hidden="true"><use href="#i-shield"/></svg>
-        <h2 class="hsec">Read this before the numbers</h2></div>
+        <h3>Read this before the numbers</h3></div>
       <p class="small">A return of <span class="mono">77.4%</span> is true at $250 and false at
       $50,000 — <b>in the same pool, in the same week</b>. That is why this screen asks how much you
       are bringing <i>before</i> it shows you anything. The ranking below reorders itself completely
@@ -545,16 +729,10 @@
       a fixed block. The same pool measured forty minutes apart gave 49.44% and 51.97% — a 5% relative
       swing from nothing but the clock. Read every figure here as <i>what a position would have earned
       in those seven days</i>, never as what one will earn.</p>
-      <p class="small u-0173988c"><b>Approve the exact amount, never
-      &ldquo;unlimited&rdquo;.</b> Opening needs an ERC-20 allowance to a shared router, and your wallet
-      will offer you an unlimited one because most of them do. The contract pulls only the amount you
-      passed and resets router approval to zero afterwards — but an unlimited allowance lives in your
-      wallet, outside what any contract can control. The encoder below refuses to build one, and the
-      refusal is a check on the bytes rather than on anyone's intentions.</p>
     </div>
 
     <div class="panel u-bfa31e80">
-      <div class="chead"><h2 class="hsec">1 · How much are you bringing</h2><div class="spacer"></div>
+      <div class="chead"><h3>1 · How much are you bringing</h3><div class="spacer"></div>
         <span class="pill" id="lpSizeState">choose a size</span></div>
       <p class="small faint u-26b5a4e8">Sizes below are the ones actually
       measured. Anything between them is shown as the nearest measured size, and labelled as such —
@@ -577,25 +755,17 @@
         </select></div>
       </div>
       <p class="hint">Choosing a network is legitimate. It also has a price, and this console shows
-        it rather than deciding for you &mdash; see the box below the table. <b>Only Polygon is
-        signable here</b>: the vault is deployed on 137 and nowhere else, so an Arbitrum row is a
-        measurement you can read and not a position this page can open.</p>
+        it rather than deciding for you &mdash; see the box below the table.</p>
     </div>
 
     <div class="panel u-bfa31e80">
-      <div class="chead"><h2 class="hsec">2 · What was measured, ranked for that size</h2>
+      <div class="chead"><h3>2 · What was measured, ranked for that size</h3>
         <div class="spacer"></div><span class="pill" id="lpWindow">&mdash;</span></div>
       <div class="tscroll"><table translate="no">
         <thead><tr><th>#</th><th>network</th><th>pool</th><th>fee tier</th><th>band</th>
           <th>net over 7 days</th><th>annualised</th><th>depth in band</th>
           <th>exits</th><th>time in band</th><th>swaps read</th></tr></thead>
         <tbody id="lpRows"><tr><td colspan="11" class="faint">Pick a size above.</td></tr></tbody></table></div>
-      <!-- A tabela acima se REORDENA sozinha a cada troca de tamanho, faixa ou
-           rede. Na tela isso e obvio; num leitor de tela, nao acontece nada —
-           o foco continua no <select> e onze colunas mudaram atras. WCAG 4.1.3
-           Status Messages. A frase abaixo diz o que saiu, e a mesma frase que
-           a tabela mostra, sem inventar recomendacao. -->
-      <p class="sr" id="lpVoz" role="status" aria-live="polite"></p>
       <p class="hint"><b>Annualised</b> is the seven-day net multiplied out to a year. It is arithmetic,
         not a forecast: it assumes the next fifty-one weeks look like this one, and they will not.
         <b>Depth in band</b> is the liquidity already sitting where you would sit &mdash; it is what
@@ -603,14 +773,14 @@
         this screen.</p>
     </div>
 
-    <div class="panel u-bfa31e80" id="lpCostPanel" hidden>
+    <div class="panel" id="lpCostPanel" class="u-bfa31e80" hidden>
       <div class="chead"><svg class="ic ic-l u-f427803b" aria-hidden="true"><use href="#i-info"/></svg>
-        <h2 class="hsec">What your network choice costs</h2></div>
+        <h3>What your network choice costs</h3></div>
       <div id="lpCostBody"></div>
     </div>
 
     <div class="panel u-bfa31e80">
-      <div class="chead"><h2 class="hsec">3 · How the size changes the ranking</h2></div>
+      <div class="chead"><h3>3 · How the size changes the ranking</h3></div>
       <p class="small faint u-26b5a4e8">The same pools, the same week, ordered by
       annualised return at each size. Watch the order break.</p>
       <div class="tscroll"><table translate="no">
@@ -622,7 +792,26 @@
     </div>
 
     <div class="panel u-bfa31e80">
-      <div class="chead"><h2 class="hsec">4 · Where these numbers came from</h2></div>
+      <div class="chead"><svg class="ic ic-l u-6b91ddff" aria-hidden="true"><use href="#i-info"/></svg>
+        <h3>Why there is no button on this screen</h3></div>
+      <p class="small">You have read eight pools, two networks&rsquo; worth of gas figures and a
+      ranking that reorders itself with your size &mdash; and there is nothing here to click.
+      That is deliberate, and it is not a roadmap note.</p>
+      <p class="small u-0173988c"><b>The contract that would open a position
+      does not exist.</b> <span class="mono">TriviuExecutor</span> has one external function,
+      <span class="mono">executeCycle</span>, and it walks an atomic arbitrage cycle. It cannot
+      mint a concentrated position, hold an ERC-721, collect fees over time, or move a band.
+      Providing liquidity is not a setting we have left switched off. It is a different
+      contract, and it has not been written.</p>
+      <p class="small u-0173988c">A button here would be the one thing this
+      console refuses to do: offer an action the protocol cannot perform. When that contract
+      exists and has been audited, the button appears &mdash; and what it says will obey the
+      same rule every number above obeys. It will name the pool, the size, the band and the
+      network you chose. <b>It will not name a return.</b></p>
+    </div>
+
+    <div class="panel u-bfa31e80">
+      <div class="chead"><h3>4 · Where these numbers came from</h3></div>
       <div class="tscroll"><table translate="no">
         <thead><tr><th>network</th><th>window</th><th>blocks read</th><th>log windows</th>
           <th>failed</th><th>gas price</th><th>native asset</th><th>open + close</th></tr></thead>
@@ -634,326 +823,95 @@
         Base and Ethereum &middot; more than one seven-day window &middot; any period of high
         volatility. The impermanent loss in these numbers is the one that happened, not the one that
         will.</p>
-    </div>
 
-    <!-- ══ where the reading stops and the signing starts ══
-         Everything above is a measurement taken in the past. Everything below is
-         read live and, at the end, sent. The boundary gets a heading rather than
-         a scroll, because the two halves make very different claims. -->
-    <div class="phead u-9a6b92e4">
-      <p class="eyebrow">the same screen · from here it is live</p>
-      <h2 class="hpane u-0173988c">Now the chain,<br><em>and every byte before your wallet sees it</em>.</h2>
-      <p class="lede">Four actions, and they are the whole life of a position: open it, authorise the
-      vault for it, collect what it earned, close it. Nothing below is drawn from the table above — it
-      is read from chain 137 when you press Read, and encoded from what you type.</p>
-    </div>
+      <!-- ===================== OPEN POSITIONS · statement ======================
+           Everything above answers "which pool, at my size". This answers the
+           question that comes after you are already in one: what is this position
+           actually doing, and would closing it now be a gain or a loss.
 
-    <div class="lpk">
-      <div id="lp-fatal" class="alerta" role="alert" hidden>
-        <h2 class="rot">This page is not reading anything</h2>
-        <p id="lp-fatal-txt"></p>
+           Deliberately NOT a projection. Every row is either read from the chain
+           or arithmetic on numbers read from the chain, and the two are labelled
+           differently. A position with no recorded deposit shows "-", never zero:
+           a missing record and a zero are not the same fact.
+      -->
+      <div class="chead u-5e16fc71">
+        <h3>4 &middot; Open positions &middot; the statement</h3><div class="spacer"></div>
+        <span class="chip" id="lpPosCount">no position loaded</span>
       </div>
-      <p class="hint u-a0925a28" id="lp-origem">Checking which origin is serving this page&hellip;</p>
 
-<section class="painel" aria-labelledby="h-carteira">
-    <h2 id="h-carteira">Your wallet, and which chain it is on</h2>
-    <div class="form f3">
-      <div class="campo">
-        <label for="lp-endereco">Address</label>
-        <input id="lp-endereco" type="text" inputmode="text" spellcheck="false" autocomplete="off"
-               placeholder="0x…" aria-describedby="lp-endereco-help lp-endereco-erro">
-        <span class="campoerro" id="lp-endereco-erro"></span>
+      <p class="lede">The screens above choose a pool. This one reads a position you already
+        hold and shows <b>what it has produced since you opened it</b> &mdash; not what it might
+        produce. Paste a position id, or connect and it lists the ones the wallet owns.</p>
+
+      <div class="formbar u-bfa31e80">
+        <div><label for="lpPosId">Position id (Uniswap V3 NFT)</label>
+          <input id="lpPosId" inputmode="numeric" placeholder="e.g. 1284431" autocomplete="off"></div>
+        <div><label for="lpPosNet">Network</label>
+          <select id="lpPosNet"><option value="137">Polygon</option><option value="42161">Arbitrum</option></select></div>
+        <button class="mact" id="lpPosRead" type="button">Read the position</button>
       </div>
-      <div class="campo">
-        <label for="lp-rpc">Read-only endpoint</label>
-        <select id="lp-rpc" aria-describedby="lp-rpc-help"></select>
+
+      <div id="lpPosEmpty" class="hint u-bfa31e80">
+        Nothing loaded. This panel shows <b>&ldquo;&mdash;&rdquo;</b> for anything it has not read
+        &mdash; never a placeholder number. A plausible figure in an empty field is an invention,
+        and this screen exists to be the opposite of that.
       </div>
-      <div class="campo"><button class="act ghost" id="lp-conectar" type="button">Connect wallet</button></div>
-    </div>
-    <p class="hint"><span id="lp-endereco-help">Typing an address works with no wallet installed and reads
-    everything below; it just cannot sign. Connecting asks the wallet for an address and a chain id, which
-    are the only two things it is asked before you press a send button.</span>
-    <span id="lp-rpc-help">The endpoint is a fixed list rather than a free field because the
-    Content-Security-Policy of this origin names these three hosts in <span class="mono" translate="no">connect-src</span>
-    and the browser blocks a fourth. The lock is the browser's, not this page's promise.</span></p>
 
-    <p class="estado u-c53ea1da"><span id="lp-estado" role="status" aria-live="polite">Nothing read yet.</span> <span class="erro" id="lp-erro" role="alert"></span> <span class="prog" id="lp-prog" aria-hidden="true"></span></p>
+      <script src="/js/console-v0-boot.js"></script>
 
-    <div id="lp-chain-alerta" class="alerta u-6d795d56" role="alert" hidden>
-      <span class="rot">Wrong chain</span>
-      <p id="lp-chain-txt"></p>
-    </div>
+      <div id="lpPosBody" hidden>
+        <!-- The one number that answers "should I close" -->
+        <div class="ledger u-abb99f19">
+          <div class="lead">
+            <div class="k">against holding the same two tokens</div>
+            <div class="v" id="lpPosVsHodl">&mdash;</div>
+            <div class="k" id="lpPosVsHodlNote" class="u-accdf37c">
+              fees earned minus impermanent loss minus what it cost to open and re-centre
+            </div>
+          </div>
+          <div class="side">
+            <div class="lcell"><div class="k">deposited</div><div class="v" id="lpPosDep">&mdash;</div></div>
+            <div class="lcell"><div class="k">fees collected so far</div><div class="v" id="lpPosColl">&mdash;</div></div>
+            <div class="lcell"><div class="k">value if closed now</div><div class="v" id="lpPosNow">&mdash;</div></div>
+            <div class="lcell"><div class="k">time inside the band</div><div class="v" id="lpPosInBand">&mdash;</div></div>
+          </div>
+        </div>
 
-    <div class="rolagem u-2bdf8e45">
-      <table class="vt">
-        <tbody>
-          <tr><th scope="row">Address in use &mdash; typed, or returned by the wallet</th><td class="v" translate="no" id="lp-w-conta">&mdash;</td></tr>
-          <tr><th scope="row">Chain the wallet reports, from <span class="mono" translate="no">eth_chainId</span></th><td class="v" translate="no" id="lp-w-chain">&mdash;</td></tr>
-          <tr><th scope="row">Chain the endpoint reports, asked separately on purpose</th><td class="v" translate="no" id="lp-w-rpcchain">&mdash;</td></tr>
-          <tr><th scope="row">Native balance of that address &mdash; gas is paid from here</th><td class="v" translate="no" id="lp-w-saldo">&mdash;</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="hint">Read is what the button does. <button class="act" id="lp-ler" type="button">Read the chain</button></p>
-  </section>
+        <!-- The statement proper: opening, during, closing -->
+        <div class="chead u-39761cb3"><h3>Line by line</h3><div class="spacer"></div>
+          <span class="chip" id="lpPosSrc">read from chain</span></div>
+        <div class="codewrap"><table class="grid2" id="lpPosLedger">
+          <thead><tr><th>when</th><th>what happened</th><th class="num">token0</th><th class="num">token1</th><th>where the number came from</th></tr></thead>
+          <tbody><tr><td colspan="5" class="mut">no position read</td></tr></tbody>
+        </table></div>
 
-<section class="painel" aria-labelledby="h-posicao">
-    <h2 id="h-posicao">One position, read from the manager and from the vault</h2>
-    <div class="form f2">
-      <div class="campo">
-        <label for="lp-tokenid">Token id</label>
-        <input id="lp-tokenid" type="text" inputmode="numeric" spellcheck="false" autocomplete="off"
-               placeholder="whole number" aria-describedby="lp-posicao-help lp-tokenid-erro">
-        <span class="campoerro" id="lp-tokenid-erro"></span>
+        <!-- The ratified fee rule, stated where it applies -->
+        <div class="ledger u-2b762a32">
+          <div class="lead u-35eecf3e">
+            <div class="k">the fee on this position</div>
+            <div class="v" id="lpPosFee" class="u-26aa5892">&mdash;</div>
+            <div class="k u-accdf37c">
+              <b>The protocol is paid only if the position produced a result</b>, and never if it
+              closed below what went in. The check is price-free: it compares what comes out against
+              what was deposited, token by token, so a fee is never charged on a position that shrank.
+              A position with no deposit on record is charged <b>nothing</b> &mdash; an absent record
+              is not a zero.
+            </div>
+          </div>
+        </div>
+
+        <p class="hint" id="lpPosPend" class="u-bfa31e80"><b>What this statement does not know:</b>
+          fees collected through a router other than this console are visible on chain and included;
+          anything moved by a contract that does not emit a <span class="mono">Collect</span> event is
+          not. Impermanent loss here is the path the pool actually walked between your open block and
+          now &mdash; it is a measurement of the past, and it moves.</p>
       </div>
-      <div class="campo"><button class="act ghost" id="lp-lerpos" type="button">Read this position</button></div>
-    </div>
-    <p class="hint" id="lp-posicao-help">Two contracts are asked, because they know different things. The
-    position manager knows who owns it, what pair it holds, where its band is and what it currently owes.
-    The vault knows what went <i>into</i> it &mdash; and if the vault has no record, the close charges
-    exactly zero, because an absent record is not a zero and the contract treats it as "cannot prove a
-    result".</p>
-    <p class="estado u-0ee7f66a"><span id="lp-pos-estado" role="status" aria-live="polite">Nothing read yet.</span></p>
-    <div class="rolagem u-c53ea1da">
-      <table class="vt">
-        <tbody>
-          <tr><th scope="row">Owner, <span class="mono" translate="no">ownerOf</span></th><td class="v" translate="no" id="lp-p-dono">&mdash;</td></tr>
-          <tr><th scope="row">Approved for, <span class="mono" translate="no">getApproved</span> &mdash; collect and close both require this to be the vault</th><td class="v" translate="no" id="lp-p-aprovado">&mdash;</td></tr>
-          <tr><th scope="row">Pair and fee tier</th><td class="v" translate="no" id="lp-p-par">&mdash;</td></tr>
-          <tr><th scope="row">Band</th><td class="v" translate="no" id="lp-p-faixa">&mdash;</td></tr>
-          <tr><th scope="row">Liquidity</th><td class="v" translate="no" id="lp-p-liquidez">&mdash;</td></tr>
-          <tr><th scope="row">Owed right now, <span class="mono" translate="no">tokensOwed0</span> / <span class="mono" translate="no">tokensOwed1</span></th><td class="v" translate="no" id="lp-p-devidos">&mdash;</td></tr>
-          <tr><th scope="row">The vault's own record, <span class="mono" translate="no">posicaoDe</span></th><td class="v" id="lp-p-registro">&mdash;</td></tr>
-        </tbody>
-      </table>
     </div>
   </section>
 
-<section aria-labelledby="h-fluxo">
-    <h2 class="u-85510fa2" id="h-fluxo">The flow, and the exact bytes of each step</h2>
-    <p class="lead">Four actions, and they are the whole life of a position: open it, authorise the vault
-    for it, collect what it earned, close it. Pick one, fill in what it needs, and press Encode. Nothing is
-    sent by encoding &mdash; encoding builds the bytes, freezes them, prices them against the chain as it is
-    right now, and stops there.</p>
 
-    <div class="painel">
-      <div class="form f2">
-        <div class="campo">
-          <label for="lp-acao">Action</label>
-          <select id="lp-acao" aria-describedby="lp-acao-nota lp-acao-erro">
-            <option value="abrir">Open a position &mdash; approve both amounts, then abrir()</option>
-            <option value="autorizar">Authorise the vault for one position &mdash; ERC-721 approve()</option>
-            <option value="coletar">Collect the fees &mdash; coletar()</option>
-            <option value="fechar">Close and burn &mdash; fechar()</option>
-          </select>
-          <span class="campoerro" id="lp-acao-erro"></span>
-        </div>
-        <div class="campo"><button class="act" id="lp-montar" type="button">Encode the calldata</button></div>
-      </div>
-      <p class="hint" id="lp-acao-nota"></p>
 
-      <div class="grupo" id="g-par">
-        <span class="rot">The pair</span>
-        <div class="form f3">
-          <div class="campo">
-            <label for="lp-token0">token0 &mdash; the lower address</label>
-            <select id="lp-token0" aria-describedby="lp-par-help lp-token0-erro"><option value="">read the chain first</option></select>
-            <span class="campoerro" id="lp-token0-erro"></span>
-          </div>
-          <div class="campo">
-            <label for="lp-token1">token1 &mdash; the higher address</label>
-            <select id="lp-token1" aria-describedby="lp-par-help lp-token1-erro"><option value="">read the chain first</option></select>
-            <span class="campoerro" id="lp-token1-erro"></span>
-          </div>
-          <div class="campo">
-            <label for="lp-faixa">Fee tier</label>
-            <select id="lp-faixa" aria-describedby="lp-par-help lp-faixa-erro">
-              <option value="100">100 &mdash; 0.01%</option>
-              <option value="500">500 &mdash; 0.05%</option>
-              <option value="3000" selected>3000 &mdash; 0.30%</option>
-              <option value="10000">10000 &mdash; 1.00%</option>
-            </select>
-              <p class="small" id="lp-banda-eco" aria-live="polite"></p>
-            <span class="campoerro" id="lp-faixa-erro"></span>
-          </div>
-        </div>
-        <p class="hint" id="lp-par-help">Both lists are built from what the Registry allows, and both tokens
-        are re-checked against it at the instant of encoding &mdash; a whitelist that changed between the
-        read and the click is exactly what that re-check exists for. Uniswap orders a pair by address and
-        token0 must be the lower of the two; if you pick them the other way round this page refuses and
-        says so rather than swapping them for you, because swapping changes which side your amounts and
-        your ticks refer to.</p>
-      </div>
-
-      <div class="grupo" id="g-faixa">
-        <span class="rot">The band &mdash; yours, and this page will not guess it</span>
-        <div class="form f3">
-          <div class="campo">
-            <label for="lp-tickbaixo">tickLower</label>
-            <input id="lp-tickbaixo" type="text" inputmode="numeric" spellcheck="false" autocomplete="off"
-                   placeholder="e.g. -887220" aria-describedby="lp-faixa-help lp-tickbaixo-erro">
-            <span class="campoerro" id="lp-tickbaixo-erro"></span>
-          </div>
-          <div class="campo">
-            <label for="lp-tickalto">tickUpper</label>
-            <input id="lp-tickalto" type="text" inputmode="numeric" spellcheck="false" autocomplete="off"
-                   placeholder="e.g. 887220" aria-describedby="lp-faixa-help lp-tickalto-erro">
-            <span class="campoerro" id="lp-tickalto-erro"></span>
-          </div>
-        </div>
-        <p class="hint" id="lp-faixa-help">Ticks, between &minus;887272 and 887272, and the upper one must be
-        strictly above the lower. There is <b>no default here and there will not be one</b>: a default band
-        is a price opinion, the vault holds none by design, and a screen that supplied one would be handing
-        you its own opinion inside bytes you signed. The pool your pair and fee tier name is where these
-        ticks mean something; read it wherever you normally read one.</p>
-      </div>
-
-      <div class="grupo" id="g-quantias">
-        <span class="rot">How much of each side</span>
-        <div class="form f4">
-          <div class="campo">
-            <label for="lp-q0">amount0Desired</label>
-            <input id="lp-q0" type="text" inputmode="decimal" spellcheck="false" autocomplete="off"
-                   placeholder="0" aria-describedby="lp-quantias-help lp-q0-erro">
-            <span class="campoerro" id="lp-q0-erro"></span>
-          </div>
-          <div class="campo">
-            <label for="lp-q1">amount1Desired</label>
-            <input id="lp-q1" type="text" inputmode="decimal" spellcheck="false" autocomplete="off"
-                   placeholder="0" aria-describedby="lp-quantias-help lp-q1-erro">
-            <span class="campoerro" id="lp-q1-erro"></span>
-          </div>
-        </div>
-        <p class="hint" id="lp-quantias-help">Decimal amounts, scaled by the decimals read from each token
-        &mdash; more decimal places than the token has is refused instead of quietly truncated. Each
-        non-zero side gets its own approval for <b>exactly</b> this amount. If a standing allowance already
-        exists, a step that sets it to zero is offered <b>first</b>: this page never rides an old approval
-        in silence.</p>
-      </div>
-
-      <div class="grupo" id="g-minimos">
-        <span class="rot">Slippage floors</span>
-        <div class="form f4">
-          <div class="campo">
-            <label for="lp-min0">amount0Min</label>
-            <input id="lp-min0" type="text" inputmode="decimal" spellcheck="false" autocomplete="off"
-                   placeholder="0" aria-describedby="lp-minimos-help lp-min0-erro">
-            <span class="campoerro" id="lp-min0-erro"></span>
-          </div>
-          <div class="campo">
-            <label for="lp-min1">amount1Min</label>
-            <input id="lp-min1" type="text" inputmode="decimal" spellcheck="false" autocomplete="off"
-                   placeholder="0" aria-describedby="lp-minimos-help lp-min1-erro">
-            <span class="campoerro" id="lp-min1-erro"></span>
-          </div>
-        </div>
-        <p class="hint" id="lp-minimos-help">On an open these are decimals of the two tokens you picked, and
-        they are the <b>only</b> defence against someone moving the pool's price just before your block
-        lands &mdash; the mint uses the price as it finds it. Zero means you accept any ratio, and if you
-        type zero the card will say so in those words rather than let it pass unnoticed. On a close they are
-        <b>raw units</b> of whatever pair the position holds, because this page will not scale a number by
-        decimals it has not read.</p>
-      </div>
-
-      <div class="grupo" id="g-posicao">
-        <span class="rot">Which position</span>
-        <p class="hint u-a0925a28">The token id comes from the field in the section above, and it
-        is the same one. Read the position there first: it shows whether the vault is already approved on
-        it, which is what decides between a call that works and one that reverts
-        <span class="mono" translate="no">AprovacaoAusente</span>.</p>
-      </div>
-
-      <div class="grupo" id="g-prazo">
-        <span class="rot">Deadline</span>
-        <div class="form f3">
-          <div class="campo">
-            <label for="lp-prazo">Minutes from now</label>
-            <input id="lp-prazo" type="text" inputmode="numeric" spellcheck="false" autocomplete="off"
-                   value="20" aria-describedby="lp-prazo-help lp-prazo-erro">
-            <span class="campoerro" id="lp-prazo-erro"></span>
-          </div>
-        </div>
-        <p class="hint" id="lp-prazo-help">Turned into an absolute unix timestamp at the moment of encoding,
-        from <b>this computer's clock</b>, and the resulting absolute value is printed in full on the card so
-        you can check it against a clock you trust. It is said this way because it is true: none of the
-        read-only methods this page is allowed to call returns the chain's own time, and growing that
-        allowlist to make one field prettier would be trading a lock for an ornament.</p>
-      </div>
-
-      <div class="grupo" id="g-teto">
-        <span class="rot">Your ceiling on the rate</span>
-        <div class="form f3">
-          <div class="campo">
-            <label for="lp-teto">feeBpsMax, in basis points</label>
-            <input id="lp-teto" type="text" inputmode="numeric" spellcheck="false" autocomplete="off"
-                   placeholder="read the chain first" aria-describedby="lp-teto-nota lp-teto-erro">
-            <span class="campoerro" id="lp-teto-erro"></span>
-          </div>
-        </div>
-        <p class="hint" id="lp-teto-nota">Filled in from the rate the registry reports, once you have read
-        the chain. Lower it if you want to.</p>
-      </div>
-
-      <p class="estado u-92c18f6b"><span id="lp-fluxo-estado" role="status" aria-live="polite">Nothing encoded yet.</span> <span class="erro" id="lp-fluxo-erro" role="alert"></span></p>
-      <p class="hint" id="lp-permissao">The allowance the vault already holds over each token appears here
-      before any new one is requested. If it cannot be read, the approval is not offered for signature at
-      all: showing the standing permission first is the rule, and a page that cannot show it has not earned
-      the right to ask for another one.</p>
-    </div>
-
-    <div id="lp-passos" aria-busy="false"></div>
-  </section>
-
-<section class="regra" aria-labelledby="h-porta">
-    <h2 class="t" id="h-porta">Why the bytes are frozen, and what that buys you</h2>
-    <p>The defect this page is built to make impossible has a name: rebuilding the calldata inside the click
-    handler. The screen shows the bytes, you read them, you check them, you click &mdash; and the code, in
-    the handler, builds it all again from the form fields. Anything at all fits between the reading and the
-    click. What gets signed stops being what was read, and <b>nothing on screen ever lies</b>: the screen
-    showed the truth of a moment that has passed. On a page whose only reason to exist is that the byte on
-    screen is the byte signed, that is the worst defect available.</p>
-    <p>So: built once, kept as an object, drawn from <i>that</i> object, hashed over
-    <span class="mono" translate="no">{chainId, from, to, data, value}</span> of <i>that</i> object. At the
-    click the hash is recomputed over the same payload, by the same function, the wallet's chain is asked
-    again, the active account is compared, and the <b>same reference</b> is handed over. Change any input
-    and the freeze is discarded out loud &mdash; the button says "Void", with the reason on the card.</p>
-    <p><b>One canonicalisation, not two.</b> There were two here until 2026-08-13, one on each side, and
-    they disagreed by a single field: the freeze hashed four fields and the click recomputed five. Both
-    were plausible where they stood, both had different names, and the effect was that the re-check could
-    never pass &mdash; measured at 200 refusals out of 200. So the fix is not "correct one of them". It is
-    that there is one function that builds the payload and one that fingerprints it, both sides call
-    exactly those, and the guardian now proves the two digests match by running them.</p>
-    <p>None of that is a promise you have to take. It is enforced from outside the file:
-    <span class="mono" translate="no">scripts/check-assinatura.mjs</span> reads the body of every click
-    handler and of the send function and fails the build if either one constructs calldata, if the wallet
-    allowlist grows past four, if an all-ones word appears in an approval, or if anything but the empty
-    string is ever assigned to <span class="mono" translate="no">innerHTML</span>.</p>
-  </section>
-
-<section class="painel" aria-labelledby="h-nao">
-    <h2 id="h-nao">What this page does not do</h2>
-    <ul class="nao">
-      <li>It does not switch your network. If the wallet is on another chain it <b>refuses</b> and you
-      switch &mdash; a page that switches your chain for you is a page that decides where you sign.</li>
-      <li>It does not encode an unlimited approval, and the refusal is a check on the bytes rather than on
-      anyone's intentions: a 32-byte word of all ones anywhere in the calldata throws.</li>
-      <li>It does not offer a step whose gas estimate reverts. The contract's own reason is printed on the
-      card instead, in its own words.</li>
-      <li>It does not sign anything off-chain. Only four wallet methods exist here and none of them
-      produces an authorisation that costs no gas and shows up nowhere until it is used against you.</li>
-      <li>It does not rebalance, does not read a price, and does not tell you where to put your band.</li>
-      <li>It does not custody. The position is minted to your address and the vault is never its owner
-      &mdash; and the row above, reading zero positions held by the router, is that claim as a number.</li>
-      <li>It does not promise that the protocol gets paid. The vault cannot enforce its own fee, because you
-      hold the position and the manager's own collect is one transaction away. That is a product decision
-      taken with the measurement in hand, not an oversight, and it is written here rather than left out.</li>
-    </ul>
-  </section>
-    </div>
-  </section>
-
-  <!-- ══════════════════════════ OPERATE ══════════════════════════ -->
-  <section class="pane" id="p-ops" role="region" aria-label="Operate" tabindex="-1">
+  <section class="pane" id="p-ops" role="region" aria-label="Operate">
     <div class="phead"><p class="eyebrow">operation · atomic route</p>
       <h1 class="u-0173988c">It closes the loop,<br><em>or it never happened</em>.</h1>
       <p class="lede">The route leaves the base currency, walks the hops and comes back. If it does not
@@ -1034,7 +992,7 @@
       <p class="hint">The engine skips any sub-account that is paused, has an empty fence or lacks idle
       balance, and writes the reason below instead of failing quietly. It stops when this page is
       closed — a loop that spends should not outlive the tab that started it.</p>
-      <div class="feed u-bfa31e80" id="autoLog" role="log" aria-live="polite"></div>
+      <div class="feed" id="autoLog" class="u-bfa31e80" role="log" aria-live="polite"></div>
     </div>
 
     <div class="panel u-bfa31e80">
@@ -1051,7 +1009,7 @@
     </div>
   </section>
 
-  <section class="pane" id="p-analytics" role="region" aria-label="Analytics" tabindex="-1">
+  <section class="pane" id="p-analytics" role="region" aria-label="Analytics">
     <div class="phead"><p class="eyebrow">analytics · growth and outcome</p>
       <h1 class="u-0173988c">Read the record,<br><em>not the pitch</em>.</h1>
       <p class="lede">Three views, and none of them flatters: where the capital went, how the outcomes
@@ -1093,91 +1051,99 @@
     </div>
   </section>
 
-  <section class="pane" id="p-layers" role="region" aria-label="Layers" tabindex="-1">
+  <section class="pane" id="p-layers" role="region" aria-label="Layers">
     <div class="phead"><p class="eyebrow">protocol · the layer model</p>
-      <h1 class="u-0173988c">One base layer,<br><em>many surfaces above it</em>.</h1>
+      <h1 class="u-0173988c">One base layer,<br><em>many surfaces above it</em>.
+        <button class="mini ghost" data-explain="layers" aria-label="What is this"
+          class="u-080fde87"><svg class="ic ic-l" aria-hidden="true"><use href="#i-info"/></svg></button></h1>
       <p class="lede">Ethereum splits the network into levels to solve scale: <b>L1</b> is the main
       chain — security and decentralisation, at a price. <b>L2</b> is built above it, settles faster
       and cheaper, and folds the consolidated result back down to L1. Triviu borrows the shape.</p></div>
 
     <div class="grid2 u-f44493c5">
       <div class="panel u-ecc6f5cf">
-        <div class="chead"><span class="pill brand">L1</span><h2 class="hsec">The protocol</h2></div>
+        <div class="chead"><span class="pill brand">L1</span><h3>The protocol</h3></div>
         <p class="small muted">Audited contracts, one fence rule, one fee rule, one settlement rail.
         Slow to change on purpose: a base layer that moves easily is not a base layer.</p>
         <ul class="u-a3b9e49a">
-          <li class="small muted u-60e565fc"><svg class="ic u-a42e2d0c" aria-hidden="true"><use href="#i-lock"/></svg>Custody never exists — the position is minted to you</li>
+          <li class="small muted u-60e565fc"><svg class="ic u-a42e2d0c" aria-hidden="true"><use href="#i-lock"/></svg>Custody never exists — the vault is yours</li>
           <li class="small muted u-60e565fc"><svg class="ic u-a42e2d0c" aria-hidden="true"><use href="#i-shield"/></svg>Atomic settlement: it closes or it reverts</li>
           <li class="small muted u-60e565fc"><svg class="ic u-a42e2d0c" aria-hidden="true"><use href="#i-eye"/></svg>Every attempt published, failures included</li>
         </ul>
         <div class="tscroll u-bfa31e80"><table translate="no"><tbody>
-          <tr><td class="faint">registry</td><td class="mono u-a83ce3a2" id="l1Registry">&mdash;</td></tr>
-          <tr><td class="faint">LP router</td><td class="mono u-a83ce3a2" id="lyVault">&mdash;</td></tr>
-          <tr><td class="faint">chain</td><td id="l1Chain">&mdash;</td></tr>
-          <tr><td class="faint">changes by</td><td>public PR &rarr; on-chain event</td></tr>
+          <tr><td class="faint">registry</td><td id="l1Registry">—</td></tr>
+          <tr><td class="faint">chain</td><td>Polygon PoS · 137 <span class="pill ok">live</span> <span class="pill warn">this screen is not wired</span></td></tr>
+          <tr><td class="faint">changes by</td><td>public PR → on-chain event</td></tr>
         </tbody></table></div>
-        <p class="hint">Both addresses come from the address ledger, the single file every screen and
-        script reads. Not one address is typed into this page.</p>
       </div>
 
       <div class="panel u-905b7197">
-        <div class="chead"><span class="pill warn">L2</span><h2 class="hsec">Your surface</h2></div>
-        <p class="small muted">Your label — name, logo, accent — for your own users. Fast to change,
-        because changing it cannot touch the layer underneath. Everything consolidates back down to L1
-        at settlement.</p>
+        <div class="chead"><span class="pill warn">L2</span><h3>Your surface</h3></div>
+        <p class="small muted">Your vault, your sub-accounts, your fence — and, if you license it,
+        your label with your own users. Fast to change, because changing it cannot touch the layer
+        underneath. Everything consolidates back down to L1 at settlement.</p>
         <div class="ledger u-0210977a">
           <div class="side u-9681c09c">
-            <div class="lcell"><div class="k">Sub-accounts</div><div class="v num">&mdash;</div><div class="d">no vault contract on 137</div></div>
-            <div class="lcell"><div class="k">Fence rules</div><div class="v num">&mdash;</div><div class="d">no fence contract on 137</div></div>
-            <div class="lcell"><div class="k">Instances</div><div class="v num" id="lyInst">&mdash;</div><div class="d">labels, in this browser</div></div>
+            <div class="lcell"><div class="k">Sub-accounts</div><div class="v num" id="lySubs">—</div><div class="d">independent vaults</div></div>
+            <div class="lcell"><div class="k">Fence rules</div><div class="v num" id="lyFence">—</div><div class="d">active on this account</div></div>
+            <div class="lcell"><div class="k">Instances</div><div class="v num" id="lyInst">—</div><div class="d">labels above the protocol</div></div>
           </div></div>
-        <p class="hint">The first two read <b>&ldquo;&mdash;&rdquo;</b> and not <span class="mono">0</span>.
-        Zero sub-accounts would mean you have none; a dash means there is no contract that could hold
-        one, and the two are not the same fact.</p>
         <p class="hint">A label changes the name, the logo and the accent. It cannot change the fence
         rule, the fee rule or the risk notice — those live on L1, and that is the whole point.</p>
+        <div class="u-15ab6f43">
+          <div class="chead"><h3>Becoming an L2</h3><div class="spacer"></div>
+            <span class="pill" id="lyBadge">—</span></div>
+          <p class="small muted">A label is not bought — it is reached. Running a surface above the
+          protocol means carrying other people's users, so the gate is a sustained average of
+          <b>100,000</b> under management. It is a threshold of responsibility, not a price.</p>
+          <div class="band u-0173988c"><span>0</span>
+            <span class="bandbar"><i id="lyBar" class="u-fb263c17"></i></span>
+            <span>100k</span></div>
+          <p class="foot-spec" id="lyProgress" class="u-0f76b54b">—</p>
+        </div>
       </div>
     </div>
 
     <div class="panel u-bfa31e80">
-      <h2 class="hsec">What settles where</h2>
+      <h3>What settles where</h3>
       <div class="tscroll u-0173988c"><table translate="no">
         <thead><tr><th>action</th><th>decided on</th><th>settles on</th><th>who can change it</th></tr></thead>
         <tbody>
-          <tr><td>Open a position</td><td>L2 · your inputs</td><td>L1 · atomic</td><td>you</td></tr>
-          <tr><td>Collect fees</td><td>L2 · your click</td><td>L1 · atomic</td><td>you, and the ceiling you signed</td></tr>
-          <tr><td>Close a position</td><td>L2 · your click</td><td>L1 · atomic</td><td>nobody — it is the contract</td></tr>
+          <tr><td>Open a position</td><td>L2 · your fence</td><td>L1 · atomic</td><td>you</td></tr>
+          <tr><td>Close a position</td><td>L2 · keeper</td><td>L1 · atomic</td><td>nobody — it is the contract</td></tr>
           <tr><td>Success fee</td><td>L1</td><td>L1</td><td>public PR + on-chain event</td></tr>
-          <tr><td>Brand, logo, accent</td><td>L2 · your label</td><td>&mdash;</td><td>you</td></tr>
-          <tr><td>Risk notice</td><td>L1</td><td>&mdash;</td><td>nobody</td></tr>
+          <tr><td>Brand, logo, accent</td><td>L2 · your label</td><td>—</td><td>you</td></tr>
+          <tr><td>Risk notice</td><td>L1</td><td>—</td><td>nobody</td></tr>
         </tbody></table></div>
     </div>
   </section>
 
-  <!-- ══════════════════════════ REFERRALS ══════════════════════════ -->
-  <section class="pane" id="p-refs" role="region" aria-label="Referrals" tabindex="-1">
+  <section class="pane" id="p-refs" role="region" aria-label="Referrals">
     <div class="phead"><p class="eyebrow">protocol · referral vault</p>
-      <h1 class="u-0173988c">The split happens at once,<br><em>and only from real wins</em>.</h1>
-      <p class="lede">The share from every <b>positive</b> close of someone you introduced is divided
-      <b>in the same transaction</b> that takes the fee &mdash; there is no balance waiting for you and
-      nothing to claim. The contract says why in its own comment: holding what is owed to a third party
-      is custody of that party under another name. If they do not profit, there is no share. This is not
-      income, and the whitepaper documents why.</p>
-      <p class="lede u-0173988c"><b>None of this is running.</b>
-      <span class="mono" translate="no">TriviuReferralVault</span> is on no chain, and its own header
-      reads <span class="mono">PRE-MAINNET, NAO AUDITADO EXTERNAMENTE</span>. Until it is deployed the
-      whole fee goes to the treasury. The numbers below are dashes for that reason.</p></div>
+      <h1 class="u-0173988c">Spread accrues,<br><em>and only from real wins</em>.</h1>
+      <p class="lede">Pull, never push: the spread from every <b>positive</b> close of someone you
+      introduced accrues in your ReferralVault until you call <span class="mono">claim()</span>. If they
+      do not profit, there is no spread. This is not income, and the whitepaper documents why.</p></div>
     <div class="ledger">
-      <div class="lead"><div class="k">Claimable <button class="mini ghost u-3d35d09e" data-explain="referrals"
-        aria-label="What is this"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button></div><div class="v num" id="rfClaim">—</div>
-        <div class="d">not deployed &mdash; nothing accrues, nothing is owed</div></div>
+      <div class="lead"><div class="k">Claimable <button class="mini ghost" data-explain="referrals"
+        aria-label="What is this" class="u-3d35d09e"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg></button></div><div class="v num" id="rfClaim">—</div>
+        <div class="d">accrued, waiting for your signature</div></div>
       <div class="side">
         <div class="lcell"><div class="k">Total received</div><div class="v num" id="rfEarned">—</div><div class="d">lifetime</div></div>
         <div class="lcell"><div class="k">Introduced</div><div class="v num" id="rfCount">—</div><div class="d">read from Registered events</div></div>
       </div></div>
-    <div class="row u-39761cb3">
-      <div class="tight"><button class="primary" id="btnClaim" disabled>No claim exists &mdash; the split is automatic</button></div>
-      <div class="tight"><button class="mini" id="btnSimRefs"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Simulate introduced activity</button></div>
+    <!-- 2026-08-22: este painel oferecia `claim()` num contrato que a propria
+         pagina, mais acima, declara nao implantado — e a nona funcao nomeada
+         aqui que nao existe em chain nenhuma. Nao foi apagado: a funcionalidade
+         e decisao do fundador, nao minha. Ficou dito, e o botao ficou
+         desabilitado, porque um botao que abre a carteira contra um endereco
+         inexistente pede assinatura para o vazio. -->
+    <p class="hint u-bfa31e80"><b>TriviuReferralVault is not deployed.</b>
+    <span class="mono">claim()</span> has no contract to call on any chain, so this button is
+    disabled rather than hidden — the figures above are local bookkeeping, not chain state.</p>
+    <div class="row u-0173988c">
+      <div class="tight"><button class="primary" id="btnClaim" disabled aria-disabled="true"
+        title="TriviuReferralVault is not deployed">Claim accrued spread</button></div>
     </div>
     <div class="panel u-bfa31e80"><h3>Your link</h3>
       <div class="row u-0173988c">
@@ -1191,245 +1157,81 @@
     </div>
   </section>
 
-  <section class="pane" id="p-contracts" role="region" aria-label="Contracts" tabindex="-1">
+  <section class="pane" id="p-contracts" role="region" aria-label="Contracts">
     <div class="phead"><p class="eyebrow">protocol · the code</p>
       <h1 class="u-0173988c">The contract is the claim.<br><em>Everything else is commentary</em>.</h1>
-      <p class="lede">If anything in this console disagrees with the verified contract, the contract
-      wins. The tables below are the ledger this whole site reads from, and — once you press Read —
-      the live answers of the contracts themselves.</p></div>
-
-    <div class="panel">
-      <div class="chead"><h2 class="hsec">The four that are live on chain 137</h2><div class="spacer"></div>
-        <button class="mini" type="button" id="ct-ler">
-          <svg class="ic" aria-hidden="true"><use href="#i-shuffle"/></svg>Read the chain</button></div>
-      <p class="small faint u-26b5a4e8">Addresses come from the address ledger, the
-      single file every screen and script imports. Reading asks the contracts themselves, and the
-      answers land in the two tables below this one.</p>
-      <div class="tscroll"><table translate="no">
-        <thead><tr><th>contract</th><th>address</th><th>state</th></tr></thead>
-        <tbody id="ct-vivos"><tr><td colspan="3" class="faint">&mdash;</td></tr></tbody></table></div>
-      <p class="hint" id="ct-medicao">&mdash;</p>
+      <p class="lede">The same reader from the initiation, always here. If anything in this console
+      disagrees with the verified contract, the contract wins.</p></div>
+    <div class="row"><div><label for="ctSel">Contract</label><select id="ctSel">
+      <option value="registry">VaultFactory</option><option value="vault">TriviuVault</option>
+      <option value="executor">TriviuCerca</option></select></div>
+      <div class="tight"><button class="mini" id="btnCtGuide"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg>Guided reading</button></div></div>
+    <div class="panel u-5928c822">
+      <div class="codehead"><span class="file" id="ctFile" translate="no">—</span>
+        <span class="pill ok">read from chain</span><div class="spacer"></div>
+        <span class="mono faint" id="ctAddr" translate="no">—</span></div>
+      <div class="codewrap"><pre class="code" id="ctPane" tabindex="0" translate="no"></pre>
+        <div class="guide" id="ctGuide" role="note"><div class="gfn" id="gFn"></div><p id="gEx"></p>
+          <div class="gnav"><button class="mini" id="gPrev"><svg class="ic" aria-hidden="true"><use href="#i-left"/></svg>Previous</button>
+            <button class="mini primary" id="gNext">Next <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+            <span class="gpos" id="gPos"></span></div></div></div>
     </div>
-
-    <div class="panel u-c6ca668b">
-      <div class="chead"><svg class="ic ic-l u-f427803b" aria-hidden="true"><use href="#i-alert"/></svg>
-        <h2 class="hsec">And the four orphans, which answer every call exactly like the real ones</h2></div>
-      <p class="small">Four contracts with live code on this chain, left by deploy runs that failed
-      afterwards. One of them is a <b>byte-exact twin</b> of the real LP vault — same 7,954 bytes, same
-      runtime hash — and it would accept a deposit and mint a position that the official router will
-      never read. <b>Only the address tells them apart.</b> They are printed in full here for the same
-      reason: a truncated address is exactly how someone lands on the wrong one.</p>
-      <div class="tscroll u-0173988c"><table translate="no">
-        <thead><tr><th>address</th><th>type</th><th>nonce</th><th>code</th><th></th></tr></thead>
-        <tbody id="ct-orfaos"><tr><td colspan="5" class="faint">&mdash;</td></tr></tbody></table></div>
-      <p class="hint">Every address that reaches calldata on this site passes through a function that
-      throws on all four. That is the check; this table is so you can recognise one by eye as well.</p>
-    </div>
-
-    <div class="panel u-bfa31e80">
-      <div class="chead"><h2 class="hsec">Who can change the two numbers that cost you money</h2></div>
-      <div class="tscroll"><table translate="no"><tbody>
-        <tr><td class="faint">owner &amp; treasury</td><td class="mono u-a83ce3a2" id="ct-safe">&mdash;</td></tr>
-      </tbody></table></div>
-      <p class="hint" id="ct-safe-nota">&mdash;</p>
-      <p class="hint">Said without decoration, because it is the thing an auditor would ask first:
-      transferring ownership moved control of key K to a vault controlled exclusively by key K.
-      <b>There is no key separation today.</b> What the transfer bought is address stability — raising
-      the threshold or installing a timelock later needs no new ownership transfer.</p>
-      <p class="hint">The blast radius if that key were compromised, measured against the code rather
-      than estimated: the Executor's atomic gate requires
-      <span class="mono">finalBalance &ge; startBalance + principal + minProfit</span>, so
-      <b>the user's principal is out of reach</b>. The ceiling is
-      <span class="mono">MAX_FEE_BPS</span> — half of profit — plus spread capture bounded by the
-      <span class="mono">minProfit</span> the user signed.</p>
-    </div>
-
-    <div class="lpk u-bfa31e80">
-<section class="painel" aria-labelledby="h-contratos">
-    <h2 id="h-contratos">The contracts, and proof each one has code</h2>
-    <p class="hint u-a0925a28">Not one of these addresses is written in this file. The two Triviu
-    ones come from the address ledger and pass a function that throws on the four orphaned deploys living
-    on this chain &mdash; one of which is a <b>byte-exact twin</b> of the real vault and would answer every
-    call exactly like it. The position manager is not ours, so it sits in the ledger's separate list of
-    external contracts: it is read off the live vault and then has to match that constant byte for byte,
-    prove it is not an orphan, not a Triviu contract, and have code, before any calldata may contain it.
-    The live read alone proves nothing &mdash; the orphaned twin vault answers the same address, measured.</p>
-    <div class="rolagem u-c53ea1da">
-      <table class="tabrol">
-        <caption class="sr-only">Contracts this page uses, their addresses and the size of the code at each</caption>
-        <thead><tr><th scope="col">Contract</th><th scope="col">Address</th><th scope="col">Code on chain</th></tr></thead>
-        <tbody>
-          <tr><th scope="row">TriviuLPVault &mdash; the shared LP router</th><td class="m" translate="no" id="lp-a-lpvault">&mdash;</td><td class="m" translate="no" id="lp-c-lpvault">&mdash;</td></tr>
-          <tr><th scope="row">ParameterRegistry &mdash; whitelist, rate, treasury</th><td class="m" translate="no" id="lp-a-registry">&mdash;</td><td class="m" translate="no" id="lp-c-registry">&mdash;</td></tr>
-          <tr><th scope="row">Uniswap V3 position manager &mdash; read from the vault's <span class="mono" translate="no">positionManager()</span>, then matched against the ledger's external constant</th><td class="m" translate="no" id="lp-a-npm">&mdash;</td><td class="m" translate="no" id="lp-c-npm">&mdash;</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="hint" id="lp-integridade">The vault's <span class="mono" translate="no">registry()</span> is
-    immutable, fixed in its constructor, and it is read live and compared with the ledger after you press
-    Read. That comparison is here because two orphaned Registries from failed deploy runs are alive on this
-    chain with state identical to the real one &mdash; state cannot tell them apart, and an immutable
-    pointer can.</p>
-  </section>
-
-<section class="painel" aria-labelledby="h-estado">
-    <h2 id="h-estado">What the protocol charges, read from the chain</h2>
-    <div class="rolagem">
-      <table class="vt">
-        <tbody>
-          <tr><th scope="row"><span class="mono" translate="no">feeBps</span> &mdash; the share of the <b>collected fees</b>. Never of your principal, and nothing at all if the position did not return what went into it.</th><td class="v" translate="no" id="lp-feebps">&mdash;</td></tr>
-          <tr><th scope="row"><span class="mono" translate="no">MAX_FEE_BPS</span> &mdash; the vault's own ceiling, in its bytecode. A registry value above this is clamped rather than trusted.</th><td class="v" translate="no" id="lp-maxfee">&mdash;</td></tr>
-          <tr><th scope="row"><span class="mono" translate="no">treasury</span> &mdash; where the share goes</th><td class="v" translate="no" id="lp-treasury">&mdash;</td></tr>
-          <tr><th scope="row"><span class="mono" translate="no">owner</span> &mdash; the only account that can change either of the two above</th><td class="v" translate="no" id="lp-owner">&mdash;</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="hint">The rate is read by the vault <b>at execution</b>, not when you sign. That is why every
-    call that could be charged carries <span class="mono" translate="no">feeBpsMax</span>: your own ceiling,
-    in the bytes you signed. If the registry says more than that when the block lands, the call reverts
-    <span class="mono" translate="no">TaxaAcimaDoLimite</span> instead of charging you the new number. The
-    field is yours to lower.</p>
-  </section>
-
-<section class="painel" aria-labelledby="h-tokens">
-    <h2 id="h-tokens">Tokens the Registry allows, and what you hold of each</h2>
-    <p class="hint u-a0925a28">A mapping cannot be enumerated: there is no getter that returns
-    every allowed token. So the candidates come from the Registry's own events and each one is then
-    <b>confirmed by a live call</b>. The block range that was scanned is printed under the table, because a
-    slice that does not say where it ends passes for the whole.</p>
-    <div class="rolagem u-c53ea1da">
-      <table class="tabrol">
-        <caption class="sr-only">Allowed tokens, their addresses, decimals and your balance</caption>
-        <thead><tr><th scope="col">Symbol</th><th scope="col">Address</th><th scope="col">Decimals</th><th scope="col">Registry</th><th scope="col">Your balance</th></tr></thead>
-        <tbody id="lp-tokens"><tr><td colspan="5" class="m" translate="no">&mdash; nothing read yet</td></tr></tbody>
-      </table>
-    </div>
-    <p class="hint" id="lp-tokens-faixa">The scanned block range appears here after a read, so the edge of
-    what was looked at is visible rather than implied.</p>
-    <div class="rolagem u-c53ea1da">
-      <table class="vt">
-        <tbody>
-          <tr><th scope="row">Positions this address owns &mdash; <span class="mono" translate="no">balanceOf</span> on the position manager</th><td class="v" translate="no" id="lp-pos-conta">&mdash;</td></tr>
-          <tr><th scope="row">Positions held by the shared router itself &mdash; it should hold none, and the number says so instead of a sentence</th><td class="v" translate="no" id="lp-pos-vault">&mdash;</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-<section class="painel" aria-labelledby="h-verificar">
-    <h2 id="h-verificar">Read the same thing yourself</h2>
-    <p class="hint u-a0925a28">Both tables below are rendered from the generated selector table,
-    not typed into this file. If the contract gains or loses a function, they change on their own and the
-    build check charges the difference.</p>
-    <div class="rolagem u-c53ea1da">
-      <table class="tabrol">
-        <caption class="sr-only">Every external function of TriviuLPVault, with its four-byte selector</caption>
-        <thead><tr><th scope="col">Selector</th><th scope="col">Signature</th><th scope="col">Mutability</th></tr></thead>
-        <tbody id="lp-superficie"><tr><td colspan="3" class="m" translate="no">&mdash;</td></tr></tbody>
-      </table>
-    </div>
-    <div class="rolagem u-eee3f850">
-      <table class="tabrol">
-        <caption class="sr-only">Every error TriviuLPVault can revert with, and its four-byte selector</caption>
-        <thead><tr><th scope="col">Selector</th><th scope="col">Error</th></tr></thead>
-        <tbody id="lp-erros"><tr><td colspan="2" class="m" translate="no">&mdash;</td></tr></tbody>
-      </table>
-    </div>
-    <p class="hint">When a step reverts, its four bytes are looked up in this table and the error is printed
-    with its arguments decoded. If the four bytes are not in it, they are shown raw &mdash; a name that
-    merely fits is worse than a hex string that is true.</p>
-  </section>
-    </div>
-
-    <div class="panel u-bfa31e80"><h2 class="hsec">Verify it yourself</h2>
+    <div class="panel u-bfa31e80"><h3>Verify it yourself</h3>
       <ol class="small muted u-6f200ae5">
-        <li>Open the address on the explorer &rarr; <b>Contract</b> &rarr; check it is verified.</li>
-        <li>Or manually: <code>forge verify-contract &lt;address&gt; &lt;Contract&gt; --chain 137</code> against the public repository.</li>
-        <li>Compare the runtime bytecode with the artefact <code>forge build</code> produces from the published source.</li>
+        <li>Open the address on the explorer → <b>Contract</b> → <b>Is this a proxy?</b> → <b>Verify</b>.</li>
+        <li>Or manually: <code>forge verify-contract &lt;address&gt; &lt;Contract&gt; --chain &lt;id&gt;</code> against the public repository.</li>
+        <li>Confirm the implementation matches the one published in the registry.</li>
       </ol>
       <p class="hint">You do not need verification to use this console — the interface talks to the
       contract directly. You need it so that <i>anyone</i> can audit and operate without this page.</p></div>
   </section>
 
-  <!-- ══════════════════════════ INSTANCES ══════════════════════════ -->
-  <section class="pane" id="p-instances" role="region" aria-label="Instances" tabindex="-1">
+  <section class="pane" id="p-instances" role="region" aria-label="Instances">
     <div class="phead"><p class="eyebrow">platform · licensed instances</p>
       <h1 class="u-0173988c">Your label,<br><em>our engine underneath</em>.</h1>
       <p class="lede">The protocol is the base layer: audited contracts, one fence rule, one fee rule.
-      An instance sits above it carrying your name and your accent, for your own users. The brand
-      changes. The audited engine, the risk notice and the visible failures do not.</p></div>
-
+      An instance sits above it carrying your name, your logo and your accent, for your own users.
+      The brand changes. The audited engine, the risk notice and the visible failures do not.</p></div>
     <div class="grid2 u-120048cd">
-      <div class="panel"><h2 class="hsec">Create an instance</h2>
-        <p class="small faint u-0f76b54b">This is an L2 surface and it needs no
-        contract — which is the point of the layer model, not a limitation of this screen. What you
-        create here lives in this browser and reaches no chain.</p>
+      <div class="panel"><h3>Create an instance</h3>
         <div class="row u-bfa31e80">
           <div><label for="niName">Brand name</label><input id="niName" placeholder="Acme Capital" maxlength="60" autocomplete="off"></div>
           <div><label for="niSub">Suffix</label><input id="niSub" placeholder="· powered by Triviu" maxlength="40" autocomplete="off"></div>
         </div>
-        <div class="row u-0173988c">
-          <div><label for="niAccent">Accent colour</label><input id="niAccent" value="#2743C7" maxlength="7" autocomplete="off" spellcheck="false"></div>
-        </div>
-        <p class="hint" id="niErro" role="alert"></p>
-        <p class="hint"><b>A logo upload is not offered here, and the reason is the rule itself.</b> An
-        SVG can carry a script and this logo would be printed into the header of every screen, so the
-        only safe form is raster with a size ceiling and a validated data URL. That check belongs with
-        the code that renders it; until it is written, the accent carries the brand.</p>
+        <div class="row u-0173988c"><div><label for="niLogo">Logo</label>
+          <input type="file" id="niLogo" accept="image/png,image/jpeg,image/webp,image/gif" class="u-72893568">
+          <p class="hint">PNG, JPG, WEBP or GIF, up to 300&nbsp;KB. <b>SVG is refused</b> — an SVG can
+          carry a script, and this logo is printed into every page of the console.</p></div></div>
+        <label class="u-bfa31e80">Accent colour</label>
+        <div class="swatches" id="swatches" role="group" aria-label="Accent colour"></div>
         <div class="row u-39761cb3"><div class="tight">
-          <button class="primary" type="button" id="btnNewInst"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Create instance</button></div></div>
-        <p class="sr" id="instVoz" role="status" aria-live="polite"></p>
-        <div class="insts u-39761cb3" id="instGrid"></div>
+          <button class="primary" id="btnNewInst"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Create instance</button></div></div>
       </div>
-
-      <div class="panel">
-        <h2 class="hsec">What a licensed instance may never remove</h2>
-        <div class="u-bf75417f">
-          <div class="small muted u-60e565fc"><svg class="ic u-c302fcc9" aria-hidden="true"><use href="#i-lock"/></svg><span><b>The risk notice, in full, on the first screen.</b> Unconditional. It is the first thing on Overview and it did not move.</span></div>
-          <div class="small muted u-60e565fc"><svg class="ic u-c302fcc9" aria-hidden="true"><use href="#i-lock"/></svg><span><b>The simulation label, while the instance is a simulation.</b> A conditional, and it is the one that just came due.</span></div>
-          <div class="small muted u-60e565fc"><svg class="ic u-c302fcc9" aria-hidden="true"><use href="#i-lock"/></svg><span><b>Reverts at the same weight as wins, on every chart and table.</b> Unconditional.</span></div>
-        </div>
-        <div class="risk u-39761cb3">
-          <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
-          <div><b>The middle rule is why this console lost two banners</b>
-            <p>&ldquo;While the instance is a simulation&rdquo; is a condition with two edges, and both
-            of them cut. Removing the label early is a lie. Keeping it after the wallet became real is
-            also a lie — a page that cries simulation while spending real money teaches its reader that
-            the label means nothing, which is worse than never having had one.</p>
-            <p class="u-0f76b54b">So the label left in the same commit as the fake wallet it
-            described. Not before, not after. And the screens that still do not act do not wear it
-            either, because they do not simulate — they state what is missing.</p>
-            <p class="u-0f76b54b">The two exact strings those banners were built from are not
-            reproduced anywhere on this page, and that is not squeamishness: the acceptance criterion
-            was zero occurrences of them on the published console, and the guardian counts bytes rather
-            than reading intent. This very paragraph had to be rewritten once because a sentence
-            <i>about</i> the removal happened to contain one of them.</p></div>
-        </div>
-      </div>
+      <div class="panel"><div class="chead"><h3>Preview</h3><span class="pill">live</span></div>
+        <div class="preview" id="brandPreview"></div>
+        <p class="hint">This is exactly what the rail will carry. Anything that fails validation is
+        dropped on save rather than stored — the console never renders what it has not checked.</p>
+        <h3 class="u-39761cb3">What a licensed instance may never remove</h3>
+        <div class="u-f65778b6">
+          <div class="small muted u-60e565fc"><svg class="ic u-c302fcc9" aria-hidden="true"><use href="#i-lock"/></svg>The risk notice, in full, on the first screen</div>
+          <div class="small muted u-60e565fc"><svg class="ic u-c302fcc9" aria-hidden="true"><use href="#i-lock"/></svg>The simulation label, while the instance is a simulation</div>
+          <div class="small muted u-60e565fc"><svg class="ic u-c302fcc9" aria-hidden="true"><use href="#i-lock"/></svg>Reverts at the same weight as wins, on every chart and table</div>
+        </div></div>
     </div>
+    <div class="insts" id="instGrid"></div>
   </section>
 
-  <!-- ══════════════════════════ PROFILE ══════════════════════════ -->
-  <section class="pane" id="p-profile" role="region" aria-label="Profile" tabindex="-1">
+  <section class="pane" id="p-profile" role="region" aria-label="Profile">
     <div class="phead"><p class="eyebrow">account · preferences</p>
       <h1 class="u-0173988c">Profile</h1>
       <p class="lede">Everything here stays in this browser. There is no account and no password — in the
       real console you are identified by the wallet you connect, and by nothing else.</p></div>
     <div class="grid2 u-ea1e80de">
-      <div class="panel"><h2 class="hsec">Appearance</h2>
-        <p class="small muted u-0f76b54b">Light, dark, or whatever your system is
-        doing right now. The choice is stored in this browser under one key, which is the same key the
-        signing engine reads — two keys would be two themes disagreeing on one screen.</p>
-        <p class="u-bfa31e80"><button class="primary" type="button" id="btnThemeProfile">
-          <svg class="ic" aria-hidden="true"><use href="#i-sun"/></svg>Choose the theme</button></p>
-        <p class="hint">Currently: <b id="temaAtivo">&mdash;</b></p>
-      </div>
-
       <div class="panel"><h3>Identity</h3>
         <div class="row u-35484c36">
           <div class="tight"><span id="avBigSlot"><span class="avbig ph">T</span></span></div>
           <div><label for="pfAvatar">Profile picture</label>
-            <input class="u-72893568" type="file" id="pfAvatar" accept="image/png,image/jpeg,image/webp,image/gif">
+            <input type="file" id="pfAvatar" accept="image/png,image/jpeg,image/webp,image/gif" class="u-72893568">
             <p class="hint">Same rule as the label logo: raster only, 300&nbsp;KB, no SVG.</p></div></div>
         <div class="row u-bfa31e80">
           <div><label for="pfName">Display name</label><input id="pfName" placeholder="Your name" maxlength="60" autocomplete="off"></div>
@@ -1507,331 +1309,141 @@
     </div>
   </section>
 
-  <section class="pane" id="p-help" role="region" aria-label="How it works" tabindex="-1">
-<div class="phead"><p class="eyebrow">step by step</p>
+  <section class="pane" id="p-help" role="region" aria-label="How it works">
+    <div class="phead"><p class="eyebrow">step by step</p>
       <h1 class="u-0173988c">Every function,<br><em>opened up</em>.</h1>
       <p class="lede">What the function does, what happens on chain when you call it, and the code that
       does it. If anything here disagrees with the verified contract, the contract wins — always.</p></div>
-
-
-    <div class="panel">
-      <div class="chead"><h2 class="hsec">The order, and what each step is for</h2></div>
-      <div class="tscroll"><table translate="no">
-        <thead><tr><th>#</th><th>call</th><th>on</th><th>what it is for</th></tr></thead>
-        <tbody>
-          <tr><td class="mono">1</td><td class="mono">eth_requestAccounts</td><td>your wallet</td>
-            <td>an address and a chain id. The chain is <b>refused</b>, never switched: a page that switches your network decides where you sign.</td></tr>
-          <tr><td class="mono">2</td><td class="mono">approve(vault, amount0)</td><td>token0</td>
-            <td>the exact amount, never unlimited. If a standing allowance exists, a step that zeroes it is offered first.</td></tr>
-          <tr><td class="mono">3</td><td class="mono">approve(vault, amount1)</td><td>token1</td>
-            <td>same rule, other side. A side with amount zero gets no approval at all.</td></tr>
-          <tr><td class="mono">4</td><td class="mono">abrir(AbrirParams)</td><td>LP vault</td>
-            <td>mints the position with <b>your wallet as recipient</b>. Unspent amounts come back in the same transaction.</td></tr>
-          <tr class="rev"><td class="mono">5</td><td class="mono">approve(vault, tokenId)</td><td>position manager</td>
-            <td><b>The one that is easy to miss.</b> Without it steps 6 and 7 revert.</td></tr>
-          <tr><td class="mono">6</td><td class="mono">coletar(tokenId, feeBpsMax, deadline)</td><td>LP vault</td>
-            <td>collects what the position earned. <span class="mono">feeBpsMax</span> is <b>your</b> ceiling on the rate, carried in the bytes you signed.</td></tr>
-          <tr><td class="mono">7</td><td class="mono">fechar(…)</td><td>LP vault</td>
-            <td>closes and burns. The fee is charged only if there was a result, and the check is price-free.</td></tr>
-        </tbody></table></div>
-    </div>
-
-    <div class="panel u-bfa31e80" >
-      <div class="chead"><svg class="ic ic-l u-61dc39cf" aria-hidden="true"><use href="#i-alert"/></svg>
-        <h2 class="hsec">Step 5, and why it cannot be the convenient one</h2></div>
-      <p class="small">The requirement is not in the signature of <span class="mono">coletar</span> or
-      <span class="mono">fechar</span>. It is in the body, in
-      <span class="mono">_exigeAprovacaoUnica(tokenId)</span>, which reads
-      <span class="mono">getApproved(tokenId)</span> and demands it be the vault. Reading only the
-      signatures is how a reviewer concludes the two calls are self-sufficient, and they are not —
-      without step 5 both revert <span class="mono">AprovacaoAusente</span>.</p>
-      <p class="small u-0173988c">And it may <b>not</b> be
-      <span class="mono">setApprovalForAll</span>. That call does not write
-      <span class="mono">getApproved</span>, so whoever grants the broad permission instead of the
-      single one gets <span class="mono">AprovacaoAmpla</span> and the transaction stops. That is
-      deliberate: a blanket approval over every position you will ever hold, granted to buy one
-      convenience, is the trade this contract refuses on your behalf.</p>
-    </div>
-
-    <div class="panel u-bfa31e80">
-      <div class="chead"><h2 class="hsec">What this console does not show you</h2></div>
-      <p class="small muted">You can see every byte that would be signed, every address it names, every
-      revert it hits and the reason in the contract's own words. You cannot see how an opportunity is
-      identified in the first place. That search took years to build and it is the one thing kept — the
-      rest is open by design, including the parts that make us look bad.</p>
-    </div>
-  </section>
-
-  </main>
-</div>
-</div>
-
-<footer>
-  <div class="rod">
-    <span translate="no">Triviu &middot; chain 137</span>
-    <nav aria-label="Related pages">
-      <a href="/">Home</a>
-      <a href="/calldata/">Calldata reader</a>
-      <a href="/positions/">Positions</a>
-      <a href="/safety">Safety</a>
-      <a href="https://triviu-protocol.gitbook.io/triviu-protocol-docs" target="_blank" rel="noopener">Whitepaper</a>
-    </nav>
-    <span class="nota">Addresses from <span class="mono" translate="no">/enderecos.js</span>; signatures
-    from <span class="mono" translate="no">/js/abi-console.js</span>, generated from the compiled
-    contracts. AGPL-3.0 code, CC BY 4.0 brand, no token, no tracking. Nothing here is advice, and
-    providing liquidity can return less than it took.</span>
-  </div>
-</footer>
-
-<!-- ═══════════════ THEME ═══════════════
-     Three options and not two. "Follow the system" is the ABSENCE of a stored
-     choice, so it survives the computer turning to night at 18:00 — and the
-     signing engine, which reads the same key and falls back to the media query
-     when it is missing, reaches the same conclusion without knowing this modal
-     exists. -->
-<div class="ov" id="temaOv" role="dialog" aria-modal="true" aria-labelledby="temaTitulo">
-  <div class="modal u-7f0d25f1">
-    <div class="chead"><svg class="ic ic-l" aria-hidden="true"><use href="#i-sun"/></svg>
-      <h2 id="temaTitulo" class="hsec u-a3970b9f">Light or dark</h2></div>
-    <div class="temaops" role="radiogroup" aria-label="Theme">
-      <button class="temaop" type="button" role="radio" data-tema="light" aria-checked="false">
-        <svg class="ic ic-l" aria-hidden="true"><use href="#i-sun"/></svg>
-        <span><b>Light</b><span class="sub">Paper. Stored in this browser.</span></span></button>
-      <button class="temaop" type="button" role="radio" data-tema="dark" aria-checked="false">
-        <svg class="ic ic-l" aria-hidden="true"><use href="#i-moon"/></svg>
-        <span><b>Dark</b><span class="sub">Ink. Stored in this browser.</span></span></button>
-      <button class="temaop" type="button" role="radio" data-tema="system" aria-checked="false">
-        <svg class="ic ic-l" aria-hidden="true"><use href="#i-layers"/></svg>
-        <span><b>Follow the system</b><span class="sub">Nothing is stored, and it keeps following &mdash;
-          your system is <b id="temaSistemaAgora">&mdash;</b> right now.</span></span></button>
-    </div>
-    <div class="mact"><button class="primary" type="button" data-fechar>Done</button></div>
-  </div>
-</div>
-
-<script src="/enderecos.js"></script>
-<script src="/js/abi-console.js"></script>
-<script src="/js/motor.js"></script>
-<script src="/js/console-lp.js"></script>
-<script src="/js/console-app.js"></script>
-</body>
-</html>
-
-    <div class="panel u-39761cb3">
-      <div class="chead"><h2 class="hsec">Every function, from the compiled artifact</h2></div>
-      <p class="small muted">Signature, selector, mutability and types below are read from
-      <span class="mono">contracts/out</span> &mdash; the same artifact <span class="mono">check-console-abi</span>
-      verifies. Nothing here is typed by hand. Where a function carries an explanation, the
-      explanation is the author’s; where it does not, the artifact speaks alone.</p>
-      <h3 class="hsec u-39761cb3">GasTank <span class="mono small muted">3</span></h3>
-      <details class="acc"><summary><span class="fn mono" translate="no">balanceOf(address)</span> <span class="mono small muted">0x70a08231</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x70a08231</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">address</td></tr><tr><th>returns</th><td class="mono">uint256</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">deposit()</span> <span class="mono small muted">0xd0e30db0</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xd0e30db0</td></tr><tr><th>mutability</th><td class="mono">payable</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">withdraw(uint256)</span> <span class="mono small muted">0x2e1a7d4d</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x2e1a7d4d</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">uint256 amount</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <h3 class="hsec u-39761cb3">IERC20 <span class="mono small muted">4</span></h3>
-      <details class="acc"><summary><span class="fn mono" translate="no">approve(address,uint256)</span> <span class="mono small muted">0x095ea7b3</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x095ea7b3</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address spender &middot; uint256 amount</td></tr><tr><th>returns</th><td class="mono">bool</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">balanceOf(address)</span> <span class="mono small muted">0x70a08231</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x70a08231</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">address</td></tr><tr><th>returns</th><td class="mono">uint256</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">transfer(address,uint256)</span> <span class="mono small muted">0xa9059cbb</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xa9059cbb</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address to &middot; uint256 amount</td></tr><tr><th>returns</th><td class="mono">bool</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">transferFrom(address,address,uint256)</span> <span class="mono small muted">0x23b872dd</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x23b872dd</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address from &middot; address to &middot; uint256 amount</td></tr><tr><th>returns</th><td class="mono">bool</td></tr></tbody></table>
-      </details>
-      <h3 class="hsec u-39761cb3">INonfungiblePositionManager <span class="mono small muted">7</span></h3>
-      <details class="acc"><summary><span class="fn mono" translate="no">burn(uint256)</span> <span class="mono small muted">0x42966c68</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x42966c68</td></tr><tr><th>mutability</th><td class="mono">payable</td></tr><tr><th>takes</th><td class="mono">uint256 tokenId</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">collect((uint256,address,uint128,uint128))</span> <span class="mono small muted">0xfc6f7865</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xfc6f7865</td></tr><tr><th>mutability</th><td class="mono">payable</td></tr><tr><th>takes</th><td class="mono">(uint256,address,uint128,uint128) params</td></tr><tr><th>returns</th><td class="mono">uint256 &middot; uint256</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">decreaseLiquidity((uint256,uint128,uint256,uint256,uint256))</span> <span class="mono small muted">0x0c49ccbe</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x0c49ccbe</td></tr><tr><th>mutability</th><td class="mono">payable</td></tr><tr><th>takes</th><td class="mono">(uint256,uint128,uint256,uint256,uint256) params</td></tr><tr><th>returns</th><td class="mono">uint256 &middot; uint256</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">getApproved(uint256)</span> <span class="mono small muted">0x081812fc</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x081812fc</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">uint256 tokenId</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">mint((address,address,uint24,int24,int24,uint256,uint256,uint256,uint256,address,uint256))</span> <span class="mono small muted">0x88316456</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x88316456</td></tr><tr><th>mutability</th><td class="mono">payable</td></tr><tr><th>takes</th><td class="mono">(address,address,uint24,int24,int24,uint256,uint256,uint256,uint256,address,uint256) params</td></tr><tr><th>returns</th><td class="mono">uint256 &middot; uint128 &middot; uint256 &middot; uint256</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">ownerOf(uint256)</span> <span class="mono small muted">0x6352211e</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x6352211e</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">uint256 tokenId</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">positions(uint256)</span> <span class="mono small muted">0x99fbab88</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x99fbab88</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">uint256 tokenId</td></tr><tr><th>returns</th><td class="mono">uint96 &middot; address &middot; address &middot; address &middot; uint24 &middot; int24 &middot; int24 &middot; uint128 &middot; uint256 &middot; uint256 &middot; uint128 &middot; uint128</td></tr></tbody></table>
-      </details>
-      <h3 class="hsec u-39761cb3">ParameterRegistry <span class="mono small muted">16</span></h3>
-      <details class="acc"><summary><span class="fn mono" translate="no">acceptOwner()</span> <span class="mono small muted">0xebbc4965</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xebbc4965</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">defaultMinProfit()</span> <span class="mono small muted">0xe27c8531</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xe27c8531</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">uint256</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">feeBps()</span> <span class="mono small muted">0x24a9d853</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x24a9d853</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">uint16</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">isAllowedTarget(address)</span> <span class="mono small muted">0x78addb48</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x78addb48</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">address</td></tr><tr><th>returns</th><td class="mono">bool</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">isAllowedToken(address)</span> <span class="mono small muted">0xcbe230c3</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xcbe230c3</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">address</td></tr><tr><th>returns</th><td class="mono">bool</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">maxSlippageBps()</span> <span class="mono small muted">0xc4aa7395</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xc4aa7395</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">uint16</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">owner()</span> <span class="mono small muted">0x8da5cb5b</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x8da5cb5b</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">pendingOwner()</span> <span class="mono small muted">0xe30c3978</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xe30c3978</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">setDefaultMinProfit(uint256,string)</span> <span class="mono small muted">0x5d599f89</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x5d599f89</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">uint256 value &middot; string prUrl</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">setFeeBps(uint16,string)</span> <span class="mono small muted">0x839fa2ef</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x839fa2ef</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">uint16 bps &middot; string prUrl</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">setMaxSlippage(uint16,string)</span> <span class="mono small muted">0xcbda58b3</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xcbda58b3</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">uint16 bps &middot; string prUrl</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">setTarget(address,bool,string)</span> <span class="mono small muted">0xb27e04e6</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xb27e04e6</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address target &middot; bool allowed &middot; string prUrl</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">setToken(address,bool,string)</span> <span class="mono small muted">0x6933ec30</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x6933ec30</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address token &middot; bool allowed &middot; string prUrl</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">setTreasury(address,string)</span> <span class="mono small muted">0x5208c662</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x5208c662</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address newTreasury &middot; string prUrl</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">transferOwner(address)</span> <span class="mono small muted">0x4fb2e45d</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x4fb2e45d</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address newOwner</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">treasury()</span> <span class="mono small muted">0x61d027b3</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x61d027b3</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <h3 class="hsec u-39761cb3">TriviuExecutor <span class="mono small muted">3</span></h3>
-      <details class="acc"><summary><span class="fn mono" translate="no">MAX_FEE_BPS()</span> <span class="mono small muted">0xd55be8c6</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xd55be8c6</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">uint16</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">executeCycle(address,uint256,uint256,(uint8,address,address,address,uint24,uint256)[])</span> <span class="mono small muted">0xd4379b1d</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xd4379b1d</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address asset &middot; uint256 principal &middot; uint256 minProfit &middot; (uint8,address,address,address,uint24,uint256)[] legs</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">registry()</span> <span class="mono small muted">0x7b103999</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x7b103999</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <h3 class="hsec u-39761cb3">TriviuFactory <span class="mono small muted">2</span></h3>
-      <details class="acc"><summary><span class="fn mono" translate="no">implantarCofre(address,address)</span> <span class="mono small muted">0x4d87aa7c</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x4d87aa7c</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address dono &middot; address base</td></tr><tr><th>returns</th><td class="mono">address &middot; address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">registro()</span> <span class="mono small muted">0x3d6c57a7</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x3d6c57a7</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <h3 class="hsec u-39761cb3">TriviuLPVault <span class="mono small muted">7</span></h3>
-      <details class="acc"><summary><span class="fn mono" translate="no">MAX_FEE_BPS()</span> <span class="mono small muted">0xd55be8c6</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xd55be8c6</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">uint16</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">abrir((address,address,uint24,int24,int24,uint256,uint256,uint256,uint256,uint256))</span> <span class="mono small muted">0x9016af16</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x9016af16</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">(address,address,uint24,int24,int24,uint256,uint256,uint256,uint256,uint256) p</td></tr><tr><th>returns</th><td class="mono">uint256 &middot; uint128 &middot; uint256 &middot; uint256</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">coletar(uint256,uint16,uint256)</span> <span class="mono small muted">0x622b9ed4</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x622b9ed4</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">uint256 tokenId &middot; uint16 feeBpsMax &middot; uint256 prazo</td></tr><tr><th>returns</th><td class="mono">uint256 &middot; uint256</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">fechar(uint256,uint256,uint256,uint256,uint16)</span> <span class="mono small muted">0x9fb13583</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x9fb13583</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">uint256 tokenId &middot; uint256 amount0Min &middot; uint256 amount1Min &middot; uint256 prazo &middot; uint16 feeBpsMax</td></tr><tr><th>returns</th><td class="mono">uint256 &middot; uint256</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">posicaoDe(uint256)</span> <span class="mono small muted">0x0960103b</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x0960103b</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">uint256</td></tr><tr><th>returns</th><td class="mono">uint128 &middot; uint128 &middot; uint128 &middot; uint128</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">positionManager()</span> <span class="mono small muted">0x791b98bc</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x791b98bc</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">registry()</span> <span class="mono small muted">0x7b103999</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x7b103999</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <h3 class="hsec u-39761cb3">TriviuRegistry <span class="mono small muted">10</span></h3>
-      <details class="acc"><summary><span class="fn mono" translate="no">cercaDe(address,address)</span> <span class="mono small muted">0x6706c1c6</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x6706c1c6</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">address &middot; address</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">cofreDe(address,address)</span> <span class="mono small muted">0xdd18da07</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xdd18da07</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">address &middot; address</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">cofres(uint256)</span> <span class="mono small muted">0x5aad4e52</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x5aad4e52</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">uint256</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">contas(address)</span> <span class="mono small muted">0xe46de4ce</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xe46de4ce</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">address</td></tr><tr><th>returns</th><td class="mono">bool &middot; uint40</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">estaRegistrado(address)</span> <span class="mono small muted">0xa1b8cb1c</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xa1b8cb1c</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">address quem</td></tr><tr><th>returns</th><td class="mono">bool</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">fabrica()</span> <span class="mono small muted">0xb5b306ec</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xb5b306ec</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">implantarCofre(address)</span> <span class="mono small muted">0xa3f00f5a</span></summary>
-        <p class="small">The heart of the deploy: one click, three contracts, all owned by you. The registry creates them and steps away — it holds no balance, cannot withdraw, cannot pause. There is no admin in the path.</p>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xa3f00f5a</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address base</td></tr><tr><th>returns</th><td class="mono">address &middot; address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">parametros()</span> <span class="mono small muted">0x4666b679</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x4666b679</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">registrar()</span> <span class="mono small muted">0x2b20e397</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x2b20e397</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">totalDeCofres()</span> <span class="mono small muted">0xe2ceb9fc</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xe2ceb9fc</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">uint256</td></tr></tbody></table>
-      </details>
-      <h3 class="hsec u-39761cb3">TriviuVault <span class="mono small muted">12</span></h3>
-      <details class="acc"><summary><span class="fn mono" translate="no">base()</span> <span class="mono small muted">0x5001f3b5</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x5001f3b5</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">ciclar(uint256,uint256,(uint8,address,address,address,uint24,uint256)[])</span> <span class="mono small muted">0x27269a41</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x27269a41</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">uint256 principal &middot; uint256 minProfit &middot; (uint8,address,address,address,uint24,uint256)[] legs</td></tr><tr><th>returns</th><td class="mono">uint256</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">comandante()</span> <span class="mono small muted">0x82c98f09</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x82c98f09</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">criador()</span> <span class="mono small muted">0x041c797c</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x041c797c</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">definirComandante(address)</span> <span class="mono small muted">0x03e301f5</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x03e301f5</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address novo</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">definirComandanteInicial(address)</span> <span class="mono small muted">0xa2f33fe8</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xa2f33fe8</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address novo</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">definirMotor(address)</span> <span class="mono small muted">0xa9a98819</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xa9a98819</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address novo</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">depositar(uint256)</span> <span class="mono small muted">0xd5ca6228</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xd5ca6228</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">uint256 quantia</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">dono()</span> <span class="mono small muted">0x70514bea</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x70514bea</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">motor()</span> <span class="mono small muted">0xbdd346cf</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0xbdd346cf</td></tr><tr><th>mutability</th><td class="mono">view</td></tr><tr><th>takes</th><td class="mono">&mdash;</td></tr><tr><th>returns</th><td class="mono">address</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">resgatar(address,uint256)</span> <span class="mono small muted">0x48b2116c</span></summary>
-        <p class="small">The unconditional exit, and it is a superset of sacar(): it takes ANY token out of the vault to you, including the base currency. It does not consult the engine, the commander, the fence, or any cycle state. There is no configuration of any contract in this system that can stop it.</p>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x48b2116c</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">address token &middot; uint256 quantia</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-      <details class="acc"><summary><span class="fn mono" translate="no">sacar(uint256)</span> <span class="mono small muted">0x7371b0d6</span></summary>
-        <table translate="no"><tbody><tr><th>selector</th><td class="mono">0x7371b0d6</td></tr><tr><th>mutability</th><td class="mono">nonpayable</td></tr><tr><th>takes</th><td class="mono">uint256 quantia</td></tr><tr><th>returns</th><td class="mono">&mdash;</td></tr></tbody></table>
-      </details>
-    </div>
-
+    <div id="helpList"></div>
     <div class="panel u-d17af2a9">
       <h3>What this console does not show you</h3>
       <p class="small muted u-0f76b54b">You can see every route walked, every venue routed
       through, every cost paid and every attempt that failed. You cannot see how an opportunity is
       identified in the first place. That search took years to build, and it is the one thing kept —
       the rest is open by design, including the parts that make us look bad.</p></div>
-  
+  </section>
+
+  </main>
+</div>
+</section>
+
+<footer><div class="wrap">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <div class="u-d92b3979">
+        <svg viewBox="0 0 120 120" class="u-5fa45f72" aria-hidden="true"><use href="#markline"/></svg>
+        <div><div class="u-d65c5183" translate="no">Triviu</div>
+          <!-- Sao TRES licencas e cada uma cobre uma coisa diferente, e a linha diz
+           qual e qual. Antes ela dizia "AGPL-3.0 · CC BY 4.0" sem sujeito, o que
+           lido ao pe da letra sugere que o codigo tambem e CC BY — e nao e — e
+           omitia a dos DOCUMENTOS, que e a que rege o whitepaper linkado aqui
+           ao lado. Todas as outras telas do site ja diziam certo; esta veio do
+           modelo, que nao tinha a distincao.
+           Concedidas em: LICENSE (AGPL-3.0, mais SPDX em 46 de 46 contratos),
+           brand/README.md (CC BY 4.0) e whitepaper/16-conclusion.md (CC BY-SA
+           4.0). A separacao foi auditada pelo Crocodilo em 2026-07-18. -->
+          <div class="mono u-17fe18b4">AGPL-3.0 code · CC BY 4.0 brand · CC BY-SA 4.0 docs · no token · no tracking</div></div>
+      </div>
+      <p class="colophon u-0173988c">Open source. Verifiable math. No promises.</p>
+    </div>
+    <nav class="foot-links" aria-label="Protocol">
+      <a href="https://triviu.vercel.app/" target="_blank" rel="noopener">Official site</a>
+      <a href="https://triviu.vercel.app/simulate" target="_blank" rel="noopener">Simulator</a>
+      <a href="https://triviu-protocol.gitbook.io/triviu-protocol-docs" target="_blank" rel="noopener">Whitepaper</a>
+      <a href="https://triviu.vercel.app/learn" target="_blank" rel="noopener">Learn</a>
+      <a href="https://triviu.vercel.app/chains" target="_blank" rel="noopener">Chains</a>
+    </nav>
+  </div>
+
+  <div class="foot-specs">
+    <details class="fdisc">
+      <summary><span class="fchev" aria-hidden="true"></span>Specification</summary>
+      <div class="fbody">
+        <p class="foot-spec">
+          Atomic A&rarr;B&rarr;C&rarr;A<br>
+          Non-custodial · onlyOwner withdrawal<br>
+          Success fee <b>0.5%</b> of realised profit (<span class="mono">feeBps 50</span>) — live once gates open<br>
+          Fence born closed, 9 controls · Sub-account band 10 – 500<br>
+          Polygon PoS · chain 137 · USDC base<br>
+          No token · no presale · no signals
+        </p>
+      </div>
+    </details>
+    <details class="fdisc">
+      <summary><span class="fchev" aria-hidden="true"></span>Standards, and where each lives in our code</summary>
+      <div class="fbody">
+        <p class="foot-spec">
+          <b>EIP-155</b> · chainId in every signature — replay protection across networks<br>
+          <b>EIP-20</b> · approve / transferFrom — vault approves the engine exactly, then zeroes it<br>
+          <b>EIP-1052</b> · <span class="mono">cofre.codehash</span> in the <span class="mono">CofreImplantado</span> event — provenance of what the factory deployed<br>
+          <b>EIP-170</b> · 24,576 B runtime ceiling — TriviuCerca 6,546 B, TriviuReferralVault 4,556 B<br>
+          <b>EIP-3860</b> · 49,152 B initcode ceiling — measured against the factory<br>
+          <b>EIP-721</b> · the Uniswap V3 position NFT — <span class="mono">getApproved</span> per token, never <span class="mono">setApprovalForAll</span><br>
+          <b>EIP-1014</b> · CREATE2 — <em>declared NOT used</em>. Vaults come from CREATE by nonce
+        </p>
+        <p class="foot-spec u-0173988c">Custom errors at language level — 11 typed errors in the vault, zero <span class="mono">require</span> with a string.</p>
+      </div>
+    </details>
+  </div>
+</div></footer>
+
+<div class="ov" id="runOv" role="dialog" aria-modal="true" aria-labelledby="runTitle"><div class="modal">
+  <div class="u-90500853"><p class="eyebrow" id="runTitle">executing cycle</p>
+    <svg class="runsvg" id="runSvg" viewBox="0 0 240 190" aria-hidden="true"></svg>
+    <div class="runlog" id="runLog" role="log" aria-live="polite"></div>
+    <div class="verdict" id="runVerdict"></div></div>
+  <div class="mact"><button id="runClose" class="primary" disabled>Close</button></div>
+</div></div>
+
+<div class="ov" id="armOv" role="dialog" aria-modal="true" aria-labelledby="armTitle"><div class="modal u-9d8d7170">
+  <div class="chead"><svg class="ic ic-l u-7608acb2" aria-hidden="true"><use href="#i-power"/></svg>
+    <span id="armTitle"><b>Arm the automation?</b></span>
+    <span class="pill warn u-ca6fc035">asked once</span></div>
+  <div id="armBody"></div>
+  <div class="mact">
+    <button id="armNo" class="ghost">No — I will start it myself</button>
+    <button id="armYes" class="primary"><svg class="ic" aria-hidden="true"><use href="#i-power"/></svg>Arm it</button>
+  </div>
+</div></div>
+
+<div class="ov" id="walletOv" role="dialog" aria-modal="true" aria-labelledby="wTitle"><div class="modal u-b5bb431a">
+  <div class="chead"><svg class="ic ic-l" aria-hidden="true"><use href="#i-wallet"/></svg>
+    <span id="wTitle" class="mono">Wallet</span><span class="pill" id="wModePill" class="u-ca6fc035">not connected</span></div>
+  <dl class="tscroll"><table translate="no"><tbody>
+    <tr><td class="faint">from</td><td id="wFrom"></td></tr>
+    <tr><td class="faint">to</td><td id="wTo"></td></tr>
+    <tr><td class="faint">function</td><td id="wFn"></td></tr>
+    <tr><td class="faint">gas</td><td id="wGas"></td></tr>
+  </tbody></table></dl>
+  <div class="mact"><button id="wReject">Reject</button><button class="primary" id="wConfirm">Confirm</button></div>
+</div></div>
+
+<div class="ov" id="genOv" role="dialog" aria-modal="true" aria-labelledby="genTitle"><div class="modal">
+  <h2 id="genTitle"></h2><div id="genBody" class="u-0173988c"></div>
+  <div class="mact"><button id="genClose" class="primary">Close</button></div>
+</div></div>
+
+<div class="marquee" aria-hidden="true"><div class="track" id="mqTrack"></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<!-- A MESMA ORDEM DE /cofre/, e a ordem importa: o livro antes do ABI, o ABI
+     antes do motor, o motor antes da tela. Cada um resolve o global de que o
+     seguinte depende, e trocar duas linhas aqui e a diferenca entre uma tela
+     que le a chain e uma que nao sabe o proprio endereco.
+     Ate 2026-08-23 esta pagina nao carregava nenhum dos tres: ela trazia os
+     enderecos digitados no corpo do script e `abi: null` com o comentario
+     "PLUG ABI". Os artefatos ja existiam no disco, ha dias. -->
+<script src="/enderecos-v0.js"></script>
+<script src="/js/abi-v0-console.js"></script>
+<script src="/js/motor.js"></script>
+<!-- O keccak vem ANTES de quem o usa, e a autoconferencia dele roda no
+     carregamento: se esta linha carregar sem lancar, os tres vetores conhecidos
+     passaram — entrada vazia, 136 bytes na fronteira do bloco, e a concordancia
+     entre a porta hexadecimal e a de bytes. Pagina que abriu e pagina cujo
+     keccak reproduz o que o solc reproduz. -->
+<script src="/js/keccak.js"></script>
+<script src="/js/assinar-v0.js"></script>
+<script src="/js/console-v0.js"></script>
+</body>
+</html>

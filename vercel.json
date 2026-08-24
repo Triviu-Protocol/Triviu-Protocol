@@ -43,6 +43,16 @@
   ],
   "redirects": [
     {
+      "source": "/v0",
+      "destination": "/console",
+      "permanent": true
+    },
+    {
+      "source": "/v0/(.*)",
+      "destination": "/console/$1",
+      "permanent": true
+    },
+    {
       "source": "/(.*)",
       "has": [
         {

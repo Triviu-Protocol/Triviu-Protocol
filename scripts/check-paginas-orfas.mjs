@@ -53,13 +53,19 @@ const SITE = join(RAIZ, "site");
 /* Cada excecao e uma divida com nome, nao uma dispensa. O motivo sai na tela em
    toda execucao — de proposito. */
 const EXCECOES = {
-  "/console/":
+  /* Era `/console/` ate 2026-08-24. A rota trocou de dono por decisao do
+     fundador — *"e para por nesse endereco"* — e o console da V0 assumiu
+     `/console/`, que e onde quem usa espera encontrar o produto. A linha ANTIGA
+     mudou-se para `/lp/`, que e o nome do que ela faz: provisao de liquidez.
+     A divida e a mesma e continua declarada aqui, so que na rota nova. */
+  "/lp/":
     "opera a LINHA ANTIGA (TriviuLPVault 0xC52BaD28…, taxa de 30% DO LUCRO). Linka-la " +
-    "da mesma navegacao que leva a V0 (0,5% DO NEGOCIADO) poe as duas linhas lado a lado " +
-    "sem dizer que sao linhas diferentes, e as bases das duas taxas nao se comparam. " +
-    "Sair desta lista exige decidir o que a navegacao diz sobre as duas — decisao de " +
-    "produto, nao de pipeline. Ate la ela publica sem link, e isto aqui e o registro " +
-    "de que se sabe disso.",
+    "da mesma navegacao que leva ao console da V0 (0,5% DO NEGOCIADO) poe as duas linhas " +
+    "lado a lado sem dizer que sao linhas diferentes, e as bases das duas taxas nao se " +
+    "comparam. Medido em 2026-08-24 antes da troca de rota: o TriviuLPVault guarda ZERO " +
+    "USDC, ZERO WETH e ZERO POL, entao tirar a tela do endereco principal nao deixou " +
+    "ninguem sem interface para dinheiro vivo. Sair desta lista exige decidir o que a " +
+    "navegacao diz sobre as duas — decisao de produto, nao de pipeline.",
 };
 
 const falhas = [];
