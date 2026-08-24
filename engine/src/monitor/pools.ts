@@ -12,6 +12,7 @@
  */
 import { parseAbi } from "viem";
 import type { Edge } from "../graph/bellmanFord.js";
+import { aviso } from "../seguranca/saida.js";
 import type { PoolConfig } from "../config.js";
 
 const univ2PairAbi = parseAbi([
@@ -73,7 +74,7 @@ export async function fetchEdges(
     const pool = pools[i]!;
     const outcome = outcomes[i];
     if (!outcome || outcome.status !== "success") {
-      console.warn(`pool ${pool.address} did not answer — skipped, not guessed.`);
+      aviso(`pool ${pool.address} did not answer — skipped, not guessed.`);
       continue;
     }
 

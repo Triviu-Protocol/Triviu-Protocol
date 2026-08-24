@@ -16,6 +16,7 @@
  */
 import { triviuExecutorAbi } from "../abi.js";
 import type { Leg } from "../build/steps.js";
+import { semUrl } from "../seguranca/redigir.js";
 
 export interface SimulationCallArgs {
   address: `0x${string}`;
@@ -47,13 +48,25 @@ export interface SimulationResult {
   reason?: string;
 }
 
-/** Digs the most specific message out of a viem revert error chain. */
+/**
+ * Digs the most specific message out of a viem revert error chain.
+ *
+ * O `reason` que sai daqui vai para `SimulationResult`, e o `index.ts` imprime
+ * o resultado inteiro. A queda para `e.message` (o ramo de baixo) traz a `URL:`
+ * do RPC com a chave do provedor dentro dela — por isso a saída passa por
+ * `semUrl`. A redação fica na SAÍDA, num lugar só, e não em cada ramo: ramo que
+ * alguém acrescentar depois já nasce coberto.
+ */
 function explainRevert(err: unknown): string {
+  return semUrl(explicacaoCrua(err)) ?? "unknown revert";
+}
+
+function explicacaoCrua(err: unknown): string {
   if (typeof err === "object" && err !== null) {
     const e = err as { shortMessage?: unknown; message?: unknown; cause?: unknown };
     if (typeof e.shortMessage === "string") return e.shortMessage;
     if (e.cause !== undefined) {
-      const nested = explainRevert(e.cause);
+      const nested = explicacaoCrua(e.cause);
       if (nested !== "unknown revert") return nested;
     }
     if (typeof e.message === "string") return e.message;

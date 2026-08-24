@@ -16,6 +16,11 @@
  * devolver `null` jogaria fora a informação mais útil que a leitura produz.
  */
 import { decodeErrorResult, parseAbi, type Address, type Hex } from "viem";
+/* `semUrl` e `mensagemDoErro` moraram aqui até a varredura do motor achar as
+   mesmas superfícies em `index.ts`, `verify-fork.ts` e `anvilFork.ts`. Foram
+   para `seguranca/redigir.ts` sem uma vírgula de mudança: a redação tem de
+   viver num lugar só, senão a próxima cópia envelhece sozinha. */
+import { mensagemDoErro, semUrl } from "../seguranca/redigir.js";
 
 export const vaultAbi = parseAbi([
   "function nonce() view returns (uint64)",
@@ -205,65 +210,6 @@ export function detalheDoRevert(e: unknown): string | null {
   } catch {
     return null;
   }
-}
-
-/**
- * CONTROLE DE SEGURANÇA · Lei do Sangue. Não é formatação.
- *
- * `detalhe` leva texto de erro do cliente RPC até a tela. Medido contra o viem
- * 2.55.2, com transporte em `127.0.0.1:1` e uma chave plantada na URL:
- *
- *     === message ===
- *     HTTP request failed.
- *     URL: http://127.0.0.1:1/v2/SEGREDO_ABC123XYZ     <- a chave, inteira
- *     Request body: {"method":"eth_blockNumber"}
- *
- * URL de RPC de produção é `polygon-mainnet.g.alchemy.com/v2/<CHAVE>`: a
- * credencial mora DENTRO da URL. `shortMessage` devolveu só "HTTP request
- * failed." e `details` só "fetch failed" — nenhum dos dois traz a chave.
- *
- * A redação fica sobre o CAMPO, não sobre a escolha de qual mensagem ler.
- * Preferir `shortMessage` evita o vazamento, mas evita por acidente — e
- * acidente que depende de ordem de lista se desfaz na primeira simplificação.
- * Um erro sem `shortMessage` (transporte próprio, `fetch` cru) cairia no
- * `.message` e entregaria a chave.
- */
-function semUrl(texto: string | null): string | null {
-  if (!texto) return texto;
-  return texto
-    /* Qualquer esquema, não só http/https: `ws://` e `wss://` também são
-       transportes de RPC e carregam a mesma chave. */
-    .replace(/\b[a-z][a-z0-9+.-]*:\/\/\S+/gi, "[url removida]")
-    /* E host+caminho SEM esquema, que o red team atravessou:
-       `polygon-mainnet.g.alchemy.com/v2/<CHAVE>` não casa `://` e saía inteiro.
-       O último rótulo antes da barra tem de ser alfabético (`[a-z]{2,}`), e é
-       isso que impede o filtro de comer o que não é endereço:
-         `src/vault/leitura.ts`  -> "src" não tem ponto antes da barra
-         `1.2.3/4`               -> "3" não é alfabético
-         `config/params.toml`    -> "config" não tem ponto antes da barra
-       Redigir de mais também é defeito, e o teste de sobrevivência é quem
-       prende essa fronteira no lugar. */
-    .replace(/\b[a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)*\.[a-z]{2,}\/\S*/gi, "[url removida]");
-}
-
-/**
- * A mensagem que veio, para quando os argumentos do erro não existem.
- *
- * `shortMessage` ANTES de `.message`, e por medição: todo erro do viem é um
- * `Error`, então testar `instanceof Error` primeiro fazia o `.message` ganhar
- * sempre — 7 linhas com URL, corpo da requisição e versão — e deixava o ramo do
- * `shortMessage` inalcançável justamente para o caso que esta função existe para
- * tratar. Acesso por colchete alcança o `message` de um `Error` pela cadeia de
- * protótipo, então não é preciso um ramo separado só para ele.
- */
-function mensagemDoErro(e: unknown): string | null {
-  if (typeof e === "string") return e || null;
-  if (!e || typeof e !== "object") return null;
-  for (const chave of ["shortMessage", "message", "details"]) {
-    const v = (e as Record<string, unknown>)[chave];
-    if (typeof v === "string" && v) return v;
-  }
-  return null;
 }
 
 export async function simular(

@@ -17,6 +17,8 @@ import { createPublicClient, defineChain, http, parseAbi, getAddress } from "vie
 import { fetchEdges, type PoolsClient } from "../src/monitor/pools.js";
 import { findNegativeCycle } from "../src/graph/bellmanFord.js";
 import type { PoolConfig } from "../src/config.js";
+import { origemDe } from "../src/seguranca/redigir.js";
+import { aviso, falha, info } from "../src/seguranca/saida.js";
 
 const RPC = process.env["TRIVIU_RPC"] ?? "http://127.0.0.1:8545";
 const FACTORY = "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32"; // QuickSwap v2 factory
@@ -44,7 +46,12 @@ const pairAbi = parseAbi(["function token0() view returns (address)"]);
 async function main() {
   const client = createPublicClient({ chain: forkChain, transport: http(RPC) });
   const block = await client.getBlockNumber();
-  console.log(`Fork alive at block ${block} (${RPC})`);
+  /* Este `console.log` imprimia `${RPC}` inteiro, e no CAMINHO FELIZ — não
+     precisava de erro nenhum para publicar a chave do provedor. `origemDe`
+     preserva o que a linha serve para responder ("estou apontado para o fork
+     local ou para a mainnet?") e descarta caminho, query, userinfo E subdomínio
+     — os quatro lugares onde credencial de provedor cabe. */
+  info(`Fork alive at block ${block} (${origemDe(RPC)})`);
 
   const legs: [string, string][] = [
     ["wmatic", "usdce"],
@@ -67,7 +74,7 @@ async function main() {
   for (let i = 0; i < legs.length; i++) {
     const outcome = pairAddrs[i]!;
     if (outcome.status !== "success" || outcome.result === "0x0000000000000000000000000000000000000000") {
-      console.warn(`no pair for ${legs[i]!.join("/")} — skipped`);
+      aviso(`no pair for ${legs[i]!.join("/")} — skipped`);
       continue;
     }
     const pair = getAddress(outcome.result as string);
@@ -86,27 +93,29 @@ async function main() {
       decimals1: TOKENS[t1]!.decimals,
       feeBps: 30,
     });
-    console.log(`pair ${legs[i]!.join("/")} -> ${pair} (token0=${t0})`);
+    info(`pair ${legs[i]!.join("/")} -> ${pair} (token0=${t0})`);
   }
 
   // Real fetchEdges over the fork via the viem multicall client.
   const edges = await fetchEdges(client as unknown as PoolsClient, pools);
-  console.log(`\nfetchEdges returned ${edges.length} edges from ${pools.length} pools:`);
+  info(`\nfetchEdges returned ${edges.length} edges from ${pools.length} pools:`);
   for (const e of edges) {
-    console.log(`  ${e.from} -> ${e.to}  rate=${e.effectiveRate.toExponential(6)}`);
+    info(`  ${e.from} -> ${e.to}  rate=${e.effectiveRate.toExponential(6)}`);
   }
 
   const cycle = findNegativeCycle(edges);
   if (cycle) {
-    console.log(`\nProfitable cycle: ${cycle.cycle.join(" -> ")} | gross factor ${cycle.grossFactor.toFixed(6)}`);
-    console.log("(gross > 1 before gas — capturable is another matter; see the risk notice)");
+    info(`\nProfitable cycle: ${cycle.cycle.join(" -> ")} | gross factor ${cycle.grossFactor.toFixed(6)}`);
+    info("(gross > 1 before gas — capturable is another matter; see the risk notice)");
   } else {
-    console.log("\nNo profitable cycle in the live graph — the most common result, and that's fine.");
+    info("\nNo profitable cycle in the live graph — the most common result, and that's fine.");
   }
-  console.log("\nVERIFY OK: real reserves read and processed by the production engine code.");
+  info("\nVERIFY OK: real reserves read and processed by the production engine code.");
 }
 
 main().catch((err) => {
-  console.error(err);
+  /* `console.error(err)` cru despejava o objeto do viem inteiro — `URL:` com a
+     chave do provedor no meio. Este é um dos dois sinks do motor. */
+  falha(err);
   process.exit(1);
 });

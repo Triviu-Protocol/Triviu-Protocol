@@ -21,23 +21,30 @@ import { findNegativeCycle, meetsExecutionCondition } from "./graph/bellmanFord.
 import { buildTriangularCycleLegs } from "./build/steps.js";
 import { simulateCycle, type SimulationClient } from "./simulate/anvilFork.js";
 import { submitDecision, submitCycle, MAINNET_CHAIN_ID } from "./submit/tx.js";
+import { aviso, falha, info } from "./seguranca/saida.js";
 
 async function main() {
-  console.log("Triviu engine v0 — educational mode. dry_run is the default.");
+  info("Triviu engine v0 — educational mode. dry_run is the default.");
 
   const paramsPath = process.env["TRIVIU_PARAMS"] ?? "config/params.toml";
   let params;
   try {
     params = loadParams(paramsPath);
   } catch (err) {
-    console.error(String(err));
-    console.error("Copy config/params.example.toml to config/params.toml and adjust (sim/README.md).");
+    /* A varredura mediu que este caminho é limpo hoje — `loadParams` só produz
+       erro de toml e de arquivo, nunca de viem. Usa o mesmo caminho assim
+       mesmo: deixar um `String(err)` cru aqui obrigaria o portão a abrir uma
+       exceção para ele, e portão com exceção é portão que morre. */
+    falha(err);
+    /* `aviso`, não `info`: isto era `console.error` e vai para o stderr. Trocar
+       o fluxo mudaria o comportamento de quem redireciona a saída. */
+    aviso("Copy config/params.example.toml to config/params.toml and adjust (sim/README.md).");
     process.exit(1);
   }
 
   const chainId = params.network.chainId;
   if (chainId === MAINNET_CHAIN_ID && process.env["TRIVIU_I_ACCEPT_THE_RISK"] !== "yes") {
-    console.error(
+    aviso(
       "Refusing mainnet: set TRIVIU_I_ACCEPT_THE_RISK=yes only after reading " +
         "the RISK NOTICE in the README and validating the route on a fork (sim/README.md)."
     );
@@ -45,7 +52,7 @@ async function main() {
   }
 
   if (params.pools.length === 0) {
-    console.log("No [[pools]] configured — nothing to monitor. Add pools to config/params.toml.");
+    info("No [[pools]] configured — nothing to monitor. Add pools to config/params.toml.");
     return;
   }
 
@@ -62,15 +69,15 @@ async function main() {
 
   // Stage 1 — monitor: one multicall, both directions of every pool.
   const edges = await fetchEdges(publicClient as unknown as PoolsClient, params.pools);
-  console.log(`Graph: ${edges.length} edges from ${params.pools.length} pools.`);
+  info(`Graph: ${edges.length} edges from ${params.pools.length} pools.`);
 
   // Stage 2 — detect.
   const found = findNegativeCycle(edges);
   if (!found) {
-    console.log("No profitable cycle in the current graph — the most common result, and that's fine.");
+    info("No profitable cycle in the current graph — the most common result, and that's fine.");
     return;
   }
-  console.log(
+  info(
     "Candidate cycle:",
     found.cycle.join(" → "),
     "| gross factor:",
@@ -86,15 +93,15 @@ async function main() {
     gasCostInA: 0,
     minProfit: Number(params.execution.minProfitWei) / 1e18,
   });
-  console.log("Execution-condition preview (before gas):", preview);
+  info("Execution-condition preview (before gas):", preview);
 
   // Stage 3 — simulate on the fork, when there is something to simulate against.
   if (!params.contracts.executor) {
-    console.log("contracts.executor not configured — detection-only mode ends here (deploy comes after the audit gates).");
+    info("contracts.executor not configured — detection-only mode ends here (deploy comes after the audit gates).");
     return;
   }
   if (!params.router.univ2) {
-    console.log("router.univ2 not configured — cannot build swap legs. Add it to params.toml.");
+    info("router.univ2 not configured — cannot build swap legs. Add it to params.toml.");
     return;
   }
 
@@ -106,7 +113,7 @@ async function main() {
 
   const sender = process.env["TRIVIU_SENDER"];
   if (!sender || !/^0x[0-9a-fA-F]{40}$/.test(sender)) {
-    console.log(
+    info(
       "TRIVIU_SENDER not set — skipping simulation. Set it to an address that has " +
         "balance and allowance on the fork (anvil can impersonate any address)."
     );
@@ -116,7 +123,7 @@ async function main() {
   // A parallel-pool 2-cycle (A→B→A) is a legitimate detector result but not a
   // triangular route — skip it instead of crashing the run.
   if (path.length < 4) {
-    console.log(`Detected cycle is not triangular (${path.length - 1} hops) — skipping, not submitting.`);
+    info(`Detected cycle is not triangular (${path.length - 1} hops) — skipping, not submitting.`);
     return;
   }
 
@@ -138,7 +145,7 @@ async function main() {
     minProfit: params.execution.minProfitWei,
     legs,
   });
-  console.log("Fork simulation:", sim);
+  info("Fork simulation:", sim);
 
   // Stage 4 — submit, only through the gate.
   const decision = submitDecision({
@@ -147,7 +154,7 @@ async function main() {
     simulationOk: sim.ok,
     env: process.env,
   });
-  console.log("Submission gate:", decision.reason);
+  info("Submission gate:", decision.reason);
   if (!decision.allowed) return;
 
   const txHash = await submitCycle({
@@ -160,10 +167,18 @@ async function main() {
     legs,
     env: process.env,
   });
-  console.log("Submitted:", txHash, "— the dashboard will show it either way, revert included.");
+  info("Submitted:", txHash, "— the dashboard will show it either way, revert included.");
 }
 
 main().catch((err) => {
-  console.error(err);
+  /* O SINK do motor. `fetchEdges` (a primeira chamada de rede) e `submitCycle`
+     (a única que gasta) não têm `catch` próprio: os erros deles chegam aqui.
+     Medido: a exceção de `submitCycle` sai com 19 linhas e a `URL:` do RPC
+     inteira. `console.error(err)` cru publicava isso.
+
+     Não pus `try/catch` em cada chamada: elas PROPAGAM para cá, e redigir no
+     sink fecha as duas de uma vez. Consertar sete lugares onde há um é como o
+     defeito volta. */
+  falha(err);
   process.exit(1);
 });
