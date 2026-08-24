@@ -1437,6 +1437,12 @@
 <script src="/enderecos-v0.js"></script>
 <script src="/js/abi-v0-console.js"></script>
 <script src="/js/motor.js"></script>
+<!-- O keccak vem ANTES de quem o usa, e a autoconferencia dele roda no
+     carregamento: se esta linha carregar sem lancar, os tres vetores conhecidos
+     passaram — entrada vazia, 136 bytes na fronteira do bloco, e a concordancia
+     entre a porta hexadecimal e a de bytes. Pagina que abriu e pagina cujo
+     keccak reproduz o que o solc reproduz. -->
+<script src="/js/keccak.js"></script>
 <script src="/js/assinar-v0.js"></script>
 <script src="/js/console-v0.js"></script>
 </body>

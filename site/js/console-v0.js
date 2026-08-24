@@ -424,6 +424,11 @@ const ATOS = {
      continuou dizendo isso depois de o tipo ter entrado — uma tela afirmando
      um estado que deixara de ser verdade. */
   limites:      { cofre: 'limites',      nome: 'vault.setLimits(uint64,uint64,uint16,uint112)' },
+  /* O unico ato com tipo dinamico. A linha que estava aqui dizia que "nenhuma
+     tela monta essa calldata, e nenhuma outra monta ainda" — deixou de ser
+     verdade quando as cinco pecas ficaram prontas e o resultado foi conferido
+     contra o `abi.encode` do proprio compilador. */
+  executar:     { cofre: 'executar',     nome: 'vault.executeAsOwner((...),(...))' },
   saida:      { falta: 'escapeHatch.withdraw(address,uint256,address)' },
 
   /* NAO EXISTEM nesta linha. Cada um destes era um botao que prometia uma
@@ -464,7 +469,7 @@ const ATOS = {
     '`bytes`. Esta tela nao monta essa calldata, e nenhuma outra monta ainda.' }
 };
 
-async function tx({ato, to, fn, gas, label, apply, log, quantia, indice, alvo, ligado, limites}){
+async function tx({ato, to, fn, gas, label, apply, log, quantia, indice, alvo, ligado, limites, execucao}){
   if (apply) {
     throw new Error('PARADO: este botao ainda tenta mudar o estado da tela sozinho. ' +
       'Nada foi enviado e nada foi alterado — o ponto de chamada precisa ser convertido.');
@@ -523,6 +528,7 @@ async function tx({ato, to, fn, gas, label, apply, log, quantia, indice, alvo, l
     alvo: alvo === undefined ? null : alvo,
     ligado: ligado === undefined ? null : ligado,
     limites: limites === undefined ? null : limites,
+    execucao: execucao === undefined ? null : execucao,
     quantia: quantia === undefined || quantia === null ? null : paraBase(quantia)
   });
   if (!r) { log?.('cancelado — nada foi enviado', 'dim'); return null; }
@@ -840,6 +846,12 @@ const LER = {
       return { ok: false, motivo: nomeDoRevert(e), erro: e };
     }
   },
+  /* Os dois que entram no `proposalHash`. O cofre RECALCULA o hash com o nonce e
+     a epoca DELE no momento da execucao: se qualquer um mudar entre montar e
+     assinar, a chain recusa com CommitmentMismatch. Ler no ultimo instante e
+     parte do desenho, e nao um detalhe. */
+  nonce:       async (cofre) => comoNumero(pal(await chamar(cofre, sig('vault','nonce()')), 0)),
+  configEpoch: async (cofre) => comoNumero(pal(await chamar(cofre, sig('vault','configEpoch()')), 0)),
   existe:    async (a) => { const c = await triviuRead('eth_getCode', [a, 'latest']); return !!c && c !== '0x'; }
 };
 
@@ -1927,6 +1939,123 @@ $('btnWd').onclick = () => { const v = activeV(); if (!v) return;
 $('btnDelVault').onclick = () => { S.vaults = S.vaults.filter(x => x.id !== S.activeVault);
   S.activeVault = S.vaults[0]?.id || null; renderVaults(); renderOps(); renderOver(); save(); toast('Sub-account closed.'); };
 
+/* ── A ROTA ─────────────────────────────────────────────────────────────────
+   `routeCalldata` e a chamada que o Executor faz ao router, e quem a monta hoje
+   e esta tela — o oraculo, que normalmente faria isso, esta em zero.
+
+   O DESTINO DO SWAP E O COFRE, e nao o executor. Isto nao e obvio e erraria a
+   rota inteira: `VaultExecution` mede `tokenOut.balanceOf(address(this))` antes
+   e depois, com `this` sendo o COFRE; e `Executor.run` exige
+   `tokenOut.balanceOf(executor) == baselineOut`, ou seja, o executor nao pode
+   ficar com nada. Uma rota com `to` = executor reverte em BalanceDeltaNonZero
+   depois de o gas ter sido pago.
+
+   O router NAO precisa de curadoria nesta linha: `_checkRoute` cura o EXECUTOR
+   e usa denylist para target e spender — proibidos sao o proprio cofre, o
+   executor, e qualquer token da cerca. A trava existe para a "rota" nao poder
+   ser uma chamada direta a um token.
+
+   O seletor sai do keccak que esta pagina agora carrega, e nao de uma constante
+   digitada: `swapExactTokensForTokens(uint256,uint256,address[],address,uint256)`. */
+const ROTA_V2 = 'swapExactTokensForTokens(uint256,uint256,address[],address,uint256)';
+/* QuickSwap V2 na Polygon. NAO precisa de curadoria nesta linha — `_checkRoute`
+   cura o executor e usa denylist para target/spender. A proposta de governanca
+   `allow-quickswap-v2-router` esta `held` e abre alvo no ParameterRegistry
+   0x1Adab61e…, que e da linha ANTIGA: ela nao governa este cofre. */
+const ROTEADOR_V2 = '0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff';
+
+function montarRotaV2({entra, saiMin, caminho, paraOCofre, prazo}){
+  if (!window.TRIVIU_KECCAK) {
+    throw new Error('o keccak nao carregou, e sem ele nao ha como calcular o seletor da rota ' +
+      'nem o commitment. Nada foi montado.');
+  }
+  const seletor = window.TRIVIU_KECCAK.keccak256(ROTA_V2).slice(0, 10);
+  const corpo = window.TRIVIU_MOTOR.abiEncodeTuplaDinamica([
+    { nome: 'amountIn', tipo: 'uint256', valor: String(entra) },
+    { nome: 'amountOutMin', tipo: 'uint256', valor: String(saiMin) },
+    { nome: 'path', tipo: 'address[]', valor: caminho },
+    { nome: 'to', tipo: 'address', valor: paraOCofre },
+    { nome: 'deadline', tipo: 'uint256', valor: String(prazo) }
+  ]);
+  return { hex: seletor + corpo.hex.slice(2), seletor, assinatura: ROTA_V2, mapa: corpo.mapa };
+}
+
+/* Monta uma execucao inteira, do que a chain diz agora ate o hash que ela vai
+   recalcular. Nada aqui e digitado: o Intent vem de `dryRunChecks`, o nonce e a
+   epoca vem do cofre, e os dois hashes saem do keccak.
+
+   A ORDEM importa e nao e arbitraria. O cofre recalcula o `proposalHash` com o
+   nonce e a `configEpoch` DELE no instante da execucao — mudar a cerca entre
+   montar e assinar invalida a proposta, de proposito, porque a estrategia
+   respondeu sobre um cofre que ja e outro. Por isso os dois sao lidos por
+   ultimo, e nao no comeco. */
+async function montarExecucao({cofre, base, prazoEmSegundos}){
+  if (!window.TRIVIU_KECCAK) throw new Error('o keccak nao carregou; nada foi montado');
+  const K = window.TRIVIU_KECCAK, MO = window.TRIVIU_MOTOR;
+
+  /* 1 · o que a estrategia quer. Se ela recusar, a recusa e a resposta. */
+  const sim = await LER.simular(cofre, 0, base);
+  if (!sim.ok){
+    const e = new Error('a simulacao recusou' + (sim.motivo ? ': ' + sim.motivo : '') +
+      (sim.motivo && O_QUE_FAZER[sim.motivo] ? ' — ' + O_QUE_FAZER[sim.motivo] : ''));
+    e.simulacao = sim;
+    throw e;
+  }
+  const it = sim.intent;
+
+  /* 2 · a rota. O destino e o COFRE: o executor nao pode ficar com o resultado,
+     e quem mede o ganho e o proprio cofre. */
+  const agora = Math.floor(Date.now() / 1000);
+  const prazo = agora + (Number(prazoEmSegundos) || 600);
+  const rota = montarRotaV2({
+    entra: it.entra, saiMin: it.saiMin,
+    caminho: it.lado === 'compra' ? [it.base, it.ativo] : [it.ativo, it.base],
+    paraOCofre: cofre, prazo
+  });
+
+  /* 3 · o estado do cofre, lido POR ULTIMO. */
+  const [nonce, epoca, estrategia] = await Promise.all([
+    LER.nonce(cofre), LER.configEpoch(cofre), LER.estrategia(cofre)
+  ]);
+
+  /* 4 · os dois hashes, na forma que o contrato recalcula. */
+  const proposta = K.keccak256Hex(MO.abiEncode([
+    { tipo: 'uint256', valor: String(TRIVIU.chainId ?? 137) },
+    { tipo: 'address', valor: cofre },
+    { tipo: 'uint64', valor: String(nonce) },
+    { tipo: 'uint64', valor: String(epoca) },
+    { tipo: 'address', valor: estrategia },
+    { tipo: 'address', valor: it.lado === 'compra' ? it.base : it.ativo },
+    { tipo: 'address', valor: it.lado === 'compra' ? it.ativo : it.base },
+    { tipo: 'uint256', valor: String(it.entra) },
+    { tipo: 'uint256', valor: String(it.lote) }
+  ]));
+  const declaredRefund = '0';
+  const executionHash = K.keccak256Hex(MO.abiEncode([
+    { tipo: 'bytes32', valor: proposta },
+    { tipo: 'address', valor: TRIVIU.addr.executor },
+    { tipo: 'address', valor: ROTEADOR_V2 },
+    { tipo: 'address', valor: ROTEADOR_V2 },
+    { tipo: 'uint256', valor: String(it.entra) },
+    { tipo: 'uint256', valor: String(it.saiMin) },
+    { tipo: 'uint64', valor: String(prazo) },
+    { tipo: 'uint256', valor: declaredRefund },
+    { tipo: 'bytes32', valor: K.keccak256Hex(rota.hex) }
+  ]));
+
+  return {
+    side: it.lado === 'compra' ? '0' : '1',
+    asset: it.ativo, base: it.base,
+    amountIn: String(it.entra), minOut: String(it.saiMin), lotId: String(it.lote),
+    executor: TRIVIU.addr.executor, target: ROTEADOR_V2, spender: ROTEADOR_V2,
+    operatorMinOut: String(it.saiMin), validUntil: String(prazo), configEpoch: String(epoca),
+    declaredRefund, declaredGas: '0', declaredGasPrice: '0', declaredQuote: String(it.saiMin),
+    candidateLotId: String(it.lote),
+    routeCalldata: rota.hex, executionHash,
+    rotaNome: 'QuickSwap V2', proposta, nonce: String(nonce)
+  };
+}
+
 /* ── A CERCA REAL · os seis controles que o cofre V0 tem ────────────────────
    Nasceu de um veto: `setAllowedAsset(token,false)` — bloquear um ativo — nao
    existia em lugar nenhum desta tela. O unico chamador passava `ligado: true`
@@ -2106,6 +2235,10 @@ function renderCercaReal(){
   const acaoS = document.createElement('div');
   acaoS.className = 'tight';
   acaoS.appendChild(botao('Simular', 'primary', () => simularCiclo(saidaS)));
+  /* Executar fica AO LADO de simular, e nao noutra aba: simular custa zero e
+     responde a mesma pergunta que executar responde caro. Quem separa os dois
+     em telas distintas convida a pular o barato. */
+  acaoS.appendChild(botao('Executar', 'ghost', () => executarCiclo(saidaS)));
   corpo.appendChild(acaoS);
 
   /* --- ativos: liberar e BLOQUEAR ------------------------------------- */
@@ -2346,6 +2479,67 @@ async function simularCiclo(onde){
     bloco.appendChild(d);
   }
   onde.appendChild(bloco);
+}
+
+/* Abrir ou fechar posicao, com o SEU gas. `executeAsOwner` e `_checkOwner()` e
+   chama `_checksA({callerMustBeOperator: false})` — o comentario do parametro no
+   contrato diz "false on the owner entrypoint". O keeper nao entra nisto, e por
+   isso a chave do operador estar sem POL nao trava este caminho. */
+async function executarCiclo(onde){
+  const cofre = S.triad?.vault || activeV()?.addr;
+  if (!cofre) return toast('Abra um cofre primeiro.', 'err');
+  const base = S.moeda || TRIVIU.base.address;
+  onde.textContent = '';
+  const p0 = document.createElement('p');
+  p0.className = 'faint small';
+  p0.textContent = 'Perguntando a estrategia e montando a execucao…';
+  onde.appendChild(p0);
+
+  let x = null;
+  try {
+    x = await montarExecucao({ cofre, base, prazoEmSegundos: 600 });
+  } catch (e) {
+    onde.textContent = '';
+    const q = document.createElement('p');
+    q.className = 'small warn';
+    q.textContent = e.message;
+    onde.appendChild(q);
+    const r = document.createElement('p');
+    r.className = 'faint small';
+    r.textContent = 'Nada foi assinado e nada foi enviado — ate aqui tudo foi leitura.';
+    onde.appendChild(r);
+    return;
+  }
+
+  onde.textContent = '';
+  const resumo = document.createElement('div');
+  resumo.className = 'fitem';
+  for (const [rot, val] of [
+    ['lado', x.side === '0' ? 'compra' : 'venda'],
+    ['entra', x.amountIn + ' (unidades-base)'],
+    ['sai no minimo', x.minOut],
+    ['rota', x.rotaNome + ' · ' + ((x.routeCalldata.length - 2) / 2) + ' bytes'],
+    ['destino do swap', 'o seu cofre'],
+    ['nonce lido agora', x.nonce]
+  ]){
+    const l = document.createElement('div');
+    const b = document.createElement('b'); b.textContent = rot + ': ';
+    const s = document.createElement('span'); s.className = 'small'; s.textContent = String(val);
+    l.appendChild(b); l.appendChild(s);
+    resumo.appendChild(l);
+  }
+  onde.appendChild(resumo);
+
+  try {
+    const r = await tx({ ato: 'executar', to: cofre,
+      fn: 'executeAsOwner(' + (x.side === '0' ? 'compra' : 'venda') + ')',
+      gas: 900000, label: 'executeAsOwner', execucao: x });
+    if (r && r.ok){
+      CERCA_LIDA = null;
+      renderCercaReal();
+      await lerTudoDaChain();
+    }
+  } catch (e) { toast(e.message, 'err'); }
 }
 
 /* Um clique = uma transacao. Nada muda na tela por conta propria: depois de a

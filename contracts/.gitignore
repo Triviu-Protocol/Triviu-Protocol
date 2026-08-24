@@ -15,6 +15,15 @@ out/
 deployments/999999.json
 deployments/user/999999/
 
+# Written by scripts/check-commitment.mjs and scripts/check-tupla.mjs on every
+# run. They compile a throwaway contract that calls the real library, so the
+# client's hashes are compared against the compiler rather than against a second
+# implementation of ours. The content changes with the case being measured, and
+# committing a file a script rewrites is how generated files start disagreeing
+# with what generates them — the same class as a script that deletes what it does
+# not produce, seen from the other side.
+test/gerado/
+
 # Records of WHO deployed WHICH vault. `deployments/137.json` carries the
 # protocol's own addresses and belongs in a public repository; this does not.
 # The path itself is the data: `user/137/<owner>/vaults.json` states that a given

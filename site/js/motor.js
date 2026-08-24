@@ -109,6 +109,19 @@
       if (!END.test(String(v))) throw new Error("o valor exibido nao e um endereco: " + v);
       return String(v).toLowerCase();
     }
+    /* `bytes32` NAO e um numero de 256 bits, e tratar como se fosse seria o
+       erro. Um hash com zeros a esquerda tem os zeros como PARTE do valor: se
+       ele passasse por BigInt, `0x00ab…` e `0xab…` viravam a mesma coisa e a
+       tela poderia exibir um e mandar outro. Aqui o valor e a sequencia de 32
+       bytes, exigida por extenso. */
+    if (tipo === "bytes32") {
+      var b = String(v == null ? "" : v).trim();
+      if (!/^0x[0-9a-fA-F]{64}$/.test(b)) {
+        throw new Error("campo bytes32 exibindo `" + v + "`: sao 32 bytes por extenso, " +
+          "`0x` e 64 digitos hexadecimais. Um hash nao se abrevia — zero a esquerda e valor.");
+      }
+      return b.toLowerCase();
+    }
     if (tipo === "bool") {
       if (v === true || v === "true") return true;
       if (v === false || v === "false") return false;
@@ -158,6 +171,8 @@
       }
       return "0x" + w.slice(24);
     }
+    /* Em `bytes32` a palavra E o valor: nao ha recorte nem interpretacao. */
+    if (tipo === "bytes32") return "0x" + w;
     if (tipo === "bool") {
       var b = BigInt("0x" + w);
       if (b === 0n) return false;
@@ -182,6 +197,9 @@
   var CODIFICADOR_POR_TIPO = {
     address: function (v) { return pal(valorDaTela("address", v)); },
     bool: function (v) { return palNum(valorDaTela("bool", v) ? 1 : 0); },
+    /* `pal` faz padStart(64) e para um bytes32 ja completo isso e identidade —
+       mas passa por `valorDaTela` antes, que e quem recusa 63 ou 65 digitos. */
+    bytes32: function (v) { return pal(valorDaTela("bytes32", v)); },
     uint8: function (v) { return palNum(valorDaTela("uint8", v)); },
     uint16: function (v) { return palNum(valorDaTela("uint16", v)); },
     uint24: function (v) { return palNum(valorDaTela("uint24", v)); },
@@ -193,6 +211,197 @@
     int24: function (v) { return palInt(valorDaTela("int24", v)); },
     int128: function (v) { return palInt(valorDaTela("int128", v)); },
     int256: function (v) { return palInt(valorDaTela("int256", v)); }
+  }
+
+  /** `abi.encode` de campos ESTATICOS, sem seletor na frente.
+      Existe porque `Commitment.proposalHash` e `Commitment.executionHash` sao
+      `keccak256(abi.encode(...))` de nove campos cada, e o cofre RECALCULA os
+      dois on-chain e recusa a execucao se nao baterem (`CommitmentMismatch`).
+      Sem isto, nao ha como o dono montar uma execucao.
+
+      So estaticos, e a recusa e explicita: com tipo dinamico o `abi.encode`
+      escreve deslocamento na cabeca e o conteudo na cauda, e uma funcao que
+      finge suportar isso produziria bytes plausiveis e errados. Quem precisa de
+      `bytes` passa o `keccak256` dele como `bytes32`, que e exatamente o que o
+      contrato faz com `routeCalldata`. */
+  function abiEncode(campos) {
+    if (!campos || typeof campos.length !== "number") {
+      throw new Error("abiEncode espera uma lista de {tipo, valor}");
+    }
+    var fora = "";
+    for (var i = 0; i < campos.length; i++) {
+      var c = campos[i];
+      var tipo = c && c.tipo;
+      if (tipo === "bytes" || tipo === "string" || /\[\]$/.test(String(tipo))) {
+        throw new Error("abiEncode nao monta tipo dinamico (" + tipo + "). Um dinamico exige " +
+          "cabeca-e-cauda, e devolver bytes plausiveis para ele seria pior que recusar. " +
+          "Para `bytes`, passe o keccak256 dele como bytes32 — e o que o contrato faz.");
+      }
+      var cod = CODIFICADOR_POR_TIPO[tipo];
+      if (!cod) throw new Error("abiEncode nao conhece o tipo `" + tipo + "`");
+      fora += cod(c.valor);
+    }
+    return "0x" + fora;
+  }
+
+  /* ── CABECA-E-CAUDA ─────────────────────────────────────────────────────────
+     `bytes` NAO entra em CODIFICADOR_POR_TIPO, e essa foi a primeira condicao do
+     julgamento. A tabela sustenta a correspondencia posicional de
+     conferirTelaContraCalldata — palavra i contra argumento i — e essa
+     correspondencia vale para os QUATRO arquivos que assinam. Um tipo dinamico
+     ali dentro quebraria a espinha da conferencia para todos, e tres deles nem
+     precisam de tipo dinamico.
+
+     Entao o dinamico mora aqui, separado, e quem o consome sabe que esta noutro
+     regime. O layout que o `solc` produz, medido em executeAsOwner:
+
+       cabeca 0..5    Intent, seis campos estaticos, INLINE
+       cabeca 6       deslocamento ate ExecutionParams   <- ponteiro
+       cauda  +0..11  os doze campos estaticos da tupla
+       cauda  +12     deslocamento ate routeCalldata     <- ponteiro RELATIVO a tupla
+       cauda  +13     bytes32 executionHash
+       cauda  +14     comprimento de routeCalldata
+       cauda  +15..   os bytes, em palavras de 32, com padding a direita
+
+     Duas camadas de ponteiro, e a segunda e relativa ao inicio da tupla e nao ao
+     inicio da calldata. Errar essa origem produz bytes plausiveis que a chain
+     recusa depois de a pessoa pagar o gas. */
+
+  /** Uma tupla com pelo menos um campo dinamico, montada por extenso.
+      Devolve `{ hex, mapa }` — `mapa` diz o que cada palavra E, e existe para a
+      conferencia poder DECODIFICAR em vez de comparar posicao com posicao. */
+  /* `address[]` entrou junto com `bytes` e na MESMA funcao, e nao na tabela de
+     tipos — o principio que o julgamento fixou vale para os dois: dinamico fica
+     fora da correspondencia posicional. O mecanismo e o mesmo, e mais simples:
+     a cauda leva o comprimento e depois um endereco por palavra, sem padding,
+     porque endereco ja ocupa a palavra inteira.
+     Ele existe porque a rota de um swap V2 e
+     `swapExactTokensForTokens(uint256,uint256,address[],address,uint256)`, e o
+     `path` e um array. */
+  /* `bruto-dinamico` e uma tupla JA CODIFICADA que entra como campo dinamico de
+     outra. Existe porque `executeAsOwner(Intent, ExecutionParams)` e aninhada:
+     `Intent` tem seis campos estaticos e vai INLINE na cabeca; `ExecutionParams`
+     contem um `bytes`, entao a tupla inteira vira dinamica e a cabeca leva um
+     ponteiro para ela.
+     Codificar por dentro e depois colar e mais seguro que uma funcao recursiva
+     que tenta adivinhar profundidade: o valor aqui ja foi montado e ja pode ter
+     sido conferido contra o solc por conta propria. */
+  function ehDinamico(tipo) {
+    return tipo === "bytes" || tipo === "address[]" || tipo === "bruto-dinamico";
+  }
+
+  function abiEncodeTuplaDinamica(campos) {
+    var estaticos = [], dinamicos = [];
+    for (var i = 0; i < campos.length; i++) {
+      var c = campos[i];
+      if (ehDinamico(c.tipo)) dinamicos.push(i); else estaticos.push(i);
+    }
+    if (!dinamicos.length) {
+      throw new Error("esta funcao e para tupla COM campo dinamico; sem nenhum, use abiEncode");
+    }
+    /* A cabeca tem uma palavra por campo: valor, se estatico; deslocamento, se
+       dinamico. A cauda comeca logo depois da cabeca. */
+    var cabeca = new Array(campos.length).fill(null);
+    var cauda = "";
+    var mapa = [];
+    var baseDaCauda = campos.length * 32;
+
+    for (var k = 0; k < campos.length; k++) {
+      var campo = campos[k];
+      if (!ehDinamico(campo.tipo)) {
+        var cod = CODIFICADOR_POR_TIPO[campo.tipo];
+        if (!cod) throw new Error("tupla: tipo sem codificador `" + campo.tipo + "`");
+        cabeca[k] = cod(campo.valor);
+        mapa.push({ palavra: k, papel: "valor", nome: campo.nome, tipo: campo.tipo });
+        continue;
+      }
+      /* O deslocamento e relativo ao INICIO DESTA TUPLA, e nao ao inicio da
+         calldata. Foi este o ponto que o julgamento mandou nao errar. */
+      cabeca[k] = palNum(baseDaCauda + cauda.length / 2);
+      mapa.push({ palavra: k, papel: "deslocamento", nome: campo.nome, tipo: campo.tipo,
+                  aponta: baseDaCauda + cauda.length / 2 });
+
+      if (campo.tipo === "bruto-dinamico") {
+        /* Ja vem codificado: entra na cauda como esta, SEM comprimento na
+           frente. Uma tupla nao leva comprimento — quem leva sao `bytes` e
+           array. Por um comprimento aqui e o erro que desloca tudo em 32 bytes
+           e produz uma calldata que a chain le como lixo. */
+        var pronto = String(campo.valor == null ? "" : campo.valor).replace(/^0x/, "").toLowerCase();
+        if (pronto.length % 64 !== 0) {
+          throw new Error("campo `" + campo.nome + "` (bruto-dinamico) nao fecha em palavras de 32 bytes");
+        }
+        cauda += pronto;
+        continue;
+      }
+
+      if (campo.tipo === "address[]") {
+        var lista = campo.valor || [];
+        if (typeof lista.length !== "number") {
+          throw new Error("campo `" + campo.nome + "` (address[]) nao recebeu uma lista");
+        }
+        cauda += palNum(lista.length);
+        for (var e = 0; e < lista.length; e++) {
+          /* Cada endereco passa pelo MESMO validador dos campos estaticos: um
+             `path` com endereco malformado nao vira calldata. */
+          cauda += CODIFICADOR_POR_TIPO.address(lista[e]);
+        }
+        continue;
+      }
+
+      var bruto = String(campo.valor == null ? "" : campo.valor).replace(/^0x/, "");
+      if (bruto.length % 2 !== 0) {
+        throw new Error("campo `" + campo.nome + "` tem numero impar de digitos hexadecimais");
+      }
+      if (!/^[0-9a-fA-F]*$/.test(bruto)) {
+        throw new Error("campo `" + campo.nome + "` nao e hexadecimal");
+      }
+      var nBytes = bruto.length / 2;
+      /* comprimento, e depois os bytes com padding a DIREITA ate fechar palavra */
+      cauda += palNum(nBytes);
+      var recheio = bruto.toLowerCase();
+      var sobra = recheio.length % 64;
+      if (sobra !== 0) recheio += new Array(64 - sobra + 1).join("0");
+      cauda += recheio;
+    }
+    return { hex: "0x" + cabeca.join("") + cauda, mapa: mapa };
+  }
+
+  /** O caminho INVERSO: lê a calldata de uma tupla e devolve os valores.
+      Existe porque conferir tupla dinamica comparando posicao com posicao seria
+      comparar um ponteiro contra um valor. Aqui o deslocamento e SEGUIDO. */
+  function lerTuplaDinamica(hex, tipos) {
+    var b = String(hex == null ? "" : hex).replace(/^0x/, "").toLowerCase();
+    if (b.length % 64 !== 0 && b.length < tipos.length * 64) {
+      throw new Error("a calldata da tupla nao fecha em palavras de 32 bytes");
+    }
+    var palavraEm = function (i) { return b.slice(i * 64, (i + 1) * 64); };
+    var fora = [];
+    for (var k = 0; k < tipos.length; k++) {
+      var t = tipos[k];
+      if (!ehDinamico(t)) { fora.push(valorDaCalldata(t, palavraEm(k))); continue; }
+      var desl = Number(BigInt("0x" + palavraEm(k)));
+      if (!(desl >= 0) || desl * 2 + 64 > b.length) {
+        throw new Error("o deslocamento do campo dinamico aponta para fora da calldata: " + desl);
+      }
+      var n = Number(BigInt("0x" + b.slice(desl * 2, desl * 2 + 64)));
+      var ini = desl * 2 + 64;
+      if (t === "address[]") {
+        /* Em array o comprimento conta ELEMENTOS, e nao bytes. Ler como bytes
+           daria uma lista com um sexto do tamanho e nenhum erro. */
+        if (ini + n * 64 > b.length) {
+          throw new Error("o array declara " + n + " elemento(s) e a calldata nao os tem");
+        }
+        var itens = [];
+        for (var j = 0; j < n; j++) itens.push(valorDaCalldata("address", b.slice(ini + j * 64, ini + (j + 1) * 64)));
+        fora.push(itens);
+        continue;
+      }
+      if (ini + n * 2 > b.length) {
+        throw new Error("o comprimento declarado (" + n + " bytes) passa do fim da calldata");
+      }
+      fora.push("0x" + b.slice(ini, ini + n * 2));
+    }
+    return fora;
   }
 
   function conferirTelaContraCalldata(p) {
@@ -363,7 +572,10 @@
     recusarAprovacaoInfinita: recusarAprovacaoInfinita,
     CODIFICADOR_POR_TIPO: CODIFICADOR_POR_TIPO,
     valorDaTela: valorDaTela, valorDaCalldata: valorDaCalldata,
-    larguraDe: larguraDe, limitesDe: limitesDe
+    larguraDe: larguraDe, limitesDe: limitesDe,
+    abiEncode: abiEncode,
+    abiEncodeTuplaDinamica: abiEncodeTuplaDinamica,
+    lerTuplaDinamica: lerTuplaDinamica
   };
   if (typeof module !== "undefined" && module.exports) { module.exports = MOTOR; }
   if (raiz) { raiz.TRIVIU_MOTOR = MOTOR; }

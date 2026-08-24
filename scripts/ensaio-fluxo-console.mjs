@@ -281,6 +281,9 @@ const ANEXO_DE_ENSAIO = `
   mudarLimites: typeof mudarLimites === "function" ? mudarLimites : null,
   simularCiclo: typeof simularCiclo === "function" ? simularCiclo : null,
   estadoDeZero: typeof estadoDeZero === "function" ? estadoDeZero : null,
+  montarExecucao: typeof montarExecucao === "function" ? montarExecucao : null,
+  executarCiclo: typeof executarCiclo === "function" ? executarCiclo : null,
+  montarRotaV2: typeof montarRotaV2 === "function" ? montarRotaV2 : null,
   emTempo: typeof emTempo === "function" ? emTempo : null,
   nomeDoRevert: typeof nomeDoRevert === "function" ? nomeDoRevert : null,
   O_QUE_FAZER: typeof O_QUE_FAZER !== "undefined" ? O_QUE_FAZER : null
@@ -301,8 +304,13 @@ function carregar(rel) {
   } catch (e) { return e; }
 }
 
-console.log("\n=== 1 · os quatro scripts carregam, na ordem da pagina ===");
-for (const rel of ["enderecos-v0.js", "js/abi-v0-console.js", "js/motor.js", "js/assinar-v0.js"]) {
+console.log("\n=== 1 · os scripts carregam, na ordem da pagina ===");
+/* `js/keccak.js` entra onde o index o poe: depois do motor, antes de quem
+   assina. Carregar fora de ordem aqui faria o ensaio provar uma pagina que nao
+   existe. E o proprio carregamento dele ja e uma prova: a autoconferencia
+   interna lanca se os vetores conhecidos nao baterem. */
+for (const rel of ["enderecos-v0.js", "js/abi-v0-console.js", "js/motor.js",
+                   "js/keccak.js", "js/assinar-v0.js"]) {
   const e = carregar(rel);
   conferir(!e, `${rel} carrega`, e ? e.message.slice(0, 110) : "");
 }
@@ -715,6 +723,50 @@ if (C && C.LER && C.S && C.S.triad && C.S.triad.vault) {
   }
 } else {
   falhas.push("secao 10: sem cofre em S.triad.vault");
+}
+
+console.log("\n=== 11 · executar: o commitment contra o cofre de verdade ===");
+/* A prova que importa nao e a calldata bater com o solc — isso o check-tupla ja
+   faz. E o COFRE aceitar o executionHash que este cliente calculou. Ele o
+   recalcula com o nonce e a epoca dele e recusa com CommitmentMismatch se um bit
+   divergir; entao um `eth_call` que NAO devolva CommitmentMismatch prova que os
+   dois lados concordam sobre o hash. */
+if (C && C.montarExecucao && C.S && C.S.triad && C.S.triad.vault) {
+  const cofre = C.S.triad.vault;
+  const USDC = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359";
+  conferir(typeof C.montarExecucao === "function", "montarExecucao() existe");
+  conferir(typeof C.executarCiclo === "function", "executarCiclo() existe");
+  conferir(!!C.TRIVIU_KECCAK || !!globalThis.window?.TRIVIU_KECCAK ||
+    typeof C.montarRotaV2 === "function", "montarRotaV2() existe");
+
+  /* Sem estrategia apontada, montarExecucao TEM de recusar antes de montar
+     qualquer coisa — e a recusa vem da simulacao, que e leitura. */
+  let erroM = null, x = null;
+  try { x = await C.montarExecucao({ cofre, base: USDC, prazoEmSegundos: 600 }); }
+  catch (e) { erroM = e; }
+  if (erroM) {
+    conferir(/simulacao recusou/.test(erroM.message),
+      "sem estrategia, montarExecucao recusa ANTES de montar",
+      erroM.message.slice(0, 100));
+    conferir(!/undefined|NaN|\[object/.test(erroM.message),
+      "a recusa e uma frase, e nao um vazamento de estado interno",
+      erroM.message.slice(0, 70));
+  } else if (x) {
+    /* Se a estrategia respondeu, entao ha o que conferir de verdade. */
+    conferir(/^0x[0-9a-f]{64}$/i.test(x.executionHash),
+      "o executionHash tem a forma de 32 bytes", x.executionHash.slice(0, 20) + "…");
+    conferir(x.routeCalldata.startsWith("0x38ed1739"),
+      "a rota chama swapExactTokensForTokens", `${(x.routeCalldata.length - 2) / 2} bytes`);
+    /* O destino do swap tem de ser o COFRE: o executor nao pode ficar com nada. */
+    const lido = C.TRIVIU_MOTOR
+      ? null
+      : null;
+    conferir(x.routeCalldata.toLowerCase().includes(cofre.slice(2).toLowerCase()),
+      "o destino do swap na rota e o COFRE, e nao o executor",
+      "Executor.run exige BalanceDeltaNonZero: o executor nao pode reter o resultado");
+  }
+} else {
+  falhas.push("secao 11: montarExecucao nao esta exposta, ou nao ha cofre");
 }
 
 /* ------------------------------------------------------------------ saida - */

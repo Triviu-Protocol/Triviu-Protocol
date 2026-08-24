@@ -58,6 +58,28 @@ const PORTOES = [
      nunca tinha sido feita, e por isso um console passou nos dez portoes
      mostrando 1,00 USDC de saldo que nao existia em chain nenhuma. */
   { nome: "check-dinheiro-pintado", rede: false },
+  /* O keccak do navegador e um PORTE de scripts/keccak.mjs, e porte que ninguem
+     confere e copia que diverge. Este portao confere contra tres coisas
+     diferentes: os 133 seletores que o solc escreveu, a fronteira dos blocos de
+     136 bytes (que os 133 nao cobrem — so UM deles passa de 136), e o modulo de
+     origem. */
+  { nome: "check-keccak", rede: false },
+  /* Os dois hashes do commitment, contra a biblioteca REAL compilada pelo solc.
+     Uma divergencia de um bit vira `CommitmentMismatch` na chain, e quem paga o
+     gas para descobrir e a pessoa. Sem `forge` no PATH ele PULA dizendo que
+     pulou — portao que se cala quando nao pode medir passa por engano. */
+  { nome: "check-commitment", rede: false },
+  /* A tupla com campo dinamico, contra o `abi.encode` do solc, nas fronteiras do
+     padding de 32 bytes (0, 1, 31, 32, 33). O deslocamento e relativo ao inicio
+     da TUPLA e nao da calldata, e errar essa origem produz bytes plausiveis que
+     a chain recusa depois de o gas ter sido pago. */
+  { nome: "check-tupla", rede: false },
+  /* As capacidades do console, contadas sem inflar. Nasceu de um numero errado:
+     a contagem dizia 16 e eram 15, porque `executarCiclo` foi casada duas vezes,
+     como "abrir" e como "fechar". Quem decide o lado e a estrategia e nao o
+     dono, entao a tela nao deveria ter dois botoes — e nao sao duas
+     capacidades. Duas descricoes provadas pelo mesmo trecho reprovam aqui. */
+  { nome: "check-capacidades", rede: false },
   { nome: "check-tesouraria-viva", rede: true },
   /* O item 1 do check-console-abi (byte-a-byte contra contracts/out) morreu em
      caad24b e delega para este. A delegacao so e honesta enquanto o delegado

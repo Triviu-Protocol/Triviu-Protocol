@@ -68,6 +68,11 @@
   var recusarAprovacaoInfinita = M.recusarAprovacaoInfinita;
   var conferirTelaContraCalldata = M.conferirTelaContraCalldata;
   var CODIFICADOR_POR_TIPO = M.CODIFICADOR_POR_TIPO;
+  /* Cabeca-e-cauda entra pelo mesmo caminho e pelo mesmo motivo. `lerTupla`
+     acompanha `abiEncodeTuplaDinamica` de proposito: quem monta dinamico tem de
+     poder LER de volta, senao a conferencia so tem um lado. */
+  var abiEncodeTuplaDinamica = M.abiEncodeTuplaDinamica;
+  var lerTuplaDinamica = M.lerTuplaDinamica;
 
   /* O contexto do passo em aberto. `seloAtual()` retrata ISTO, e o retrato e
      comparado por VALOR no clique: se quem chamou mudar a quantia entre montar e
@@ -86,7 +91,7 @@
      governanca abrir. Eu tinha restringido a tela a uma moeda so, lendo o
      registro e presumindo que ele governava o deposito. Nao governa. */
   var CTX = { conta: null, cofre: null, indice: 0, quantia: null, moeda: null,
-              alvo: null, ligado: null, limites: null };
+              alvo: null, ligado: null, limites: null, execucao: null };
   function moedaDoPasso() { return CTX.moeda || L.V0.baseCurrency; }
   var GERACAO = 0;
   var ENVIANDO = false;
@@ -289,6 +294,83 @@
       "de razao — e desligar um piso e uma decisao, nao um descuido.");
   }
 
+  /* ─── EXECUTAR ────────────────────────────────────────────────────────────
+     O unico ato desta tela com tipo dinamico, e por isso o unico que nao passa
+     pela correspondencia posicional. O julgamento fixou como ele se comporta:
+
+       · o cartao NUNCA exibe deslocamento. Ponteiro nao e informacao para quem
+         assina, e um numero verdadeiro sobre a calldata e sem sentido para quem
+         le e pior que um numero errado — ninguem o questiona.
+       · `routeCalldata` aparece pelo que SIGNIFICA: a funcao que ela chama e o
+         tamanho. Uma parede de 300 caracteres hexadecimais ninguem le, e o que
+         ninguem le nao foi conferido.
+
+     O DESTINO do swap e o COFRE. `Executor.run` exige que os saldos dele voltem
+     ao baseline, e `VaultExecution` mede o saldo do cofre antes e depois. */
+  function passoExecutar() {
+    var x = CTX.execucao;
+    if (!x) throw new Error("executar sem os parametros da execucao montados");
+
+    /* ExecutionParams, por dentro: 14 campos, um deles `bytes`. */
+    var params = abiEncodeTuplaDinamica([
+      { nome: "executor", tipo: "address", valor: x.executor },
+      { nome: "target", tipo: "address", valor: x.target },
+      { nome: "spender", tipo: "address", valor: x.spender },
+      { nome: "base", tipo: "address", valor: x.base },
+      { nome: "operatorMinOut", tipo: "uint256", valor: x.operatorMinOut },
+      { nome: "validUntil", tipo: "uint64", valor: x.validUntil },
+      { nome: "declaredConfigEpoch", tipo: "uint64", valor: x.configEpoch },
+      { nome: "declaredRefund", tipo: "uint256", valor: x.declaredRefund },
+      { nome: "declaredGas", tipo: "uint256", valor: x.declaredGas },
+      { nome: "declaredGasPrice", tipo: "uint256", valor: x.declaredGasPrice },
+      { nome: "declaredQuote", tipo: "uint256", valor: x.declaredQuote },
+      { nome: "candidateLotId", tipo: "uint256", valor: x.candidateLotId },
+      { nome: "routeCalldata", tipo: "bytes", valor: x.routeCalldata },
+      { nome: "executionHash", tipo: "bytes32", valor: x.executionHash }
+    ]);
+
+    /* E o topo: Intent inline, seguido do ponteiro para a tupla acima. */
+    var topo = abiEncodeTuplaDinamica([
+      { nome: "side", tipo: "uint8", valor: x.side },
+      { nome: "asset", tipo: "address", valor: x.asset },
+      { nome: "base", tipo: "address", valor: x.base },
+      { nome: "amountIn", tipo: "uint256", valor: x.amountIn },
+      { nome: "minOut", tipo: "uint256", valor: x.minOut },
+      { nome: "lotId", tipo: "uint256", valor: x.lotId },
+      { nome: "params", tipo: "bruto-dinamico", valor: params.hex }
+    ]);
+
+    var assinatura = "executeAsOwner((uint8,address,address,uint256,uint256,uint256)," +
+      "(address,address,address,address,uint256,uint64,uint64,uint256,uint256,uint256,uint256," +
+      "uint256,bytes,bytes32))";
+    var dados = sig("vault", assinatura) + topo.hex.slice(2);
+
+    /* O CARTAO. Cada linha e um valor que a pessoa pode conferir; nenhuma e um
+       ponteiro. `rota` diz o que a chamada FAZ e quanto ocupa — o hex inteiro
+       fica fora de proposito. */
+    var args = [
+      { nome: "lado", tipo: "uint8", valor: x.side },
+      { nome: "ativo", tipo: "address", valor: x.asset },
+      { nome: "moeda-base", tipo: "address", valor: x.base },
+      { nome: "entra", tipo: "uint256", valor: x.amountIn },
+      { nome: "sai no minimo", tipo: "uint256", valor: x.minOut },
+      { nome: "lote", tipo: "uint256", valor: x.lotId }
+    ];
+    var p = { papel: "vault", assinatura: assinatura, alvo: CTX.cofre, dados: dados,
+              valor: 0, args: args,
+              explicacao: "Abre ou fecha uma posicao NO SEU COFRE, com o seu gas. " +
+                "O swap sai por " + String(x.rotaNome || "um router") + " e o resultado volta " +
+                "para o cofre — nunca para o executor.",
+              /* Guardado para a conferencia, que decodifica em vez de comparar
+                 posicao: com dinamico a palavra i deixa de ser o argumento i. */
+              dinamico: { topo: topo.mapa, params: params.mapa,
+                          tiposDoTopo: ["uint8", "address", "address", "uint256", "uint256",
+                                        "uint256", "bruto-dinamico"],
+                          rota: x.routeCalldata, rotaNome: x.rotaNome,
+                          hash: x.executionHash } };
+    return p;
+  }
+
   function passoGuarda() {
     var args = [{ nome: "guard", tipo: "address", valor: CTX.alvo }];
     return montar("vault", CTX.ligado ? "addGuard(address)" : "removeGuard(address)",
@@ -325,8 +407,59 @@
      nao amarra nao vira transacao: nao ha objeto para congelar, nao ha cartao
      para desenhar, nao ha o que clicar. Recusar depois de existir tx, digital e
      cartao ja e tarde — a essa altura a pessoa ja leu algo. */
+  /* A conferencia de um passo DINAMICO nao pode comparar posicao com posicao: a
+     palavra i deixou de ser o argumento i, e onde o cartao mostra `entra` a
+     calldata pode ter um ponteiro. Entao ela DECODIFICA — segue o deslocamento,
+     le o comprimento, le o conteudo — e compara VALOR contra VALOR.
+     Um lado vem da tela, o outro vem da calldata, e a funcao que decodifica nao
+     e a que codificou. */
+  function conferirPassoDinamico(p) {
+    var corpo = String(p.dados).replace(/^0x/, "").slice(8);
+    var esperadoSel = String(sig(p.papel, p.assinatura)).replace(/^0x/, "").toLowerCase();
+    if (String(p.dados).replace(/^0x/, "").slice(0, 8).toLowerCase() !== esperadoSel) {
+      throw new Error(p.assinatura + ": o cartao imprime esta funcao e a calldata leva outra");
+    }
+    var lido = lerTuplaDinamica("0x" + corpo, p.dinamico.tiposDoTopo);
+    /* Os seis primeiros do topo sao o Intent, e sao exatamente os seis que o
+       cartao imprime. O setimo e a tupla, que nao aparece no cartao como valor. */
+    var ligadas = 0;
+    for (var i = 0; i < p.args.length; i++) {
+      var a = p.args[i];
+      var naTela = M.valorDaTela(a.tipo, a.valor);
+      var naCalldata = lido[i];
+      if (naTela !== naCalldata) {
+        throw new Error(p.assinatura + ": o cartao imprime `" + a.nome + " = " + a.valor +
+          "`, que vale " + naTela + ", e a calldata leva " + naCalldata);
+      }
+      ligadas += 1;
+    }
+    /* A rota nao e comparada por igualdade com o cartao — o cartao nao a mostra
+       inteira, de proposito. O que se confere e que a rota QUE VAI e a mesma que
+       foi montada, byte a byte. */
+    var params = lerTuplaDinamica("0x" + corpo.slice(Number(BigInt("0x" + corpo.slice(6 * 64, 7 * 64))) * 2),
+      ["address", "address", "address", "address", "uint256", "uint64", "uint64", "uint256",
+       "uint256", "uint256", "uint256", "uint256", "bytes", "bytes32"]);
+    if (String(params[12]).toLowerCase() !== String(p.dinamico.rota).toLowerCase()) {
+      throw new Error(p.assinatura + ": a rota que vai na calldata nao e a que foi montada");
+    }
+    if (String(params[13]).toLowerCase() !== String(p.dinamico.hash).toLowerCase()) {
+      throw new Error(p.assinatura + ": o executionHash da calldata nao e o que foi calculado");
+    }
+    return { ligadas: ligadas, palavras: corpo.length / 64, soltas: [],
+             dinamico: true, rotaConferida: true };
+  }
+
   function amarrarTx(p, dono) {
-    p.ligacao = conferirTelaContraCalldata(p);
+    /* Duas linhas e nao um ternario, e a razao nao e estetica: o guardiao da
+       regra 11 procura `p.ligacao = conferirTelaContraCalldata(p)` LITERAL para
+       provar que a ligacao roda antes de `p.tx` nascer. Um ternario cumpre o
+       objetivo e apaga a prova. Reescrever o guardiao para aceitar a forma nova
+       seria afrouxar uma trava para caber o meu codigo — o codigo cabe. */
+    if (p.dinamico) {
+      p.ligacao = conferirPassoDinamico(p);
+    } else {
+      p.ligacao = conferirTelaContraCalldata(p);
+    }
     p.tx = {
       chainId: Number(L.CHAIN_ID),
       to: p.alvo,
@@ -661,6 +794,7 @@
     ativo: passoAtivo,
     estrategia: passoEstrategia,
     limites: passoLimites,
+    executar: passoExecutar,
     moedaDoCofre: passoMoedaDoCofre,
     guarda: passoGuarda
   };
@@ -682,6 +816,7 @@
     CTX.alvo = o.alvo || null;
     CTX.ligado = o.ligado === undefined ? null : !!o.ligado;
     CTX.limites = o.limites || null;
+    CTX.execucao = o.execucao || null;
     if (!CTX.conta) throw new Error("sem conta conectada: nao ha para quem montar estes bytes");
     /* Recusa ANTES de construir a janela. Um `setLimits` sem os quatro campos
        montaria a calldata com `undefined`, e o codificador recusaria depois de a

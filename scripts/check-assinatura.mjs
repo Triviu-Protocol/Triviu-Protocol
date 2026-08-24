@@ -822,6 +822,14 @@ function regra11(rel) {
     ["uint256 aceitando -1, que nem e hexadecimal valido", "uint256", -1, true],
     ["uint256 aceitando string vazia como se fosse zero", "uint256", "", true],
     ["uint112 ausente da tabela (setLimits nao assina sem ele)", "uint112", "1000", false],
+    /* `bytes32` entrou para os dois hashes do commitment, e ele NAO e um numero:
+       um hash com zero a esquerda tem o zero como parte do valor. Abreviar seria
+       exibir um valor e mandar outro. */
+    ["bytes32 abreviado — um hash nao se abrevia", "bytes32", "0xab", true],
+    ["bytes32 com 31 bytes", "bytes32", "0x" + "ab".repeat(31), true],
+    ["bytes32 com 33 bytes", "bytes32", "0x" + "ab".repeat(33), true],
+    ["bytes32 sem o 0x", "bytes32", "ab".repeat(32), true],
+    ["bytes32 legitimo, com zeros a esquerda", "bytes32", "0x" + "00".repeat(31) + "ab", false],
   ];
   const furos = [];
   for (const [rotulo, tipo, v, deveRecusar] of codigos) {
