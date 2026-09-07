@@ -11,7 +11,33 @@
 # Isto NAO e reter conteudo, e a diferenca importa por causa do historico logo
 # abaixo. Nenhuma rota sai do ar: `/labs/`, `/brand/`, `/design-system/` e
 # `/console-v55/` passam a REDIRECIONAR (308, declarado em vercel.json) para o
-# nome canonico do modelo, que serve os MESMOS bytes — sha256 conferido.
+# nome canonico do modelo.
+#
+# CORRECAO 2026-09-07, e ela e minha. A linha acima terminava em "que serve os
+# MESMOS bytes — sha256 conferido". Era verdade quando escrevi e deixou de ser
+# uma hora depois, quando o fundador pediu miniatura no link: o bloco de cabeca
+# (titulo, favicon, og/twitter) entrou nos modelos SERVIDOS e nao nestas copias
+# retidas. O par SERVIDO / RETIDO, medido:
+#
+# @afirma site/TRIVIU-Labs-V5.html          sha256=e3359d0beb181d4a bytes=35062
+# @afirma site/labs/index.html              sha256=5eb161bd1d7528d1 bytes=34078
+# @afirma site/TRIVIU-Brandbook-V3.3.html   sha256=dead54b5f73f2fb0 bytes=31428
+# @afirma site/brand/index.html             sha256=173d43c547ce2010 bytes=30323
+# @afirma site/TRIVIU-Design-System-V4.2.html sha256=9aeea19aae1b9298 bytes=33709
+# @afirma site/design-system/index.html     sha256=ab5dbadf0fb90dba bytes=32580
+# @afirma site/console/index.html           sha256=c24eb17b7075473f bytes=200249
+# @afirma site/console-v55/index.html       sha256=771b657cef0907b8 bytes=199263
+#
+# A diferenca esta INTEIRA em uma linha dentro de <head>. O que vem depois de
+# `</head>` e byte a byte identico nos quatro pares (17.207 / 19.679 / 10.688 /
+# 140.542 b, conferidos). O modelo nao foi tocado; ganhou cabeca.
+#
+# Deixo a afirmacao errada aqui, corrigida e nao apagada — e ela e a razao das
+# linhas `@afirma` acima. Um comentario que afirma hash tem de ser CONFERIVEL, e
+# este nao era: envelheceu em uma hora e ninguem soube. Agora
+# scripts/check-afirmacoes.mjs le toda linha `@afirma` do repositorio e reprova
+# quando o arquivo, o hash ou o tamanho nao batem. A ressalva virou portao.
+# Quem pegou a mentira foi o /code-review, e o achado estava certo.
 #
 # O motivo e um defeito medido, nao arrumacao. Os modelos oficiais se cruzam com
 # href RELATIVO (`TRIVIU-Console-V5.4.3.html`). Servido da raiz, isso resolve.
@@ -21,8 +47,8 @@
 # modelo — e o modelo nao se toca. Servir de um lugar so, e redirecionar os
 # outros, conserta os 10 sem mudar um byte do que o fundador mandou.
 #
-# Os quatro arquivos continuam no disco e no git; o backup foi tirado antes
-# (sha256 5EB161BD, 173D43C5, AB5DBADF, 771B657C).
+# Os quatro arquivos continuam no disco e no git — sao eles proprios o backup,
+# e os `@afirma` acima provam que continuam la com os bytes que tinham.
 site/labs
 site/brand
 site/design-system
@@ -35,9 +61,22 @@ site/console-v55
 # o final no seu dominio so CONSOLE e substituir esse antigo. Tudo que era
 # antigo, vai sair do ar."*
 #
-# `/console/` passou a servir o MODELO byte a byte (sha256 771b657cef0907b8). O
-# console anterior — 101.347 b, oito scripts, o que criava cofre da V0 — sai.
-# Backup tirado antes de sobrescrever: sha256 42279ad978ba.
+# `/console/` passou a servir o MODELO. O console anterior — 101.347 b, oito
+# scripts, o que criava cofre da V0 — sai.
+#
+# Sobre "byte a byte", que era o que esta linha dizia: o corpo e byte a byte
+# (140.542 b identicos ao modelo, conferido). O arquivo inteiro nao e, porque
+# ganhou o bloco de cabeca das miniaturas — 199.263 b / 771b657c no modelo,
+# 200.249 b / c24eb17b no que `/console/` serve hoje.
+#
+# O QUE FOI SOBRESCRITO CONTINUA RECUPERAVEL, e o endereco e permanente:
+#
+# @afirma git:3423f7f59157d241518ead194b3cbb2869da55da sha256=42279ad978ba815b bytes=101347
+#
+# (`git show 3423f7f5 > console-antigo.html` devolve o arquivo.) A copia que eu
+# tinha tirado antes de sobrescrever vivia em AppData\Local\Temp — e backup em
+# diretorio temporario nao e backup. O blob acima esta no historico do proprio
+# repositorio, chega em qualquer clone, e o portao confere que ele ainda existe.
 #
 # O ARQUIVO-FONTE do modelo tambem sai, e nao e contradicao: ele agora vive em
 # `site/console/index.html`, e a rota antiga `/TRIVIU-Console-V5.4.3` vira

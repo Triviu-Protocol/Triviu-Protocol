@@ -53,6 +53,24 @@ const PORTOES = [
      delas era a unica tela de assinatura provada, e outra declarava na propria
      fonte que a carteira dela era simulada. */
   { nome: "check-paginas-orfas", rede: false },
+  /* Os dois abaixo nasceram do /code-review de 2026-09-07, e guardam a mesma
+     classe de defeito: DECLARACAO que envelhece sem quebrar nada.
+
+     O `.vercelignore` afirmava, em comentario, que `/console/` servia o modelo
+     "byte a byte (sha256 771b657c)". Era verdade quando foi escrito e deixou de
+     ser uma hora depois, quando a cabeca das miniaturas entrou. Ninguem soube:
+     comentario nao roda. Agora toda linha `@afirma` do repositorio e conferida
+     contra o byte — inclusive uma que aponta para BLOB do historico, que e o
+     endereco permanente do console anterior (backup em diretorio temporario nao
+     e backup). */
+  { nome: "check-afirmacoes", rede: false },
+  /* E o sitemap listava 14 URLs das quais ONZE ja nao eram servidas, enquanto
+     SETE rotas vivas — os tres modelos oficiais e o Whitepaper entre elas —
+     faltavam. Sitemap errado nao derruba pagina: so pede que indexem o que a
+     casa tirou do ar. Custa trafego, nao erro, e por isso nenhum portao via.
+     Junto vai canonical/og:url, que em /positions/ apontavam para a rota SEM
+     barra e pagavam um 308 em cada compartilhamento. */
+  { nome: "check-sitemap", rede: false },
   /* Os outros conferem o que a tela AFIRMA contra o que os contratos TEM.
      Este confere de onde vem o NUMERO que a tela escreve — e a pergunta que
      nunca tinha sido feita, e por isso um console passou nos dez portoes
