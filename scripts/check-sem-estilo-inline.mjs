@@ -64,9 +64,41 @@ const htmls = [];
   }
 })(SITE);
 
+/* Os `style=` que um script escreve e que a CSP da rota recusa. Cada entrada
+   e uma DIVIDA com data e dono, nao uma dispensa: o motivo sai impresso a cada
+   execucao, e qualquer ocorrencia NOVA reprova.
+
+   As quatro abaixo sao anteriores a esta onda — vieram de `77dfcab`, quando o
+   style-src perdeu 'unsafe-inline'. Consertar exige tocar o codigo do console
+   da V0, que e superfície de carteira e nao estava no escopo desta onda; a
+   tecnica ja existe na casa (classe `u-<sha256>` em /vendor/estilos-inline.css,
+   com !important, porque um `style=` vence qualquer regra normal de folha).
+   Sair desta lista e decisao do fundador. */
+const ESTILO_GERADO_DECLARADO = {
+  "site/js/console-v0.js": {
+    n: 49,
+    motivo:
+      "TUBARAO-07 · aberto 2026-09-07 pelo Tubarao-branco em N2, medindo /console/ NO AR: " +
+      "2 atributos no DOM, 1 morto (`padding:var(--s3)`, L4562). A varredura da fonte achou " +
+      "49 ocorrencias, 40 valores distintos, 12 com interpolacao. ONZE CARREGAM DADO, nao " +
+      "espaco: `width:${pct}%` de barra (L1877, L1891), `background:${esc(v.color)}` de " +
+      "estado (L1885, L3215, L4167, L4195), `animation-delay` (L3173, L3203, L3205). Morto, " +
+      "a barra nunca enche e o estado nunca ganha cor — a tela mostra menos do que sabe. " +
+      "Nasceu em 77dfcab, quando o style-src perdeu 'unsafe-inline'; aquele commit dizia " +
+      "'a render proves the pages did not move', e o render mediu o estado que carregou. " +
+      "Consertar exige tocar console-v0.js, superficie de carteira, fora do escopo da onda " +
+      "dos modelos — Lei #3 regra 4, ratificacao do Tubarao-Apex. A tecnica ja existe na " +
+      "casa: classe `u-<sha256>` em /vendor/estilos-inline.css com !important, e para os 12 " +
+      "interpolados, `element.style.setProperty` (CSSOM, que a CSP nao inspeciona).",
+  },
+};
+
 const falhas = [];
 const notas = [];
-let atributos = 0, blocosEstilo = 0, autorizados = 0, mortos = 0, telasQueAssinam = 0;
+let atributos = 0, blocosEstilo = 0, autorizados = 0, mortos = 0, telasQueAssinam = 0, gerados = 0;
+/* O mesmo .js e carregado por mais de uma pagina; contar duas vezes daria uma
+   divida inflada e uma base que nunca fecha. */
+const jaContado = new Set();
 
 for (const p of htmls) {
   const bruto = readFileSync(p, "utf8");
@@ -117,6 +149,52 @@ for (const p of htmls) {
       "(exige 'unsafe-hashes' em style-src).");
   }
 
+  /* REGRA 5 · O `style=` QUE O SCRIPT ESCREVE, e que nenhum portao via.
+     Achado pelo Tubarao-branco em N2, 2026-09-07, medindo `/console/` NO AR:
+     2 atributos, 1 morto. As regras 1-4 leem o ARQUIVO, e este nasce em
+     execucao — `pane.innerHTML = '<div style="padding:var(--s5)">'`. Sob
+     `style-src 'self'` ele nao pinta, e a tela perde o espacamento sem um
+     ruido, numa rota que assina.
+     Nasceu em `77dfcab fix(csp): style-src drops 'unsafe-inline', and a render
+     proves the pages did not move` — o render provou o estado que CARREGOU;
+     estes aparecem em estados que ele nao alcancou.
+     A regra e simples porque a CSP e simples: sem 'unsafe-inline' no style-src
+     da rota, TODO `style=` que um script dela escreve esta morto. Hash nao
+     salva: exigiria 'unsafe-hashes' mais o valor exato, e template com `${}`
+     nem valor exato tem. */
+  if (!temInline) {
+    for (const m of bruto.matchAll(/<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["']/gi)) {
+      const src = m[1];
+      if (/^(https?:)?\/\//.test(src)) continue;
+      const alvo = src.startsWith("/") ? join(SITE, src.slice(1)) : join(p, "..", src);
+      let js;
+      try { js = readFileSync(alvo, "utf8"); } catch { continue; }
+      const relJs = relative(RAIZ, alvo).split(sep).join("/");
+      if (jaContado.has(relJs)) continue;
+      jaContado.add(relJs);
+      const achados = [...js.matchAll(/<[a-z][^>]*\sstyle\s*=\s*(["'])([^"']*)\1/gi)];
+      const decl = ESTILO_GERADO_DECLARADO[relJs];
+      /* Linha de BASE, não lista de perdão: o número declarado é o que existia
+         no dia em que a dívida foi aberta. Uma ocorrência a mais reprova, e uma
+         a menos também — porque cair sem atualizar a base deixa a base mentindo
+         para cima e abre espaço para uma nova entrar sem ninguém ver. */
+      if (!decl && achados.length) {
+        mortos += achados.length;
+        falhas.push(`${relJs} escreve ${achados.length} atributo(s) style= que a CSP de ${rota} ` +
+          `(${rel}) RECUSA — criado em execucao nao pinta sob style-src 'self'. Exemplo: ` +
+          `style="${achados[0][2].slice(0, 50)}". Use uma classe de /vendor/estilos-inline.css, ` +
+          "ou declare em ESTILO_GERADO_DECLARADO com data e motivo.");
+      } else if (decl && achados.length !== decl.n) {
+        mortos += 1;
+        falhas.push(`${relJs}: a divida declarada era ${decl.n} atributo(s) style= gerado(s) e ` +
+          `agora sao ${achados.length}. ${achados.length > decl.n ? "Cresceu" : "Diminuiu"} — ` +
+          "atualize a base com a medicao nova, ou o número passa a mentir.");
+      } else if (decl) {
+        gerados += decl.n;
+      }
+    }
+  }
+
   /* REGRA 4 · A ORDEM DAS FOLHAS, e ela nao e cosmetica.
      `[hidden]{display:none!important}` tem especificidade (0,1,0) — a MESMA de
      `.u-xxxxxxxx{display:flex !important}`. Com !important dos dois lados e
@@ -143,6 +221,9 @@ console.log(`  atributos style= ......... ${atributos}`);
 console.log(`  autorizados pela CSP ..... ${autorizados}`);
 console.log(`  RECUSADOS pela CSP ....... ${mortos}`);
 console.log(`  telas que podem assinar .. ${telasQueAssinam} (nenhuma delas aceita unsafe-inline de estilo)`);
+console.log(`  style= escrito por script  ${gerados} em divida declarada · mudar o numero reprova`);
+for (const [arq, d] of Object.entries(ESTILO_GERADO_DECLARADO))
+  console.log(`    ${arq} · ${d.n}\n      ${d.motivo.replace(/(.{95}\S*)\s/g, "$1\n      ")}`);
 for (const n of notas) console.log("  " + n);
 
 if (falhas.length) {
