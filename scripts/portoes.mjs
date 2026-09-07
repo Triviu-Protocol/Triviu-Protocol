@@ -71,6 +71,18 @@ const PORTOES = [
      Junto vai canonical/og:url, que em /positions/ apontavam para a rota SEM
      barra e pagavam um 308 em cada compartilhamento. */
   { nome: "check-sitemap", rede: false },
+  /* E a mesma classe uma terceira vez, agora no repositorio PUBLICO. O README
+     tem uma tabela chamada "Don't trust: verify" — a tabela cuja funcao literal
+     e mandar a pessoa conferir — e ela apontava para `/simulate`, aposentada
+     horas antes. O glossario do whitepaper mandava para la outras quatro vezes.
+     Ninguem batia em 404: caiam todos na home, sem simulador e sem explicacao.
+
+     Este portao segue cada URL do proprio dominio escrita em `.md` ate o fim da
+     cadeia, modelando a normalizacao de barra da borda e a substituicao de `$1`
+     — as duas coisas que a primeira versao dele errou, acusando pelo motivo
+     errado. Link que so chega por redirecionamento passa, mas sai impresso com
+     o salto ao lado. */
+  { nome: "check-links-doc", rede: false },
   /* Os outros conferem o que a tela AFIRMA contra o que os contratos TEM.
      Este confere de onde vem o NUMERO que a tela escreve — e a pergunta que
      nunca tinha sido feita, e por isso um console passou nos dez portoes

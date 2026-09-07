@@ -43,13 +43,40 @@ number, in [whitepaper §5](whitepaper/05-success-fee.md).
 
 | What | Where |
 |---|---|
-| Whitepaper (canonical, EN) | [`whitepaper/`](whitepaper/README.md) — 16 sections |
-| Interactive simulator (any chain, no wallet) | [triviu.vercel.app/simulate](https://triviu.vercel.app/simulate) — Polygon · Arbitrum · BSC |
+| Whitepaper (canonical, EN) | [`whitepaper/`](whitepaper/README.md) — 16 sections · on the air at [triviu.vercel.app/whitepaper/](https://triviu.vercel.app/whitepaper/) |
 | Decisions and their costs (trilemma) | [`decisions/`](decisions/) — numbered Tradeoff Records (0001 Polygon · 0004 Arbitrum · 0005 BSC · 0006 Solana deferred) |
 | Contracts (v0, unaudited) | [`contracts/src/`](contracts/src/) |
 | Verified addresses (each chain's explorer) | _to be published at first mainnet deployment, per chain_ |
 | Public dashboard, failures included | [`dashboard/`](dashboard/) — _Dune, to be published_ |
 | Brand and communication rules | [`brand/`](brand/) |
+
+## What is on the air
+
+Eight routes, each answering HTTP 200 and each reachable by clicking from the
+root — verified route by route on every deploy by
+[`scripts/check-sitemap.mjs`](scripts/check-sitemap.mjs) and
+[`scripts/check-paginas-orfas.mjs`](scripts/check-paginas-orfas.mjs).
+
+| Route | What it is |
+|---|---|
+| [`/`](https://triviu.vercel.app/) | Institutional site |
+| [`/console/`](https://triviu.vercel.app/console/) | The console — **there is only one** |
+| [`/cofre/`](https://triviu.vercel.app/cofre/) | The vault. The one screen that signs, and the only one |
+| [`/positions/`](https://triviu.vercel.app/positions/) | Your LP positions, read from the chain — **read-only**, it never signs |
+| [`/whitepaper/`](https://triviu.vercel.app/whitepaper/) | Whitepaper V1 |
+| [`/TRIVIU-Labs-V5/`](https://triviu.vercel.app/TRIVIU-Labs-V5/) | Labs |
+| [`/TRIVIU-Brandbook-V3.3`](https://triviu.vercel.app/TRIVIU-Brandbook-V3.3) | Brandbook |
+| [`/TRIVIU-Design-System-V4.2`](https://triviu.vercel.app/TRIVIU-Design-System-V4.2) | Design System |
+
+**What left the air on 2026-09-07, and why it is written here:** `/lp/` and
+`/calldata/` operated the earlier line — `TriviuLPVault`, a fee of 30% of
+profit — while the product is the V0 at 0.5% of traded volume, and both titled
+themselves "Console". Two live signing surfaces with fee bases that do not
+compare. They now redirect to `/console/`. The vault behind them was measured
+empty at block 93,390,566 (0 POL, 0 USDC, 0 USDC.e, 0 WETH, 0 WMATIC) and it
+never custodies a position, so nothing was stranded. `/learn/*`, `/safety/`,
+`/simulate/`, `/chains/` and `/dashboard/` were retired earlier the same day and
+redirect to `/`; no URL 404s.
 
 ## Repository map
 
@@ -61,8 +88,14 @@ decisions/   Tradeoff Records: every decision states what it gains and what it c
 docs/        Runbooks, audits, and the historical litepaper (superseded)
 brand/       Mark, design tokens and manual (CC BY 4.0)
 dashboard/   Public dashboard queries (failures included, always)
-site/        Landing page (EN canonical, ES toggle) — single HTML file
+site/        Everything served at triviu.vercel.app — 8 routes (see above)
+scripts/     The gates. `node scripts/portoes.mjs` runs the same 14 the CI runs
 ```
+
+The gate list lives in [`scripts/portoes.mjs`](scripts/portoes.mjs) and nowhere
+else, on purpose: two lists diverge on the first day someone adds a gate and
+forgets the other one. The same command runs on a contributor's machine and in
+the pipeline.
 
 ## Getting started — always through the fork
 
