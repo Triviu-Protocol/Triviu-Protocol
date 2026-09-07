@@ -26,6 +26,16 @@
   <url><loc>https://triviu.vercel.app/whitepaper/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://triviu.vercel.app/cofre/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://triviu.vercel.app/positions/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://triviu.vercel.app/calldata/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://triviu.vercel.app/lp/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
 </urlset>
+<!--
+  /calldata/ e /lp/ sairam desta lista em 2026-09-07, no mesmo movimento em que
+  sairam do ar. As duas assinavam contra a linha ANTIGA (TriviuLPVault
+  0xC52BaD28, taxa de 30% do lucro) enquanto o produto e a V0 (0,5% do
+  negociado), e as duas se apresentavam como "Console" no proprio <title> —
+  contra a direcao permanente do fundador de que o console e UM so.
+
+  Pedir indexacao de rota que redireciona nao e neutro: e o site pedindo, por
+  escrito, que indexem o que ele proprio tirou do ar. Foi assim que este arquivo
+  ficou com 11 de 14 URLs mortas antes desta onda.
+-->
+

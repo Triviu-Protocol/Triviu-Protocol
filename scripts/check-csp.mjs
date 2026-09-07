@@ -35,13 +35,18 @@ import {
 const ROOT = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const SITE = join(ROOT, "site");
 
-/* three.js r128, conferido em 2026-08-12 contra o SRI que o proprio cdnjs
-   publica em api.cdnjs.com/libraries/three.js/r128?fields=sri — endpoint
-   diferente do que serviu o arquivo, entao e conferencia cruzada e nao eco. */
-const VENDOR = {
-  "vendor/three-r128.min.js":
-    "dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0qQ==",
-};
+/* O pino do three.js r128 saiu em 2026-09-07 junto com o arquivo. Ele foi
+   conferido em 2026-08-12 contra o SRI que o proprio cdnjs publica, e a
+   conferencia cruzada continua sendo a forma certa — o que mudou e que NINGUEM
+   carrega mais o arquivo: medido, zero paginas publicadas o referenciam, e ele
+   entrou no `.vercelignore` com os 603.445 b dele.
+
+   Manter o pino seria conferir byte que nao chega a producao — a mesma classe
+   que esta onda fechou em quatro outros portoes no mesmo dia. O mapa fica, vazio
+   e com esta nota, para que a proxima copia vendorizada nasca com pino em vez de
+   nascer sem lugar para um. */
+const VENDOR = {};
+
 
 const falhas = [];
 const notas = [];

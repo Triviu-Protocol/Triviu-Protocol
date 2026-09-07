@@ -93,8 +93,9 @@ site/TRIVIU-Console-V5.4.3.html
 site/TRIVIU-Site-V6.html
 #
 # Os .js que SO o console antigo carregava. Medido em inventario_antigo.py:
-# `abi-v0-console.js` e `motor.js` FICAM, porque /cofre/ e /calldata/ tambem os
-# usam; estes cinco nao sao usados por mais ninguem. `home.js` ja nao era usado
+# `abi-v0-console.js` e `motor.js` FICAM, porque /cofre/ ainda os usa (o
+# /calldata/, que tambem os usava, saiu do ar mais abaixo nesta mesma onda);
+# estes cinco nao sao usados por mais ninguem. `home.js` ja nao era usado
 # por pagina nenhuma antes desta onda.
 #
 # Sai com eles a divida TUBARAO-07: os 49 `style=` que console-v0.js escrevia em
@@ -112,9 +113,10 @@ site/js/home.js
 # Direcao do fundador: *"tira as seis do ar - so preserva o Whitepaper"*. Das
 # seis que eu tinha listado, `/whitepaper/` FICA. Saem 11 paginas em 5 grupos.
 #
-# Nao viram 404: cada rota passa a REDIRECIONAR para `/`. Onze links das paginas
-# que ficam — `/calldata/`, `/lp/` e `/positions/` — apontavam para elas, e sem
-# o redirecionamento os onze morreriam. Quem tiver a URL guardada tambem chega a
+# Nao viram 404: cada rota passa a REDIRECIONAR para `/`. Onze links apontavam
+# para elas de `/calldata/`, `/lp/` e `/positions/` — os itens de nav foram
+# removidos depois, e `/calldata/` e `/lp/` sairam do ar nesta mesma onda; o
+# redirecionamento fica para quem tiver a URL guardada. Quem tiver a URL guardada tambem chega a
 # algum lugar em vez de bater no vazio.
 site/learn
 site/dashboard
@@ -175,3 +177,63 @@ site/vendor/estilos/simulate.css
 #
 # Retencao levantada no mesmo dia. Quem guarda o lugar dela agora e
 # scripts/check-paginas-orfas.mjs, que exige que /v0/ esteja na navegacao.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# 2026-09-07 · A LINHA ANTIGA SAI DO AR, E O CONSOLE VOLTA A SER UM SO.
+#
+# Direcao permanente do fundador, literal: *"O nosso console e so UM"* e *"Tudo
+# que era antigo, vai sair do ar."*
+#
+# Medido, e e a medicao que decide — nao a arrumacao:
+#
+#   /lp/        65 botoes (btnDep, btnWd, btnLqAdd, btnLqRem), console-lp.js com
+#               5x eth_sendTransaction, <title> "Triviu · Console"
+#   /calldata/  console.js com 4x eth_sendTransaction, <title> "Triviu · Console
+#               · read, encode, freeze, sign"
+#
+# As duas ASSINAM contra a linha ANTIGA — TriviuLPVault 0xC52BaD28, taxa de 30%
+# DO LUCRO — enquanto o produto e a V0, 0,5% DO NEGOCIADO. Duas linhas vivas com
+# bases de taxa que nem se comparam, e as duas se chamando "Console".
+#
+# A UNICA objecao possivel era dinheiro preso. Medida contra a chain no bloco
+# 93.390.566: o TriviuLPVault guarda 0 POL, 0 USDC, 0 USDC.e, 0 WETH, 0 WMATIC.
+# O proprio livro de enderecos diz por escrito que o usuario detem a posicao e
+# que o contrato nunca e `ownerOf`. Nao ha custodia. Ninguem fica sem porta.
+#
+# `/positions/` FICA: positions.js tem ZERO eth_sendTransaction — ela so LE, e
+# tirar uma leitura nao protege ninguem; custa uma ferramenta a quem detem a
+# propria posicao.
+#
+# Nao viram 404: as duas passam a REDIRECIONAR para /console/.
+site/lp
+site/calldata
+#
+# os .js e .css que SO essas duas carregavam
+site/js/abi-console.js
+site/js/console-app.js
+site/js/console-lp.js
+site/js/console.js
+site/vendor/estilos/calldata.css
+site/vendor/estilos/console.css
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# 2026-09-07 · DIVIDA HERDADA: 10 assets que JA nao tinham dono antes desta onda.
+#
+# Medido A/B com a mesma regua: com e sem a retencao acima. Estes dez ja estavam
+# orfaos — sao o build do site ANTERIOR (V7 / V5.5 / V6 / whitepaper-v1), que os
+# modelos oficiais substituiram, mais um stub de API da /safety/ aposentada.
+#
+# `three-r128.min.js` merece a linha propria: 603.445 b que NINGUEM carrega, e o
+# check-csp.mjs pinava o SRI dele em toda execucao. Portao que confere byte que
+# nao publica julga o que nao existe no ar — a mesma classe de defeito que esta
+# onda fechou em outros quatro portoes. O pino sai junto com o arquivo.
+site/api/safety.js
+site/assets/triviu-console-v5.5.css
+site/assets/triviu-console-v5.5.js
+site/assets/triviu-design-system-brandbook-v1.css
+site/assets/triviu-labs-v6.css
+site/assets/triviu-labs-v6.js
+site/assets/triviu-site-v7.css
+site/assets/triviu-site-v7.js
+site/assets/triviu-whitepaper-v1.css
+site/vendor/three-r128.min.js

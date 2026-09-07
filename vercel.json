@@ -169,6 +169,16 @@
   ],
   "redirects": [
     {
+      "source": "/lp/",
+      "destination": "/console/",
+      "permanent": true
+    },
+    {
+      "source": "/calldata/",
+      "destination": "/console/",
+      "permanent": true
+    },
+    {
       "source": "/learn/",
       "destination": "/",
       "permanent": true

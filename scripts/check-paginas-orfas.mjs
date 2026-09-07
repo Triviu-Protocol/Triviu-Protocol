@@ -86,31 +86,32 @@ const JA_ERA_ANTES =
    nomeavam. Nao ficam declaradas como divida porque divida paga que continua
    impressa mente tanto quanto divida escondida. */
 const EXCECOES = {
-  /* `/console/` saiu desta lista em 2026-09-07: a home passou a liga-lo, e
-     agora ele serve o modelo oficial. As 11 rotas de `/learn/*`, `/safety/`,
-     `/dashboard/`, `/chains/` e `/simulate/` sairam por outro motivo — foram
-     RETIRADAS do ar por decisao do fundador, e pagina que nao publica nao e
-     orfa: e ausente. Declaracao de divida para pagina retirada envelhece
-     sozinha, e o portao passa a reprovar quem a deixar aqui. */
-  "/cofre/": SEM_NAVEGACAO_NO_MODELO + " ERA alcancavel pelo index anterior · TOCA CARTEIRA.",
-  "/whitepaper/": SEM_NAVEGACAO_NO_MODELO + " ERA alcancavel pelo index anterior · preservado " +
-    "por decisao do fundador quando o resto do conteudo anterior saiu do ar.",
-  "/calldata/": JA_ERA_ANTES,
-  "/positions/": JA_ERA_ANTES,
+  /* VAZIA desde 2026-09-07, e a lista vazia e o registro de que a divida foi
+     PAGA, nao de que ela foi esquecida.
 
-  /* Era `/console/` ate 2026-08-24. A rota trocou de dono por decisao do
-     fundador — *"e para por nesse endereco"* — e o console da V0 assumiu
-     `/console/`, que e onde quem usa espera encontrar o produto. A linha ANTIGA
-     mudou-se para `/lp/`, que e o nome do que ela faz: provisao de liquidez.
-     A divida e a mesma e continua declarada aqui, so que na rota nova. */
-  "/lp/":
-    "opera a LINHA ANTIGA (TriviuLPVault 0xC52BaD28…, taxa de 30% DO LUCRO). Linka-la " +
-    "da mesma navegacao que leva ao console da V0 (0,5% DO NEGOCIADO) poe as duas linhas " +
-    "lado a lado sem dizer que sao linhas diferentes, e as bases das duas taxas nao se " +
-    "comparam. Medido em 2026-08-24 antes da troca de rota: o TriviuLPVault guarda ZERO " +
-    "USDC, ZERO WETH e ZERO POL, entao tirar a tela do endereco principal nao deixou " +
-    "ninguem sem interface para dinheiro vivo. Sair desta lista exige decidir o que a " +
-    "navegacao diz sobre as duas — decisao de produto, nao de pipeline.",
+     As cinco que viviam aqui sairam por dois motivos diferentes, e a diferenca
+     importa:
+
+       /cofre/       o rodape do Site passou a linka-lo. O fundador autorizou
+       /whitepaper/  escrever dentro do modelo dele ("escolhe e segue"), e as
+                     duas portas entraram na coluna SURFACES, no mesmo `style=`
+                     dos links que ele proprio escreveu.
+       /positions/   o /cofre/ passou a linka-lo. Ele nao e modelo do fundador,
+                     entao ganhou barra de irmas sem custo de autorizacao — e
+                     deixou de ser beco sem saida no mesmo movimento (tinha
+                     ZERO <a> na pagina inteira).
+
+       /calldata/    SAIRAM DO AR. As duas assinavam contra a linha ANTIGA
+       /lp/          (TriviuLPVault 0xC52BaD28, 30% DO LUCRO) enquanto o produto
+                     e a V0 (0,5% DO NEGOCIADO), e as duas se chamavam
+                     "Console" no proprio <title>. Pagina que nao publica nao e
+                     orfa: e ausente.
+
+     Nenhuma saiu por reclassificacao (L5 do LACRE). Tres sairam porque alguem
+     agora CHEGA nelas; duas porque deixaram de existir no ar.
+
+     Acrescentar entrada aqui volta a ser caro de proposito: o motivo sai
+     impresso em toda execucao, e excecao que ninguem le vira permissao. */
 };
 
 const falhas = [];
