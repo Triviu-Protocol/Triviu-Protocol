@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title translate="no">TRIVIU — Design System &amp; Brandbook V1</title>
+<meta name="description" content="The single reference for TRIVIU: origin, Triangle Motion, trilemma, measured colour, typography, tokens, components and governance.">
+<meta name="theme-color" content="#FAFAF7">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 296'%3E%3Cpath d='M75 168 L160 20 L245 168 L104 168' fill='none' stroke='%2316181D' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='75' cy='168' r='16' fill='none' stroke='%2316181D' stroke-width='12'/%3E%3Ccircle cx='160' cy='20' r='16' fill='%2316181D'/%3E%3Ccircle cx='245' cy='168' r='16' fill='%2316181D'/%3E%3Ccircle cx='104' cy='168' r='9' fill='%2316181D'/%3E%3C/svg%3E">
+
+<link rel="stylesheet" href="../assets/triviu-design-system-brandbook-v1.css">
+</head>
+<body data-triviu-surface="paper">
+<a class="skip" href="#foundations">Skip to content</a>
+
+<nav class="top" aria-label="Manual contents">
+  <div class="wrap">
+    <a class="triviu-lockup" href="#top">
+      <svg class="triviu-mark triviu-mark--sm" viewBox="0 0 320 296" aria-hidden="true">
+        <path class="triviu-mark__base" d="M75 168 L160 20 L245 168 L104 168"/>
+        <path class="triviu-mark__flow" d="M75 168 L160 20 L245 168 L104 168"/>
+        <circle class="triviu-mark__node triviu-mark__origin" cx="75" cy="168" r="9"/>
+        <circle class="triviu-mark__node" cx="160" cy="20" r="9"/>
+        <circle class="triviu-mark__node" cx="245" cy="168" r="9"/>
+        <circle class="triviu-mark__node" cx="104" cy="168" r="4.5"/>
+      </svg>
+      <span translate="no">TRIVIU</span>
+    </a>
+    <div class="navlinks">
+      <a href="#foundations">01 Foundations</a>
+      <a href="#origin">02 Origin</a>
+      <a href="#mark">03 Mark</a>
+      <a href="#motion">04 Motion</a>
+      <a href="#trilemma">05 Trilemma</a>
+      <a href="#colour">06 Colour</a>
+      <a href="#type">07 Type</a>
+      <a href="#tokens">08 Tokens</a>
+      <a href="#components">09 Components</a>
+      <a href="#taxonomy">10 Taxonomy</a>
+      <a href="#governance">11 Governance</a>
+      <a href="#changelog">12 Changelog</a>
+    </div>
+  </div>
+</nav>
+
+<header class="cover" id="top">
+  <div class="wrap">
+    <svg class="triviu-mark triviu-mark--xl" viewBox="0 0 320 296" role="img"
+         aria-label="TRIVIU — Triangle Motion">
+      <path class="triviu-mark__base" d="M75 168 L160 20 L245 168 L104 168"/>
+      <path class="triviu-mark__flow" d="M75 168 L160 20 L245 168 L104 168"/>
+      <circle class="triviu-mark__node triviu-mark__origin" cx="75" cy="168" r="9"/>
+      <circle class="triviu-mark__node" cx="160" cy="20" r="9"/>
+      <circle class="triviu-mark__node" cx="245" cy="168" r="9"/>
+      <circle class="triviu-mark__node" cx="104" cy="168" r="4.5"/>
+    </svg>
+    <div>
+      <p class="num">Brandbook &amp; Design System · one document</p>
+      <h1 translate="no">TRIVIU</h1>
+      <p class="tagline">Connected strategies. Autonomy in motion.</p>
+      <p class="meta">version <b>V1</b> · September 2026<br>
+        merged from <b>Brandbook v3.3</b> and <b>Design System v4.2</b><br>
+        canonical mark: <b>Triangle Motion</b> · continuous 5,200 ms cycle<br>
+        every colour pair on this page was <b>measured, not asserted</b></p>
+      <nav class="eco" aria-label="TRIVIU ecosystem">
+        <a href="/">Site</a>
+        <a href="/console-v55/">Console</a>
+        <a href="/labs/">Labs</a>
+        <a href="/whitepaper/">Whitepaper</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="foundations">
+  <p class="num">§ 01</p>
+  <h2>Foundations</h2>
+  <p class="lead">TRIVIU makes technical systems legible, testable and verifiable. The identity
+    does not sell a result: it shows the route, the limits, the costs and the choices.</p>
+  <p class="quote">“The brand never arrives finished. It is becoming.”</p>
+  <h3>Principles of expression</h3>
+  <div class="grid g3">
+    <div class="card"><b>Non-custody</b><p>Communicate that the user keeps control, and name the
+      limits plainly.</p></div>
+    <div class="card"><b>Open source</b><p>Contracts, parameters, blocks and tests are first-class
+      elements, not footnotes.</p></div>
+    <div class="card"><b>No promises</b><p>Never use guarantees, projections or captures of
+      supposed gains.</p></div>
+  </div>
+  <h3>Editorial rule</h3>
+  <p class="lead">Education comes before execution. Any interface touching capital, risk or a
+    transaction must show context, source and the nature of the data. Synthetic content carries
+    a seal — and the seal never hides, not even when the screen is narrow.</p>
+</section>
+
+<section id="origin">
+  <p class="num">§ 02</p>
+  <h2>Origin of the name</h2>
+  <p class="lead"><b translate="no">TRIVIU</b> comes from <em>trivium</em>, Latin for the meeting of
+    three ways. The name also carries the classical route of learning that turns information into
+    understanding.</p>
+  <div class="grid g3 s-66d8b591">
+    <div class="card"><span class="chip chip--action">The trivium</span>
+      <p class="s-df928149">Three roads that meet. The brand organises complexity without
+        erasing the relations inside it.</p></div>
+    <div class="card"><span class="chip chip--risk">The route</span>
+      <p class="s-df928149">A path built while advancing. The stroke is not a finished
+        outline: it reveals the route.</p></div>
+    <div class="card"><span class="chip chip--cost">The trilemma</span>
+      <p class="s-df928149">Three forces that must be made explicit. No technical decision is
+        presented as magic or free of trade-off.</p></div>
+  </div>
+</section>
+
+<section id="mark">
+  <p class="num">§ 03</p>
+  <h2>The mark — Triangle Motion</h2>
+  <p class="lead">The logo is a triangle that draws itself: three vertices, an open lower corner,
+    a dotted trace and a final point that arrives last. The motion is not decoration; it is the
+    idea of continuous construction.</p>
+
+  <div class="grid g2 s-66d8b591">
+    <div class="plate">
+      <svg class="triviu-mark triviu-mark--lg" viewBox="0 0 320 296" role="img"
+           aria-label="Triangle Motion on a light surface">
+        <path class="triviu-mark__base" d="M75 168 L160 20 L245 168 L104 168"/>
+        <path class="triviu-mark__flow" d="M75 168 L160 20 L245 168 L104 168"/>
+        <circle class="triviu-mark__node triviu-mark__origin" cx="75" cy="168" r="9"/>
+        <circle class="triviu-mark__node" cx="160" cy="20" r="9"/>
+        <circle class="triviu-mark__node" cx="245" cy="168" r="9"/>
+        <circle class="triviu-mark__node" cx="104" cy="168" r="4.5"/>
+      </svg>
+      <p class="caption">Primary · ink on paper · 16.98:1</p>
+    </div>
+    <div class="plate dark">
+      <svg class="triviu-mark triviu-mark--lg" viewBox="0 0 320 296" role="img"
+           aria-label="Triangle Motion on a dark surface">
+        <path class="triviu-mark__base" d="M75 168 L160 20 L245 168 L104 168"/>
+        <path class="triviu-mark__flow" d="M75 168 L160 20 L245 168 L104 168"/>
+        <circle class="triviu-mark__node triviu-mark__origin" cx="75" cy="168" r="9"/>
+        <circle class="triviu-mark__node" cx="160" cy="20" r="9"/>
+        <circle class="triviu-mark__node" cx="245" cy="168" r="9"/>
+        <circle class="triviu-mark__node" cx="104" cy="168" r="4.5"/>
+      </svg>
+      <p class="caption">Dark application · same geometry, same timing · 15.55:1</p>
+    </div>
+  </div>
+
+  <h3>Canonical geometry</h3>
+  <code>viewBox: 0 0 320 296
+path:    M75 168 L160 20 L245 168 L104 168
+nodes:   (75,168) r9 open ring · (160,20) r9 · (245,168) r9 · (104,168) r4.5
+base:    stroke-dasharray 2 11 · opacity .24
+flow:    stroke-dasharray 68 390 · stroke-dashoffset −458 · 5,200 ms linear</code>
+
+  <div class="notice">
+    <b>The fourth node is not optional</b>
+    <p>The open corner and the final point at (104,168) are identity, not detail. The institutional
+      site shipped the mark <b>seven times and dropped the fourth node in all seven</b>; the Console
+      carried it in nine of nine. A mark without its last point is a different mark.</p>
+  </div>
+
+  <h3>What never changes</h3>
+  <div class="grid g2">
+    <div class="do"><b>✓ Preserve</b><p>Original proportion, the open corner, the dotted trace, the
+      final point, and the direction of drawing: origin → apex → right → opening.</p></div>
+    <div class="dont"><b>✕ Avoid</b><p>Closing the base, turning it into a solid triangle, applying
+      a gradient, distorting it, rotating it, or baking a background colour into the SVG.</p></div>
+  </div>
+</section>
+
+<section id="motion">
+  <p class="num">§ 04</p>
+  <h2>Motion — flow, never a jump</h2>
+  <p class="lead">The triangle moves by the act of being drawn. One cycle is 5,200 ms, linear and
+    repeatable. The trace travels the path without bouncing, spinning or switching between
+    prepared shapes, and the nodes stay still: they do not pop.</p>
+
+  <div class="plate s-eee3f850">
+    <svg class="triviu-mark s-457da6bf" viewBox="0 0 320 296"
+         role="img" aria-label="One continuous 5,200 ms cycle">
+      <path class="triviu-mark__base" d="M75 168 L160 20 L245 168 L104 168"/>
+      <path class="triviu-mark__flow" d="M75 168 L160 20 L245 168 L104 168"/>
+      <circle class="triviu-mark__node triviu-mark__origin" cx="75" cy="168" r="9"/>
+      <circle class="triviu-mark__node" cx="160" cy="20" r="9"/>
+      <circle class="triviu-mark__node" cx="245" cy="168" r="9"/>
+      <circle class="triviu-mark__node" cx="104" cy="168" r="4.5"/>
+    </svg>
+    <p class="caption">The dotted base is the route that exists before it is walked. The travelling
+      segment is the walking.</p>
+  </div>
+
+  <h3>Permitted states</h3>
+  <div class="scroller">
+    <table>
+      <caption class="sr-only">The three permitted states of the mark</caption>
+      <thead><tr><th scope="col">State</th><th scope="col">Use</th><th scope="col">Behaviour</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">motion</td><td>Hero, onboarding, reveal, sizes ≥ 48 px</td>
+          <td>Draws continuously in 5,200 ms and restarts without a flash.</td></tr>
+        <tr><td class="mono">static</td><td>Signature sizes (&lt; 48 px), documents, print, fallback</td>
+          <td>Complete path, all four nodes, no animation.</td></tr>
+        <tr><td class="mono">reduced</td><td><span class="mono">prefers-reduced-motion</span></td>
+          <td>Complete composition, no animation. <b>The dash array must be reset</b> — see below.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="notice">
+    <b>Stopping the animation is not enough</b>
+    <p>Setting <span class="mono">animation:none</span> while leaving
+      <span class="mono">stroke-dasharray:68 390</span> in place leaves the mark as a loose
+      68-unit fragment, not a triangle. The reduced-motion rule must also reset the dash array.
+      The institutional site shipped exactly this defect.</p>
+  </div>
+
+  <h3>Optical compensation — ratified</h3>
+  <p class="lead">The canonical stroke width of 5 measures 5/320 of the width. In a 32 px signature
+    that is <b>0.5 px</b> — sub-pixel. That is the mechanical reason hand-redrawn marks appeared
+    with stroke 14 in the brand kit and 18 in a thumbnail: someone was fixing thinness in the
+    wrong place.</p>
+  <p class="lead">Below 48 px the mark uses the <span class="mono">static</span> state with a
+    heavier optical stroke. <b>Proportion, path, node positions and drawing direction stay
+    untouched</b>; only the stroke weight changes, and only at the declared sizes.</p>
+  <div class="scroller">
+    <table>
+      <caption class="sr-only">Declared size tiers</caption>
+      <thead><tr><th scope="col">Tier</th><th scope="col">Size</th><th scope="col">Flow stroke</th>
+        <th scope="col">Base stroke</th><th scope="col">Animated</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">--xs</td><td>24 px</td><td>14</td><td>11</td><td>no · static</td></tr>
+        <tr><td class="mono">--sm</td><td>34 px</td><td>11</td><td>9</td><td>no · static</td></tr>
+        <tr><td class="mono">--md</td><td>48 px</td><td>8</td><td>6</td><td>yes</td></tr>
+        <tr><td class="mono">--lg</td><td>120 px</td><td>5 (canon)</td><td>4 (canon)</td><td>yes</td></tr>
+        <tr><td class="mono">--xl</td><td>fluid</td><td>5 (canon)</td><td>4 (canon)</td><td>yes</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="trilemma">
+  <p class="num">§ 05</p>
+  <h2>The points of the triangle</h2>
+  <p class="lead">Each point is one axis of the distributed-systems trilemma. The triangle stays
+    open because the brand promises no perfect solution: it shows that every architecture picks
+    priorities and declares its limits.</p>
+  <div class="grid g3 s-66d8b591">
+    <div class="card"><span class="chip chip--action">Top point</span>
+      <b class="s-df928149">Decentralisation</b>
+      <p>Distribute control, reduce dependence on a single authority, and make the rules verifiable
+        by more than one party.</p>
+      <p class="mono muted s-1eab7ad4">D · distributed control</p></div>
+    <div class="card"><span class="chip chip--risk">Right point</span>
+      <b class="s-df928149">Security</b>
+      <p>Preserve integrity, ownership, validation, and the ability to stop or reject an unsafe
+        operation.</p>
+      <p class="mono muted s-1eab7ad4">S · verifiable integrity</p></div>
+    <div class="card"><span class="chip chip--cost">Open point</span>
+      <b class="s-df928149">Scalability</b>
+      <p>Allow growth in use and volume without hiding cost, latency, congestion or lost
+        guarantees.</p>
+      <p class="mono muted s-1eab7ad4">E · capacity with limits</p></div>
+  </div>
+  <p class="quote">The open point is not a drawing flaw. It is the visual reminder that the third
+    axis has to be chosen, measured and documented.</p>
+</section>
+
+<section id="colour">
+  <p class="num">§ 06</p>
+  <h2>Colour with function</h2>
+  <p class="lead">The primary mark is monochrome so that motion and geometry are recognised before
+    colour. The palette organises information, state and context — six functional colours, not
+    twelve.</p>
+
+  <h3>Primitives</h3>
+  <div class="scroller">
+    <table>
+      <caption class="sr-only">Brand primitives and their function</caption>
+      <thead><tr><th scope="col">Token</th><th scope="col">Name</th><th scope="col">Function</th>
+        <th scope="col">Hex</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">--triviu-paper</td><td>Paper</td><td>Editorial background</td>
+          <td class="mono"><i class="sw s-840862dd"></i>#FAFAF7</td></tr>
+        <tr><td class="mono">--triviu-ink</td><td>Ink</td><td>Text and monochrome mark</td>
+          <td class="mono"><i class="sw s-ca5930b4"></i>#16181D</td></tr>
+        <tr><td class="mono">--triviu-graphite</td><td>Graphite</td><td>Secondary text on paper</td>
+          <td class="mono"><i class="sw s-2adf3219"></i>#52575D</td></tr>
+        <tr><td class="mono">--triviu-ultramar</td><td>Ultramar</td><td>Action, links, decentralisation</td>
+          <td class="mono"><i class="sw s-7175c175"></i>#2743C7</td></tr>
+        <tr><td class="mono">--triviu-lacre</td><td>Lacre</td><td>Security, error, verification</td>
+          <td class="mono"><i class="sw s-1c441993"></i>#C13327</td></tr>
+        <tr><td class="mono">--triviu-acafrao</td><td>Açafrão</td><td>Cost, gas, risk, performance</td>
+          <td class="mono"><i class="sw s-bcab7570"></i>#E8B23A</td></tr>
+        <tr><td class="mono">--triviu-violeta</td><td>Violeta</td><td>Identified AI and Polygon references</td>
+          <td class="mono"><i class="sw s-a0b89b03"></i>#7B3FE4</td></tr>
+        <tr><td class="mono">--triviu-ok</td><td>Verified</td><td>Verified state</td>
+          <td class="mono"><i class="sw s-7e6c341f"></i>#237A3B</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted s-9f481027"><b>Verified is ratified here.</b>
+    Brandbook v3.3 defined no colour for a verified state. Design System v4.2 already carried
+    <span class="mono">#237A3B</span>. It was promoted, not invented, and this document ratifies it
+    as a primitive.</p>
+
+  <h3>The dark tier — why it exists</h3>
+  <p class="lead">The Brandbook palette was designed for paper. Measured against the product's dark
+    surface it fails: Ultramar, the brand's action colour, reads at <b>2.36:1</b> on
+    <span class="mono">#131519</span>. That is the mechanical reason three surfaces drifted to an
+    off-brand acid green, which measures 15.17:1 there. The fix was not to force the primitive
+    back — it was to add the tier that was missing.</p>
+  <div class="scroller">
+    <table>
+      <caption class="sr-only">Dark tier derived by measurement</caption>
+      <thead><tr><th scope="col">Role</th><th scope="col">Primitive</th>
+        <th scope="col">Primitive on panel-2</th><th scope="col">Derived</th>
+        <th scope="col">Derived on panel-2</th></tr></thead>
+      <tbody>
+        <tr><td>Action</td><td class="mono">#2743C7</td><td class="fail">1.91:1</td>
+          <td class="mono"><i class="sw s-cd1e6c1a"></i>#6E8AFF</td>
+          <td class="pass">4.74:1</td></tr>
+        <tr><td>Risk</td><td class="mono">#C13327</td><td class="fail">2.65:1</td>
+          <td class="mono"><i class="sw s-2a3adb92"></i>#F26458</td>
+          <td class="pass">4.74:1</td></tr>
+        <tr><td>AI</td><td class="mono">#7B3FE4</td><td class="fail">2.58:1</td>
+          <td class="mono"><i class="sw s-f454bc46"></i>#AF73FF</td>
+          <td class="pass">4.73:1</td></tr>
+        <tr><td>Verified</td><td class="mono">#237A3B</td><td class="fail">2.76:1</td>
+          <td class="mono"><i class="sw s-bfe9c118"></i>#4CA364</td>
+          <td class="pass">4.74:1</td></tr>
+        <tr><td>Cost</td><td class="mono">#E8B23A</td><td class="pass">7.64:1</td>
+          <td class="mono">— no variant needed</td><td class="pass">7.64:1</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted s-9f481027">The tier is derived against
+    <span class="mono">panel-2 #242830</span>, the <em>lightest</em> surface text can land on.
+    Aiming at the base background instead passed there and failed on panels by a tenth.</p>
+
+  <h3>Two roles, two tokens</h3>
+  <p class="lead">The dark variant is <b>text on a dark surface</b>. Used as a <b>fill</b>, white on
+    it reads 3.11:1 and fails. Filled surfaces use the primitive, where white reads 7.74:1.
+    <span class="mono">--action</span> and <span class="mono">--action-fill</span> are different
+    tokens because they answer different questions.</p>
+
+  <h3>Focus ring</h3>
+  <p class="lead">No single shade of Ultramar clears 3:1 on paper <em>and</em> on the dark surface:
+    the primitive gives 7.40 on paper and 2.36 on night; the dark variant inverts it. The focus
+    ring is therefore surface-dependent, like every other semantic role.</p>
+
+  <h3>Compliance, measured</h3>
+  <p class="lead">Fourteen text pairs, measured in the browser rather than asserted:
+    <b class="pass">14/14 pass WCAG 2.2 AA</b> (4.5:1) · <b class="fail">5/14 reach AAA</b> (7:1).
+    AA is the declared target for this system. Reaching AAA would require changing brand
+    primitives — Lacre and Violeta are 1.5–1.9 short — and that is a brand decision, not a
+    styling one. It is recorded here as open, not quietly skipped.</p>
+</section>
+
+<section id="type">
+  <p class="num">§ 07</p>
+  <h2>Typography</h2>
+  <p class="lead">Three families, three jobs: human narrative, legible interface, precise data.</p>
+  <div class="type-sample">
+    <p class="label">Display · Libre Caslon Text</p>
+    <p class="display-sample">The brand is under construction.</p>
+    <p class="muted">Covers, editorial headings and positioning.</p>
+  </div>
+  <div class="type-sample">
+    <p class="label">Interface · Public Sans</p>
+    <p class="body-sample">The interface reports state, limit and next step without manufacturing
+      urgency.</p>
+    <p class="muted">Body, navigation, buttons and forms.</p>
+  </div>
+  <div class="type-sample">
+    <p class="label">Data · IBM Plex Mono</p>
+    <p class="mono-sample">triangle.draw · 5200ms · 0x8f3C…a91D · synthetic data</p>
+    <p class="muted">Hashes, blocks, parameters, metrics and logs.</p>
+  </div>
+  <div class="notice">
+    <b>Fonts are self-hosted, never fetched</b>
+    <p>Until the three families are bundled as local <span class="mono">woff2</span>, each stack
+      falls back to a system face with close metrics. No surface may pull a font from an external
+      host: a brand that stops rendering when a CDN blinks is not a brand asset.</p>
+  </div>
+</section>
+
+<section id="tokens">
+  <p class="num">§ 08</p>
+  <h2>Tokens</h2>
+  <p class="lead">The token set is the shared source every surface derives from. It is
+    <b>generated by measurement, not typed</b>: the build computes the dark tier, checks 34 declared
+    pairs and refuses to emit a file if any pair falls below its minimum.</p>
+  <div class="grid g2 s-eee3f850">
+    <div class="card"><b>Spacing</b><p class="mono">4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96 px</p></div>
+    <div class="card"><b>Radii</b><p class="mono">4 · 8 · 12 · 999 px</p></div>
+    <div class="card"><b>Motion</b><p class="mono">mark 5,200 ms · fast 180 ms · normal 300 ms<br>
+      ease cubic-bezier(.22,.8,.25,1)</p></div>
+    <div class="card"><b>Touch</b><p class="mono">minimum target 44 × 44 px</p></div>
+  </div>
+  <h3>Consuming the system</h3>
+  <code>&lt;link rel="stylesheet" href="tokens/triviu.tokens.css"&gt;
+&lt;link rel="stylesheet" href="brand/triviu-mark.css"&gt;
+
+&lt;body data-triviu-surface="night"&gt;   &lt;!-- or "paper" --&gt;</code>
+  <p class="muted s-9f481027">A component never reads a primitive
+    directly; it reads a role — <span class="mono">--text</span>, <span class="mono">--action</span>,
+    <span class="mono">--risk</span>. Changing surface then costs nothing at the component level.
+    <span class="mono">triviu.tokens.json</span> ships the same values in W3C Design Tokens format.</p>
+</section>
+
+<section id="components">
+  <p class="num">§ 09</p>
+  <h2>Components</h2>
+  <p class="lead">Components are not decoration: each one states a condition, a piece of evidence
+    or a permitted action.</p>
+
+  <h3>Seals</h3>
+  <div class="row">
+    <span class="chip chip--verified"><i></i>Verified</span>
+    <span class="chip chip--action"><i></i>Stated</span>
+    <span class="chip chip--cost"><i></i>Pending</span>
+    <span class="chip chip--risk"><i></i>Spec</span>
+    <span class="chip chip--ai"><i></i>AI-generated</span>
+    <span class="chip"><i></i>Illustrative</span>
+  </div>
+  <p class="muted s-9f481027"><b>Stated</b> — in the reference
+    material. <b>Pending</b> — awaiting evidence. <b>Spec</b> — confirm against the contract.
+    <b>Illustrative</b> — synthetic, never a record of anything that happened. A number without a
+    seal is a claim.</p>
+
+  <h3>Actions</h3>
+  <div class="row">
+    <button class="btn btn--primary" type="button">Primary action</button>
+    <button class="btn" type="button">Secondary action</button>
+    <button class="btn btn--risk" type="button">Destructive action</button>
+    <button class="btn" type="button">Focus me with Tab</button>
+  </div>
+
+  <h3>Risk notice</h3>
+  <div class="notice">
+    <b>Risk notice</b>
+    <p>Gas, slippage, liquidity and competition change results. Without sufficient evidence the
+      interface keeps the state unknown rather than guessing in the user's favour.</p>
+  </div>
+
+  <h3>Metric with context</h3>
+  <div class="metric">
+    <p class="label">Revert rate · 24 h</p>
+    <p class="value">3.42%</p>
+    <p class="muted s-859811c5">
+      <span class="chip">Illustrative</span><br>
+      Example figure for this component. Not measured, not from production.</p>
+  </div>
+  <p class="muted s-9f481027">Brandbook v3.3 printed this same
+    metric with a source line and <b>no seal</b>. A component demo that looks like a measurement is
+    a measurement to whoever reads it quickly.</p>
+
+  <h3>Component model</h3>
+  <div class="grid g3">
+    <div class="card"><b>Route card</b><p>Discovery → quote → fence. Shows the stage without
+      implying it is executable.</p></div>
+    <div class="card"><b>Evidence table</b><p>Claim → source → status. Every number carries an
+      origin, a moment and a verification state.</p></div>
+    <div class="card"><b>Trade-off record</b><p>Gain · hold · cost. Chain decisions are documented
+      with what was paid for them.</p></div>
+  </div>
+</section>
+
+<section id="taxonomy">
+  <p class="num">§ 10</p>
+  <h2>Taxonomy</h2>
+  <p class="lead">The same visual construction takes different jobs by context. The taxonomy
+    separates what is identity, state, evidence and risk.</p>
+  <div class="scroller">
+    <table>
+      <caption class="sr-only">System taxonomy</caption>
+      <thead><tr><th scope="col">Layer</th><th scope="col">What it represents</th>
+        <th scope="col">Where it applies</th></tr></thead>
+      <tbody>
+        <tr><td><b>Brand</b></td><td>Triangle Motion</td>
+          <td>Logo, signature, onboarding, documentation.</td></tr>
+        <tr><td><b>Axes</b></td><td>Decentralisation · Security · Scalability</td>
+          <td>Trilemma, trade-offs, diagrams, architecture decisions.</td></tr>
+        <tr><td><b>States</b></td><td>Motion · Static · Reduced</td>
+          <td>Continuous flow, documentary fallback, accessibility.</td></tr>
+        <tr><td><b>Evidence</b></td><td>Contract · block · test · source</td>
+          <td>Data, metrics, audit and technical claims.</td></tr>
+        <tr><td><b>Risk</b></td><td>Cost · gas · slippage · revert</td>
+          <td>Any screen touching execution or capital.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted s-9f481027">Colour, type and motion signal the
+    layer; they do not replace evidence. The mark identifies the system — it never validates a
+    result on its own.</p>
+</section>
+
+<section id="governance">
+  <p class="num">§ 11</p>
+  <h2>Governance</h2>
+  <p class="lead">Consistency protects the experience. The system guards the brand against
+    promises, custody confusion and falsely positive states.</p>
+  <div class="grid g2 s-eee3f850">
+    <div class="do"><b>Do</b><p>Show the limit. Give status, source, timestamp, unit, cost and the
+      reason for a rejection.</p></div>
+    <div class="dont"><b>Do not</b><p>Dress uncertainty in green. Never invent a metric, never write
+      “audited” without an audit, and never call a console a vault when there is no custody.</p></div>
+  </div>
+
+  <h3>Surfaces</h3>
+  <div class="scroller">
+    <table>
+      <caption class="sr-only">How each surface applies the system</caption>
+      <thead><tr><th scope="col">Surface</th><th scope="col">Priority</th><th scope="col">Rule</th></tr></thead>
+      <tbody>
+        <tr><td>Site</td><td>Explain</td><td>Mark in motion at the entrance; paper surface, Ink and
+          Ultramar for editorial content and calls to action.</td></tr>
+        <tr><td>Console</td><td>Operate legibly</td><td>Night surface, dark tier, data in mono.
+          Environment always on screen, state always named.</td></tr>
+        <tr><td>Labs</td><td>Explore</td><td>Controlled motion; colour varies by context, geometry
+          never does.</td></tr>
+        <tr><td>This document</td><td>Reference</td><td>Geometry, timing, states, tokens, components
+          and incorrect uses, with the measurements attached.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Publication checklist</h3>
+  <ul class="grid s-00bf4c1e">
+    <li class="card">Does the mark keep its open lower corner <b>and its fourth node</b>?</li>
+    <li class="card">Are the dotted trace and the points in the original proportion?</li>
+    <li class="card">Does motion honour 5,200 ms, and does reduced motion <b>reset the dash
+      array</b> rather than only stopping the animation?</li>
+    <li class="card">Is every synthetic or AI-generated figure sealed — including on a 320 px
+      screen?</li>
+    <li class="card">Is there a risk notice wherever the screen touches execution?</li>
+    <li class="card">Does every technical claim carry a contract, block, PR or verifiable source?</li>
+    <li class="card">Does the brand name carry <span class="mono">translate="no"</span>? Automatic
+      translation renders <b translate="no">TRIVIU</b> as “TRIVIA”.</li>
+  </ul>
+</section>
+
+<section id="changelog">
+  <p class="num">§ 12</p>
+  <h2>Changelog</h2>
+  <p class="lead">Append-only. What was revoked stays recorded, because revoking without recording
+    erases the reasoning.</p>
+  <div class="scroller">
+    <table>
+      <caption class="sr-only">Version history</caption>
+      <thead><tr><th scope="col">Version</th><th scope="col">Date</th><th scope="col">Change</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">V1</td><td class="mono">Sep 2026</td>
+          <td><b>Brandbook v3.3 and Design System v4.2 merged into one document</b>, in English, the
+            native language. Colour measured rather than asserted: the dark tier added, the
+            <span class="mono">#6E8AFF</span> family derived, <span class="mono">#237A3B</span>
+            ratified as the verified primitive, optical compensation ratified for sizes under 48 px.
+            Fixed: the fourth node missing on the site, reduced motion leaving the mark a fragment,
+            the unsealed metric, and a manual whose own navigation reached only 8 of its 12 sections.</td></tr>
+        <tr><td class="mono">v4.2</td><td class="mono">Sep 2026</td>
+          <td>Design System, separate document. Carried a third motion implementation
+            (<span class="mono">trace 1 12</span> + sweep) that diverged from the other three
+            surfaces, and a script block that threw on its first line and never ran.</td></tr>
+        <tr><td class="mono">v3.3</td><td class="mono">Sep 2026</td>
+          <td>Brandbook. Slogan, trilemma and taxonomy fixed. Carried
+            <span class="mono">data-triviu-brand="3.1"</span> in a v3.3 file and a changelog that
+            stopped at v3.1.</td></tr>
+        <tr><td class="mono">v3.1</td><td class="mono">Sep 2026</td>
+          <td>Direction correction: the self-drawing triangle from the prototypes becomes the
+            official logo, replacing the cycle symbol.</td></tr>
+        <tr><td class="mono">v3.0</td><td class="mono">Sep 2026</td>
+          <td>Tokens, fonts, dark surfaces, migration aliases and editorial rules.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Open, not hidden</h3>
+  <div class="grid g2">
+    <div class="card"><b>AAA contrast</b><p>5 of 14 pairs reach 7:1. Raising the rest changes brand
+      primitives (Lacre and Violeta are 1.5–1.9 short) and needs ratification, not a styling
+      decision.</p></div>
+    <div class="card"><b>Self-hosted fonts</b><p>Libre Caslon Text, Public Sans and IBM Plex Mono
+      are declared but not yet bundled as local <span class="mono">woff2</span>. Until then the
+      stacks fall back to system faces.</p></div>
+  </div>
+</section>
+
+</main>
+
+<footer class="wrap">
+  <div class="foot">
+    <a class="triviu-lockup" href="#top">
+      <svg class="triviu-mark triviu-mark--sm" viewBox="0 0 320 296" aria-hidden="true">
+        <path class="triviu-mark__base" d="M75 168 L160 20 L245 168 L104 168"/>
+        <path class="triviu-mark__flow" d="M75 168 L160 20 L245 168 L104 168"/>
+        <circle class="triviu-mark__node triviu-mark__origin" cx="75" cy="168" r="9"/>
+        <circle class="triviu-mark__node" cx="160" cy="20" r="9"/>
+        <circle class="triviu-mark__node" cx="245" cy="168" r="9"/>
+        <circle class="triviu-mark__node" cx="104" cy="168" r="4.5"/>
+      </svg>
+      <span translate="no">TRIVIU</span>
+    </a>
+    <p class="colophon">Design System &amp; Brandbook V1 · September 2026<br>
+      Libre Caslon Text · Public Sans · IBM Plex Mono<br>
+      Open source. Verifiable maths. No promises.</p>
+  </div>
+</footer>
+</body>
+</html>

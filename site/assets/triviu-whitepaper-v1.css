@@ -1,0 +1,90 @@
+:root{
+  --triviu-paper:#FAFAF7;--triviu-mist:#E9EBE7;--triviu-hairline:#DDE0DA;
+  --triviu-graphite:#52575D;--triviu-ink:#16181D;
+  --triviu-ultramar:#2743C7;--triviu-lacre:#C13327;--triviu-acafrao:#E8B23A;
+  --triviu-acafrao-text:#8A6414;--triviu-acafrao-fundo:#FBF3DF;
+  --triviu-violeta:#7B3FE4;--triviu-ok:#237A3B;
+  --triviu-night:#131519;--triviu-ink-dark:#ECEDEA;--triviu-control-light:#8F928C;
+  --triviu-font-display:'Libre Caslon Text',Georgia,'Times New Roman',serif;
+  --triviu-font-body:'Public Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --triviu-font-mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Consolas,monospace;
+  --triviu-r1:4px;--triviu-r2:8px;--triviu-r3:12px;--triviu-pill:999px;
+  --triviu-mark-cycle:5200ms;
+  --bg:var(--triviu-paper);--surface:#fff;--text:var(--triviu-ink);
+  --text-muted:var(--triviu-graphite);--action:var(--triviu-ultramar);
+  --hairline:var(--triviu-hairline);--mark-ink:var(--triviu-ink);
+}
+.triviu-mark{display:block;width:var(--triviu-mark-size,34px);height:auto;overflow:visible;
+  flex:none;color:var(--mark-ink)}
+.triviu-mark__base,.triviu-mark__flow{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+.triviu-mark__base{stroke-width:9;stroke-dasharray:2 11;opacity:0}
+.triviu-mark__flow{stroke-width:11;stroke-dasharray:none}
+.triviu-mark__node{fill:currentColor}
+.triviu-mark__origin{fill:none;stroke:currentColor;stroke-width:9}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:80px;-webkit-text-size-adjust:100%}
+html,body{max-width:100%;overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--triviu-font-body);
+  font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,p,ul,ol,table{margin:0}
+ul,ol{padding-left:1.25rem}
+li{margin-bottom:6px}
+a{color:var(--action);text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--action);outline-offset:3px;border-radius:var(--triviu-r1)}
+.skip{position:fixed;z-index:200;top:8px;left:8px;transform:translateY(-200%);padding:14px 18px;
+  border-radius:var(--triviu-r3);background:var(--triviu-ultramar);color:#fff;font-weight:700;
+  text-decoration:none}
+.skip:focus{transform:none}
+.wrap{width:min(880px,calc(100% - 40px));margin-inline:auto}
+nav.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 94%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--hairline)}
+nav.top .wrap{display:flex;align-items:center;gap:16px;min-height:60px;flex-wrap:wrap}
+nav.top a.home{display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:4px;
+  color:var(--text);text-decoration:none;font-weight:700;letter-spacing:.08em;font-size:.8125rem}
+nav.top .back{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+nav.top .back a{min-height:44px;display:inline-flex;align-items:center;padding:6px 11px;
+  border-radius:var(--triviu-r2);color:var(--text-muted);text-decoration:none;
+  font-family:var(--triviu-font-mono);font-size:.6875rem;font-weight:700}
+nav.top .back a:hover{background:var(--triviu-mist);color:var(--text)}
+header.cover{padding:clamp(40px,7vw,72px) 0 clamp(28px,4vw,44px);border-bottom:2px solid var(--text)}
+h1{font-family:var(--triviu-font-display);font-weight:700;font-size:clamp(2.4rem,6vw,4rem);
+  line-height:1.04;letter-spacing:-.03em}
+.sub{font-family:var(--triviu-font-display);font-style:italic;font-size:1.2rem;margin-top:12px}
+section{padding:clamp(28px,4vw,44px) 0;border-bottom:1px solid var(--hairline);scroll-margin-top:70px}
+section:last-of-type{border-bottom:0}
+.num{font-family:var(--triviu-font-mono);font-size:.6875rem;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--triviu-lacre)}
+h2{font-family:var(--triviu-font-display);font-weight:700;font-size:clamp(1.6rem,3.6vw,2.4rem);
+  line-height:1.1;letter-spacing:-.02em;margin:6px 0 14px}
+h3{font-size:.875rem;font-family:var(--triviu-font-mono);text-transform:uppercase;
+  letter-spacing:.1em;color:var(--text-muted);margin:26px 0 10px}
+p{margin-bottom:14px;max-width:74ch}
+p:last-child{margin-bottom:0}
+code.i{font-family:var(--triviu-font-mono);font-size:.875em;background:var(--triviu-mist);
+  padding:1px 5px;border-radius:var(--triviu-r1);overflow-wrap:anywhere}
+pre.code{margin:16px 0;padding:16px 18px;background:var(--triviu-night);color:var(--triviu-ink-dark);
+  border-radius:var(--triviu-r3);overflow-x:auto;max-width:100%}
+pre.code code{font-family:var(--triviu-font-mono);font-size:.8125rem;line-height:1.75}
+.scroller{max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;
+  border:1px solid var(--hairline);border-radius:var(--triviu-r3);margin:16px 0}
+table{width:100%;min-width:520px;border-collapse:collapse;font-size:.875rem;background:var(--surface)}
+th{padding:11px 13px;text-align:left;border-bottom:2px solid var(--text);color:var(--text-muted);
+  font-family:var(--triviu-font-mono);font-size:.6875rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase}
+td{padding:11px 13px;border-bottom:1px solid var(--hairline);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.seal{display:inline-flex;align-items:center;min-height:24px;padding:2px 8px;border-radius:var(--triviu-pill);
+  border:1px solid currentColor;font-family:var(--triviu-font-mono);font-size:.625rem;font-weight:700;
+  letter-spacing:.06em;white-space:nowrap}
+.seal--verified{color:var(--triviu-ok)}
+.seal--action{color:var(--triviu-ultramar)}
+.seal--cost{color:var(--triviu-acafrao-text);background:var(--triviu-acafrao-fundo)}
+.seal--risk{color:var(--triviu-lacre)}
+.seal--muted{color:var(--text-muted)}
+footer{padding:clamp(32px,5vw,56px) 0 clamp(44px,6vw,72px)}
+.colophon{font-family:var(--triviu-font-mono);font-size:.75rem;line-height:1.9;color:var(--text-muted)}
+@media (max-width:520px){.wrap{width:calc(100% - 24px)}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+@media print{nav.top{display:none}.scroller{overflow:visible;border:0}
+  table{min-width:0}body{font-size:10.5pt}}

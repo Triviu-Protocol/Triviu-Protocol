@@ -1,0 +1,252 @@
+/* ═══ TRIVIU · tokens canon v1.0.0 ═══════════════════════════════════════════
+   Gerados por tokens/build_tokens.py. O nivel escuro e derivado por medicao de
+   contraste contra panel-2, a superficie mais clara em que o texto cai. 34/34
+   pares no contrato. Nao editar a mao. */
+:root{
+  --triviu-paper:#FAFAF7;--triviu-mist:#E9EBE7;--triviu-hairline:#DDE0DA;
+  --triviu-graphite:#52575D;--triviu-ink:#16181D;
+  --triviu-ultramar:#2743C7;--triviu-lacre:#C13327;--triviu-acafrao:#E8B23A;
+  /* Acafrao mede 1.85:1 sobre paper: e cor de preenchimento e de indicador,
+     nunca de texto claro. O par texto/fundo existe para isso. */
+  --triviu-acafrao-text:#8A6414;--triviu-acafrao-fundo:#FBF3DF;
+  --triviu-violeta:#7B3FE4;--triviu-ok:#237A3B;
+  --triviu-night:#131519;--triviu-panel:#1B1E23;--triviu-panel-2:#242830;
+  --triviu-line-dark:#353C46;--triviu-ink-dark:#ECEDEA;--triviu-mut-dark:#A8AEB7;
+  --triviu-ultramar-dark:#6E8AFF;--triviu-lacre-dark:#F26458;
+  --triviu-violeta-dark:#AF73FF;--triviu-ok-dark:#4CA364;--triviu-acafrao-dark:#E8B23A;
+  --triviu-control-light:#8F928C;--triviu-control-dark:#626973;
+  --triviu-focus-light:#2743C7;--triviu-focus:#6E8AFF;
+  --triviu-font-display:'Libre Caslon Text',Georgia,'Times New Roman',serif;
+  --triviu-font-body:'Public Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --triviu-font-mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Consolas,monospace;
+  --triviu-s1:4px;--triviu-s2:8px;--triviu-s3:12px;--triviu-s4:16px;--triviu-s5:24px;
+  --triviu-s6:32px;--triviu-s7:48px;--triviu-s8:64px;--triviu-s9:96px;
+  --triviu-r1:4px;--triviu-r2:8px;--triviu-r3:12px;--triviu-pill:999px;
+  --triviu-mark-cycle:5200ms;--triviu-fast:180ms;--triviu-normal:300ms;
+  --triviu-ease:cubic-bezier(.22,.8,.25,1);
+}
+[data-triviu-surface="paper"]{
+  --bg:var(--triviu-paper);--surface:#FFFFFF;--surface-2:var(--triviu-mist);
+  --text:var(--triviu-ink);--text-muted:var(--triviu-graphite);
+  --action:var(--triviu-ultramar);--risk:var(--triviu-lacre);
+  --cost:var(--triviu-acafrao);--ai:var(--triviu-violeta);--verified:var(--triviu-ok);
+  --hairline:var(--triviu-hairline);--control-border:var(--triviu-control-light);
+  --mark-ink:var(--triviu-ink);--focus:var(--triviu-focus-light);
+  --action-fill:var(--triviu-ultramar);--on-action-fill:#FFFFFF;
+}
+[data-triviu-surface="night"]{
+  --bg:var(--triviu-night);--surface:var(--triviu-panel);--surface-2:var(--triviu-panel-2);
+  --text:var(--triviu-ink-dark);--text-muted:var(--triviu-mut-dark);
+  --action:var(--triviu-ultramar-dark);--risk:var(--triviu-lacre-dark);
+  --cost:var(--triviu-acafrao-dark);--ai:var(--triviu-violeta-dark);--verified:var(--triviu-ok-dark);
+  --hairline:var(--triviu-line-dark);--control-border:var(--triviu-control-dark);
+  --mark-ink:var(--triviu-ink-dark);--focus:var(--triviu-focus);
+  --action-fill:var(--triviu-ultramar);--on-action-fill:#FFFFFF;
+}
+
+/* ═══ marca · implementacao unica ═══════════════════════════════════════════ */
+.triviu-mark{display:block;width:var(--triviu-mark-size,40px);height:auto;overflow:visible;
+  flex:none;color:var(--mark-ink,currentColor)}
+.triviu-mark__base,.triviu-mark__flow{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+.triviu-mark__base{stroke-width:var(--triviu-mark-stroke-base,4);stroke-dasharray:2 11;opacity:.24}
+.triviu-mark__flow{stroke-width:var(--triviu-mark-stroke-flow,5);stroke-dasharray:68 390;
+  animation:triviu-mark-route var(--triviu-mark-cycle) linear infinite}
+@keyframes triviu-mark-route{to{stroke-dashoffset:-458}}
+.triviu-mark__node{fill:currentColor}
+.triviu-mark__origin{fill:var(--triviu-mark-knockout,none);stroke:currentColor;
+  stroke-width:var(--triviu-mark-stroke-base,4)}
+.triviu-mark--xs{--triviu-mark-size:24px;--triviu-mark-stroke-flow:14;--triviu-mark-stroke-base:11}
+.triviu-mark--sm{--triviu-mark-size:34px;--triviu-mark-stroke-flow:11;--triviu-mark-stroke-base:9}
+.triviu-mark--md{--triviu-mark-size:48px;--triviu-mark-stroke-flow:8;--triviu-mark-stroke-base:6}
+.triviu-mark--lg{--triviu-mark-size:120px}
+.triviu-mark--xl{--triviu-mark-size:min(300px,68vw)}
+/* Abaixo de 48px o segmento cobre ~17% do percurso e a marca vira um risco.
+   Estado `static` da secao 04, geometria intacta. */
+.triviu-mark--xs .triviu-mark__flow,.triviu-mark--sm .triviu-mark__flow,
+.triviu-mark--static .triviu-mark__flow{animation:none;stroke-dasharray:none;stroke-dashoffset:0}
+.triviu-mark--xs .triviu-mark__base,.triviu-mark--sm .triviu-mark__base,
+.triviu-mark--static .triviu-mark__base{opacity:0}
+.triviu-lockup{display:inline-flex;align-items:center;gap:var(--triviu-s2);padding:var(--triviu-s1);
+  min-height:44px;color:var(--mark-ink);font-family:var(--triviu-font-body);font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;text-decoration:none}
+
+/* ═══ documento ═════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:88px;-webkit-text-size-adjust:100%}
+html,body{max-width:100%;overflow-x:clip}
+@supports not (overflow:clip){html,body{overflow-x:hidden}}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--triviu-font-body);
+  font-size:1rem;line-height:1.65;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,p,ul,ol,figure,dl,dd,table{margin:0}
+ul{padding:0;list-style:none}
+a{color:var(--action);text-underline-offset:3px}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:var(--triviu-r1)}
+.mono{font-family:var(--triviu-font-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--text-muted)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.skip{position:fixed;z-index:200;top:8px;left:8px;transform:translateY(-200%);padding:14px 18px;
+  border-radius:var(--triviu-r3);background:var(--action-fill);color:var(--on-action-fill);
+  font-weight:700;text-decoration:none}
+.skip:focus{transform:none}
+.wrap{width:min(1080px,calc(100% - 40px));margin-inline:auto}
+
+nav.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 94%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--hairline)}
+nav.top .wrap{display:flex;align-items:center;gap:var(--triviu-s5);min-height:64px;flex-wrap:wrap}
+.navlinks{display:flex;gap:2px;margin-left:auto;flex-wrap:wrap;overflow-x:auto;scrollbar-width:thin}
+.navlinks a{min-height:44px;display:inline-flex;align-items:center;padding:6px 10px;
+  border-radius:var(--triviu-r2);color:var(--text-muted);text-decoration:none;
+  font-family:var(--triviu-font-mono);font-size:.6875rem;font-weight:700;
+  letter-spacing:.06em;white-space:nowrap}
+.navlinks a:hover{background:var(--surface-2);color:var(--text)}
+
+header.cover{padding:clamp(48px,8vw,88px) 0 clamp(40px,6vw,64px);border-bottom:2px solid var(--text)}
+.cover .wrap{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);
+  gap:clamp(24px,5vw,56px);align-items:center}
+h1{font-family:var(--triviu-font-display);font-weight:700;font-size:clamp(2.75rem,7vw,4.5rem);
+  line-height:1.04;letter-spacing:-.03em}
+.tagline{font-family:var(--triviu-font-display);font-style:italic;font-size:clamp(1.1rem,2.2vw,1.4rem);
+  margin:14px 0 20px}
+.meta{font-family:var(--triviu-font-mono);font-size:.75rem;line-height:2;color:var(--text-muted)}
+.meta b{color:var(--text);font-weight:500}
+.eco{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.eco a{min-height:44px;display:inline-flex;align-items:center;padding:8px 14px;
+  border:1px solid var(--control-border);border-radius:var(--triviu-pill);
+  color:var(--text);text-decoration:none;font-family:var(--triviu-font-mono);font-size:.75rem}
+
+section{padding:clamp(48px,7vw,80px) 0;border-bottom:1px solid var(--hairline);scroll-margin-top:72px}
+.num{font-family:var(--triviu-font-mono);font-size:.6875rem;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--risk)}
+h2{font-family:var(--triviu-font-display);font-weight:700;font-size:clamp(1.9rem,4.4vw,3rem);
+  line-height:1.08;letter-spacing:-.025em;margin:8px 0 16px}
+h3{font-size:.9375rem;letter-spacing:.02em;margin:32px 0 10px;text-transform:uppercase;
+  font-family:var(--triviu-font-mono);color:var(--text-muted)}
+.lead{font-size:1.0625rem;max-width:70ch;color:var(--text-muted)}
+p+p{margin-top:12px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.card{min-width:0;padding:20px;background:var(--surface);border:1px solid var(--hairline);
+  border-radius:var(--triviu-r3)}
+.card p{color:var(--text-muted);font-size:.9375rem}
+.card b{display:block;margin-bottom:6px}
+.quote{font-family:var(--triviu-font-display);font-style:italic;font-size:1.3rem;line-height:1.35;
+  max-width:54ch;border-left:3px solid var(--action);padding-left:18px;margin:26px 0}
+.plate{display:grid;place-items:center;gap:16px;padding:32px 20px;background:var(--surface);
+  border:1px solid var(--hairline);border-radius:var(--triviu-r3);min-height:280px}
+.plate.dark{background:var(--triviu-night);border-color:var(--triviu-line-dark);
+  --mark-ink:var(--triviu-ink-dark)}
+.caption{font-family:var(--triviu-font-mono);font-size:.75rem;line-height:1.6;
+  color:var(--text-muted);text-align:center;max-width:52ch}
+.plate.dark .caption{color:var(--triviu-mut-dark)}
+.scroller{max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;
+  border:1px solid var(--hairline);border-radius:var(--triviu-r3);margin-top:16px}
+table{width:100%;min-width:600px;border-collapse:collapse;font-size:.875rem;background:var(--surface)}
+th{padding:12px 14px;text-align:left;border-bottom:2px solid var(--text);color:var(--text-muted);
+  font-family:var(--triviu-font-mono);font-size:.6875rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase}
+td{padding:12px 14px;border-bottom:1px solid var(--hairline);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.sw{display:inline-block;width:18px;height:18px;border-radius:var(--triviu-r1);
+  border:1px solid rgba(0,0,0,.16);vertical-align:-4px;margin-right:8px}
+.pass{color:var(--verified);font-weight:700}
+.fail{color:var(--risk);font-weight:700}
+code,.code{display:block;font-family:var(--triviu-font-mono);font-size:.8125rem;line-height:1.8;
+  background:var(--triviu-night);color:var(--triviu-ink-dark);border-radius:var(--triviu-r2);
+  padding:16px 18px;overflow-x:auto;max-width:100%}
+.chip{display:inline-flex;align-items:center;gap:7px;min-height:30px;padding:5px 11px;
+  border:1px solid var(--control-border);border-radius:var(--triviu-pill);
+  font-family:var(--triviu-font-mono);font-size:.6875rem;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--text-muted)}
+.chip i{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+.chip--verified{color:var(--verified);border-color:var(--verified)}
+.chip--risk{color:var(--risk);border-color:var(--risk)}
+/* O texto do selo de custo usa o par de texto, nao a primitiva: Acafrao como
+   texto sobre papel da 1.85:1. Foi assim que este proprio documento reprovou
+   tres vezes na primeira medicao. */
+.chip--cost{color:var(--triviu-acafrao-text);border-color:var(--triviu-acafrao-text);
+  background:var(--triviu-acafrao-fundo)}
+.chip--ai{color:var(--ai);border-color:var(--ai)}
+.chip--action{color:var(--action);border-color:var(--action)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 18px;border-radius:var(--triviu-r2);border:1px solid var(--control-border);
+  background:var(--surface);color:var(--text);font-weight:700;font-size:.875rem;
+  text-decoration:none}
+.btn--primary{background:var(--action-fill);border-color:transparent;color:var(--on-action-fill)}
+.btn--risk{background:var(--risk);border-color:transparent;color:#fff}
+.notice{border:1px solid var(--cost);background:#FBF3DF;border-radius:var(--triviu-r2);
+  padding:16px 18px;max-width:72ch;margin-top:16px}
+.notice b{display:block;font-family:var(--triviu-font-mono);font-size:.6875rem;font-weight:700;
+  letter-spacing:.1em;color:#8A6414;margin-bottom:6px}
+.notice p{font-size:.875rem;color:var(--triviu-ink)}
+.do,.dont{padding:18px;border:1px solid var(--hairline);border-radius:var(--triviu-r3);
+  background:var(--surface)}
+.do{border-left:3px solid var(--action)}.dont{border-left:3px solid var(--risk)}
+.do b{color:var(--action)}.dont b{color:var(--risk)}
+.do b,.dont b{display:block;font-family:var(--triviu-font-mono);font-size:.6875rem;
+  letter-spacing:.1em;margin-bottom:8px}
+.metric{max-width:300px;padding:18px;background:var(--surface);border:1px solid var(--hairline);
+  border-left:3px solid var(--action);border-radius:var(--triviu-r3)}
+.metric .label{font-family:var(--triviu-font-mono);font-size:.6875rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--text-muted)}
+.metric .value{font-family:var(--triviu-font-mono);font-size:1.75rem;font-weight:700;margin:6px 0}
+.type-sample{border-top:1px solid var(--hairline);padding:20px 0}
+.type-sample .label{font-family:var(--triviu-font-mono);font-size:.6875rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--text-muted);margin-bottom:10px}
+.display-sample{font-family:var(--triviu-font-display);font-weight:700;
+  font-size:clamp(1.75rem,4vw,2.75rem);line-height:1.12}
+.body-sample{font-size:1.125rem;max-width:58ch}
+.mono-sample{font-family:var(--triviu-font-mono);font-size:.9375rem;line-height:1.6;overflow-x:auto}
+footer{padding:clamp(36px,5vw,56px) 0 clamp(48px,7vw,80px)}
+.foot{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:flex-end}
+.colophon{font-family:var(--triviu-font-mono);font-size:.75rem;line-height:1.9;
+  color:var(--text-muted);text-align:right}
+
+@media (max-width:860px){
+  .cover .wrap{grid-template-columns:minmax(0,1fr)}
+  .g2,.g3{grid-template-columns:minmax(0,1fr)}
+  .colophon{text-align:left}
+}
+@media (max-width:420px){.wrap{width:calc(100% - 24px)}}
+/* Parar a animacao sem zerar o dasharray deixa a marca como um fragmento de 68
+   unidades. O reset e o que cumpre "mostra a composicao completa". */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;
+    transition-duration:.001ms!important}
+  .triviu-mark__flow{animation:none;stroke-dasharray:none;stroke-dashoffset:0}
+  .triviu-mark__base{opacity:0}
+}
+@media print{
+  nav.top{display:none}
+  .triviu-mark__flow{animation:none;stroke-dasharray:none;stroke-dashoffset:0}
+  .triviu-mark__base{opacity:0}
+}
+
+
+
+/* CSP · atributos style= convertidos em classe. `style-src 'self'`
+   sem `unsafe-inline` bloqueia atributo de estilo, nao so <style>. */
+.s-00bf4c1e{gap:8px;margin-top:16px}
+.s-1c441993{background:#C13327}
+.s-1eab7ad4{font-size:.75rem;margin-top:10px}
+.s-2a3adb92{background:#F26458}
+.s-2adf3219{background:#52575D}
+.s-457da6bf{--triviu-mark-size:min(220px,60vw)}
+.s-66d8b591{margin-top:24px}
+.s-7175c175{background:#2743C7}
+.s-7e6c341f{background:#237A3B}
+.s-840862dd{background:#FAFAF7}
+.s-859811c5{font-size:.8125rem}
+.s-9f481027{margin-top:12px;font-size:.875rem}
+.s-a0b89b03{background:#7B3FE4}
+.s-bcab7570{background:#E8B23A}
+.s-bfe9c118{background:#4CA364}
+.s-ca5930b4{background:#16181D}
+.s-cd1e6c1a{background:#6E8AFF}
+.s-df928149{margin-top:10px}
+.s-eee3f850{margin-top:20px}
+.s-f454bc46{background:#AF73FF}

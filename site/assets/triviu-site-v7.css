@@ -1,0 +1,345 @@
+/* ═══ TRIVIU · tokens canon v1.0.0 ═══════════════════════════════════════════
+   Gerados por tokens/build_tokens.py a partir do Brandbook v3.3. O nivel escuro
+   e derivado por medicao de contraste, nao digitado. 26/26 pares WCAG AA. */
+:root{
+  --triviu-paper:#FAFAF7;--triviu-mist:#E9EBE7;--triviu-hairline:#DDE0DA;
+  --triviu-graphite:#52575D;--triviu-ink:#16181D;
+  --triviu-ultramar:#2743C7;--triviu-lacre:#C13327;--triviu-acafrao:#E8B23A;
+  --triviu-violeta:#7B3FE4;--triviu-ok:#237A3B;
+  --triviu-night:#131519;--triviu-panel:#1B1E23;--triviu-panel-2:#242830;
+  --triviu-line-dark:#353C46;--triviu-ink-dark:#ECEDEA;--triviu-mut-dark:#A8AEB7;
+  /* Nivel escuro derivado contra panel-2 (#242830), a superficie mais clara em
+     que o texto cai. Mirar no fundo-base passava la e reprovava aqui por 0,1. */
+  --triviu-ultramar-dark:#6E8AFF;--triviu-lacre-dark:#F26458;
+  --triviu-violeta-dark:#AF73FF;--triviu-ok-dark:#4CA364;--triviu-acafrao-dark:#E8B23A;
+  --triviu-control-dark:#626973;--triviu-focus:#6E8AFF;
+  /* Tipografia canon Brandbook 05. As webfonts sao auto-hospedadas no build;
+     ate la a pilha cai em fontes do sistema com metrica proxima. */
+  --triviu-font-display:'Libre Caslon Text',Georgia,'Times New Roman',serif;
+  --triviu-font-body:'Public Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --triviu-font-mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Consolas,monospace;
+  --triviu-s1:4px;--triviu-s2:8px;--triviu-s3:12px;--triviu-s4:16px;--triviu-s5:24px;
+  --triviu-s6:32px;--triviu-s7:48px;--triviu-s8:64px;--triviu-s9:96px;
+  --triviu-r1:4px;--triviu-r2:8px;--triviu-r3:12px;--triviu-pill:999px;
+  --triviu-mark-cycle:5200ms;--triviu-fast:180ms;--triviu-normal:300ms;
+  --triviu-ease:cubic-bezier(.22,.8,.25,1);
+}
+/* papel semantico · night. Nenhum componente le primitiva direto. */
+[data-triviu-surface="night"]{
+  --bg:var(--triviu-night);--surface:var(--triviu-panel);--surface-2:var(--triviu-panel-2);
+  --text:var(--triviu-ink-dark);--text-muted:var(--triviu-mut-dark);
+  --action:var(--triviu-ultramar-dark);--risk:var(--triviu-lacre-dark);
+  --cost:var(--triviu-acafrao-dark);--ai:var(--triviu-violeta-dark);--verified:var(--triviu-ok-dark);
+  --hairline:var(--triviu-line-dark);--control-border:var(--triviu-control-dark);
+  --mark-ink:var(--triviu-ink-dark);
+  /* Superficie PREENCHIDA usa a primitiva, nao a variante escura. Branco sobre
+     a variante da 3,64:1; sobre a primitiva da 7,74:1. Duas funcoes, dois tokens. */
+  --action-fill:var(--triviu-ultramar);--on-action-fill:#FFFFFF;
+}
+
+/* ═══ marca · implementacao unica ═══════════════════════════════════════════ */
+.triviu-mark{display:block;width:var(--triviu-mark-size,40px);height:auto;overflow:visible;
+  flex:none;color:var(--mark-ink,currentColor)}
+.triviu-mark__base,.triviu-mark__flow{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+.triviu-mark__base{stroke-width:var(--triviu-mark-stroke-base,4);stroke-dasharray:2 11;opacity:.24}
+.triviu-mark__flow{stroke-width:var(--triviu-mark-stroke-flow,5);stroke-dasharray:68 390;
+  animation:triviu-mark-route var(--triviu-mark-cycle) linear infinite}
+@keyframes triviu-mark-route{to{stroke-dashoffset:-458}}
+.triviu-mark__node{fill:currentColor}
+.triviu-mark__origin{fill:var(--triviu-mark-knockout,none);stroke:currentColor;
+  stroke-width:var(--triviu-mark-stroke-base,4)}
+/* compensacao optica · ratificada 2026-09-06. Proporcao e percurso intactos. */
+.triviu-mark--sm{--triviu-mark-size:34px;--triviu-mark-stroke-flow:11;--triviu-mark-stroke-base:9}
+.triviu-mark--md{--triviu-mark-size:48px;--triviu-mark-stroke-flow:8;--triviu-mark-stroke-base:6}
+.triviu-mark--xl{--triviu-mark-size:min(400px,74vw)}
+/* Abaixo de 48px o segmento em percurso cobre ~17% do caminho e a marca vira um
+   risco solto na barra de navegacao. O Brandbook secao 03 ja preve o estado
+   `static` para fallback; tamanho de assinatura e esse caso. Geometria intacta,
+   percurso completo, sem animacao. */
+.triviu-mark--sm .triviu-mark__flow,
+.triviu-mark--xs .triviu-mark__flow{animation:none;stroke-dasharray:none;stroke-dashoffset:0}
+.triviu-mark--sm .triviu-mark__base,
+.triviu-mark--xs .triviu-mark__base{opacity:0}
+
+/* ═══ base ═══════════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:150px;-webkit-text-size-adjust:100%;color-scheme:dark}
+html,body{max-width:100%;overflow-x:clip}
+@supports not (overflow:clip){html,body{overflow-x:hidden}}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--triviu-font-body);
+  font-size:1rem;line-height:1.65;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,p,ul,ol,figure,dl{margin:0}
+ul{padding:0;list-style:none}
+img,svg{max-width:100%}
+a{color:var(--action);text-underline-offset:3px}
+a:hover{color:var(--text)}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+:focus-visible{outline:3px solid var(--triviu-focus);outline-offset:3px;border-radius:var(--triviu-r1)}
+::selection{background:var(--action-fill);color:var(--on-action-fill)}
+.mono{font-family:var(--triviu-font-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--text-muted)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.skip{position:fixed;z-index:200;top:8px;left:8px;transform:translateY(-200%);
+  padding:14px 18px;border-radius:var(--triviu-r3);background:var(--action-fill);color:var(--on-action-fill);
+  font-weight:700;text-decoration:none}
+.skip:focus{transform:none}
+.wrap{width:min(1240px,calc(100% - 40px));margin-inline:auto}
+.eyebrow{display:block;font-family:var(--triviu-font-mono);font-size:.6875rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--action)}
+.lead{max-width:66ch;color:var(--text-muted);font-size:clamp(1rem,1.3vw,1.15rem)}
+.section{padding:clamp(64px,9vw,112px) 0;border-top:1px solid var(--hairline)}
+.section h2{margin:.5rem 0 1rem;font-family:var(--triviu-font-display);font-weight:700;
+  font-size:clamp(2rem,5vw,3.6rem);line-height:1.04;letter-spacing:-.03em}
+.section h3{font-size:1.0625rem;line-height:1.3;margin:0}
+.head{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.5fr);gap:clamp(20px,4vw,48px);
+  align-items:end;margin-bottom:clamp(24px,4vw,42px)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.card{min-width:0;padding:clamp(16px,2.4vw,22px);background:var(--surface);
+  border:1px solid var(--hairline);border-radius:18px}
+.card p{color:var(--text-muted);font-size:.9375rem}
+.btn{min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 20px;border-radius:var(--triviu-pill);border:1px solid var(--control-border);
+  background:var(--surface-2);color:var(--text);font-size:.875rem;font-weight:700;
+  text-decoration:none;transition:background var(--triviu-fast) var(--triviu-ease)}
+.btn:hover{background:var(--surface);color:var(--text)}
+.btn--primary{background:var(--action-fill);border-color:transparent;color:var(--on-action-fill)}
+.btn--primary:hover{background:#1D35A8;color:var(--on-action-fill)}
+.chip{display:inline-flex;align-items:center;gap:7px;min-height:30px;padding:5px 11px;
+  border:1px solid var(--control-border);border-radius:var(--triviu-pill);
+  font-family:var(--triviu-font-mono);font-size:.6875rem;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--text-muted)}
+.chip i{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+.chip--stated{color:var(--verified);border-color:var(--verified)}
+.chip--pending{color:var(--cost);border-color:var(--cost)}
+.chip--spec{color:var(--risk);border-color:var(--risk)}
+.chip--locked{color:var(--cost);border-color:var(--cost)}
+
+/* ═══ cabecalho ══════════════════════════════════════════════════════════════ */
+.header{position:sticky;top:0;z-index:100;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(18px);border-bottom:1px solid var(--hairline)}
+.header .wrap{min-height:70px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+/* min-height 44 nao e enfeite: e o piso de alvo de toque do Art. 2. */
+.lockup{display:inline-flex;align-items:center;gap:10px;padding:6px;min-height:44px;
+  color:var(--mark-ink);font-weight:800;letter-spacing:.11em;font-size:.8125rem;text-decoration:none}
+.lockup:hover{color:var(--mark-ink)}
+.nav{display:flex;align-items:center;gap:2px;margin-left:auto;flex-wrap:wrap}
+.nav a{min-height:44px;display:inline-flex;align-items:center;padding:8px 11px;
+  border-radius:var(--triviu-r3);color:var(--text-muted);font-size:.8125rem;font-weight:700;
+  text-decoration:none}
+.nav a:hover,.nav a[aria-current="true"]{background:var(--surface);color:var(--text)}
+.statusbar{border-bottom:1px solid var(--hairline);background:var(--surface)}
+.statusbar .wrap{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 0}
+
+/* ═══ hero ═══════════════════════════════════════════════════════════════════ */
+.hero{padding:clamp(48px,8vw,88px) 0 clamp(40px,6vw,64px)}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(0,.94fr);
+  gap:clamp(28px,5vw,56px);align-items:center}
+.hero h1{margin:16px 0 22px;font-family:var(--triviu-font-display);font-weight:700;
+  font-size:clamp(2.75rem,7vw,6rem);line-height:.95;letter-spacing:-.045em;max-width:14ch}
+.hero h1 em{font-style:normal;color:var(--action)}
+.hero-cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.orbit{position:relative;display:grid;place-items:center;min-height:min(90vw,460px)}
+.orbit-ring{position:absolute;inset:6%;border:1px solid var(--hairline);border-radius:50%}
+.orbit-ring:nth-of-type(2){inset:22%}
+.orbit-card{position:absolute;width:150px;padding:12px 13px;background:var(--surface);
+  border:1px solid var(--hairline);border-radius:16px}
+.orbit-card b{display:flex;align-items:center;gap:8px;font-size:.8125rem;letter-spacing:.04em}
+.orbit-card b i{width:8px;height:8px;border-radius:50%;background:var(--action);flex:none}
+.orbit-card span{display:block;margin-top:5px;color:var(--text-muted);
+  font-family:var(--triviu-font-mono);font-size:.6875rem;line-height:1.4}
+.orbit-card--a{left:0;top:6%}.orbit-card--b{right:0;top:24%}
+.orbit-card--c{right:2%;bottom:4%}.orbit-card--d{left:0;bottom:16%}
+
+/* ═══ blocos especificos ═════════════════════════════════════════════════════ */
+.pulse-fig{padding:18px;border-radius:18px;background:var(--surface);border:1px solid var(--hairline)}
+.pulse-fig dt{display:flex;align-items:center;gap:8px;color:var(--text-muted);
+  font-family:var(--triviu-font-mono);font-size:.6875rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase}
+.pulse-fig dd{margin:10px 0 0;font-family:var(--triviu-font-mono);font-weight:700;
+  font-size:clamp(1.5rem,3vw,2.25rem);letter-spacing:-.03em;line-height:1}
+.pulse-fig p{margin-top:6px;color:var(--text-muted);font-size:.8125rem}
+.name-letters{display:flex;justify-content:center;gap:clamp(6px,2vw,18px);flex-wrap:wrap;
+  font-family:var(--triviu-font-display);font-size:clamp(2.5rem,9vw,6rem);line-height:1;
+  letter-spacing:.02em}
+.axis{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;padding:16px 0;
+  border-top:1px solid var(--hairline)}
+.axis-dot{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  border:1px solid currentColor;font-family:var(--triviu-font-mono);font-size:.75rem;font-weight:700}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;
+  scrollbar-width:thin}
+.tabs button{min-height:44px;flex:none;padding:10px 16px;border-radius:var(--triviu-pill);
+  border:1px solid var(--control-border);background:var(--surface);color:var(--text-muted);
+  font-size:.8125rem;font-weight:700}
+.tabs button[aria-selected="true"]{background:var(--action-fill);border-color:transparent;color:var(--on-action-fill)}
+.stat{padding:13px;border-radius:14px;background:var(--surface-2);min-width:0}
+.stat dt{color:var(--text-muted);font-family:var(--triviu-font-mono);font-size:.625rem;
+  font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.stat dd{margin:7px 0 9px;font-family:var(--triviu-font-mono);font-size:.8125rem;font-weight:700}
+.econ{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px}
+.econ div{padding:14px;border-radius:14px;background:var(--surface-2)}
+.econ dt{color:var(--text-muted);font-size:.75rem}
+.econ dd{margin:6px 0 0;font-family:var(--triviu-font-mono);font-size:1.125rem;font-weight:700}
+.step{padding:20px 18px;border-top:2px solid var(--action);background:var(--surface);
+  border-radius:0 0 16px 16px}
+.step .n{font-family:var(--triviu-font-mono);font-size:.75rem;font-weight:700;color:var(--action)}
+.step h3{margin:14px 0 7px}
+.env{padding:18px;border-radius:18px;background:var(--surface);border:1px solid var(--hairline)}
+.env--locked{border-color:var(--cost)}
+/* aspect-ratio + min-height brigam: com a altura travada em 230 a largura vira
+   230x1.59 = 366px e o cartao estoura um telefone de 320. A largura manda. */
+.card-black{aspect-ratio:1.59;width:100%;max-width:100%;padding:clamp(16px,4vw,24px);
+  border-radius:24px;position:relative;
+  overflow:hidden;background:linear-gradient(145deg,#222 0%,#090909 48%,#171717 100%);
+  border:1px solid #343434;display:flex;flex-direction:column;justify-content:space-between}
+.card-black .row{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.card-black .addr{font-family:var(--triviu-font-mono);font-size:clamp(.875rem,2.2vw,1.0625rem);
+  letter-spacing:.08em;overflow-wrap:anywhere}
+.card-black small{display:block;color:#8d938e;font-size:.6875rem;text-transform:uppercase;
+  letter-spacing:.08em}
+.card-black b{display:block;font-size:.8125rem;margin-top:4px}
+.net{padding:20px;border-radius:20px;background:var(--surface);border:1px solid var(--hairline);
+  border-left:3px solid var(--net,var(--action))}
+.net-code{width:52px;height:52px;display:grid;place-items:center;border-radius:15px;
+  background:var(--net,var(--action));color:#fff;font-family:var(--triviu-font-mono);
+  font-size:.75rem;font-weight:800}
+.tablewrap{overflow-x:auto;overscroll-behavior-inline:contain;border:1px solid var(--hairline);
+  border-radius:16px}
+table{width:100%;min-width:640px;border-collapse:collapse;font-size:.875rem;background:var(--surface)}
+th{padding:14px;text-align:left;border-bottom:1px solid var(--hairline);color:var(--text-muted);
+  font-family:var(--triviu-font-mono);font-size:.6875rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase}
+td{padding:14px;border-bottom:1px solid var(--hairline);vertical-align:top;color:var(--text-muted)}
+td:first-child{color:var(--text);font-weight:700}
+tr:last-child td{border-bottom:0}
+.phase{padding:20px;border-radius:18px;background:var(--surface);border:1px solid var(--hairline)}
+.faq details{border:1px solid var(--hairline);border-radius:16px;background:var(--surface);
+  margin-bottom:10px}
+.faq summary{min-height:56px;display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:16px 20px;cursor:pointer;font-weight:700;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";flex:none;font-family:var(--triviu-font-mono);font-size:1.25rem;
+  color:var(--action)}
+.faq details[open] summary::after{content:"\2212"}
+.faq p{padding:0 20px 18px;color:var(--text-muted);max-width:72ch}
+.finalcta{width:min(1240px,calc(100% - 40px));margin:clamp(32px,6vw,56px) auto clamp(56px,8vw,88px);
+  padding:clamp(28px,6vw,64px);border-radius:28px;background:var(--action-fill);color:var(--on-action-fill)}
+.finalcta h2{font-family:var(--triviu-font-display);font-weight:700;
+  font-size:clamp(2rem,5.5vw,4rem);line-height:1.02;letter-spacing:-.035em;margin:.5rem 0 1rem}
+.finalcta p{max-width:60ch;color:#FFFFFF}
+.finalcta .btn{background:#fff;color:#1D35A8;border-color:transparent}
+.finalcta .btn--ghost{background:transparent;color:#fff;border-color:#fff}
+.footer{padding:clamp(36px,5vw,52px) 0 clamp(48px,6vw,72px);border-top:1px solid var(--hairline)}
+.footer-grid{display:grid;grid-template-columns:minmax(220px,1.2fr) repeat(3,minmax(0,1fr));
+  gap:clamp(20px,4vw,40px)}
+.footer h2{font-family:var(--triviu-font-mono);font-size:.6875rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px}
+.footer li{margin-bottom:2px}
+.footer a{color:var(--text-muted);font-size:.875rem;text-decoration:none;
+  display:inline-flex;min-height:44px;min-width:44px;align-items:center;padding-right:8px}
+.footer a:hover{color:var(--text)}
+.colophon{margin-top:clamp(28px,4vw,40px);padding-top:20px;border-top:1px solid var(--hairline);
+  display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  color:var(--text-muted);font-family:var(--triviu-font-mono);font-size:.75rem}
+
+/* ═══ responsivo ═════════════════════════════════════════════════════════════
+   O botao de menu é declarado ANTES das media queries de proposito. Declarado
+   depois, com a mesma especificidade, a ultima regra vence e o menu movel nunca
+   aparece — deixando o telefone sem navegacao nenhuma. */
+.menu-toggle{display:none;min-height:44px;min-width:44px;align-items:center;justify-content:center;
+  padding:10px 14px;border:1px solid var(--control-border);border-radius:var(--triviu-r3);
+  background:var(--surface);font-weight:700;font-size:.8125rem}
+@media (max-width:1100px){
+  .hero .wrap{grid-template-columns:minmax(0,1fr)}
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .head{grid-template-columns:minmax(0,1fr)}
+  .footer-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:760px){
+  .wrap{width:calc(100% - 28px)}
+  .nav{display:none}
+  .nav--drawer{display:none;width:100%;flex-direction:column;align-items:stretch;
+    margin:0 0 10px;gap:2px}
+  .nav--drawer[data-open="true"]{display:flex}
+  .nav--drawer a{width:100%}
+  .menu-toggle{display:inline-flex;margin-left:auto}
+  .g2,.g3{grid-template-columns:minmax(0,1fr)}
+  .orbit-card{width:118px;padding:10px}
+  .orbit-card span{display:none}
+  .footer-grid{grid-template-columns:minmax(0,1fr)}
+  .colophon{flex-direction:column}
+}
+@media (max-width:390px){
+  .wrap{width:calc(100% - 20px)}
+  .g4{grid-template-columns:minmax(0,1fr)}
+  .orbit-card{width:96px;font-size:.75rem}
+  .hero-cta .btn,.finalcta .btn{width:100%}
+}
+@media (max-height:540px) and (orientation:landscape){
+  .hero{padding-top:32px}.orbit{min-height:300px}
+}
+/* Parar a animacao sem zerar o dasharray deixaria a marca como um fragmento de
+   68 unidades. O reset e o que cumpre "mostra a composicao completa". */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;
+    transition-duration:.001ms!important}
+  .triviu-mark__flow{animation:none;stroke-dasharray:none;stroke-dashoffset:0}
+  .triviu-mark__base{opacity:0}
+}
+@media print{
+  .triviu-mark__flow{animation:none;stroke-dasharray:none;stroke-dashoffset:0}
+  .triviu-mark__base{opacity:0}
+  .header,.statusbar,.finalcta{display:none}
+}
+
+
+
+/* CSP · atributos style= convertidos em classe. `style-src 'self'`
+   sem `unsafe-inline` bloqueia atributo de estilo, nao so <style>. */
+.s-0801970d{margin:12px 0 8px}
+.s-0e1e5481{margin:24px auto 0}
+.s-13c031c5{margin-top:14px;font-size:.9375rem}
+.s-15ca39a9{--net:#28a0f0}
+.s-1925ee50{margin-top:12px;font-size:.8125rem}
+.s-1a2789a2{margin-top:18px;font-size:.75rem}
+.s-1d2ae541{margin-top:14px;font-size:.875rem}
+.s-2944a4dd{margin-top:10px;font-size:.75rem}
+.s-29ebb5f6{border-top:0}
+.s-2b838feb{display:grid;place-items:center;min-height:320px}
+.s-2bdf8e45{margin-top:18px}
+.s-301647f5{margin-top:6px}
+.s-4318bb5d{--mark-ink:var(--triviu-ink-dark)}
+.s-43a97fe4{margin-top:8px}
+.s-5a83a069{margin:12px 0 6px}
+.s-5db0dbe3{margin-top:24px;font-size:.6875rem;font-weight:700}
+.s-5f326564{text-align:right}
+.s-66d5f9f9{margin-top:16px;font-size:.875rem}
+.s-683e588f{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+.s-6e19583f{margin-top:22px}
+.s-77651a2e{margin-top:10px;font-size:.8125rem}
+.s-89410918{margin:14px 0 8px}
+.s-8e26c5f7{margin-bottom:8px}
+.s-90500853{text-align:center}
+.s-92c18f6b{margin-top:16px}
+.s-995a9621{color:var(--verified)}
+.s-9d37dc96{color:#FFFFFF}
+.s-9f481027{margin-top:12px;font-size:.875rem}
+.s-a0ba227f{font-size:.75rem}
+.s-a2f2bae2{--triviu-mark-size:min(280px,70vw)}
+.s-a427de63{color:var(--cost)}
+.s-b6c7168f{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.s-b793ae79{color:var(--action)}
+.s-c53ea1da{margin-top:14px}
+.s-c9c5eecb{margin-top:8px;font-size:.8125rem}
+.s-d5636fef{--net:#8247e5}
+.s-dd181bad{--net:#f3ba2f}
+.s-e1d349db{margin:10px 0 10px;font-size:1.375rem}
+.s-e36cf980{color:#201a02}
+.s-e69dffc6{margin:8px 0 10px;font-size:1.375rem}
+.s-eee3f850{margin-top:20px}
+.s-f935ab90{color:var(--risk)}
+.s-fcdd2091{margin:10px 0 8px}
