@@ -46,26 +46,72 @@
  */
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, sep } from "node:path";
+import { lerConfig, rotaDoArquivo, htmlRenderizado } from "./csp-por-rota.mjs";
 
 const RAIZ = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const SITE = join(RAIZ, "site");
 
 /* Cada excecao e uma divida com nome, nao uma dispensa. O motivo sai na tela em
    toda execucao — de proposito. */
+/* 2026-09-07 · o modelo oficial do Site nao tem navegacao, e isso e um FATO DO
+   MODELO, medido, nao uma opiniao sobre ele: o template carrega 14 `href`
+   distintos, 12 ancoras da propria pagina (#pulse, #journey, #roadmap…) e 2
+   hosts de fonte. Zero link para qualquer outra rota do site.
+
+   Publicar o modelo "sem tirar e nem por" — direcao literal do fundador — custou
+   o alcance de 8 rotas, medido A/B com a MESMA regua contra o index de HEAD
+   (a749509): as 5 rotas dos proprios modelos, mais `/console/`, `/cofre/` e
+   `/whitepaper/`, que penduravam na navegacao do index anterior.
+
+   Nao ha conserto que caiba a quem executa: linkar exige escrever `href` DENTRO
+   do modelo, e o modelo nao se toca. A divida fica declarada aqui, sai impressa
+   toda vez, e a decisao e do fundador — a mesma linha de 2026-08-23 se aplica:
+   "Se eu te dei uma arquitetura, e tudo, ela PRECISA SER IGUAL ao que eu dei." */
+const SEM_NAVEGACAO_NO_MODELO =
+  "o Site liga para CONSOLE, LABS e BRAND — as tres superficies que o proprio modelo nomeia " +
+  "no cartao #surfaces — e nao liga para esta. Nenhum controle do modelo a menciona, entao " +
+  "linkar exigiria inventar um, e nao inventar e a regra. Divida do fundador, nao do pipeline.";
+
+/* Estas 13 NAO sao consequencia da troca do index — medido A/B: ja eram
+   inalcancaveis com o index anterior. O portao antigo nao as via porque media
+   "alguem linka" em vez de "chega-se desde /", e tres paginas que so se linkam
+   entre si passavam. A regua nova acendeu divida velha; acender nao e criar. */
+const JA_ERA_ANTES =
+  "ja era inalcancavel desde / ANTES da troca do index (medido A/B contra HEAD a749509). " +
+  "O portao antigo media 'alguem linka' e nao 'chega-se desde /', entao ilha de paginas " +
+  "que so se linkam entre si passava. Divida herdada, agora visivel.";
+
+/* As cinco rotas dos modelos SAIRAM desta lista em 2026-09-07, quando os seis
+   `href` do #surfaces passaram a apontar para as superficies que os cartoes ja
+   nomeavam. Nao ficam declaradas como divida porque divida paga que continua
+   impressa mente tanto quanto divida escondida. */
 const EXCECOES = {
-  /* Era `/console/` ate 2026-08-24. A rota trocou de dono por decisao do
-     fundador — *"e para por nesse endereco"* — e o console da V0 assumiu
-     `/console/`, que e onde quem usa espera encontrar o produto. A linha ANTIGA
-     mudou-se para `/lp/`, que e o nome do que ela faz: provisao de liquidez.
-     A divida e a mesma e continua declarada aqui, so que na rota nova. */
-  "/lp/":
-    "opera a LINHA ANTIGA (TriviuLPVault 0xC52BaD28…, taxa de 30% DO LUCRO). Linka-la " +
-    "da mesma navegacao que leva ao console da V0 (0,5% DO NEGOCIADO) poe as duas linhas " +
-    "lado a lado sem dizer que sao linhas diferentes, e as bases das duas taxas nao se " +
-    "comparam. Medido em 2026-08-24 antes da troca de rota: o TriviuLPVault guarda ZERO " +
-    "USDC, ZERO WETH e ZERO POL, entao tirar a tela do endereco principal nao deixou " +
-    "ninguem sem interface para dinheiro vivo. Sair desta lista exige decidir o que a " +
-    "navegacao diz sobre as duas — decisao de produto, nao de pipeline.",
+  /* VAZIA desde 2026-09-07, e a lista vazia e o registro de que a divida foi
+     PAGA, nao de que ela foi esquecida.
+
+     As cinco que viviam aqui sairam por dois motivos diferentes, e a diferenca
+     importa:
+
+       /cofre/       o rodape do Site passou a linka-lo. O fundador autorizou
+       /whitepaper/  escrever dentro do modelo dele ("escolhe e segue"), e as
+                     duas portas entraram na coluna SURFACES, no mesmo `style=`
+                     dos links que ele proprio escreveu.
+       /positions/   o /cofre/ passou a linka-lo. Ele nao e modelo do fundador,
+                     entao ganhou barra de irmas sem custo de autorizacao — e
+                     deixou de ser beco sem saida no mesmo movimento (tinha
+                     ZERO <a> na pagina inteira).
+
+       /calldata/    SAIRAM DO AR. As duas assinavam contra a linha ANTIGA
+       /lp/          (TriviuLPVault 0xC52BaD28, 30% DO LUCRO) enquanto o produto
+                     e a V0 (0,5% DO NEGOCIADO), e as duas se chamavam
+                     "Console" no proprio <title>. Pagina que nao publica nao e
+                     orfa: e ausente.
+
+     Nenhuma saiu por reclassificacao (L5 do LACRE). Tres sairam porque alguem
+     agora CHEGA nelas; duas porque deixaram de existir no ar.
+
+     Acrescentar entrada aqui volta a ser caro de proposito: o motivo sai
+     impresso em toda execucao, e excecao que ninguem le vira permissao. */
 };
 
 const falhas = [];
@@ -99,25 +145,116 @@ const paginas = [];
   }
 })(SITE);
 
-/* `cleanUrls: true` + `trailingSlash: true` no vercel.json: tanto `a/index.html`
-   quanto `a.html` respondem em `/a/`. As duas formas viram a mesma rota, porque
-   e a mesma URL que o navegador pede. */
-const rotaDe = (rel) =>
-  rel === "index.html" ? "/"
-    : rel.endsWith("/index.html") ? "/" + rel.slice(0, -"index.html".length)
-    : "/" + rel.slice(0, -".html".length) + "/";
+/* A rota que cada arquivo serve vem de `csp-por-rota.mjs`, fonte unica desta
+   casa desde 2026-09-07. O `rotaDe` local que vivia aqui devolvia
+   `/TRIVIU-Console-V5.4.3/`; a Vercel serve `/TRIVIU-Console-V5.4.3`, SEM barra,
+   porque le o ponto da versao como extensao de arquivo. Medido nas 27 rotas do
+   preview dpl_HnyeuwfUdgPC9vmudLhtJ5zFHcQE. Duas regras de rota na mesma casa
+   viram duas verdades, e a que estava errada era esta. */
+const rotaDe = rotaDoArquivo;
 
-/* ------------------------------------------------- para onde se aponta ----- */
-const apontadas = new Set();
+/* Rota que so existe como REDIRECIONAMENTO tambem e alcancavel: quem chega nela
+   chega ao destino. */
+const redirs = new Map();
+try {
+  for (const r of lerConfig(RAIZ).redirects || []) {
+    if (r.has) continue;                               /* condicional a host: outro assunto */
+    if (r.source.includes("(")) continue;              /* curinga: nao resolve para uma rota so */
+    redirs.set(r.source.endsWith("/") || r.source.includes(".") ? r.source : r.source + "/",
+               r.destination);
+  }
+} catch (e) {
+  falhas.push(`vercel.json ilegivel — falha fechada: ${e.message}`);
+}
+
+/* ------------------------------------------------- para onde se aponta ----- *
+ * ABSOLUTO E RELATIVO. Ate 2026-09-07 esta medicao pulava href relativo com o
+ * comentario "fora do alcance desta medicao", e isso deixou de ser verdade no
+ * dia em que os modelos oficiais entraram: eles se cruzam SO por href relativo
+ * (`TRIVIU-Console-V5.4.3.html`). Cinco paginas linkadas apareceriam como orfas,
+ * e — pior — os 10 links relativos QUEBRADOS das copias de alias nao apareceriam
+ * de jeito nenhum, porque o portao nem olhava para eles.
+ *
+ * E ALCANCE, nao popularidade. "Alguem linka" e fraco: tres paginas que so se
+ * linkam entre si formam uma ilha que ninguem chega pela porta. O que se mede
+ * aqui e caminhada a partir de `/`. */
+/* O conjunto de rotas REALMENTE servidas — a regua contra a qual todo link e
+   conferido. Nasce do disco, nao de uma lista digitada. */
+const rotas = new Set(paginas.filter((rel) => !naoPublica(rel)).map(rotaDe));
+
+const saidasDe = new Map();
+const quebrados = [];
 for (const rel of paginas) {
-  const html = readFileSync(join(SITE, rel), "utf8");
-  for (const m of html.matchAll(/href\s*=\s*"([^"]+)"/g)) {
+  /* `htmlRenderizado`, e nao `semScripts`: a navegacao inteira do Site mora
+     dentro da ilha `__bundler/template`, e tirar os scripts tirava com ela
+     TODOS os links da home. O portao declarou cinco rotas inalcancaveis
+     enquanto o navegador chegava nelas. */
+  const html = htmlRenderizado(readFileSync(join(SITE, rel), "utf8"));
+  const saidas = new Set();
+  /* SO O QUE NAVEGA. A primeira versao casava QUALQUER `href=`, e trouxe dois
+     falsos positivos que ensinam coisas diferentes:
+       - `<link rel=stylesheet href="...css">` nao e navegacao, e o alvo dele
+         nao e rota: e arquivo. Cobrar rota de uma folha de estilo e inventar
+         defeito.
+       - no Brandbook o casamento veio de dentro de um bloco de codigo
+         ESCAPADO (`&lt;link ... href="..."&gt;`), que a pagina MOSTRA como
+         exemplo. Nao havia link nenhum ali — havia texto sobre link.
+     Exigir a tag `<a` resolve os dois de uma vez, porque nem folha de estilo
+     nem texto escapado formam uma tag de ancora. */
+  for (const m of html.matchAll(/<a\b[^>]*\shref\s*=\s*["']([^"']+)["']/gi)) {
     let h = m[1].split("#")[0].split("?")[0];
-    if (!h || /^[a-z]+:/i.test(h)) continue;          /* http:, mailto:, tel: */
-    if (!h.startsWith("/")) continue;                  /* relativo: fora do alcance desta medicao */
+    if (!h || /^[a-z]+:/i.test(h)) continue;           /* http:, mailto:, tel: */
+    if (/\.(css|js|png|jpe?g|svg|gif|webp|ico|woff2?|ttf|pdf|json|zip|txt|xml)$/i.test(h)) continue;
+    /* LINK RELATIVO RESOLVE CONTRA A ROTA SERVIDA, NAO CONTRA O ARQUIVO.
+       Esta linha media contra o caminho do arquivo, e por isso ficou VERDE
+       sobre 12 links mortos em producao. `TRIVIU-Labs-V5.html` mora na raiz,
+       entao `href="TRIVIU-Console-V5.4.3.html"` parecia resolver para um
+       arquivo que existe. Mas a pagina e SERVIDA em `/TRIVIU-Labs-V5/` — com
+       barra, porque `V5` nao tem ponto e `trailingSlash` age — e o navegador
+       resolve contra a barra: `/TRIVIU-Labs-V5/TRIVIU-Console-V5.4.3.html`,
+       que devolve 404. Medido em producao, 2026-09-07.
+       O Brandbook e o Design System escapam pelo motivo oposto: o ponto da
+       versao faz a rota deles perder a barra, e ali o mesmo href resolve na
+       raiz. Dois modelos iguais, destinos diferentes, por causa de um ponto. */
+    if (!h.startsWith("/")) {
+      const rotaPag = rotaDe(rel);
+      const base = rotaPag.endsWith("/") ? rotaPag : rotaPag.slice(0, rotaPag.lastIndexOf("/") + 1);
+      let url = (base + h).replace(/\/{2,}/g, "/");
+      while (/[^/]+\/\.\.\//.test(url)) url = url.replace(/[^/]+\/\.\.\//, "");
+      /* O redirecionamento e conferido contra a URL CRUA, antes de virar rota.
+         Uma regra declarada para `/a/b.html` some se eu converter para `/a/b/`
+         primeiro — e some em silencio, deixando o portao vermelho sobre um link
+         que a borda ja conserta. */
+      if (redirs.has(url)) { saidas.add(redirs.get(url)); continue; }
+      const rotaAlvo = url.endsWith(".html") ? rotaDe(url.slice(1)) : url;
+      if (!rotas.has(rotaAlvo) && !redirs.has(rotaAlvo)) {
+        if (!naoPublica(rel))
+          quebrados.push(`${rel} e servida em ${rotaPag} e aponta para "${h}" — o navegador resolve ` +
+            `isso para ${url}, que nao e rota servida nem redirecionamento. Link do proprio modelo ` +
+            "morrendo em 404.");
+        continue;
+      }
+      saidas.add(redirs.get(rotaAlvo) || rotaAlvo);
+      continue;
+    }
     if (h.endsWith(".html")) h = rotaDe(h.slice(1));
-    else if (!h.endsWith("/")) h += "/";
-    apontadas.add(h);
+    else if (!h.endsWith("/") && !h.split("/").pop().includes(".")) h += "/";
+    saidas.add(h);
+  }
+  saidasDe.set(rotaDe(rel), saidas);
+}
+for (const q of quebrados) falhas.push(q);
+
+/* ------------------------------------------- caminhada a partir da porta --- */
+const alcancadas = new Set(["/"]);
+const fila = ["/"];
+while (fila.length) {
+  const atual = fila.shift();
+  for (const alvo of saidasDe.get(atual) || []) {
+    const destino = redirs.get(alvo) || alvo;
+    if (alcancadas.has(destino)) continue;
+    alcancadas.add(destino);
+    fila.push(destino);
   }
 }
 
@@ -126,25 +263,34 @@ let linkadas = 0, retidas = 0, excecoes = 0;
 for (const rel of paginas.sort()) {
   const rota = rotaDe(rel);
   if (rota === "/") continue;                          /* a raiz e a porta; ninguem a linka */
-  if (naoPublica(rel)) { retidas += 1; notas.push(`${rota.padEnd(14)} retida por .vercelignore — nao publica`); continue; }
-  if (apontadas.has(rota)) { linkadas += 1; continue; }
+  if (naoPublica(rel)) { retidas += 1; notas.push(`${rota.padEnd(28)} retida por .vercelignore — nao publica`); continue; }
+  if (alcancadas.has(rota)) { linkadas += 1; continue; }
   if (EXCECOES[rota]) {
     excecoes += 1;
-    notas.push(`${rota.padEnd(14)} ORFA DECLARADA · ${EXCECOES[rota]}`);
+    notas.push(`${rota.padEnd(28)} ORFA DECLARADA · ${EXCECOES[rota]}`);
     continue;
   }
-  falhas.push(`${rota} publica e nenhuma pagina do site aponta para ela (${rel}). ` +
+  falhas.push(`${rota} publica e NAO SE CHEGA NELA caminhando desde / (${rel}). ` +
     "Pagina que ninguem alcanca e pagina que ninguem rele — e ela serve o que estiver " +
     "escrito nela ate alguem lembrar que existe. Linke-a, ponha-a em .vercelignore, ou " +
     "declare-a em EXCECOES com o motivo.");
 }
 
 /* Uma excecao que sobrou depois de o caminho sumir e uma frase orfa sobre uma
-   pagina orfa. */
+   pagina orfa. Tres formas de sobrar, e as tres mentem do mesmo jeito:
+   a pagina nao existe, a pagina foi RETIRADA do ar, ou a pagina voltou a ser
+   alcancavel e a divida ja foi paga. */
 for (const rota of Object.keys(EXCECOES)) {
-  if (!paginas.some((rel) => rotaDe(rel) === rota)) {
+  const rel = paginas.find((r) => rotaDe(r) === rota);
+  if (!rel) {
     falhas.push(`EXCECOES declara ${rota}, e nenhuma pagina responde nessa rota — ` +
       "excecao para pagina que nao existe so serve para envelhecer.");
+  } else if (naoPublica(rel)) {
+    falhas.push(`EXCECOES declara ${rota}, que o .vercelignore RETEM — pagina que nao publica ` +
+      "nao e orfa, e ausente. Tire a entrada.");
+  } else if (alcancadas.has(rota)) {
+    falhas.push(`EXCECOES declara ${rota}, e chega-se nela caminhando desde / — a divida foi ` +
+      "paga e a declaracao ficou. Tire a entrada.");
   }
 }
 

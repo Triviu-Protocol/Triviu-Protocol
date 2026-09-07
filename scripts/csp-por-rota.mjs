@@ -1,0 +1,193 @@
+/* A CSP DEIXOU DE SER UMA SO · 2026-09-07
+ * ---------------------------------------------------------------------------
+ * Ate aqui `vercel.json` tinha UM bloco de header, `/(.*)`, e os portoes liam
+ * `headers[0]` porque headers[0] era tudo que existia. Agora sao 17 blocos: os
+ * 5 modelos oficiais precisam, cada um, de uma politica propria, e as rotas que
+ * assinam continuam na severa.
+ *
+ * Um portao que continue lendo `headers[0]` fica VERDE sobre 16 blocos que
+ * nunca olhou. Isso e pior do que o afrouxamento que ele existe para vigiar —
+ * e a forma de defeito que esta casa ja pagou antes: guardiao verde afirmando
+ * cobertura que nao tem.
+ *
+ * Este modulo e a fonte unica de "qual politica chega em qual rota". Foi
+ * escrito contra MEDICAO, nao contra a documentacao:
+ *
+ *   deploy dpl_HnyeuwfUdgPC9vmudLhtJ5zFHcQE, 27 rotas conferidas com
+ *   `vercel curl -sI`. Duas descobertas que a leitura do vercel.json nao dava:
+ *
+ *   1. Quando dois blocos casam a mesma rota, vence o ULTIMO. `/` recebeu a
+ *      politica do modelo, nao a do `/(.*)` que vem antes.
+ *   2. `cleanUrls` + `trailingSlash` NAO produzem sempre `/x/`. Nome cujo miolo
+ *      tem PONTO (TRIVIU-Console-V5.4.3) a Vercel trata como arquivo com
+ *      extensao, e a rota canonica sai SEM barra final; a com barra devolve 308.
+ *      Tres modelos foram ao preview servindo a politica severa por causa disso,
+ *      e teriam ido a producao sem arrancar.
+ */
+import { createHash } from "node:crypto";
+import { readFileSync, existsSync } from "node:fs";
+import { join, relative, sep } from "node:path";
+
+/** "script-src 'self' x; img-src 'self'" -> { "script-src": ["'self'","x"], … } */
+export function diretivasDe(csp) {
+  const d = {};
+  for (const parte of String(csp || "").split(";")) {
+    const t = parte.trim().split(/\s+/).filter(Boolean);
+    if (t.length) d[t[0].toLowerCase()] = t.slice(1);
+  }
+  return d;
+}
+
+/** O hash CSP de um bloco inline, na forma que a diretiva usa. */
+export function hashCsp(texto) {
+  return `'sha256-${createHash("sha256").update(texto, "utf8").digest("base64")}'`;
+}
+
+/** `source` do vercel.json casa com a rota? `(.*)` e o unico curinga em uso. */
+export function casa(source, rota) {
+  if (!source.includes("(")) return source === rota;
+  /* SEM SENTINELA, e a razao e um defeito medido.
+     A primeira versao protegia o `(.*)` trocando-o por uma marca antes de
+     escapar os metacaracteres. A ferramenta que escreveu este arquivo
+     converteu o escape da marca em BYTE NUL literal — o git passou a
+     classificar como binario o modulo do qual TODOS os portoes dependem: sem
+     diff, sem blame, sem revisao por linha, e `* text=auto` nunca normaliza
+     binario.
+     Partir na string literal e escapar cada pedaco dispensa a marca. Nao ha
+     caractere reservado para alguem estragar depois. */
+  const re = new RegExp(
+    "^" + source.split("(.*)")
+      .map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+      .join("(.*)") + "$"
+  );
+  return re.test(rota);
+}
+
+/**
+ * A rota que um arquivo de `site/` SERVE, sob cleanUrls + trailingSlash.
+ * A regra do ponto foi medida, nao deduzida — ver cabecalho.
+ */
+export function rotaDoArquivo(relPosix) {
+  if (relPosix === "index.html") return "/";
+  if (relPosix.endsWith("/index.html")) return "/" + relPosix.slice(0, -"index.html".length);
+  const miolo = relPosix.slice(0, -".html".length);
+  const ultimo = miolo.split("/").pop();
+  return ultimo.includes(".") ? "/" + miolo : "/" + miolo + "/";
+}
+
+/** Todos os blocos de header, na ordem em que estao no arquivo. */
+export function blocos(cfg) {
+  return (cfg.headers || []).map((b) => ({
+    source: b.source,
+    csp: (b.headers || []).find((h) => h.key.toLowerCase() === "content-security-policy")?.value,
+    headers: b.headers || [],
+  }));
+}
+
+/** A politica que a BORDA entrega nesta rota: ultimo bloco que casa e tem CSP. */
+export function politicaDaRota(cfg, rota) {
+  let achada = null;
+  for (const b of blocos(cfg)) if (b.csp && casa(b.source, rota)) achada = b;
+  return achada;
+}
+
+/* Marcadores de acesso a carteira. Sem provedor EIP-1193 a pagina nao consegue
+   PEDIR assinatura — e a proibicao do F-3 e sobre a tela que assina, nao sobre
+   toda tela. Quem decide nao e o nome do arquivo: e o que o codigo alcanca. */
+const CARTEIRA = [
+  "window.ethereum", "ethereum.request", "eth_requestAccounts", "eth_sendTransaction",
+  "eth_signTypedData", "personal_sign", "eth_sign", "WalletConnect", "walletconnect",
+];
+
+/**
+ * A pagina pode chegar a uma assinatura? Le o HTML E os .js de mesma origem
+ * que ela carrega — o marcador quase nunca esta no HTML, esta no script.
+ */
+export function podeAssinar(html, arquivoAbs, SITE) {
+  const provas = [];
+  const varrer = (texto, onde) => {
+    for (const m of CARTEIRA) if (texto.includes(m)) provas.push(`${onde}: ${m}`);
+  };
+  varrer(html, "html");
+  for (const m of html.matchAll(/<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["']/gi)) {
+    const src = m[1];
+    if (/^(https?:)?\/\//.test(src)) continue;
+    const p = src.startsWith("/")
+      ? join(SITE, src.slice(1))
+      : join(arquivoAbs, "..", src);
+    if (existsSync(p)) varrer(readFileSync(p, "utf8"), relative(SITE, p).split(sep).join("/"));
+  }
+  return { assina: provas.length > 0, provas: [...new Set(provas)] };
+}
+
+/**
+ * O HTML sem o conteudo de <script>. CSS dentro de script e STRING, nao
+ * marcacao — o navegador nunca a analisa como estilo, e conta-la como estilo
+ * inline produz alarme falso. As ilhas `__bundler/*` do Site sao exatamente
+ * isso: JSON com um template dentro.
+ */
+export function semScripts(html) {
+  return html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ");
+}
+
+/**
+ * O HTML que o navegador acaba TENDO, e nao o que o arquivo mostra.
+ *
+ * O Site e um artefato de bundler: a pagina inteira — cabecalho, secoes,
+ * rodape e TODA a navegacao — vive como string JSON dentro de
+ * `<script type="__bundler/template">`, e o carregador troca o
+ * `document.documentElement` por ela. Quem le so o arquivo com os scripts
+ * removidos ve um documento praticamente vazio e conclui que o Site nao linka
+ * para lugar nenhum — foi o que aconteceu com o portao de orfas, que declarou
+ * cinco rotas inalcancaveis enquanto o navegador chegava nelas.
+ *
+ * ATENCAO ao que este helper NAO serve: contar estilo. Os `style=` do template
+ * nao passam pela CSP, porque o carregador monta aquele HTML com `DOMParser`,
+ * que nao e contexto de navegacao e nao aplica politica; depois os nos sao
+ * apenas movidos, e mover no nao re-dispara a checagem. Medido: 756 atributos
+ * vivos no ar com ZERO hash de atributo autorizando-os. Somar o template a
+ * conta do F-3 produziria 603 alarmes falsos.
+ */
+export function htmlRenderizado(bruto) {
+  let s = semScripts(bruto);
+  const m = bruto.match(/<script[^>]*type="__bundler\/template"[^>]*>([\s\S]*?)<\/script>/i);
+  if (m) {
+    try { s += "\n" + JSON.parse(m[1]); } catch { /* ilha ilegivel: fica so o resto */ }
+  }
+  return s;
+}
+
+export function lerConfig(raiz) {
+  return JSON.parse(readFileSync(join(raiz, "vercel.json"), "utf8"));
+}
+
+/**
+ * Um julgador que precisa dizer "isto quebra em producao" tem de saber o que
+ * CHEGA a producao. Estes portoes andavam o disco inteiro e julgavam tambem o
+ * que o `.vercelignore` retem — e ai a conta inverte de sinal: a pagina retida
+ * nao tem rota, cai na politica generica e aparece como dezenas de falhas que
+ * ninguem pode consertar porque nao existem no ar.
+ *
+ * Apareceu em 2026-09-07, quando `/console-v55/` deixou de ter bloco proprio:
+ * 34 falhas de CSP e 78 de estilo, todas sobre bytes que nao sao publicados.
+ *
+ * Falha FECHADA ao contrario do esperado: se o `.vercelignore` nao puder ser
+ * lido, NAO se assume que tudo publica — assume-se, porque assumir o contrario
+ * calaria o portao sobre o site inteiro. Um `.vercelignore` ilegivel e problema
+ * do portao de orfas, que ja reprova nesse caso.
+ */
+export function retidos(raiz) {
+  const p = join(raiz, ".vercelignore");
+  if (!existsSync(p)) return [];
+  return readFileSync(p, "utf8")
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("#"))
+    .map((l) => l.replace(/\/+$/, ""));
+}
+
+/** `relSite` e o caminho relativo a site/, com barras normais. */
+export function naoPublica(listaRetidos, relSite) {
+  const p = "site/" + relSite;
+  return listaRetidos.some((i) => p === i || p.startsWith(i + "/"));
+}

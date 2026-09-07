@@ -31,6 +31,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
+import { retidos, naoPublica } from "./csp-por-rota.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const JS = join(RAIZ, "site", "js");
@@ -60,8 +61,15 @@ const idsHtml = new Set(
   [...readFileSync(HTML, "utf8").matchAll(/id="(lp-[\w-]+)"/g)].map((m) => m[1])
 );
 
+/* 2026-09-07 · so o que PUBLICA. `console-v0.js`, `assinar-v0.js` e mais tres
+   sairam do ar pelo `.vercelignore` e continuam no disco. Eles falam com ids
+   `lp-*` que este portao rastreia — julga-los seria exigir alcance de DOM para
+   codigo que nao e mais servido a ninguem. */
+const RETIDOS = retidos(RAIZ);
+let jsRetidos = 0;
 for (const arq of readdirSync(JS).filter((f) => f.endsWith(".js"))) {
   if (arq === MOTOR) continue;
+  if (naoPublica(RETIDOS, `js/${arq}`)) { jsRetidos += 1; continue; }
   const src = semComentarios(readFileSync(join(JS, arq), "utf8"));
   lidos++;
 

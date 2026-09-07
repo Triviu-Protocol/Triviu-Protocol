@@ -16,7 +16,7 @@ external call, preventing reentrancy. The Gas-Tank withdraw follows it.
 **Chain-agnostic (EVM)** — the contracts are EVM-equivalent, so the same audited
 code runs on any EVM chain by configuration. Polygon is the default; Arbitrum and
 BSC ship with example configs and are modelled in the
-[simulator](https://triviu.vercel.app/simulate). Each chain has its own Tradeoff
+[simulator](../sim/README.md). Each chain has its own Tradeoff
 Record in `/decisions` and its own deploy gate — none is "live" until that gate
 clears. Solana is not EVM and is a deferred sibling protocol, not a config.
 
@@ -25,7 +25,7 @@ clears. Solana is not EVM and is a deferred sibling protocol, not a config.
 **Fee wall** — the pool fees compound over the cycle: for N hops at 0.3% each,
 `0.997^N` (three hops ≈ 0.991, about 0.9% lost before slippage or gas). More hops
 means a taller wall, not more chances. The rate is per-pool — PancakeSwap V2 on BSC
-is 0.25%, not 0.3%. Watch it scale in the [simulator](https://triviu.vercel.app/simulate).
+is 0.25%, not 0.3%. Watch it scale in the [simulator](../sim/README.md).
 
 **Gas-Tank** — a non-custodial, per-user gas-safety reserve; see
 [Section 6](06-gas-tank.md). Not protocol revenue.
@@ -47,11 +47,13 @@ an edge that profits at small size reverts when oversized.
 **Revert** — the atomic, all-or-nothing ending: if the final balance is below
 `principal + minProfit`, the whole transaction unwinds and only gas is spent. The
 most common outcome — published, not hidden. Run a few in the
-[simulator](https://triviu.vercel.app/simulate).
+[simulator](../sim/README.md).
 
 **Simulator** — a client-side model of one A→B→C→A cycle that runs the exact
-execution math, no wallet and no chain. Live at
-[triviu.vercel.app/simulate](https://triviu.vercel.app/simulate).
+execution math, no wallet and no chain. It is **not on the air**: the hosted
+version at /simulate was retired on 2026-09-07 with the rest of the earlier
+site. The math it ran lives in [engine/](../engine/) and is run against a
+local fork following [sim/README.md](../sim/README.md).
 
 **Stateless contract** — a contract that keeps no balance or state between
 transactions. Triviu's executor is stateless, which makes non-custody

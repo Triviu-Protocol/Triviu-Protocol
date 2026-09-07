@@ -59,6 +59,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { webcrypto } from "node:crypto";
+import { retidos, naoPublica } from "./csp-por-rota.mjs";
 
 const RAIZ = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const SITE = join(RAIZ, "site");
@@ -641,10 +642,17 @@ for (const rel of ASSINANTES) provarRegra6(rel);
    reprova se algum deles falar com carteira sem estar sob as quatro checagens.
    Um arquivo novo que abra a carteira e um arquivo novo que passa por aqui. */
 {
+  /* 2026-09-07 · so o que PUBLICA. Este bloco monta o mapa "qual .js cada pagina
+     carrega" para exigir as quatro checagens de quem fala com carteira. Uma
+     pagina retida pelo `.vercelignore` nao carrega nada para ninguem — contar o
+     que ELA carrega faria um .js aposentado aparecer como carregado em producao,
+     e a exigencia recairia sobre byte que nao e servido. */
+  const RETIDOS = retidos(RAIZ);
   const htmls = [];
   (function andar(d) {
     for (const nome of readdirSync(d)) {
       const p = join(d, nome);
+      if (naoPublica(RETIDOS, relative(SITE, p).split(sep).join("/"))) continue;
       if (statSync(p).isDirectory()) andar(p);
       else if (nome.endsWith(".html")) htmls.push(p);
     }

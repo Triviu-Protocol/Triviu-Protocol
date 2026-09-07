@@ -53,6 +53,46 @@ const PORTOES = [
      delas era a unica tela de assinatura provada, e outra declarava na propria
      fonte que a carteira dela era simulada. */
   { nome: "check-paginas-orfas", rede: false },
+  /* Os dois abaixo nasceram do /code-review de 2026-09-07, e guardam a mesma
+     classe de defeito: DECLARACAO que envelhece sem quebrar nada.
+
+     O `.vercelignore` afirmava, em comentario, que `/console/` servia o modelo
+     "byte a byte (sha256 771b657c)". Era verdade quando foi escrito e deixou de
+     ser uma hora depois, quando a cabeca das miniaturas entrou. Ninguem soube:
+     comentario nao roda. Agora toda linha `@afirma` do repositorio e conferida
+     contra o byte — inclusive uma que aponta para BLOB do historico, que e o
+     endereco permanente do console anterior (backup em diretorio temporario nao
+     e backup). */
+  { nome: "check-afirmacoes", rede: false },
+  /* E o sitemap listava 14 URLs das quais ONZE ja nao eram servidas, enquanto
+     SETE rotas vivas — os tres modelos oficiais e o Whitepaper entre elas —
+     faltavam. Sitemap errado nao derruba pagina: so pede que indexem o que a
+     casa tirou do ar. Custa trafego, nao erro, e por isso nenhum portao via.
+     Junto vai canonical/og:url, que em /positions/ apontavam para a rota SEM
+     barra e pagavam um 308 em cada compartilhamento. */
+  { nome: "check-sitemap", rede: false },
+  /* E a mesma classe uma terceira vez, agora no repositorio PUBLICO. O README
+     tem uma tabela chamada "Don't trust: verify" — a tabela cuja funcao literal
+     e mandar a pessoa conferir — e ela apontava para `/simulate`, aposentada
+     horas antes. O glossario do whitepaper mandava para la outras quatro vezes.
+     Ninguem batia em 404: caiam todos na home, sem simulador e sem explicacao.
+
+     Este portao segue cada URL do proprio dominio escrita em `.md` ate o fim da
+     cadeia, modelando a normalizacao de barra da borda e a substituicao de `$1`
+     — as duas coisas que a primeira versao dele errou, acusando pelo motivo
+     errado. Link que so chega por redirecionamento passa, mas sai impresso com
+     o salto ao lado. */
+  { nome: "check-links-doc", rede: false },
+  /* Tres vezes no mesmo dia, tres ferramentas diferentes: uma converteu o
+     escape de U+0000 em NUL e fez `csp-por-rota.mjs` virar BINARIO no git;
+     a crase do PowerShell num here-string interpolado virou FORM FEED no
+     `ci.yml` e o GitHub nao conseguiu parsear o workflow — a corrida falhou em
+     ZERO segundo, sem job nenhum; e uma terceira comeu o `b` de `base` num
+     comentario. Nenhum aparece ao ler o arquivo na tela. So contando bytes.
+
+     Na primeira execucao ele achou outros DOIS que ninguem tinha visto, um
+     deles um NUL dentro do proprio check-csp. */
+  { nome: "check-bytes-de-controle", rede: false },
   /* Os outros conferem o que a tela AFIRMA contra o que os contratos TEM.
      Este confere de onde vem o NUMERO que a tela escreve — e a pergunta que
      nunca tinha sido feita, e por isso um console passou nos dez portoes

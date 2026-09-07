@@ -38,6 +38,7 @@
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
+import { retidos, naoPublica } from "./csp-por-rota.mjs";
 
 const RAIZ = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const SITE = join(RAIZ, "site");
@@ -58,12 +59,22 @@ const DA_CHAIN = [
 const falhas = [];
 const notas = [];
 
+/* 2026-09-07 · so o que PUBLICA. Cinco .js do console anterior continuam no
+   disco e sairam do ar pelo `.vercelignore` — entre eles `console-v0.js`, que
+   escrevia saldo em execucao e e justamente o tipo de codigo que este portao
+   caca. Julga-lo produziria vermelho sobre byte que ninguem baixa, e vermelho
+   inconsertavel treina a ignorar o portao. */
+const RETIDOS = retidos(RAIZ);
 const jsDoSite = [];
+let jsRetidos = 0;
 (function andar(d) {
   for (const nome of readdirSync(d)) {
     const p = join(d, nome);
     if (statSync(p).isDirectory()) andar(p);
-    else if (nome.endsWith(".js")) jsDoSite.push(p);
+    else if (nome.endsWith(".js")) {
+      if (naoPublica(RETIDOS, relative(SITE, p).split(sep).join("/"))) { jsRetidos += 1; continue; }
+      jsDoSite.push(p);
+    }
   }
 })(join(SITE, "js"));
 

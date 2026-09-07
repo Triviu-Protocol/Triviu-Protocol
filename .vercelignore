@@ -5,8 +5,149 @@
 # `vercel --prod`, mesmo sem link nenhum apontando para ele e mesmo sem estar
 # commitado. Estar fora do git nao e estar fora do ar.
 #
-# Hoje nao ha nada retido, e a lista vazia e uma decisao registrada, nao um
-# esquecimento.
+# ─────────────────────────────────────────────────────────────────────────────
+# 2026-09-07 · as quatro COPIAS de alias dos modelos oficiais.
+#
+# Isto NAO e reter conteudo, e a diferenca importa por causa do historico logo
+# abaixo. Nenhuma rota sai do ar: `/labs/`, `/brand/`, `/design-system/` e
+# `/console-v55/` passam a REDIRECIONAR (308, declarado em vercel.json) para o
+# nome canonico do modelo.
+#
+# CORRECAO 2026-09-07, e ela e minha. A linha acima terminava em "que serve os
+# MESMOS bytes — sha256 conferido". Era verdade quando escrevi e deixou de ser
+# uma hora depois, quando o fundador pediu miniatura no link: o bloco de cabeca
+# (titulo, favicon, og/twitter) entrou nos modelos SERVIDOS e nao nestas copias
+# retidas. O par SERVIDO / RETIDO, medido:
+#
+# @afirma site/TRIVIU-Labs-V5.html          sha256=e3359d0beb181d4a bytes=35062
+# @afirma site/labs/index.html              sha256=5eb161bd1d7528d1 bytes=34078
+# @afirma site/TRIVIU-Brandbook-V3.3.html   sha256=dead54b5f73f2fb0 bytes=31428
+# @afirma site/brand/index.html             sha256=173d43c547ce2010 bytes=30323
+# @afirma site/TRIVIU-Design-System-V4.2.html sha256=9aeea19aae1b9298 bytes=33709
+# @afirma site/design-system/index.html     sha256=ab5dbadf0fb90dba bytes=32580
+# @afirma site/console/index.html           sha256=c24eb17b7075473f bytes=200249
+# @afirma site/console-v55/index.html       sha256=771b657cef0907b8 bytes=199263
+#
+# A diferenca esta INTEIRA em uma linha dentro de <head>. O que vem depois de
+# `</head>` e byte a byte identico nos quatro pares (17.207 / 19.679 / 10.688 /
+# 140.542 b, conferidos). O modelo nao foi tocado; ganhou cabeca.
+#
+# Deixo a afirmacao errada aqui, corrigida e nao apagada — e ela e a razao das
+# linhas `@afirma` acima. Um comentario que afirma hash tem de ser CONFERIVEL, e
+# este nao era: envelheceu em uma hora e ninguem soube. Agora
+# scripts/check-afirmacoes.mjs le toda linha `@afirma` do repositorio e reprova
+# quando o arquivo, o hash ou o tamanho nao batem. A ressalva virou portao.
+# Quem pegou a mentira foi o /code-review, e o achado estava certo.
+#
+# O motivo e um defeito medido, nao arrumacao. Os modelos oficiais se cruzam com
+# href RELATIVO (`TRIVIU-Console-V5.4.3.html`). Servido da raiz, isso resolve.
+# Servida a MESMA copia de dentro de `/labs/`, a mesma linha resolve para
+# `/labs/TRIVIU-Console-V5.4.3.html`, que nao existe: 10 links em 404, medidos
+# em grafo_links.py. Consertar dentro do arquivo exigiria reescrever o href do
+# modelo — e o modelo nao se toca. Servir de um lugar so, e redirecionar os
+# outros, conserta os 10 sem mudar um byte do que o fundador mandou.
+#
+# Os quatro arquivos continuam no disco e no git — sao eles proprios o backup,
+# e os `@afirma` acima provam que continuam la com os bytes que tinham.
+site/labs
+site/brand
+site/design-system
+site/console-v55
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# 2026-09-07 · O CONSOLE PASSA A SER UM SO.
+#
+# Direcao do fundador, literal: *"O nosso console e so UM ... e ele tem que ter
+# o final no seu dominio so CONSOLE e substituir esse antigo. Tudo que era
+# antigo, vai sair do ar."*
+#
+# `/console/` passou a servir o MODELO. O console anterior — 101.347 b, oito
+# scripts, o que criava cofre da V0 — sai.
+#
+# Sobre "byte a byte", que era o que esta linha dizia: o corpo e byte a byte
+# (140.542 b identicos ao modelo, conferido). O arquivo inteiro nao e, porque
+# ganhou o bloco de cabeca das miniaturas — 199.263 b / 771b657c no modelo,
+# 200.249 b / c24eb17b no que `/console/` serve hoje.
+#
+# O QUE FOI SOBRESCRITO CONTINUA RECUPERAVEL, e o endereco e permanente:
+#
+# @afirma git:3423f7f59157d241518ead194b3cbb2869da55da sha256=42279ad978ba815b bytes=101347
+#
+# (`git show 3423f7f5 > console-antigo.html` devolve o arquivo.) A copia que eu
+# tinha tirado antes de sobrescrever vivia em AppData\Local\Temp — e backup em
+# diretorio temporario nao e backup. O blob acima esta no historico do proprio
+# repositorio, chega em qualquer clone, e o portao confere que ele ainda existe.
+#
+# O ARQUIVO-FONTE do modelo tambem sai, e nao e contradicao: ele agora vive em
+# `site/console/index.html`, e a rota antiga `/TRIVIU-Console-V5.4.3` vira
+# redirecionamento para `/console/` — assim os links que Labs, Brandbook e
+# Design System ja trazem continuam chegando ao mesmo lugar, so que pelo nome
+# curto que o fundador pediu.
+site/TRIVIU-Console-V5.4.3.html
+#
+# 2026-09-07 · e a mesma regra para o Site: *"O site e somente
+# https://triviu.vercel.app e nao https://triviu.vercel.app/TRIVIU-Site-V6/"*.
+# O modelo do Site ja e servido em `/` por `site/index.html`; a segunda copia no
+# nome longo sai do ar e a rota vira redirecionamento para a raiz, para que os
+# links que Labs, Brandbook e Design System trazem continuem chegando.
+site/TRIVIU-Site-V6.html
+#
+# Os .js que SO o console antigo carregava. Medido em inventario_antigo.py:
+# `abi-v0-console.js` e `motor.js` FICAM, porque /cofre/ ainda os usa (o
+# /calldata/, que tambem os usava, saiu do ar mais abaixo nesta mesma onda);
+# estes cinco nao sao usados por mais ninguem. `home.js` ja nao era usado
+# por pagina nenhuma antes desta onda.
+#
+# Sai com eles a divida TUBARAO-07: os 49 `style=` que console-v0.js escrevia em
+# execucao e a CSP recusava viviam neste arquivo. Deixa de existir em vez de
+# ficar declarada.
+site/js/console-v0.js
+site/js/console-v0-boot.js
+site/js/assinar-v0.js
+site/js/keccak.js
+site/js/home.js
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# 2026-09-07 · O CONTEUDO DO SITE ANTERIOR SAI DO AR.
+#
+# Direcao do fundador: *"tira as seis do ar - so preserva o Whitepaper"*. Das
+# seis que eu tinha listado, `/whitepaper/` FICA. Saem 11 paginas em 5 grupos.
+#
+# Nao viram 404: cada rota passa a REDIRECIONAR para `/`. Onze links apontavam
+# para elas de `/calldata/`, `/lp/` e `/positions/` — os itens de nav foram
+# removidos depois, e `/calldata/` e `/lp/` sairam do ar nesta mesma onda; o
+# redirecionamento fica para quem tiver a URL guardada. Quem tiver a URL guardada tambem chega a
+# algum lugar em vez de bater no vazio.
+site/learn
+site/dashboard
+site/chains
+site/simulate
+site/safety
+#
+# os .js que ficavam sem dono nenhum depois dessas paginas sairem
+site/js/safety.js
+site/js/simulate.js
+site/js/tema.js
+#
+# as folhas de estilo delas, mais duas que ja nao tinham dono: `console-v0.css`
+# era do console anterior e `index.css` era da home anterior
+site/vendor/estilos/chains.css
+site/vendor/estilos/console-v0.css
+site/vendor/estilos/dashboard.css
+site/vendor/estilos/index.css
+site/vendor/estilos/learn.css
+site/vendor/estilos/learn-amm.css
+site/vendor/estilos/learn-cycle.css
+site/vendor/estilos/learn-fee-wall.css
+site/vendor/estilos/learn-mev.css
+site/vendor/estilos/learn-run.css
+site/vendor/estilos/learn-safety.css
+site/vendor/estilos/safety.css
+site/vendor/estilos/simulate.css
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# Antes disto a lista estava vazia, e a lista vazia era uma decisao registrada,
+# nao um esquecimento.
 #
 # ─────────────────────────────────────────────────────────────────────────────
 # HISTORICO · site/v0/ esteve retido por algumas horas em 2026-08-23.
@@ -36,3 +177,63 @@
 #
 # Retencao levantada no mesmo dia. Quem guarda o lugar dela agora e
 # scripts/check-paginas-orfas.mjs, que exige que /v0/ esteja na navegacao.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# 2026-09-07 · A LINHA ANTIGA SAI DO AR, E O CONSOLE VOLTA A SER UM SO.
+#
+# Direcao permanente do fundador, literal: *"O nosso console e so UM"* e *"Tudo
+# que era antigo, vai sair do ar."*
+#
+# Medido, e e a medicao que decide — nao a arrumacao:
+#
+#   /lp/        65 botoes (btnDep, btnWd, btnLqAdd, btnLqRem), console-lp.js com
+#               5x eth_sendTransaction, <title> "Triviu · Console"
+#   /calldata/  console.js com 4x eth_sendTransaction, <title> "Triviu · Console
+#               · read, encode, freeze, sign"
+#
+# As duas ASSINAM contra a linha ANTIGA — TriviuLPVault 0xC52BaD28, taxa de 30%
+# DO LUCRO — enquanto o produto e a V0, 0,5% DO NEGOCIADO. Duas linhas vivas com
+# bases de taxa que nem se comparam, e as duas se chamando "Console".
+#
+# A UNICA objecao possivel era dinheiro preso. Medida contra a chain no bloco
+# 93.390.566: o TriviuLPVault guarda 0 POL, 0 USDC, 0 USDC.e, 0 WETH, 0 WMATIC.
+# O proprio livro de enderecos diz por escrito que o usuario detem a posicao e
+# que o contrato nunca e `ownerOf`. Nao ha custodia. Ninguem fica sem porta.
+#
+# `/positions/` FICA: positions.js tem ZERO eth_sendTransaction — ela so LE, e
+# tirar uma leitura nao protege ninguem; custa uma ferramenta a quem detem a
+# propria posicao.
+#
+# Nao viram 404: as duas passam a REDIRECIONAR para /console/.
+site/lp
+site/calldata
+#
+# os .js e .css que SO essas duas carregavam
+site/js/abi-console.js
+site/js/console-app.js
+site/js/console-lp.js
+site/js/console.js
+site/vendor/estilos/calldata.css
+site/vendor/estilos/console.css
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# 2026-09-07 · DIVIDA HERDADA: 10 assets que JA nao tinham dono antes desta onda.
+#
+# Medido A/B com a mesma regua: com e sem a retencao acima. Estes dez ja estavam
+# orfaos — sao o build do site ANTERIOR (V7 / V5.5 / V6 / whitepaper-v1), que os
+# modelos oficiais substituiram, mais um stub de API da /safety/ aposentada.
+#
+# `three-r128.min.js` merece a linha propria: 603.445 b que NINGUEM carrega, e o
+# check-csp.mjs pinava o SRI dele em toda execucao. Portao que confere byte que
+# nao publica julga o que nao existe no ar — a mesma classe de defeito que esta
+# onda fechou em outros quatro portoes. O pino sai junto com o arquivo.
+site/api/safety.js
+site/assets/triviu-console-v5.5.css
+site/assets/triviu-console-v5.5.js
+site/assets/triviu-design-system-brandbook-v1.css
+site/assets/triviu-labs-v6.css
+site/assets/triviu-labs-v6.js
+site/assets/triviu-site-v7.css
+site/assets/triviu-site-v7.js
+site/assets/triviu-whitepaper-v1.css
+site/vendor/three-r128.min.js

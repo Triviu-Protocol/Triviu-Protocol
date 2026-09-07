@@ -32,7 +32,8 @@
  * so a regression fails CI instead of shipping. Run: node scripts/check-multichain-honesty.mjs
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";
-import { join, extname } from "node:path";
+import { join, extname, relative, sep, isAbsolute } from "node:path";
+import { retidos, naoPublica } from "./csp-por-rota.mjs";
 
 const ROOT = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 
@@ -69,11 +70,31 @@ const BANNED = [
   { re: /litepaper[^.\n]{0,40}(canonical|source of truth)/i, why: "litepaper is superseded — the whitepaper is canonical" },
 ];
 
+/* 2026-09-07 · o que o `.vercelignore` retem NAO faz afirmacao a usuario nenhum.
+   Este portao existe para vigiar SUPERFICIE — "claims to users", diz o comentario
+   acima — e uma pagina retida nao tem rota, nao tem leitor e nao pode ser
+   consertada, porque nao existe no ar. Julga-la e medir onde nao passa.
+
+   Depois da onda que aposentou o conteudo anterior, `site/learn/` e as seis
+   filhas, `site/dashboard/`, `site/chains/`, `site/simulate/` e `site/safety/`
+   continuam no disco por decisao registrada (o backup e o proprio arquivo) e
+   carregam copy de marketing de um ciclo que acabou. Sem esta poda, uma frase
+   aposentada reprovaria um portao sobre bytes que ninguem recebe. */
+const RETIDOS = retidos(ROOT);
+const SITE_DIR = join(ROOT, "site");
+
+function retido(p) {
+  const rel = relative(SITE_DIR, p);
+  if (rel.startsWith("..") || isAbsolute(rel)) return false; /* fora de site/ */
+  return naoPublica(RETIDOS, rel.split(sep).join("/"));
+}
+
 function walk(dir) {
   const out = [];
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
     if (EXCLUDE.some((x) => x.test(p))) continue;
+    if (retido(p)) continue;
     const st = statSync(p);
     if (st.isDirectory()) out.push(...walk(p));
     else if (EXT.has(extname(p))) out.push(p);
