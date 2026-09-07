@@ -46,6 +46,13 @@ site/console-v55
 # curto que o fundador pediu.
 site/TRIVIU-Console-V5.4.3.html
 #
+# 2026-09-07 · e a mesma regra para o Site: *"O site e somente
+# https://triviu.vercel.app e nao https://triviu.vercel.app/TRIVIU-Site-V6/"*.
+# O modelo do Site ja e servido em `/` por `site/index.html`; a segunda copia no
+# nome longo sai do ar e a rota vira redirecionamento para a raiz, para que os
+# links que Labs, Brandbook e Design System trazem continuem chegando.
+site/TRIVIU-Site-V6.html
+#
 # Os .js que SO o console antigo carregava. Medido em inventario_antigo.py:
 # `abi-v0-console.js` e `motor.js` FICAM, porque /cofre/ e /calldata/ tambem os
 # usam; estes cinco nao sao usados por mais ninguem. `home.js` ja nao era usado
@@ -59,6 +66,43 @@ site/js/console-v0-boot.js
 site/js/assinar-v0.js
 site/js/keccak.js
 site/js/home.js
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# 2026-09-07 · O CONTEUDO DO SITE ANTERIOR SAI DO AR.
+#
+# Direcao do fundador: *"tira as seis do ar - so preserva o Whitepaper"*. Das
+# seis que eu tinha listado, `/whitepaper/` FICA. Saem 11 paginas em 5 grupos.
+#
+# Nao viram 404: cada rota passa a REDIRECIONAR para `/`. Onze links das paginas
+# que ficam — `/calldata/`, `/lp/` e `/positions/` — apontavam para elas, e sem
+# o redirecionamento os onze morreriam. Quem tiver a URL guardada tambem chega a
+# algum lugar em vez de bater no vazio.
+site/learn
+site/dashboard
+site/chains
+site/simulate
+site/safety
+#
+# os .js que ficavam sem dono nenhum depois dessas paginas sairem
+site/js/safety.js
+site/js/simulate.js
+site/js/tema.js
+#
+# as folhas de estilo delas, mais duas que ja nao tinham dono: `console-v0.css`
+# era do console anterior e `index.css` era da home anterior
+site/vendor/estilos/chains.css
+site/vendor/estilos/console-v0.css
+site/vendor/estilos/dashboard.css
+site/vendor/estilos/index.css
+site/vendor/estilos/learn.css
+site/vendor/estilos/learn-amm.css
+site/vendor/estilos/learn-cycle.css
+site/vendor/estilos/learn-fee-wall.css
+site/vendor/estilos/learn-mev.css
+site/vendor/estilos/learn-run.css
+site/vendor/estilos/learn-safety.css
+site/vendor/estilos/safety.css
+site/vendor/estilos/simulate.css
 #
 # ─────────────────────────────────────────────────────────────────────────────
 # Antes disto a lista estava vazia, e a lista vazia era uma decisao registrada,

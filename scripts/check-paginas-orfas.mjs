@@ -86,25 +86,16 @@ const JA_ERA_ANTES =
    nomeavam. Nao ficam declaradas como divida porque divida paga que continua
    impressa mente tanto quanto divida escondida. */
 const EXCECOES = {
-  "/console/": SEM_NAVEGACAO_NO_MODELO + " ERA alcancavel pelo index anterior — esta e a rota do " +
-    "console da V0, que toca CARTEIRA. O Site liga para o console MODELO " +
-    "(/TRIVIU-Console-V5.4.3), que e o que o fundador chama de console novo; a tela da V0 que " +
-    "assina de verdade continua sem caminho, e este e o item mais caro da lista.",
-  "/cofre/": SEM_NAVEGACAO_NO_MODELO + " ERA alcancavel pelo index anterior.",
-  "/whitepaper/": SEM_NAVEGACAO_NO_MODELO + " ERA alcancavel pelo index anterior.",
-
-  "/learn/": JA_ERA_ANTES,
-  "/learn/amm/": JA_ERA_ANTES,
-  "/learn/cycle/": JA_ERA_ANTES,
-  "/learn/fee-wall/": JA_ERA_ANTES,
-  "/learn/mev/": JA_ERA_ANTES,
-  "/learn/run/": JA_ERA_ANTES,
-  "/learn/safety/": JA_ERA_ANTES,
-  "/safety/": JA_ERA_ANTES,
-  "/dashboard/": JA_ERA_ANTES,
-  "/chains/": JA_ERA_ANTES,
+  /* `/console/` saiu desta lista em 2026-09-07: a home passou a liga-lo, e
+     agora ele serve o modelo oficial. As 11 rotas de `/learn/*`, `/safety/`,
+     `/dashboard/`, `/chains/` e `/simulate/` sairam por outro motivo — foram
+     RETIRADAS do ar por decisao do fundador, e pagina que nao publica nao e
+     orfa: e ausente. Declaracao de divida para pagina retirada envelhece
+     sozinha, e o portao passa a reprovar quem a deixar aqui. */
+  "/cofre/": SEM_NAVEGACAO_NO_MODELO + " ERA alcancavel pelo index anterior · TOCA CARTEIRA.",
+  "/whitepaper/": SEM_NAVEGACAO_NO_MODELO + " ERA alcancavel pelo index anterior · preservado " +
+    "por decisao do fundador quando o resto do conteudo anterior saiu do ar.",
   "/calldata/": JA_ERA_ANTES,
-  "/simulate/": JA_ERA_ANTES,
   "/positions/": JA_ERA_ANTES,
 
   /* Era `/console/` ate 2026-08-24. A rota trocou de dono por decisao do
@@ -285,11 +276,20 @@ for (const rel of paginas.sort()) {
 }
 
 /* Uma excecao que sobrou depois de o caminho sumir e uma frase orfa sobre uma
-   pagina orfa. */
+   pagina orfa. Tres formas de sobrar, e as tres mentem do mesmo jeito:
+   a pagina nao existe, a pagina foi RETIRADA do ar, ou a pagina voltou a ser
+   alcancavel e a divida ja foi paga. */
 for (const rota of Object.keys(EXCECOES)) {
-  if (!paginas.some((rel) => rotaDe(rel) === rota)) {
+  const rel = paginas.find((r) => rotaDe(r) === rota);
+  if (!rel) {
     falhas.push(`EXCECOES declara ${rota}, e nenhuma pagina responde nessa rota — ` +
       "excecao para pagina que nao existe so serve para envelhecer.");
+  } else if (naoPublica(rel)) {
+    falhas.push(`EXCECOES declara ${rota}, que o .vercelignore RETEM — pagina que nao publica ` +
+      "nao e orfa, e ausente. Tire a entrada.");
+  } else if (alcancadas.has(rota)) {
+    falhas.push(`EXCECOES declara ${rota}, e chega-se nela caminhando desde / — a divida foi ` +
+      "paga e a declaracao ficou. Tire a entrada.");
   }
 }
 
