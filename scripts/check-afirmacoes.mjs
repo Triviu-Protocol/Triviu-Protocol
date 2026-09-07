@@ -111,8 +111,30 @@ for (const a of afirmacoes) {
       conteudo = execFileSync("git", ["cat-file", "blob", blob],
         { cwd: RAIZ, maxBuffer: 256 * 1024 * 1024 });
     } catch {
-      falhas.push(`${etiqueta}: blob ausente do historico ` +
-        `(o backup que esta afirmacao promete NAO existe mais)`);
+      /* DUAS causas produzem o mesmo erro, e confundi-las e pior do que nao
+         checar: "o backup sumiu" e alarme de incendio; "esta arvore nao tem o
+         historico" e um detalhe de ambiente.
+
+         Medido em 2026-09-07 na primeira execucao deste portao no CI:
+         `actions/checkout@v4` clona com `fetch-depth: 1`, entao NENHUM blob
+         antigo esta ali. O portao reprovou dizendo que o backup nao existia
+         mais. O backup existia; quem nao existia era o historico.
+
+         Ele continua REPROVANDO — portao que se cala quando nao pode medir
+         passa por engano, e essa e falha catalogada nesta casa. O que muda e
+         que a mensagem diz a verdade e traz o comando que resolve. */
+      let raso = false;
+      try {
+        raso = execFileSync("git", ["rev-parse", "--is-shallow-repository"],
+          { cwd: RAIZ, encoding: "utf8" }).trim() === "true";
+      } catch { /* sem git: cai na mensagem generica */ }
+      falhas.push(raso
+        ? `${etiqueta}: blob nao alcancavel porque esta arvore e um CLONE RASO. ` +
+          `Isto NAO diz que o backup sumiu — diz que o historico nao veio junto. ` +
+          `Resolve com \`git fetch --unshallow\`, ou no CI com ` +
+          `\`actions/checkout@v4\` + \`fetch-depth: 0\`.`
+        : `${etiqueta}: blob ausente do historico numa arvore COMPLETA ` +
+          `(o backup que esta afirmacao promete NAO existe mais)`);
       continue;
     }
   } else {
