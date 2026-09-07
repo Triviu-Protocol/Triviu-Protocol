@@ -232,7 +232,20 @@ for (const p of htmls) {
     falhas.push(`${rel}: a folha da pagina carrega ANTES das utilidades — [hidden] perde para display:flex`);
 }
 
-console.log(`portao F-3 · estilo inline · ${htmls.length} paginas · ${new Set(htmls.map((p) => rotaDoArquivo(relative(SITE, p).split(sep).join("/")))).size} rotas`);
+/* `htmls.length` e o que o disco TEM. As retidas pelo .vercelignore saem no
+   `continue` da linha 123 e nunca foram olhadas — declarar o total como
+   "paginas" era afirmar cobertura que este portao nao tem. Os dois numeros
+   passam a aparecer, e o segundo diz por que. */
+const julgadas = htmls.length - retidas;
+const rotasJulgadas = new Set(
+  htmls
+    .map((p) => relative(SITE, p).split(sep).join("/"))
+    .filter((rel) => !naoPublica(RETIDOS, rel))
+    .map((rel) => rotaDoArquivo(rel))
+).size;
+console.log(`portao F-3 · estilo inline · ${julgadas} pagina(s) JULGADA(S) · ` +
+  `${rotasJulgadas} rota(s)` +
+  (retidas ? ` · ${retidas} nao julgada(s), retida(s) pelo .vercelignore` : ""));
 console.log(`  blocos <style> ........... ${blocosEstilo}`);
 console.log(`  atributos style= ......... ${atributos}`);
 console.log(`  autorizados pela CSP ..... ${autorizados}`);

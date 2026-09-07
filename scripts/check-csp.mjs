@@ -234,7 +234,17 @@ const hostsSubrecurso = new Set();
    ja era tratado assim; `__bundler/manifest`, `__bundler/template` e
    `text/x-dc` sao a mesma coisa — JSON e fonte que um runtime LE com
    querySelector, nao codigo que o parser roda. */
-const EXECUTAVEL = new Set(["", "text/javascript", "application/javascript", "module"]);
+/* Allowlist, e o resto e PULADO — por isso ela precisa listar TODA forma que o
+   navegador executa, nao so as quatro usuais. Uma allowlist estreita nao produz
+   alarme falso: produz SILENCIO, que e pior. Medido em 2026-09-07: no que
+   publica so existem `(sem type)` e as quatro ilhas `__bundler/*`, entao
+   nenhuma das formas abaixo esta em uso hoje. Elas estao aqui para que um
+   `type="application/ecmascript"` amanha seja JULGADO em vez de pulado. */
+const EXECUTAVEL = new Set([
+  "", "text/javascript", "application/javascript", "module",
+  "application/ecmascript", "text/ecmascript",
+  "application/x-javascript", "text/x-javascript", "text/jscript",
+]);
 
 for (const arquivo of htmls) {
   const rel = relative(SITE, arquivo).split(sep).join("/");
@@ -456,5 +466,15 @@ if (falhas.length) {
   for (const f of falhas) console.error("  " + f);
   process.exit(1);
 }
-console.log(`✓ gates de assinatura: CSP script-src 'self' sem inline · ${htmls.length} paginas varridas · zero script de terceiro`);
+/* A linha de sucesso dizia `${htmls.length} paginas varridas`, e htmls.length e o
+   que o disco TEM, nao o que este portao JULGOU: as retidas pelo .vercelignore
+   saem no `continue` da varredura e nunca foram olhadas. Com 38 arquivos retidos,
+   o portao declarava cobertura que nao tinha — a mesma forma de defeito que ele
+   existe para vigiar, um nivel acima. Agora os dois numeros aparecem, e o segundo
+   nomeia o motivo. */
+const julgadas = htmls.length - naoJulgadas;
+console.log(`✓ gates de assinatura: CSP script-src 'self' sem inline · ` +
+  `${julgadas} pagina(s) JULGADA(S)` +
+  (naoJulgadas ? ` · ${naoJulgadas} nao julgada(s), retida(s) pelo .vercelignore` : "") +
+  ` · zero script de terceiro`);
 for (const n of notas) console.log(`  ${n}`);
