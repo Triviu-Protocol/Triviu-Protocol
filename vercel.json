@@ -187,6 +187,41 @@
   ],
   "redirects": [
     {
+      "source": "/TRIVIU-Labs-V5/TRIVIU-Site-V6/",
+      "destination": "/TRIVIU-Site-V6/",
+      "permanent": true
+    },
+    {
+      "source": "/TRIVIU-Labs-V5/TRIVIU-Console-V5.4.3",
+      "destination": "/TRIVIU-Console-V5.4.3",
+      "permanent": true
+    },
+    {
+      "source": "/TRIVIU-Labs-V5/TRIVIU-Console-V5.4.3/",
+      "destination": "/TRIVIU-Console-V5.4.3",
+      "permanent": true
+    },
+    {
+      "source": "/TRIVIU-Labs-V5/TRIVIU-Brandbook-V3.3",
+      "destination": "/TRIVIU-Brandbook-V3.3",
+      "permanent": true
+    },
+    {
+      "source": "/TRIVIU-Labs-V5/TRIVIU-Brandbook-V3.3/",
+      "destination": "/TRIVIU-Brandbook-V3.3",
+      "permanent": true
+    },
+    {
+      "source": "/TRIVIU-Labs-V5/TRIVIU-Design-System-V4.2",
+      "destination": "/TRIVIU-Design-System-V4.2",
+      "permanent": true
+    },
+    {
+      "source": "/TRIVIU-Labs-V5/TRIVIU-Design-System-V4.2/",
+      "destination": "/TRIVIU-Design-System-V4.2",
+      "permanent": true
+    },
+    {
       "source": "/console-v55",
       "destination": "/TRIVIU-Console-V5.4.3",
       "permanent": true

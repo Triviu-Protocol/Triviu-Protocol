@@ -185,23 +185,59 @@ try {
  * E ALCANCE, nao popularidade. "Alguem linka" e fraco: tres paginas que so se
  * linkam entre si formam uma ilha que ninguem chega pela porta. O que se mede
  * aqui e caminhada a partir de `/`. */
+/* O conjunto de rotas REALMENTE servidas — a regua contra a qual todo link e
+   conferido. Nasce do disco, nao de uma lista digitada. */
+const rotas = new Set(paginas.filter((rel) => !naoPublica(rel)).map(rotaDe));
+
 const saidasDe = new Map();
 const quebrados = [];
 for (const rel of paginas) {
   const html = semScripts(readFileSync(join(SITE, rel), "utf8"));
   const saidas = new Set();
-  for (const m of html.matchAll(/href\s*=\s*["']([^"']+)["']/g)) {
+  /* SO O QUE NAVEGA. A primeira versao casava QUALQUER `href=`, e trouxe dois
+     falsos positivos que ensinam coisas diferentes:
+       - `<link rel=stylesheet href="...css">` nao e navegacao, e o alvo dele
+         nao e rota: e arquivo. Cobrar rota de uma folha de estilo e inventar
+         defeito.
+       - no Brandbook o casamento veio de dentro de um bloco de codigo
+         ESCAPADO (`&lt;link ... href="..."&gt;`), que a pagina MOSTRA como
+         exemplo. Nao havia link nenhum ali — havia texto sobre link.
+     Exigir a tag `<a` resolve os dois de uma vez, porque nem folha de estilo
+     nem texto escapado formam uma tag de ancora. */
+  for (const m of html.matchAll(/<a\b[^>]*\shref\s*=\s*["']([^"']+)["']/gi)) {
     let h = m[1].split("#")[0].split("?")[0];
     if (!h || /^[a-z]+:/i.test(h)) continue;           /* http:, mailto:, tel: */
+    if (/\.(css|js|png|jpe?g|svg|gif|webp|ico|woff2?|ttf|pdf|json|zip|txt|xml)$/i.test(h)) continue;
+    /* LINK RELATIVO RESOLVE CONTRA A ROTA SERVIDA, NAO CONTRA O ARQUIVO.
+       Esta linha media contra o caminho do arquivo, e por isso ficou VERDE
+       sobre 12 links mortos em producao. `TRIVIU-Labs-V5.html` mora na raiz,
+       entao `href="TRIVIU-Console-V5.4.3.html"` parecia resolver para um
+       arquivo que existe. Mas a pagina e SERVIDA em `/TRIVIU-Labs-V5/` — com
+       barra, porque `V5` nao tem ponto e `trailingSlash` age — e o navegador
+       resolve contra a barra: `/TRIVIU-Labs-V5/TRIVIU-Console-V5.4.3.html`,
+       que devolve 404. Medido em producao, 2026-09-07.
+       O Brandbook e o Design System escapam pelo motivo oposto: o ponto da
+       versao faz a rota deles perder a barra, e ali o mesmo href resolve na
+       raiz. Dois modelos iguais, destinos diferentes, por causa de um ponto. */
     if (!h.startsWith("/")) {
-      const base = rel.includes("/") ? rel.slice(0, rel.lastIndexOf("/") + 1) : "";
-      const alvo = (base + h).replace(/[^/]+\/\.\.\//g, "");
-      if (!paginas.includes(alvo)) {
-        if (/\.html$/.test(alvo) && !naoPublica(rel))
-          quebrados.push(`${rel} aponta para "${h}", que resolve para ${alvo} e nao existe — 404`);
+      const rotaPag = rotaDe(rel);
+      const base = rotaPag.endsWith("/") ? rotaPag : rotaPag.slice(0, rotaPag.lastIndexOf("/") + 1);
+      let url = (base + h).replace(/\/{2,}/g, "/");
+      while (/[^/]+\/\.\.\//.test(url)) url = url.replace(/[^/]+\/\.\.\//, "");
+      /* O redirecionamento e conferido contra a URL CRUA, antes de virar rota.
+         Uma regra declarada para `/a/b.html` some se eu converter para `/a/b/`
+         primeiro — e some em silencio, deixando o portao vermelho sobre um link
+         que a borda ja conserta. */
+      if (redirs.has(url)) { saidas.add(redirs.get(url)); continue; }
+      const rotaAlvo = url.endsWith(".html") ? rotaDe(url.slice(1)) : url;
+      if (!rotas.has(rotaAlvo) && !redirs.has(rotaAlvo)) {
+        if (!naoPublica(rel))
+          quebrados.push(`${rel} e servida em ${rotaPag} e aponta para "${h}" — o navegador resolve ` +
+            `isso para ${url}, que nao e rota servida nem redirecionamento. Link do proprio modelo ` +
+            "morrendo em 404.");
         continue;
       }
-      saidas.add(rotaDe(alvo));
+      saidas.add(redirs.get(rotaAlvo) || rotaAlvo);
       continue;
     }
     if (h.endsWith(".html")) h = rotaDe(h.slice(1));
