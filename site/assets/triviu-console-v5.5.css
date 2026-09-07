@@ -278,37 +278,3 @@ body[data-experience=professional] .essential-only{display:none}
   padding:10px 12px;color:var(--tx);font:600 .86rem var(--sans);min-height:44px}
 .profile-form textarea{min-height:64px;resize:vertical}
 .profile-form-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
-
-
-
-/* CSP · atributos style= convertidos em classe. `style-src 'self'`
-   sem `unsafe-inline` bloqueia atributo de estilo, nao so <style>. */
-.s-00df60f5{background:var(--triviu-violeta-dark)}
-.s-0d6ae564{font-size:.7rem}
-.s-22ce6341{margin-top:34px}
-.s-269633e5{margin:16px 0 0}
-.s-2bdf8e45{margin-top:18px}
-.s-305f76fb{background:var(--acc-ink);color:var(--acc);border:0}
-.s-37987d4f{font-family:var(--mono);font-size:1.1rem}
-.s-41a4df5e{font-size:1.5rem}
-.s-51377a91{grid-column:1/-1}
-.s-55db2416{justify-content:space-between}
-.s-5f326564{text-align:right}
-.s-614d92a1{background:var(--acc)}
-.s-65be136d{margin-top:17px}
-.s-73cb2565{color:var(--red)}
-.s-83725d2c{flex:1}
-.s-8c97caa1{width:100%;margin-top:16px}
-.s-8e5626de{text-align:center;margin-top:8px}
-.s-92c18f6b{margin-top:16px}
-.s-92fbdd7d{margin-top:19px}
-.s-94867e88{background:var(--blue)}
-.s-a0ba227f{font-size:.75rem}
-.s-a311ec3a{background:${color}}
-.s-a4939a21{background:'+esc(c)+'}
-.s-ab79ea2b{margin:0}
-.s-b0e04d5f{width:100%;margin-top:9px}
-.s-bfcf9040{width:100%;margin-top:12px}
-.s-c53ea1da{margin-top:14px}
-.s-d808995d{background:var(--s3)}
-.s-fe3c94c1{margin-top:9px}

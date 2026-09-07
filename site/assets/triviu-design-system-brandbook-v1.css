@@ -225,28 +225,3 @@ footer{padding:clamp(36px,5vw,56px) 0 clamp(48px,7vw,80px)}
   .triviu-mark__flow{animation:none;stroke-dasharray:none;stroke-dashoffset:0}
   .triviu-mark__base{opacity:0}
 }
-
-
-
-/* CSP · atributos style= convertidos em classe. `style-src 'self'`
-   sem `unsafe-inline` bloqueia atributo de estilo, nao so <style>. */
-.s-00bf4c1e{gap:8px;margin-top:16px}
-.s-1c441993{background:#C13327}
-.s-1eab7ad4{font-size:.75rem;margin-top:10px}
-.s-2a3adb92{background:#F26458}
-.s-2adf3219{background:#52575D}
-.s-457da6bf{--triviu-mark-size:min(220px,60vw)}
-.s-66d8b591{margin-top:24px}
-.s-7175c175{background:#2743C7}
-.s-7e6c341f{background:#237A3B}
-.s-840862dd{background:#FAFAF7}
-.s-859811c5{font-size:.8125rem}
-.s-9f481027{margin-top:12px;font-size:.875rem}
-.s-a0b89b03{background:#7B3FE4}
-.s-bcab7570{background:#E8B23A}
-.s-bfe9c118{background:#4CA364}
-.s-ca5930b4{background:#16181D}
-.s-cd1e6c1a{background:#6E8AFF}
-.s-df928149{margin-top:10px}
-.s-eee3f850{margin-top:20px}
-.s-f454bc46{background:#AF73FF}

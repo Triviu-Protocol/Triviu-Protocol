@@ -168,27 +168,3 @@ main{overflow:clip}.reactor,.reactor-shell{max-width:100%}.hero>*,.section-head>
 @media(max-width:430px){
   .node.one{left:0}.node.two{right:0}.node.three{right:0}.node.four{left:0}
 }
-
-
-
-
-/* CSP · atributos style= convertidos em classe. `style-src 'self'`
-   sem `unsafe-inline` bloqueia atributo de estilo, nao so <style>. */
-.s-1f6d61b3{--state:var(--amber)}
-.s-215a65f8{font-size:1.2rem;margin:8px 0 0}
-.s-22cc25f7{font-size:1.45rem;margin:10px 0 5px}
-.s-2bdf8e45{margin-top:18px}
-.s-329012cb{--state:var(--blue)}
-.s-343354b0{margin-top:14px;font-size:.8rem}
-.s-656b4160{--state:var(--red)}
-.s-73cb2565{color:var(--red)}
-.s-8b02b64b{--state:var(--acc)}
-.s-8c97caa1{width:100%;margin-top:16px}
-.s-ab79ea2b{margin:0}
-.s-b5a671f5{--network:#f3ba2f}
-.s-c76d819d{--network:#8247e5}
-.s-d49c035a{color:color-mix(in srgb,var(--ink) 68%,transparent)}
-.s-dd6de5ec{margin:7px 0 0}
-.s-e1bc9acc{color:var(--blue)}
-.s-e36cf980{color:#201a02}
-.s-f1d26fcc{--network:#28a0f0}
