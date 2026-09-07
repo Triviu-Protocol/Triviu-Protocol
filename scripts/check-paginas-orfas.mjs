@@ -46,7 +46,7 @@
  */
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, sep } from "node:path";
-import { lerConfig, rotaDoArquivo, semScripts } from "./csp-por-rota.mjs";
+import { lerConfig, rotaDoArquivo, htmlRenderizado } from "./csp-por-rota.mjs";
 
 const RAIZ = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const SITE = join(RAIZ, "site");
@@ -68,9 +68,9 @@ const SITE = join(RAIZ, "site");
    toda vez, e a decisao e do fundador — a mesma linha de 2026-08-23 se aplica:
    "Se eu te dei uma arquitetura, e tudo, ela PRECISA SER IGUAL ao que eu dei." */
 const SEM_NAVEGACAO_NO_MODELO =
-  "o modelo oficial do Site nao linka para lugar nenhum (14 href: 12 ancoras + 2 hosts de " +
-  "fonte). Chegar aqui pela navegacao exigiria escrever href dentro do modelo, e o modelo " +
-  "nao se toca. Divida do fundador, nao do pipeline.";
+  "o Site liga para CONSOLE, LABS e BRAND — as tres superficies que o proprio modelo nomeia " +
+  "no cartao #surfaces — e nao liga para esta. Nenhum controle do modelo a menciona, entao " +
+  "linkar exigiria inventar um, e nao inventar e a regra. Divida do fundador, nao do pipeline.";
 
 /* Estas 13 NAO sao consequencia da troca do index — medido A/B: ja eram
    inalcancaveis com o index anterior. O portao antigo nao as via porque media
@@ -81,14 +81,15 @@ const JA_ERA_ANTES =
   "O portao antigo media 'alguem linka' e nao 'chega-se desde /', entao ilha de paginas " +
   "que so se linkam entre si passava. Divida herdada, agora visivel.";
 
+/* As cinco rotas dos modelos SAIRAM desta lista em 2026-09-07, quando os seis
+   `href` do #surfaces passaram a apontar para as superficies que os cartoes ja
+   nomeavam. Nao ficam declaradas como divida porque divida paga que continua
+   impressa mente tanto quanto divida escondida. */
 const EXCECOES = {
-  "/TRIVIU-Site-V6/": SEM_NAVEGACAO_NO_MODELO,
-  "/TRIVIU-Console-V5.4.3": SEM_NAVEGACAO_NO_MODELO,
-  "/TRIVIU-Labs-V5/": SEM_NAVEGACAO_NO_MODELO,
-  "/TRIVIU-Brandbook-V3.3": SEM_NAVEGACAO_NO_MODELO,
-  "/TRIVIU-Design-System-V4.2": SEM_NAVEGACAO_NO_MODELO,
   "/console/": SEM_NAVEGACAO_NO_MODELO + " ERA alcancavel pelo index anterior — esta e a rota do " +
-    "console da V0, que toca carteira; perder o caminho ate ela e o item mais caro desta lista.",
+    "console da V0, que toca CARTEIRA. O Site liga para o console MODELO " +
+    "(/TRIVIU-Console-V5.4.3), que e o que o fundador chama de console novo; a tela da V0 que " +
+    "assina de verdade continua sem caminho, e este e o item mais caro da lista.",
   "/cofre/": SEM_NAVEGACAO_NO_MODELO + " ERA alcancavel pelo index anterior.",
   "/whitepaper/": SEM_NAVEGACAO_NO_MODELO + " ERA alcancavel pelo index anterior.",
 
@@ -192,7 +193,11 @@ const rotas = new Set(paginas.filter((rel) => !naoPublica(rel)).map(rotaDe));
 const saidasDe = new Map();
 const quebrados = [];
 for (const rel of paginas) {
-  const html = semScripts(readFileSync(join(SITE, rel), "utf8"));
+  /* `htmlRenderizado`, e nao `semScripts`: a navegacao inteira do Site mora
+     dentro da ilha `__bundler/template`, e tirar os scripts tirava com ela
+     TODOS os links da home. O portao declarou cinco rotas inalcancaveis
+     enquanto o navegador chegava nelas. */
+  const html = htmlRenderizado(readFileSync(join(SITE, rel), "utf8"));
   const saidas = new Set();
   /* SO O QUE NAVEGA. A primeira versao casava QUALQUER `href=`, e trouxe dois
      falsos positivos que ensinam coisas diferentes:
