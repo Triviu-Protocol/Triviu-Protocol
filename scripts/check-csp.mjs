@@ -29,6 +29,7 @@ import { createHash } from "node:crypto";
 import { join, relative, sep } from "node:path";
 import {
   blocos, casa, diretivasDe, hashCsp, podeAssinar, politicaDaRota, rotaDoArquivo,
+  retidos, naoPublica,
 } from "./csp-por-rota.mjs";
 
 const ROOT = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
@@ -45,6 +46,8 @@ const VENDOR = {
 const falhas = [];
 const notas = [];
 const falhar = (m) => falhas.push(m);
+const RETIDOS = retidos(ROOT);
+let naoJulgadas = 0;
 
 /* ------------------------------------------------------------ vercel.json -- */
 let cfg;
@@ -131,6 +134,10 @@ for (const h of ["Cross-Origin-Opener-Policy", "X-Content-Type-Options", "Referr
       if (statSync(p).isDirectory()) andar(p);
       else if (nome.endsWith(".html")) {
         const relSite = relative(SITE, p).split(sep).join("/");
+        /* Retida pelo .vercelignore nao entra: politica so vale para o que
+           chega a producao, e contar a retida faz um bloco parecer usado
+           quando nao e — e faz a retida aparecer como falha que nao existe. */
+        if (naoPublica(RETIDOS, relSite)) continue;
         paginasPorRota.set(rotaDoArquivo(relSite), p);
       }
     }
@@ -189,6 +196,16 @@ for (const h of ["Cross-Origin-Opener-Policy", "X-Content-Type-Options", "Referr
       const gemeo = b.source.endsWith(".html")
         && [...paginasPorRota.keys()].some((r) =>
           r === semHtml || r === semHtml + "/" || r === semHtml.replace(/index$/, ""));
+      /* Rota que REDIRECIONA e a mesma natureza do gemeo: a resposta e um 308 e
+         o header dela nao alcanca ninguem. Apareceu quando `/labs/`, `/brand/` e
+         `/design-system/` viraram redirecionamento para o nome canonico — o
+         bloco continuou correto e passou a ser inalcancavel. */
+      const redireciona = (cfg.redirects || []).some(
+        (r) => !r.has && (r.source === b.source || r.source === b.source.replace(/\/$/, "")));
+      if (redireciona) {
+        notas.push(`${b.source}: rota que redireciona — devolve 308, o header nao chega a ninguem`);
+        continue;
+      }
       if (gemeo) notas.push(`${b.source}: gemeo de rota servida — sob cleanUrls devolve 308, header nao chega a ninguem`);
       else falhar(`${b.source}: bloco de header ORFAO, nao serve nenhuma pagina nem e gemeo de uma — ` +
         "ou a rota esta errada, ou a pagina sumiu; nos dois casos alguem esta protegido no papel e nao no ar.");
@@ -221,6 +238,7 @@ const EXECUTAVEL = new Set(["", "text/javascript", "application/javascript", "mo
 
 for (const arquivo of htmls) {
   const rel = relative(SITE, arquivo).split(sep).join("/");
+  if (naoPublica(RETIDOS, rel)) { naoJulgadas += 1; continue; }
   const html = readFileSync(arquivo, "utf8");
   const rota = rotaDoArquivo(rel);
   const pol = politicaDaRota(cfg, rota);

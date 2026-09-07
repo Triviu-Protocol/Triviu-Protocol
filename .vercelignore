@@ -29,6 +29,38 @@ site/design-system
 site/console-v55
 #
 # ─────────────────────────────────────────────────────────────────────────────
+# 2026-09-07 · O CONSOLE PASSA A SER UM SO.
+#
+# Direcao do fundador, literal: *"O nosso console e so UM ... e ele tem que ter
+# o final no seu dominio so CONSOLE e substituir esse antigo. Tudo que era
+# antigo, vai sair do ar."*
+#
+# `/console/` passou a servir o MODELO byte a byte (sha256 771b657cef0907b8). O
+# console anterior — 101.347 b, oito scripts, o que criava cofre da V0 — sai.
+# Backup tirado antes de sobrescrever: sha256 42279ad978ba.
+#
+# O ARQUIVO-FONTE do modelo tambem sai, e nao e contradicao: ele agora vive em
+# `site/console/index.html`, e a rota antiga `/TRIVIU-Console-V5.4.3` vira
+# redirecionamento para `/console/` — assim os links que Labs, Brandbook e
+# Design System ja trazem continuam chegando ao mesmo lugar, so que pelo nome
+# curto que o fundador pediu.
+site/TRIVIU-Console-V5.4.3.html
+#
+# Os .js que SO o console antigo carregava. Medido em inventario_antigo.py:
+# `abi-v0-console.js` e `motor.js` FICAM, porque /cofre/ e /calldata/ tambem os
+# usam; estes cinco nao sao usados por mais ninguem. `home.js` ja nao era usado
+# por pagina nenhuma antes desta onda.
+#
+# Sai com eles a divida TUBARAO-07: os 49 `style=` que console-v0.js escrevia em
+# execucao e a CSP recusava viviam neste arquivo. Deixa de existir em vez de
+# ficar declarada.
+site/js/console-v0.js
+site/js/console-v0-boot.js
+site/js/assinar-v0.js
+site/js/keccak.js
+site/js/home.js
+#
+# ─────────────────────────────────────────────────────────────────────────────
 # Antes disto a lista estava vazia, e a lista vazia era uma decisao registrada,
 # nao um esquecimento.
 #

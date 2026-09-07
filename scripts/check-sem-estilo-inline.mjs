@@ -41,7 +41,7 @@ import { join, dirname, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   lerConfig, politicaDaRota, diretivasDe, rotaDoArquivo,
-  hashCsp, podeAssinar, semScripts,
+  hashCsp, podeAssinar, semScripts, retidos, naoPublica,
 } from "./csp-por-rota.mjs";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -74,9 +74,20 @@ const htmls = [];
    tecnica ja existe na casa (classe `u-<sha256>` em /vendor/estilos-inline.css,
    com !important, porque um `style=` vence qualquer regra normal de folha).
    Sair desta lista e decisao do fundador. */
-const ESTILO_GERADO_DECLARADO = {
-  "site/js/console-v0.js": {
-    n: 49,
+/* 2026-09-07 · TUBARAO-07 FECHADO POR REMOCAO, nao por conserto.
+   Os 49 `style=` que `site/js/console-v0.js` escrevia em execucao e a CSP
+   recusava — onze deles carregando dado: largura de barra, cor de estado —
+   sairam do ar junto com o console anterior, quando `/console/` passou a servir
+   o modelo oficial. Divida que deixou de existir nao fica declarada: some.
+   A entrada original esta preservada no git, em dd73ce5.
+
+   A lista fica VAZIA de proposito, e a regra continua armada: qualquer `style=`
+   novo que um script escreva reprova, porque nao ha declaracao que o cubra. */
+const ESTILO_GERADO_DECLARADO = {};
+
+const _EXEMPLO_DE_DECLARACAO = {
+  "site/js/exemplo.js": {
+    n: 0,
     motivo:
       "TUBARAO-07 · aberto 2026-09-07 pelo Tubarao-branco em N2, medindo /console/ NO AR: " +
       "2 atributos no DOM, 1 morto (`padding:var(--s3)`, L4562). A varredura da fonte achou " +
@@ -95,7 +106,9 @@ const ESTILO_GERADO_DECLARADO = {
 
 const falhas = [];
 const notas = [];
-let atributos = 0, blocosEstilo = 0, autorizados = 0, mortos = 0, telasQueAssinam = 0, gerados = 0;
+const RETIDOS = retidos(RAIZ);
+let atributos = 0, blocosEstilo = 0, autorizados = 0, mortos = 0, telasQueAssinam = 0;
+let gerados = 0, retidas = 0;
 /* O mesmo .js e carregado por mais de uma pagina; contar duas vezes daria uma
    divida inflada e uma base que nunca fecha. */
 const jaContado = new Set();
@@ -104,6 +117,10 @@ for (const p of htmls) {
   const bruto = readFileSync(p, "utf8");
   const rel = relative(RAIZ, p).split(sep).join("/");
   const relSite = relative(SITE, p).split(sep).join("/");
+  /* Pagina retida pelo .vercelignore nao chega a producao: nao ha CSP que a
+     recuse porque nao ha resposta. Julga-la produz falha que ninguem pode
+     consertar. */
+  if (naoPublica(RETIDOS, relSite)) { retidas += 1; continue; }
   const rota = rotaDoArquivo(relSite);
 
   const pol = politicaDaRota(cfg, rota);
@@ -221,9 +238,18 @@ console.log(`  atributos style= ......... ${atributos}`);
 console.log(`  autorizados pela CSP ..... ${autorizados}`);
 console.log(`  RECUSADOS pela CSP ....... ${mortos}`);
 console.log(`  telas que podem assinar .. ${telasQueAssinam} (nenhuma delas aceita unsafe-inline de estilo)`);
+console.log(`  retidas fora do ar ....... ${retidas} (nao julgadas: nao chegam a producao)`);
 console.log(`  style= escrito por script  ${gerados} em divida declarada · mudar o numero reprova`);
 for (const [arq, d] of Object.entries(ESTILO_GERADO_DECLARADO))
   console.log(`    ${arq} · ${d.n}\n      ${d.motivo.replace(/(.{95}\S*)\s/g, "$1\n      ")}`);
+
+/* Declaracao para arquivo que NENHUMA pagina publicada carrega e frase orfa
+   sobre divida que ja nao existe — o espelho de esconder divida, e mente do
+   mesmo jeito. Quando o arquivo sai do ar, a declaracao sai com ele. */
+for (const arq of Object.keys(ESTILO_GERADO_DECLARADO))
+  if (!jaContado.has(arq))
+    falhas.push(`ESTILO_GERADO_DECLARADO declara ${arq}, e nenhuma pagina publicada o carrega — ` +
+      "divida que deixou de existir nao fica declarada; tire a entrada.");
 for (const n of notas) console.log("  " + n);
 
 if (falhas.length) {

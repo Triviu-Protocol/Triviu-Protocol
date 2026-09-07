@@ -77,25 +77,7 @@
       ]
     },
     {
-      "source": "/TRIVIU-Console-V5.4.3.html",
-      "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-hashes' 'sha256-+TKpQY3cY7IHnCtKsw+4dJHR9bYccfkG00MJXYpaY3Q=' 'sha256-10GzcKmdLQQKLWJ0+wbeOXYukgKjNn3V7DgpBEIFwmY=' 'sha256-5Mhl11EyHtEDHN89uvGETFt5F4fqZ3fD9oaBZBh7oRw=' 'sha256-8sNaPgld1G+tdF2sW+i7icdJhXCZEhzhA2+6en5+usk=' 'sha256-EjF1XR/LWxh/+mJjrPRXOwPscGLMkmSfl4g/dFsUfDY=' 'sha256-IerscVwpWxaZA3/jixZzDxWi49dezmbWipj4CRmqecA=' 'sha256-Itp+CG9nS31Tihne/0fkGHAEymFGeBi2AteNa0AL5eo=' 'sha256-MjGMY0sY51pfJbiqZODin1RacicuNsWzkMJEJxt8j20=' 'sha256-WeNDMnPehYPgKDtcSRKWYNt0VVwc51WvUnL8O3oBpds=' 'sha256-YW5oBQCyJV/LoNeV+z9AvsQhWz2HfSZJaN8O8BQ9rSk=' 'sha256-kWiKKiSKJSJLvJ7zHvy9+3ZmXlqyZu3c9Q9a+T8n7oI='; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src 'self'; worker-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
-        }
-      ]
-    },
-    {
-      "source": "/TRIVIU-Console-V5.4.3",
-      "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-hashes' 'sha256-+TKpQY3cY7IHnCtKsw+4dJHR9bYccfkG00MJXYpaY3Q=' 'sha256-10GzcKmdLQQKLWJ0+wbeOXYukgKjNn3V7DgpBEIFwmY=' 'sha256-5Mhl11EyHtEDHN89uvGETFt5F4fqZ3fD9oaBZBh7oRw=' 'sha256-8sNaPgld1G+tdF2sW+i7icdJhXCZEhzhA2+6en5+usk=' 'sha256-EjF1XR/LWxh/+mJjrPRXOwPscGLMkmSfl4g/dFsUfDY=' 'sha256-IerscVwpWxaZA3/jixZzDxWi49dezmbWipj4CRmqecA=' 'sha256-Itp+CG9nS31Tihne/0fkGHAEymFGeBi2AteNa0AL5eo=' 'sha256-MjGMY0sY51pfJbiqZODin1RacicuNsWzkMJEJxt8j20=' 'sha256-WeNDMnPehYPgKDtcSRKWYNt0VVwc51WvUnL8O3oBpds=' 'sha256-YW5oBQCyJV/LoNeV+z9AvsQhWz2HfSZJaN8O8BQ9rSk=' 'sha256-kWiKKiSKJSJLvJ7zHvy9+3ZmXlqyZu3c9Q9a+T8n7oI='; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src 'self'; worker-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
-        }
-      ]
-    },
-    {
-      "source": "/console-v55/",
+      "source": "/console/",
       "headers": [
         {
           "key": "Content-Security-Policy",
@@ -187,18 +169,33 @@
   ],
   "redirects": [
     {
+      "source": "/TRIVIU-Console-V5.4.3",
+      "destination": "/console/",
+      "permanent": true
+    },
+    {
+      "source": "/TRIVIU-Console-V5.4.3/",
+      "destination": "/console/",
+      "permanent": true
+    },
+    {
+      "source": "/TRIVIU-Console-V5.4.3.html",
+      "destination": "/console/",
+      "permanent": true
+    },
+    {
       "source": "/TRIVIU-Labs-V5/TRIVIU-Site-V6/",
       "destination": "/TRIVIU-Site-V6/",
       "permanent": true
     },
     {
       "source": "/TRIVIU-Labs-V5/TRIVIU-Console-V5.4.3",
-      "destination": "/TRIVIU-Console-V5.4.3",
+      "destination": "/console/",
       "permanent": true
     },
     {
       "source": "/TRIVIU-Labs-V5/TRIVIU-Console-V5.4.3/",
-      "destination": "/TRIVIU-Console-V5.4.3",
+      "destination": "/console/",
       "permanent": true
     },
     {
@@ -223,12 +220,12 @@
     },
     {
       "source": "/console-v55",
-      "destination": "/TRIVIU-Console-V5.4.3",
+      "destination": "/console/",
       "permanent": true
     },
     {
       "source": "/console-v55/",
-      "destination": "/TRIVIU-Console-V5.4.3",
+      "destination": "/console/",
       "permanent": true
     },
     {
