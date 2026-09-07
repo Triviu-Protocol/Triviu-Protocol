@@ -46,13 +46,66 @@
  */
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, relative, sep } from "node:path";
+import { lerConfig, rotaDoArquivo, semScripts } from "./csp-por-rota.mjs";
 
 const RAIZ = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const SITE = join(RAIZ, "site");
 
 /* Cada excecao e uma divida com nome, nao uma dispensa. O motivo sai na tela em
    toda execucao — de proposito. */
+/* 2026-09-07 · o modelo oficial do Site nao tem navegacao, e isso e um FATO DO
+   MODELO, medido, nao uma opiniao sobre ele: o template carrega 14 `href`
+   distintos, 12 ancoras da propria pagina (#pulse, #journey, #roadmap…) e 2
+   hosts de fonte. Zero link para qualquer outra rota do site.
+
+   Publicar o modelo "sem tirar e nem por" — direcao literal do fundador — custou
+   o alcance de 8 rotas, medido A/B com a MESMA regua contra o index de HEAD
+   (a749509): as 5 rotas dos proprios modelos, mais `/console/`, `/cofre/` e
+   `/whitepaper/`, que penduravam na navegacao do index anterior.
+
+   Nao ha conserto que caiba a quem executa: linkar exige escrever `href` DENTRO
+   do modelo, e o modelo nao se toca. A divida fica declarada aqui, sai impressa
+   toda vez, e a decisao e do fundador — a mesma linha de 2026-08-23 se aplica:
+   "Se eu te dei uma arquitetura, e tudo, ela PRECISA SER IGUAL ao que eu dei." */
+const SEM_NAVEGACAO_NO_MODELO =
+  "o modelo oficial do Site nao linka para lugar nenhum (14 href: 12 ancoras + 2 hosts de " +
+  "fonte). Chegar aqui pela navegacao exigiria escrever href dentro do modelo, e o modelo " +
+  "nao se toca. Divida do fundador, nao do pipeline.";
+
+/* Estas 13 NAO sao consequencia da troca do index — medido A/B: ja eram
+   inalcancaveis com o index anterior. O portao antigo nao as via porque media
+   "alguem linka" em vez de "chega-se desde /", e tres paginas que so se linkam
+   entre si passavam. A regua nova acendeu divida velha; acender nao e criar. */
+const JA_ERA_ANTES =
+  "ja era inalcancavel desde / ANTES da troca do index (medido A/B contra HEAD a749509). " +
+  "O portao antigo media 'alguem linka' e nao 'chega-se desde /', entao ilha de paginas " +
+  "que so se linkam entre si passava. Divida herdada, agora visivel.";
+
 const EXCECOES = {
+  "/TRIVIU-Site-V6/": SEM_NAVEGACAO_NO_MODELO,
+  "/TRIVIU-Console-V5.4.3": SEM_NAVEGACAO_NO_MODELO,
+  "/TRIVIU-Labs-V5/": SEM_NAVEGACAO_NO_MODELO,
+  "/TRIVIU-Brandbook-V3.3": SEM_NAVEGACAO_NO_MODELO,
+  "/TRIVIU-Design-System-V4.2": SEM_NAVEGACAO_NO_MODELO,
+  "/console/": SEM_NAVEGACAO_NO_MODELO + " ERA alcancavel pelo index anterior — esta e a rota do " +
+    "console da V0, que toca carteira; perder o caminho ate ela e o item mais caro desta lista.",
+  "/cofre/": SEM_NAVEGACAO_NO_MODELO + " ERA alcancavel pelo index anterior.",
+  "/whitepaper/": SEM_NAVEGACAO_NO_MODELO + " ERA alcancavel pelo index anterior.",
+
+  "/learn/": JA_ERA_ANTES,
+  "/learn/amm/": JA_ERA_ANTES,
+  "/learn/cycle/": JA_ERA_ANTES,
+  "/learn/fee-wall/": JA_ERA_ANTES,
+  "/learn/mev/": JA_ERA_ANTES,
+  "/learn/run/": JA_ERA_ANTES,
+  "/learn/safety/": JA_ERA_ANTES,
+  "/safety/": JA_ERA_ANTES,
+  "/dashboard/": JA_ERA_ANTES,
+  "/chains/": JA_ERA_ANTES,
+  "/calldata/": JA_ERA_ANTES,
+  "/simulate/": JA_ERA_ANTES,
+  "/positions/": JA_ERA_ANTES,
+
   /* Era `/console/` ate 2026-08-24. A rota trocou de dono por decisao do
      fundador — *"e para por nesse endereco"* — e o console da V0 assumiu
      `/console/`, que e onde quem usa espera encontrar o produto. A linha ANTIGA
@@ -99,25 +152,76 @@ const paginas = [];
   }
 })(SITE);
 
-/* `cleanUrls: true` + `trailingSlash: true` no vercel.json: tanto `a/index.html`
-   quanto `a.html` respondem em `/a/`. As duas formas viram a mesma rota, porque
-   e a mesma URL que o navegador pede. */
-const rotaDe = (rel) =>
-  rel === "index.html" ? "/"
-    : rel.endsWith("/index.html") ? "/" + rel.slice(0, -"index.html".length)
-    : "/" + rel.slice(0, -".html".length) + "/";
+/* A rota que cada arquivo serve vem de `csp-por-rota.mjs`, fonte unica desta
+   casa desde 2026-09-07. O `rotaDe` local que vivia aqui devolvia
+   `/TRIVIU-Console-V5.4.3/`; a Vercel serve `/TRIVIU-Console-V5.4.3`, SEM barra,
+   porque le o ponto da versao como extensao de arquivo. Medido nas 27 rotas do
+   preview dpl_HnyeuwfUdgPC9vmudLhtJ5zFHcQE. Duas regras de rota na mesma casa
+   viram duas verdades, e a que estava errada era esta. */
+const rotaDe = rotaDoArquivo;
 
-/* ------------------------------------------------- para onde se aponta ----- */
-const apontadas = new Set();
+/* Rota que so existe como REDIRECIONAMENTO tambem e alcancavel: quem chega nela
+   chega ao destino. */
+const redirs = new Map();
+try {
+  for (const r of lerConfig(RAIZ).redirects || []) {
+    if (r.has) continue;                               /* condicional a host: outro assunto */
+    if (r.source.includes("(")) continue;              /* curinga: nao resolve para uma rota so */
+    redirs.set(r.source.endsWith("/") || r.source.includes(".") ? r.source : r.source + "/",
+               r.destination);
+  }
+} catch (e) {
+  falhas.push(`vercel.json ilegivel — falha fechada: ${e.message}`);
+}
+
+/* ------------------------------------------------- para onde se aponta ----- *
+ * ABSOLUTO E RELATIVO. Ate 2026-09-07 esta medicao pulava href relativo com o
+ * comentario "fora do alcance desta medicao", e isso deixou de ser verdade no
+ * dia em que os modelos oficiais entraram: eles se cruzam SO por href relativo
+ * (`TRIVIU-Console-V5.4.3.html`). Cinco paginas linkadas apareceriam como orfas,
+ * e — pior — os 10 links relativos QUEBRADOS das copias de alias nao apareceriam
+ * de jeito nenhum, porque o portao nem olhava para eles.
+ *
+ * E ALCANCE, nao popularidade. "Alguem linka" e fraco: tres paginas que so se
+ * linkam entre si formam uma ilha que ninguem chega pela porta. O que se mede
+ * aqui e caminhada a partir de `/`. */
+const saidasDe = new Map();
+const quebrados = [];
 for (const rel of paginas) {
-  const html = readFileSync(join(SITE, rel), "utf8");
-  for (const m of html.matchAll(/href\s*=\s*"([^"]+)"/g)) {
+  const html = semScripts(readFileSync(join(SITE, rel), "utf8"));
+  const saidas = new Set();
+  for (const m of html.matchAll(/href\s*=\s*["']([^"']+)["']/g)) {
     let h = m[1].split("#")[0].split("?")[0];
-    if (!h || /^[a-z]+:/i.test(h)) continue;          /* http:, mailto:, tel: */
-    if (!h.startsWith("/")) continue;                  /* relativo: fora do alcance desta medicao */
+    if (!h || /^[a-z]+:/i.test(h)) continue;           /* http:, mailto:, tel: */
+    if (!h.startsWith("/")) {
+      const base = rel.includes("/") ? rel.slice(0, rel.lastIndexOf("/") + 1) : "";
+      const alvo = (base + h).replace(/[^/]+\/\.\.\//g, "");
+      if (!paginas.includes(alvo)) {
+        if (/\.html$/.test(alvo) && !naoPublica(rel))
+          quebrados.push(`${rel} aponta para "${h}", que resolve para ${alvo} e nao existe — 404`);
+        continue;
+      }
+      saidas.add(rotaDe(alvo));
+      continue;
+    }
     if (h.endsWith(".html")) h = rotaDe(h.slice(1));
-    else if (!h.endsWith("/")) h += "/";
-    apontadas.add(h);
+    else if (!h.endsWith("/") && !h.split("/").pop().includes(".")) h += "/";
+    saidas.add(h);
+  }
+  saidasDe.set(rotaDe(rel), saidas);
+}
+for (const q of quebrados) falhas.push(q);
+
+/* ------------------------------------------- caminhada a partir da porta --- */
+const alcancadas = new Set(["/"]);
+const fila = ["/"];
+while (fila.length) {
+  const atual = fila.shift();
+  for (const alvo of saidasDe.get(atual) || []) {
+    const destino = redirs.get(alvo) || alvo;
+    if (alcancadas.has(destino)) continue;
+    alcancadas.add(destino);
+    fila.push(destino);
   }
 }
 
@@ -126,14 +230,14 @@ let linkadas = 0, retidas = 0, excecoes = 0;
 for (const rel of paginas.sort()) {
   const rota = rotaDe(rel);
   if (rota === "/") continue;                          /* a raiz e a porta; ninguem a linka */
-  if (naoPublica(rel)) { retidas += 1; notas.push(`${rota.padEnd(14)} retida por .vercelignore — nao publica`); continue; }
-  if (apontadas.has(rota)) { linkadas += 1; continue; }
+  if (naoPublica(rel)) { retidas += 1; notas.push(`${rota.padEnd(28)} retida por .vercelignore — nao publica`); continue; }
+  if (alcancadas.has(rota)) { linkadas += 1; continue; }
   if (EXCECOES[rota]) {
     excecoes += 1;
-    notas.push(`${rota.padEnd(14)} ORFA DECLARADA · ${EXCECOES[rota]}`);
+    notas.push(`${rota.padEnd(28)} ORFA DECLARADA · ${EXCECOES[rota]}`);
     continue;
   }
-  falhas.push(`${rota} publica e nenhuma pagina do site aponta para ela (${rel}). ` +
+  falhas.push(`${rota} publica e NAO SE CHEGA NELA caminhando desde / (${rel}). ` +
     "Pagina que ninguem alcanca e pagina que ninguem rele — e ela serve o que estiver " +
     "escrito nela ate alguem lembrar que existe. Linke-a, ponha-a em .vercelignore, ou " +
     "declare-a em EXCECOES com o motivo.");

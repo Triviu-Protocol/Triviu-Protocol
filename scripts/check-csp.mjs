@@ -27,6 +27,9 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join, relative, sep } from "node:path";
+import {
+  blocos, casa, diretivasDe, hashCsp, podeAssinar, politicaDaRota, rotaDoArquivo,
+} from "./csp-por-rota.mjs";
 
 const ROOT = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const SITE = join(ROOT, "site");
@@ -104,6 +107,95 @@ for (const h of ["Cross-Origin-Opener-Policy", "X-Content-Type-Options", "Referr
   if (!cabecalho(h)) falhar(`header ${h} ausente`);
 }
 
+/* ------------------------------------------- GATE 1 nas OUTRAS politicas --- *
+ * O bloco acima julga `/(.*)`. Ele era a CSP inteira ate 2026-09-07; hoje sao
+ * 17 blocos, e um portao que julgue so o primeiro fica VERDE sobre 16 que nunca
+ * olhou. As demais politicas passam por uma versao CONDICIONAL da mesma regra:
+ *
+ *   - `'unsafe-inline'` de SCRIPT continua proibido em toda politica, sem
+ *     excecao. Ele autoriza qualquer script inline, inclusive o injetado.
+ *   - `'unsafe-eval'`, `'unsafe-hashes'` e `'strict-dynamic'` sao permitidos
+ *     APENAS em rota cujas paginas nao alcancam carteira. Onde ha assinatura,
+ *     valem as mesmas proibicoes de sempre.
+ *   - host de terceiro em script-src continua proibido em toda politica.
+ *   - as diretivas de fechamento (`object-src`, `base-uri`, `frame-ancestors`,
+ *     `worker-src`) valem em toda politica.
+ *
+ * Quem decide "pode assinar" nao e o nome da rota: e alcancar um provedor
+ * EIP-1193, medido no HTML e nos .js que ele carrega. */
+{
+  const paginasPorRota = new Map();
+  (function andar(d) {
+    for (const nome of readdirSync(d)) {
+      const p = join(d, nome);
+      if (statSync(p).isDirectory()) andar(p);
+      else if (nome.endsWith(".html")) {
+        const relSite = relative(SITE, p).split(sep).join("/");
+        paginasPorRota.set(rotaDoArquivo(relSite), p);
+      }
+    }
+  })(SITE);
+
+  for (const b of blocos(cfg)) {
+    if (!b.csp || b.source === "/(.*)") continue;
+    const d = diretivasDe(b.csp);
+    const ss = d["script-src"] || [];
+
+    /* quais paginas esta politica realmente serve, e alguma assina? */
+    const servidas = [...paginasPorRota.entries()].filter(([rota]) => casa(b.source, rota));
+    let assina = null;
+    for (const [, arq] of servidas) {
+      const r = podeAssinar(readFileSync(arq, "utf8"), arq, SITE);
+      if (r.assina) { assina = r.provas.join(", "); break; }
+    }
+
+    if (ss.includes("'unsafe-inline'"))
+      falhar(`${b.source}: script-src com 'unsafe-inline' — autoriza QUALQUER script inline, ` +
+        "inclusive o injetado. Nao ha rota em que isso seja aceitavel.");
+
+    for (const perigoso of ["'unsafe-eval'", "'unsafe-hashes'", "'strict-dynamic'"])
+      if (ss.includes(perigoso) && assina)
+        falhar(`${b.source}: script-src com ${perigoso} numa rota que PODE ASSINAR (${assina}) — ` +
+          "afrouxamento so passa onde nao ha assinatura.");
+
+    const externos = ss.filter((f) => /^(https?:)?\/\//.test(f));
+    if (externos.length) falhar(`${b.source}: script-src permite origem de terceiro: ${externos.join(" ")}`);
+
+    /* Com 'strict-dynamic' o `'self'` e IGNORADO pelo navegador — exigi-lo ali
+       seria cobrar um token morto. Sem ele, `'self'` continua obrigatorio. */
+    if (!ss.includes("'strict-dynamic'") && !ss.includes("'self'"))
+      falhar(`${b.source}: script-src nao contem 'self'`);
+
+    for (const [dir, esperado] of [["object-src", "'none'"], ["base-uri", "'none'"],
+                                   ["frame-ancestors", "'none'"], ["worker-src", "'none'"]])
+      if (d[dir]?.[0] !== esperado) falhar(`${b.source}: sem ${dir} ${esperado}`);
+
+    /* Bloco que nao serve nenhuma pagina HOJE tem duas naturezas, e trata-las
+       igual seria impreciso nos dois sentidos:
+
+       a) GEMEO DECLARADO — `/x.html` quando `/x/` e servida. Sob `cleanUrls` o
+          `.html` sempre devolve 308 e o header dele nao chega a ninguem; medido
+          nas 27 rotas do preview dpl_HnyeuwfUdgPC9vmudLhtJ5zFHcQE. Nao e
+          protecao no papel: e a MESMA politica presa no outro nome, para o dia
+          em que `cleanUrls` for desligado e `/x.html` passar a servir. Nota.
+
+       b) ORFAO — bloco que nao casa com nenhuma pagina e nem com o gemeo de uma.
+          Ai alguem esta protegido no papel: a pagina sumiu, ou a rota foi
+          digitada errada e a politica nunca chega. Reprova. */
+    if (servidas.length === 0) {
+      /* `index.html` nao vira `/index`: vira o diretorio. `/index.html` e gemeo
+         de `/`, e `/a/index.html` e gemeo de `/a/`. */
+      const semHtml = b.source.replace(/\.html$/, "");
+      const gemeo = b.source.endsWith(".html")
+        && [...paginasPorRota.keys()].some((r) =>
+          r === semHtml || r === semHtml + "/" || r === semHtml.replace(/index$/, ""));
+      if (gemeo) notas.push(`${b.source}: gemeo de rota servida — sob cleanUrls devolve 308, header nao chega a ninguem`);
+      else falhar(`${b.source}: bloco de header ORFAO, nao serve nenhuma pagina nem e gemeo de uma — ` +
+        "ou a rota esta errada, ou a pagina sumiu; nos dois casos alguem esta protegido no papel e nao no ar.");
+    }
+  }
+}
+
 /* ------------------------------------------------------ varredura do site -- */
 const htmls = [];
 (function andar(d) {
@@ -119,21 +211,38 @@ const atr = (s, nome) => s.match(new RegExp(`${nome}\\s*=\\s*"([^"]*)"`, "i"))?.
 
 const hostsSubrecurso = new Set();
 
+/* Tipos que o navegador EXECUTA. Qualquer outro type e ilha de dados: o
+   navegador nao o "prepara" para execucao, entao o script-src nao o avalia, e
+   contar ilha de dados como script inline e alarme falso. `application/ld+json`
+   ja era tratado assim; `__bundler/manifest`, `__bundler/template` e
+   `text/x-dc` sao a mesma coisa — JSON e fonte que um runtime LE com
+   querySelector, nao codigo que o parser roda. */
+const EXECUTAVEL = new Set(["", "text/javascript", "application/javascript", "module"]);
+
 for (const arquivo of htmls) {
   const rel = relative(SITE, arquivo).split(sep).join("/");
   const html = readFileSync(arquivo, "utf8");
+  const rota = rotaDoArquivo(rel);
+  const pol = politicaDaRota(cfg, rota);
+  if (!pol) { falhar(`${rel}: rota ${rota} nao casa com nenhum bloco de header — falha fechada`); continue; }
+  const dPag = diretivasDe(pol.csp);
+  const ssPag = dPag["script-src"] || [];
+  const hashesPag = new Set(ssPag.filter((f) => f.startsWith("'sha")));
+  const permiteHandler = ssPag.includes("'unsafe-hashes'");
 
   for (const m of html.matchAll(TAG_SCRIPT)) {
     const atributos = m[1];
     const src = atr(atributos, "src");
 
     if (!src) {
-      /* Bloco de dados (ld+json) nao e script executavel: o navegador nao o
-         "prepara" para execucao, entao o script-src nao o avalia. Qualquer
-         outro type inline e script de verdade e quebraria sob 'self'. */
       const tipo = (atr(atributos, "type") || "").toLowerCase();
-      if (tipo !== "application/ld+json")
-        falhar(`${rel}: <script> inline (type="${tipo || "javascript"}") — o CSP desta origem o recusa; extraia para /js/*.js`);
+      if (!EXECUTAVEL.has(tipo)) continue;
+      /* Executavel e inline: so passa se a politica DESTA rota o autorizar pelo
+         conteudo. Hash e o oposto de 'unsafe-inline' — autoriza este bloco, e
+         um byte diferente ja e outro bloco. */
+      if (hashesPag.has(hashCsp(m[2]))) continue;
+      falhar(`${rel}: <script> inline (type="${tipo || "javascript"}") que a CSP de ${rota} RECUSA — ` +
+        "extraia para /js/*.js, ou autorize o bloco por hash sha256 no vercel.json");
       continue;
     }
 
@@ -151,26 +260,42 @@ for (const arquivo of htmls) {
   }
 
   /* Handler em atributo e script inline com outro nome. Sob script-src 'self'
-     ele nao roda, e a falha e silenciosa: o botao simplesmente nao responde. */
-  for (const m of html.matchAll(/\son(?:click|load|error|change|input|submit|focus|blur|keydown|keyup|mouse[a-z]+)\s*=\s*"/gi))
-    falhar(`${rel}: handler inline (${m[0].trim().replace(/=.*/, "")}) — nao executa sob script-src 'self'`);
+     ele nao roda, e a falha e SILENCIOSA: o botao fica na tela, bonito, e nao
+     responde. Foi assim que 12 `onclick` do Console quase foram ao ar mortos —
+     a medicao no navegador nao pegou porque media o que CARREGA, e handler so
+     aparece quando alguem clica. Quem pegou foi este portao.
+     CSP3 autoriza handler por hash, e so com 'unsafe-hashes' na diretiva. */
+  for (const m of html.matchAll(/\son(?:click|load|error|change|input|submit|focus|blur|keydown|keyup|mouse[a-z]+)\s*=\s*"([^"]*)"/gi)) {
+    const evento = m[0].trim().replace(/\s*=.*/s, "");
+    if (permiteHandler && hashesPag.has(hashCsp(m[1]))) continue;
+    falhar(`${rel}: handler inline (${evento}) que a CSP de ${rota} RECUSA — ` +
+      (permiteHandler
+        ? "o valor nao esta entre os hashes autorizados"
+        : "sem 'unsafe-hashes' + hash do valor, ele nao executa e o botao nao responde"));
+  }
 
   for (const m of html.matchAll(/<link\b[^>]*>/gi)) {
     const rel_ = (atr(m[0], "rel") || "").toLowerCase();
     const href = atr(m[0], "href");
     if (!href || !/^(https?:)?\/\//.test(href)) continue;
     if (rel_.includes("stylesheet") || rel_ === "icon" || rel_.includes("preload"))
-      hostsSubrecurso.add(new URL(href.startsWith("//") ? "https:" + href : href).host);
+      hostsSubrecurso.add(`${new URL(href.startsWith("//") ? "https:" + href : href).host} ${rota}`);
   }
 }
 
 /* Todo host de subrecurso tem de estar declarado em ALGUMA diretiva do CSP.
    Um host novo que ninguem liberou nao vira erro de seguranca: vira pagina
    quebrada em producao, que e como um CSP acaba afrouxado as pressas. */
-const permitidos = new Set(Object.values(diretivas).flat().map((f) => f.replace(/^https?:\/\//, "")));
-for (const host of hostsSubrecurso)
+for (const par of hostsSubrecurso) {
+  const [host, rota] = par.split(" ");
+  const pol = politicaDaRota(cfg, rota);
+  const permitidos = new Set(
+    Object.values(diretivasDe(pol?.csp)).flat().map((f) => f.replace(/^https?:\/\//, ""))
+  );
   if (!permitidos.has(host))
-    falhar(`host ${host} e carregado pelo HTML mas nao esta em nenhuma diretiva do CSP — quebraria em producao`);
+    falhar(`${rota} carrega ${host} no HTML e ele nao esta em nenhuma diretiva da CSP DESSA rota — ` +
+      "quebraria em producao");
+}
 
 /* ------------------------------------------- os hosts que o JS BUSCA ------- *
  * O bloco acima confere os hosts que o HTML CARREGA. Isto confere os hosts que

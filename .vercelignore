@@ -5,8 +5,32 @@
 # `vercel --prod`, mesmo sem link nenhum apontando para ele e mesmo sem estar
 # commitado. Estar fora do git nao e estar fora do ar.
 #
-# Hoje nao ha nada retido, e a lista vazia e uma decisao registrada, nao um
-# esquecimento.
+# ─────────────────────────────────────────────────────────────────────────────
+# 2026-09-07 · as quatro COPIAS de alias dos modelos oficiais.
+#
+# Isto NAO e reter conteudo, e a diferenca importa por causa do historico logo
+# abaixo. Nenhuma rota sai do ar: `/labs/`, `/brand/`, `/design-system/` e
+# `/console-v55/` passam a REDIRECIONAR (308, declarado em vercel.json) para o
+# nome canonico do modelo, que serve os MESMOS bytes — sha256 conferido.
+#
+# O motivo e um defeito medido, nao arrumacao. Os modelos oficiais se cruzam com
+# href RELATIVO (`TRIVIU-Console-V5.4.3.html`). Servido da raiz, isso resolve.
+# Servida a MESMA copia de dentro de `/labs/`, a mesma linha resolve para
+# `/labs/TRIVIU-Console-V5.4.3.html`, que nao existe: 10 links em 404, medidos
+# em grafo_links.py. Consertar dentro do arquivo exigiria reescrever o href do
+# modelo — e o modelo nao se toca. Servir de um lugar so, e redirecionar os
+# outros, conserta os 10 sem mudar um byte do que o fundador mandou.
+#
+# Os quatro arquivos continuam no disco e no git; o backup foi tirado antes
+# (sha256 5EB161BD, 173D43C5, AB5DBADF, 771B657C).
+site/labs
+site/brand
+site/design-system
+site/console-v55
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# Antes disto a lista estava vazia, e a lista vazia era uma decisao registrada,
+# nao um esquecimento.
 #
 # ─────────────────────────────────────────────────────────────────────────────
 # HISTORICO · site/v0/ esteve retido por algumas horas em 2026-08-23.
