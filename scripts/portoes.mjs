@@ -83,6 +83,16 @@ const PORTOES = [
      errado. Link que so chega por redirecionamento passa, mas sai impresso com
      o salto ao lado. */
   { nome: "check-links-doc", rede: false },
+  /* Tres vezes no mesmo dia, tres ferramentas diferentes: uma converteu o
+     escape de U+0000 em NUL e fez `csp-por-rota.mjs` virar BINARIO no git;
+     a crase do PowerShell num here-string interpolado virou FORM FEED no
+     `ci.yml` e o GitHub nao conseguiu parsear o workflow — a corrida falhou em
+     ZERO segundo, sem job nenhum; e uma terceira comeu o `b` de `base` num
+     comentario. Nenhum aparece ao ler o arquivo na tela. So contando bytes.
+
+     Na primeira execucao ele achou outros DOIS que ninguem tinha visto, um
+     deles um NUL dentro do proprio check-csp. */
+  { nome: "check-bytes-de-controle", rede: false },
   /* Os outros conferem o que a tela AFIRMA contra o que os contratos TEM.
      Este confere de onde vem o NUMERO que a tela escreve — e a pergunta que
      nunca tinha sido feita, e por isso um console passou nos dez portoes

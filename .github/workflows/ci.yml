@@ -62,7 +62,7 @@ jobs:
       # fetch-depth: 0 nao e capricho. check-afirmacoes.mjs confere uma
       # afirmacao @afirma git:<blob> que aponta para o console anterior no
       # HISTORICO — o endereco permanente do backup, que atravessa qualquer
-      # clone. Com o padrao (etch-depth: 1) o blob nao vem, e o portao
+      # clone. Com o padrao (fetch-depth: 1) o blob nao vem, e o portao
       # reprova por falta de historico e nao por falta de backup.
       #
       # Medido: primeira execucao deste portao no CI, 2026-09-07, run

@@ -231,7 +231,10 @@ const htmls = [];
 const TAG_SCRIPT = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
 const atr = (s, nome) => s.match(new RegExp(`${nome}\\s*=\\s*"([^"]*)"`, "i"))?.[1];
 
-const hostsSubrecurso = new Set();
+/* PARES [host, rota], nao strings costuradas: a versao anterior escrevia a
+   chave com um separador e a lia com outro, e o bloco que a consome nunca
+   rodou para denunciar. Par nao tem separador para errar. */
+const hostsSubrecurso = [];
 
 /* Tipos que o navegador EXECUTA. Qualquer outro type e ilha de dados: o
    navegador nao o "prepara" para execucao, entao o script-src nao o avalia, e
@@ -281,7 +284,7 @@ for (const arquivo of htmls) {
 
     if (/^(https?:)?\/\//.test(src)) {
       const host = new URL(src.startsWith("//") ? "https:" + src : src).host;
-      hostsSubrecurso.add(host);
+      hostsSubrecurso.push([host, rota]);
       /* GATE 2 + GATE 3: script de terceiro so passa com SRI — e mesmo com SRI
          ele continua sendo terceiro executando nesta origem, que e exatamente o
          que o gate 3 nao quer ao lado de uma pagina que assina. */
@@ -312,15 +315,16 @@ for (const arquivo of htmls) {
     const href = atr(m[0], "href");
     if (!href || !/^(https?:)?\/\//.test(href)) continue;
     if (rel_.includes("stylesheet") || rel_ === "icon" || rel_.includes("preload"))
-      hostsSubrecurso.add(`${new URL(href.startsWith("//") ? "https:" + href : href).host} ${rota}`);
+      hostsSubrecurso.push([
+        new URL(href.startsWith("//") ? "https:" + href : href).host, rota,
+      ]);
   }
 }
 
 /* Todo host de subrecurso tem de estar declarado em ALGUMA diretiva do CSP.
    Um host novo que ninguem liberou nao vira erro de seguranca: vira pagina
    quebrada em producao, que e como um CSP acaba afrouxado as pressas. */
-for (const par of hostsSubrecurso) {
-  const [host, rota] = par.split(" ");
+for (const [host, rota] of hostsSubrecurso) {
   const pol = politicaDaRota(cfg, rota);
   const permitidos = new Set(
     Object.values(diretivasDe(pol?.csp)).flat().map((f) => f.replace(/^https?:\/\//, ""))

@@ -4790,7 +4790,7 @@ async function prontidaoParaOperar(){
     'setStrategy(address) — assinado por voce');
   /* QUEM PAGA O GAS DE UM CICLO, e por que nao ha reserva. Medido no contrato:
      _execute exige callerMustBeOperator: true — so o OPERADOR abre posicao —
-     e VaultExecution.sol:239 faz ase.safeTransfer(msg.sender, refund): o
+     e VaultExecution.sol:239 faz base.safeTransfer(msg.sender, refund): o
      cofre REEMBOLSA quem chamou, na moeda-base, na mesma transacao. O operador
      adianta o gas em POL da carteira dele e recebe de volta em USDC.
      Por isso nao existe GasTank nesta linha: o modelo e reembolso, e nao
