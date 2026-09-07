@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title translate="no">TRIVIU — Whitepaper V1</title>
+<meta name="description" content="TRIVIU whitepaper: architecture, economics, seals per feature, measured limitations and version history.">
+<meta name="theme-color" content="#FAFAF7">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 296'%3E%3Cpath d='M75 168 L160 20 L245 168 L104 168' fill='none' stroke='%2316181D' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='75' cy='168' r='16' fill='none' stroke='%2316181D' stroke-width='12'/%3E%3Ccircle cx='160' cy='20' r='16' fill='%2316181D'/%3E%3Ccircle cx='245' cy='168' r='16' fill='%2316181D'/%3E%3Ccircle cx='104' cy='168' r='9' fill='%2316181D'/%3E%3C/svg%3E">
+
+<link href="/vendor/estilos-inline.css" rel="stylesheet">
+<link rel="stylesheet" href="../assets/triviu-whitepaper-v1.css">
+</head>
+<body>
+<a class="skip" href="#doc">Skip to content</a>
+<nav class="top" aria-label="Document">
+  <div class="wrap">
+    <a class="home" href="/"><svg class="triviu-mark triviu-mark--sm" viewBox="0 0 320 296" aria-hidden="true">
+  <path class="triviu-mark__base" d="M75 168 L160 20 L245 168 L104 168"/>
+  <path class="triviu-mark__flow" d="M75 168 L160 20 L245 168 L104 168"/>
+  <circle class="triviu-mark__node triviu-mark__origin" cx="75" cy="168" r="9"/>
+  <circle class="triviu-mark__node" cx="160" cy="20" r="9"/>
+  <circle class="triviu-mark__node" cx="245" cy="168" r="9"/>
+  <circle class="triviu-mark__node" cx="104" cy="168" r="4.5"/>
+</svg><span translate="no">TRIVIU</span></a>
+    <div class="back">
+      <a href="/">Site</a>
+      <a href="/console-v55/">Console</a>
+      <a href="/labs/">Labs</a>
+      <a href="/brand/">Brand</a>
+    </div>
+  </div>
+</nav>
+<header class="cover">
+  <div class="wrap">
+    <p class="num">Whitepaper · V1 · 6 September 2026</p>
+    <h1 translate="no">TRIVIU</h1>
+    <p class="sub">Connected strategies. Autonomy in motion.</p>
+  </div>
+</header>
+<main class="wrap" id="doc">
+<section>
+
+<p><strong>Connected strategies. Autonomy in motion.</strong></p>
+<div class="scroller"><table><thead><tr><th scope="col"></th><th scope="col"></th></tr></thead><tbody><tr><td>Version</td><td><strong>V1</strong></td></tr><tr><td>Date</td><td>6 September 2026</td></tr><tr><td>Status</td><td><strong>Draft of record.</strong> Describes a protocol in transition between two contract generations.</td></tr><tr><td>Language</td><td>English (canonical)</td></tr><tr><td>Licence</td><td>Code AGPL-3.0 · Mark CC BY 4.0</td></tr></tbody></table></div>
+</section><section><h2>How to read this document</h2>
+<p>Every feature carries one seal. The seal is the claim, and the claim is checkable.</p>
+<div class="scroller"><table><thead><tr><th scope="col">Seal</th><th scope="col">Means</th></tr></thead><tbody><tr><td><span class="seal seal--verified">IMPLEMENTED</span></td><td>Code exists and runs.</td></tr><tr><td><span class="seal seal--verified">VALIDATED</span></td><td>Code exists, runs, and a passing test or audit is named.</td></tr><tr><td><span class="seal seal--action">INTEGRATION_READY</span></td><td>Built and tested, waiting to be wired to a surface or a source.</td></tr><tr><td><span class="seal seal--cost">PLANNED</span></td><td>Specified. <strong>No code implements it.</strong></td></tr><tr><td><span class="seal seal--risk">ILLUSTRATIVE</span></td><td>An example, chosen to demonstrate arithmetic. Never a record of anything that happened.</td></tr><tr><td><span class="seal seal--muted">DEPRECATED</span></td><td>Exists, works, and is being replaced.</td></tr></tbody></table></div>
+<p><strong>One thing this document will not do:</strong> describe the target architecture as though it already runs. TRIVIU is between generations. The contracts deployed today are a working, tested system that is being replaced; the economics the interfaces describe have no contract behind them yet. Both facts are stated where they belong, and neither is softened.</p>
+</section><section id="s1"><p class="num">§ 1</p><h2>Cover, version, date and status</h2>
+<p>This is the first whitepaper published under the merged TRIVIU identity (Site V7, Console V5.5, Labs V6, Design System &amp; Brandbook V1). It supersedes earlier whitepaper material, which described the atomic-arbitrage generation.</p>
+<p><strong>Status of the protocol, in one paragraph.</strong> A vault architecture is deployed on Polygon and covered by a suite that passes. That generation is being replaced. The product surfaces published alongside this document describe the <em>target</em> protocol — vaults, mandates, strategies, a Commons and a per-micro-operation economic split — and that target has, at the time of writing, no contract implementing its economics. Real capital is locked everywhere, by design and not by accident.</p>
+</section><section id="s2"><p class="num">§ 2</p><h2>Executive summary</h2>
+<p>TRIVIU organises strategies, vaults and collaboration into one DeFi experience where context, limits and decisions stay legible.</p>
+<ul><li>A user owns <strong>one personal vault</strong>. Ownership is set at creation and never</li></ul>
+<p>reassigned. <span class="seal seal--verified">IMPLEMENTED</span> <span class="seal seal--verified">VALIDATED</span></p>
+<ul><li>A <strong>mandate</strong> fences the vault: it is born closed and only opens when the owner</li></ul>
+<p>arms it. <span class="seal seal--verified">IMPLEMENTED</span> <span class="seal seal--verified">VALIDATED</span></p>
+<ul><li>A <strong>strategy</strong> proposes routes read-only. It never holds keys and never moves</li></ul>
+<p>assets. <span class="seal seal--verified">IMPLEMENTED</span> <span class="seal seal--verified">VALIDATED</span></p>
+<ul><li>An <strong>escape hatch</strong> lets the owner withdraw unconditionally, consulting no</li></ul>
+<p>engine, fence, operator or governance. <span class="seal seal--verified">IMPLEMENTED</span> <span class="seal seal--verified">VALIDATED</span></p>
+<ul><li>A <strong>Commons</strong> lets authors publish strategies and be paid from the adopting</li></ul>
+<p>user's own half of a positive result. <span class="seal seal--cost">PLANNED</span></p>
+<ul><li>Every positive eligible result is split <strong>50% protocol / 50% user</strong> at the event.</li></ul>
+<p><span class="seal seal--cost">PLANNED</span></p>
+<ul><li>Three environments — <strong>Demo, Testnet, Real capital</strong> — stay separated, and real</li></ul>
+<p>capital is locked. <span class="seal seal--verified">IMPLEMENTED</span> in the interfaces</p>
+<ul><li>Three networks — <strong>Polygon, Arbitrum, BNB Chain</strong> — are presented; only Polygon</li></ul>
+<p>carries a deployment, and that deployment is the prior generation. <span class="seal seal--muted">DEPRECATED</span></p>
+<p><strong>What TRIVIU does not claim.</strong> No return, no yield, no guarantee, and no evidence of profitability. Section 28 states, with numbers, what has been measured and failed to clear.</p>
+</section><section id="s3"><p class="num">§ 3</p><h2>The problem</h2>
+<p>Most DeFi interfaces answer "what happened" and refuse "why". A user sees a balance and a percentage, and cannot see the route that produced them, the cost paid on the way, the rule that rejected an alternative, or whether the number in front of them is measured, estimated or invented.</p>
+<p>Three specific failures follow from that:</p>
+<ol><li><strong>A simulation reads as an operation.</strong> Nothing on screen distinguishes a</li></ol>
+<p>preview from a signed transaction until money is gone.</p>
+<ol><li><strong>Custody is ambiguous.</strong> "Deposit" appears without saying who can withdraw,</li></ol>
+<p>under what condition, and what happens if the protocol stops answering.</p>
+<ol><li><strong>Numbers arrive without provenance.</strong> A figure with no source, no timestamp</li></ol>
+<p>and no environment is a claim wearing the costume of a measurement.</p>
+<p>TRIVIU's answer is not a better dashboard. It is a rule: <strong>state is part of the information.</strong> Every number carries where it came from, when, on which network, and under which environment.</p>
+</section><section id="s4"><p class="num">§ 4</p><h2>What TRIVIU is</h2>
+<p>A non-custodial protocol in which:</p>
+<ul><li>the <strong>owner writes the law</strong> (the mandate) and the <strong>code keeps it</strong> (the vault);</li><li>a <strong>strategy advises</strong> and never decides;</li><li><strong>execution is atomic</strong> — the route completes in one transaction or reverts</li></ul>
+<p>whole, leaving only gas spent;</p>
+<ul><li><strong>withdrawal is unconditional</strong> and depends on nothing else in the system.</li></ul>
+<p>TRIVIU is not a fund, not a custodian, not an advisor, and not a venue. It does not take deposits into a pooled balance and does not promise a return.</p>
+</section><section id="s5"><p class="num">§ 5</p><h2>Origin of the name</h2>
+<p><strong>TRIVIU</strong> comes from <em>trivium</em>, Latin for the meeting of three ways. The name also carries the classical route of learning that turns information into understanding — which is the order this protocol insists on: understand, then experiment, then configure, then act.</p>
+<p><code class="i">translate="no"</code> is not a styling detail. Automatic translation renders TRIVIU as "TRIVIA"; every surface marks the name as untranslatable.</p>
+</section><section id="s6"><p class="num">§ 6</p><h2>The triangle, its points and the trilemma</h2>
+<p>The mark is a triangle that draws itself and never closes. Each point is one axis of the distributed-systems trilemma:</p>
+<div class="scroller"><table><thead><tr><th scope="col">Point</th><th scope="col">Axis</th><th scope="col">What it means here</th></tr></thead><tbody><tr><td>Top</td><td><strong>Decentralisation</strong></td><td>Distributed control; rules verifiable by more than one party.</td></tr><tr><td>Right</td><td><strong>Security</strong></td><td>Integrity, ownership, validation, and the ability to reject.</td></tr><tr><td>Open</td><td><strong>Scalability</strong></td><td>Growth without hiding cost, latency or lost guarantees.</td></tr></tbody></table></div>
+<p>The corner stays open on purpose. The protocol does not claim to solve the trilemma; it claims to make the choice visible. Full geometry, timing and states: <code class="i">TRIVIU-Design-System-Brandbook-V1.html</code> §03–§05.</p>
+</section><section id="s7"><p class="num">§ 7</p><h2>Principles</h2>
+<ol><li><strong>Education before execution.</strong> Any screen touching capital shows context,</li></ol>
+<p>source and the nature of the data.</p>
+<ol><li><strong>The limit is the message.</strong> Status, source, timestamp, unit, cost and the</li></ol>
+<p>reason for a rejection.</p>
+<ol><li><strong>Uncertainty is never dressed in green.</strong> Absence of data is not a zero</li></ol>
+<p>balance; a stale read is not a current one.</p>
+<ol><li><strong>No promise, in any register.</strong> Not in copy, not in a chart axis, not in a</li></ol>
+<p>share card.</p>
+<ol><li><strong>Every claim is checkable</strong>, or it carries a seal saying it is not yet.</li></ol>
+</section><section id="s8"><p class="num">§ 8</p><h2>Architecture</h2>
+<pre class="code" data-lang=""><code>wallet ──owns──▶ vault ──fenced by──▶ mandate
+                   │                     ▲
+                   │                     │ armed only by the owner
+                   ▼                     │
+              execution ◀──proposes── strategy (read-only)
+                   │
+                   ▼
+             escape hatch  ──── withdrawal, unconditional</code></pre>
+<p>Four properties hold in the deployed generation and are covered by tests:</p>
+<div class="scroller"><table><thead><tr><th scope="col">Property</th><th scope="col">Seal</th><th scope="col">Evidence</th></tr></thead><tbody><tr><td>One vault per owner, cloned from a published implementation</td><td><span class="seal seal--verified">IMPLEMENTED</span> <span class="seal seal--verified">VALIDATED</span></td><td><code class="i">VaultFactory.sol</code>, <code class="i">test/unit/protocol/Factory.t.sol</code></td></tr><tr><td>Owner set at creation, never reassigned</td><td><span class="seal seal--verified">IMPLEMENTED</span> <span class="seal seal--verified">VALIDATED</span></td><td><code class="i">VaultConfig.sol</code>, <code class="i">test/unit/vault/Config.t.sol</code></td></tr><tr><td>Strategy advises read-only; guards may only veto</td><td><span class="seal seal--verified">IMPLEMENTED</span> <span class="seal seal--verified">VALIDATED</span></td><td><code class="i">IStrategy.sol</code>, <code class="i">IGuard.sol</code>, <code class="i">test/integration/Execute.t.sol</code></td></tr><tr><td>Withdrawal consults nothing else</td><td><span class="seal seal--verified">IMPLEMENTED</span> <span class="seal seal--verified">VALIDATED</span></td><td><code class="i">EscapeHatch.sol</code> — 20 lines, no registry read, no pause flag</td></tr></tbody></table></div>
+<p><strong>Test evidence.</strong> The suite was executed on 6 September 2026 on the tree at <code class="i">_mono/contracts</code>: <strong>311 tests, 311 passed, 0 failed</strong>, in 82 s (<code class="i">forge test --no-match-path "<em>Fork</em>"</code>). That is the strongest claim in this document, and it applies to the generation being replaced.</p>
+</section><section id="s9"><p class="num">§ 9</p><h2>Vaults and ownership</h2>
+<p><span class="seal seal--verified">IMPLEMENTED</span> <span class="seal seal--verified">VALIDATED</span> — current generation.</p>
+<p>The vault is an ERC-1967 proxy cloned by the factory at a deterministic CREATE2 address. Owner is written into ERC-7201 namespaced storage at creation. Deposits and withdrawals are explicit acts of the owner.</p>
+<p>The escape hatch deserves quoting, because it is the whole non-custodial claim in one function:</p>
+<pre class="code" data-lang="solidity"><code>function withdraw(IERC20 token, uint256 amount, address to) external {
+    if (msg.sender != _owner()) revert NotOwner();
+    token.safeTransfer(to, amount);
+    emit Withdrawn(address(token), to, amount);
+}</code></pre>
+<p>There is no registry lookup, no pause check, no operator, no governance. If every other layer stops, this path keeps answering. <strong>This is why trusting the team is never required</strong> — and it is the reason the claim can be checked in twenty lines rather than believed.</p>
+</section><section id="s10"><p class="num">§ 10</p><h2>Default strategies</h2>
+<p><span class="seal seal--action">INTEGRATION_READY</span> for <code class="i">OracleFloorStrategy</code>; <span class="seal seal--cost">PLANNED</span> for the catalogue the Console presents.</p>
+<p>One strategy exists in code and is tested: <code class="i">OracleFloorStrategy</code> (35 unit tests, 6 fork tests). It enforces a price floor read from an oracle before allowing a route.</p>
+<p>The strategies shown in the Console — <em>Triangular Guarded</em>, <em>Stable Route</em> — are interface examples describing a shape, not deployed contracts. They carry <code class="i">Execution: DISABLED</code> on screen for that reason. <span class="seal seal--risk">ILLUSTRATIVE</span></p>
+</section><section id="s11"><p class="num">§ 11</p><h2>User-created strategies</h2>
+<p><span class="seal seal--cost">PLANNED</span>.</p>
+<p>The Console's builder composes a mandate — network, allowed assets, cooldown, allocation cap, slippage, gas, minimum profit, quote age — and saves it <strong>to the browser</strong>. No contract is published and no strategy is activated. The builder is a specification tool today, not a deployment tool.</p>
+</section><section id="s12"><p class="num">§ 12</p><h2>Commons</h2>
+<p><span class="seal seal--cost">PLANNED</span>.</p>
+<p>A network where authors publish strategies and readers compare versions and follow authors. Three separations are structural, not cosmetic:</p>
+<ul><li><strong>Following</strong> receives content.</li><li><strong>Watching</strong> observes a strategy.</li><li><strong>Simulating</strong> tests parameters.</li></ul>
+<p>None of the three authorises moving an asset. Publishing a strategy grants nobody access to anybody's vault. The Commons needs a backend, authentication and moderation; none exists.</p>
+</section><section id="s13"><p class="num">§ 13</p><h2>Authors, followers and rebates</h2>
+<p><span class="seal seal--cost">PLANNED</span>.</p>
+<p>An author publishes a mandate. Each vault that adopts it pays the author a share <strong>of that vault's own half</strong> of a positive result. The rate is visible before adoption. The author never touches anyone's funds to earn.</p>
+<p>The protocol's half is not negotiable and never funds the author.</p>
+</section><section id="s14"><p class="num">§ 14</p><h2>Referral and node structure</h2>
+<p><span class="seal seal--cost">PLANNED</span> — and this section carries the sharpest warning in the document.</p>
+<p>The Console and the Site present a three-level split: 25% / 15% / 10%, remainder to treasury. <strong>No contract implements a referral layer.</strong> A search of the entire contract tree returns zero matches for referral, author or rebate. This is not "a different percentage from the code" — the mechanism does not exist in code at all.</p>
+<p>Those percentages come from the reference model. They hold only once read from a published, audited contract. Until then they are <span class="seal seal--risk">ILLUSTRATIVE</span> wherever they appear, and any surface presenting them as "the protocol's approved rule" is wrong.</p>
+</section><section id="s15"><p class="num">§ 15</p><h2>Micro-operations and PayFee</h2>
+<p><span class="seal seal--cost">PLANNED</span>.</p>
+<p>A micro-operation is a single execution event with an eligible result. Fees are settled per event, not per period, so nothing accrues silently between statements.</p>
+<p><strong>The base of the calculation matters more than the rate.</strong> The target model charges on <em>eligible profit</em>. The deployed generation charges on <em>traded volume</em>. Section 21 states that divergence with the code that produces it.</p>
+</section><section id="s16"><p class="num">§ 16</p><h2>Economic formulas</h2>
+<p><span class="seal seal--cost">PLANNED</span> — specification for the contracts to meet, not description of code that runs.</p>
+<p>For a positive gross eligible result <strong>G</strong> of a single micro-operation:</p>
+<pre class="code" data-lang=""><code>P = 0.50 · G                     protocol PayFee, fixed
+U = G − P = 0.50 · G             user&#x27;s gross economic share
+A = r · U        with r ∈ [0, 0.50]    author share, community strategies only
+U_net = U − A                    what the vault is credited</code></pre>
+<p>Three conditions govern the whole model:</p>
+<ol><li><strong>G ≤ 0 pays nobody.</strong> No PayFee, no author share. A losing operation costs the</li></ol>
+<p>user only what the market and the network already took.</p>
+<ol><li><strong>The author is paid from U, never from P.</strong> The protocol's half is untouchable</li></ol>
+<p>and never funds a third party.</p>
+<ol><li><strong>r is bounded at 50% of U</strong>, which is 25% of G. The user sees r before</li></ol>
+<p>adopting.</p>
+<p>Decision gate for a route to execute:</p>
+<pre class="code" data-lang=""><code>PASS ⇔ vault credit ≥ minimum profit
+     ∧ amountOut ≥ amountOutMin
+     ∧ quoteAge ≤ maximum quote age</code></pre>
+</section><section id="s17"><p class="num">§ 17</p><h2>Worked examples</h2>
+<p><span class="seal seal--risk">ILLUSTRATIVE</span> — demonstrations of arithmetic, not forecasts and not records.</p>
+<p><strong>One micro-operation</strong></p>
+<div class="scroller"><table><thead><tr><th scope="col"></th><th scope="col"></th></tr></thead><tbody><tr><td>Gross eligible result</td><td>$0.20</td></tr><tr><td>Protocol PayFee (50%)</td><td>$0.10</td></tr><tr><td>User's share before any author rebate</td><td>$0.10</td></tr></tbody></table></div>
+<p><strong>With a community author at r = 50% of the user's half</strong></p>
+<div class="scroller"><table><thead><tr><th scope="col"></th><th scope="col"></th></tr></thead><tbody><tr><td>Gross eligible</td><td>$0.20</td></tr><tr><td>Protocol</td><td>$0.10</td></tr><tr><td>Author (50% of $0.10)</td><td>$0.05</td></tr><tr><td>Vault credit</td><td>$0.05</td></tr></tbody></table></div>
+<p><strong>Aggregate, under the exact 50/50 split and no author rebate</strong></p>
+<div class="scroller"><table><thead><tr><th scope="col"></th><th scope="col"></th></tr></thead><tbody><tr><td>10 sub-accounts × $500</td><td>$5,000</td></tr><tr><td>Result shown to the user</td><td>$500</td></tr><tr><td>Corresponding gross result</td><td>$1,000</td></tr><tr><td>Protocol share</td><td>$500</td></tr><tr><td>User share</td><td>$500</td></tr></tbody></table></div>
+<p><strong>A negative operation</strong></p>
+<div class="scroller"><table><thead><tr><th scope="col"></th><th scope="col"></th></tr></thead><tbody><tr><td>Gross</td><td>$8.00</td></tr><tr><td>Pool fees</td><td>−$9.00</td></tr><tr><td>Slippage</td><td>−$1.50</td></tr><tr><td>Gas</td><td>−$2.50</td></tr><tr><td>Eligible</td><td><strong>−$5.00</strong></td></tr><tr><td>Protocol PayFee</td><td><strong>$0.00</strong></td></tr><tr><td>Author share</td><td><strong>$0.00</strong></td></tr></tbody></table></div>
+<p><strong>On rounding.</strong> These figures divide exactly on purpose. An earlier Console example used a node total of $1,240.50, whose 25% is $310.125; the screen showed $310.13 twice and let the treasury absorb the cent so the column would add up. Rounding each part and forcing the total is how a rounding error becomes invisible. Illustrative examples exist to demonstrate the arithmetic, not to hide an artefact of it.</p>
+</section><section id="s18"><p class="num">§ 18</p><h2>Demo, Testnet and Real capital</h2>
+<p><span class="seal seal--verified">IMPLEMENTED</span> in the interfaces.</p>
+<div class="scroller"><table><thead><tr><th scope="col">Environment</th><th scope="col">What it is</th><th scope="col">State</th></tr></thead><tbody><tr><td><strong>Demo</strong></td><td>Synthetic data. No wallet, no signature, no transaction.</td><td>Always available</td></tr><tr><td><strong>Testnet</strong></td><td>Test networks, contracts under homologation. Requires a conscious selection — a click alone does not switch.</td><td>Presentation only</td></tr><tr><td><strong>Real capital</strong></td><td>Locked.</td><td><strong>Locked</strong></td></tr></tbody></table></div>
+<p>The three keep independent catalogues: metrics, posts and strategies are never promoted automatically between environments. Real capital unlocks only after contracts, audit, and applicable eligibility controls — never as a default and never silently.</p>
+</section><section id="s19"><p class="num">§ 19</p><h2>Polygon, Arbitrum and BNB Chain</h2>
+<div class="scroller"><table><thead><tr><th scope="col">Network</th><th scope="col">Chain ID</th><th scope="col">Explorer</th><th scope="col">Contract state</th></tr></thead><tbody><tr><td>Polygon</td><td>137</td><td>PolygonScan</td><td>Prior generation deployed · <span class="seal seal--muted">DEPRECATED</span></td></tr><tr><td>Arbitrum</td><td>42161</td><td>Arbiscan</td><td>None · <span class="seal seal--cost">PLANNED</span></td></tr><tr><td>BNB Chain</td><td>56</td><td>BscScan</td><td>None · <span class="seal seal--cost">PLANNED</span></td></tr></tbody></table></div>
+<p><strong>BscScan is the explorer for BNB Chain.</strong> It is not the name of the network, and no surface may label it as such.</p>
+<p><strong>On the deployed addresses.</strong> Contracts from the prior generation are live on Polygon and are being replaced. Their addresses live in the repository, in versioned configuration. This document does not print them, and the institutional site does not promote them: publishing an address for a contract being retired invites a deposit into something scheduled for replacement.</p>
+</section><section id="s20"><p class="num">§ 20</p><h2>Multichain synchronisation</h2>
+<p><span class="seal seal--cost">PLANNED</span>.</p>
+<p>Selecting a network in any current surface changes the visual context and connects no RPC. Real integration requires, per chain: a source, a freshness window, error handling, and cache isolation so one chain's data can never render under another's label.</p>
+<p>Until that exists, no surface may display "synchronised". A state without a source, a timestamp and a named network is not a state.</p>
+</section><section id="s21"><p class="num">§ 21</p><h2>Contracts and modules</h2>
+<p>Current generation, all <span class="seal seal--verified">IMPLEMENTED</span> <span class="seal seal--verified">VALIDATED</span> (311/311 passing, 2026-09-06):</p>
+<div class="scroller"><table><thead><tr><th scope="col">Module</th><th scope="col">Role</th></tr></thead><tbody><tr><td><code class="i">TriviuVault</code> · <code class="i">VaultConfig</code> · <code class="i">VaultCustody</code></td><td>Vault, its configuration and custody</td></tr><tr><td><code class="i">VaultExecution</code> · <code class="i">VaultPositions</code></td><td>Atomic execution and lot accounting</td></tr><tr><td><code class="i">VaultUpgrade</code></td><td>Controlled implementation change</td></tr><tr><td><code class="i">ProtocolRegistry</code> · <code class="i">ImplementationRegistry</code></td><td>Global configuration and approved implementations</td></tr><tr><td><code class="i">VaultFactory</code> · <code class="i">Executor</code></td><td>Deterministic creation and submission</td></tr><tr><td><code class="i">EscapeHatch</code></td><td>Unconditional withdrawal</td></tr><tr><td><code class="i">OracleFloorStrategy</code></td><td>The one strategy that exists in code</td></tr></tbody></table></div>
+<h3>The divergence, stated plainly</h3>
+<p>The deployed <code class="i">Fees</code> library computes:</p>
+<pre class="code" data-lang="solidity"><code>function protocolFee(uint256 traded, uint16 feeBps) internal pure returns (uint256) {
+    return Math.mulDiv(traded, feeBps, BPS);
+}</code></pre>
+<p>with <code class="i">ProtocolRegistry.FEE_BPS_MAX = 100</code>.</p>
+<p>That is a fee on <strong>traded volume</strong>, capped at <strong>1%</strong>. Section 16 specifies a fee on <strong>eligible profit</strong> at <strong>50%</strong>. Different base, different ceiling — they are not two versions of one rule.</p>
+<p>The founder has ratified that the contracts will be replaced. The specification in section 16 is therefore a <strong>requirement for the next generation</strong>, not a description of the current one. It is recorded here so that the next contract can be checked against it, and so that no reader mistakes the interface for the code.</p>
+<p>There is also a <strong>gas refund</strong> in the deployed generation (<code class="i">Fees.gasRefund</code>, capped at 100 bps of traded and at one unit of the base currency) that no interface models. If the next generation keeps it, section 16 is incomplete. Open.</p>
+</section><section id="s22"><p class="num">§ 22</p><h2>Oracles, sources and data freshness</h2>
+<p><span class="seal seal--action">INTEGRATION_READY</span> for the oracle floor; <span class="seal seal--cost">PLANNED</span> for the rest.</p>
+<p><code class="i">OracleFloorStrategy</code> reads a price floor and rejects a route below it. Beyond that, no surface reads a live source today.</p>
+<p>When sources are wired, three things travel with every figure: <strong>where it came from, when it was read, and on which network</strong>. A quote older than the configured maximum is rejected rather than used — the age is a gate, not a footnote.</p>
+</section><section id="s23"><p class="num">§ 23</p><h2>Guardrails and rejection criteria</h2>
+<p><span class="seal seal--verified">IMPLEMENTED</span> <span class="seal seal--verified">VALIDATED</span> for the deployed gates.</p>
+<p>A guard may only veto. It cannot approve, cannot enlarge a limit, and cannot substitute for the mandate. Rejections carry a named reason; the mandate's ceilings are checked before routing rather than after.</p>
+<p>The mandate is born closed: empty asset list, ceilings at zero, minimum return at zero. Nothing opens until the owner arms it. Each edit produces a new identifiable configuration epoch so that no order leans on stale configuration.</p>
+</section><section id="s24"><p class="num">§ 24</p><h2>Security and the non-custodial model</h2>
+<p><span class="seal seal--verified">IMPLEMENTED</span> <span class="seal seal--verified">VALIDATED</span> for withdrawal; open elsewhere.</p>
+<ul><li>Ownership is set at creation and never reassigned.</li><li>Withdrawal is unconditional and depends on no other module.</li><li>Execution is atomic: it completes or reverts whole.</li><li>Real capital is locked in every interface.</li></ul>
+<p><strong>No external audit report is published.</strong> The suite passes; that is not an audit. Any surface writing "audited" without a named firm and a dated report is making a claim this document does not support.</p>
+</section><section id="s25"><p class="num">§ 25</p><h2>Privacy</h2>
+<p><span class="seal seal--verified">IMPLEMENTED</span> in the interfaces.</p>
+<p>A balance-hiding control blanks values across every surface at once. Profile data — name, handle, bio, photo — stays in the browser's local storage and is sent to no server; the photo is accepted only as an inline <code class="i">data:image</code> so a stored value can never become a request to a third party.</p>
+<p>On-chain activity is public by construction. TRIVIU does not and cannot make a transaction private, and says so rather than implying otherwise.</p>
+</section><section id="s26"><p class="num">§ 26</p><h2>Governance</h2>
+<p><span class="seal seal--cost">PLANNED</span>.</p>
+<p>Two boundaries are already structural in code and are not governance's to move:</p>
+<ul><li><strong>Governance cannot reach the escape hatch.</strong> Withdrawal reads no registry.</li><li><strong>Governance cannot move a user's mandate.</strong> The fence belongs to the vault owner.</li></ul>
+<p>What governance will decide — parameters, approved implementations, treasury — and by what process, is not yet defined. Stating that is more useful than a diagram of a process nobody has agreed to.</p>
+</section><section id="s27"><p class="num">§ 27</p><h2>Transparency and evidence</h2>
+<p>Every surface uses the same seal vocabulary as this document. The published state, per layer:</p>
+<div class="scroller"><table><thead><tr><th scope="col">Layer</th><th scope="col">Available today</th><th scope="col">Depends on</th><th scope="col">State</th></tr></thead><tbody><tr><td>Institutional</td><td>Narrative, architecture, journey</td><td>Editorial review</td><td><span class="seal seal--verified">IMPLEMENTED</span></td></tr><tr><td>Console</td><td>Interface and local interaction</td><td>Services, identity, sources</td><td>Demo</td></tr><tr><td>Labs</td><td>Local experimentation, comparison, export</td><td>Nothing financial</td><td>Demo</td></tr><tr><td>Commons</td><td>Experience model</td><td>Backend, auth, moderation</td><td><span class="seal seal--cost">PLANNED</span></td></tr><tr><td>Multichain</td><td>Selectors and visual states</td><td>RPC, indexer, per-chain isolation</td><td><span class="seal seal--cost">PLANNED</span></td></tr><tr><td>Economics</td><td>Formulas and worked examples</td><td>Contracts implementing the split</td><td><span class="seal seal--cost">PLANNED</span></td></tr><tr><td>Real capital</td><td>Visual flow, locked</td><td>Contracts, audit, homologation</td><td>Locked</td></tr></tbody></table></div>
+</section><section id="s28"><p class="num">§ 28</p><h2>Known limitations</h2>
+<p>This is the section that decides whether the rest of the document can be trusted.</p>
+<p><strong>1 · The economics have no contract.</strong> Section 21. The interface is the specification; the code is a different rule.</p>
+<p><strong>2 · Profitability is not demonstrated — and the distance is measured.</strong> An internal measurement study (Polygon PoS, archival RPC, executable prices via <code class="i">getAmountsOut</code>/<code class="i">QuoterV2</code>, end-of-block state) tested the triangular condition across venue and size:</p>
+<ul><li>The profitability condition held in <strong>0 of 56 measurements</strong>. The model had</li></ul>
+<p>assumed a 40% hit rate; measured, it was <strong>zero</strong>.</p>
+<ul><li>Residual mispricing averaged <strong>+0.045 bps</strong> and peaked at <strong>+0.496 bps</strong>, against</li></ul>
+<p>the <strong>&gt; 3.014 bps</strong> needed to clear costs at $250 — short by a factor of <strong>6.07×</strong>.</p>
+<ul><li>The conditional variable for profit size was recorded as <strong>not measurable</strong>,</li></ul>
+<p>because its condition never occurred. Not zero. Not measured.</p>
+<p>The honest boundary, repeated from the source: end-of-block reserves measure <em>residual</em> mispricing, after that block's arbitrage has already run. A result near zero is the expected finding, not a surprise. Closing the gap requires intra-block infrastructure, not more end-of-block measurement.</p>
+<p><strong>3 · No external audit.</strong> Section 24.</p>
+<p><strong>4 · No live data anywhere.</strong> Section 20. Every figure on every surface is synthetic and sealed as such.</p>
+<p><strong>5 · Referral does not exist in code.</strong> Section 14.</p>
+<p><strong>6 · The Commons has no backend.</strong> Section 12.</p>
+<p><strong>7 · Canonical fonts are not yet self-hosted.</strong> The three declared families fall back to system faces until bundled locally. No surface may fetch them from a CDN.</p>
+<p><strong>8 · Contrast reaches AA, not AAA.</strong> 14 of 14 text pairs clear WCAG 2.2 AA; 5 of 14 reach AAA. Raising the rest would change brand primitives and needs ratification.</p>
+</section><section id="s29"><p class="num">§ 29</p><h2>Roadmap</h2>
+<p>Each phase ships evidence, not intent. A phase is done when its claims can be checked.</p>
+<div class="scroller"><table><thead><tr><th scope="col">Phase</th><th scope="col">What</th><th scope="col">Gate to leave it</th></tr></thead><tbody><tr><td><strong>Now</strong></td><td>Institutional surface, Console and Labs on one identity</td><td>Published, measured, sealed</td></tr><tr><td><strong>Next</strong></td><td>Console over real sources, per-chain isolation</td><td>A figure on screen traceable to a block</td></tr><tr><td><strong>Then</strong></td><td>Commons: authors, versions, evidence cards</td><td>Backend and moderation, separated from any authorisation</td></tr><tr><td><strong>Later</strong></td><td>New contract generation implementing section 16</td><td>Published, audited, homologated — <strong>before a single real deposit</strong></td></tr></tbody></table></div>
+</section><section id="s30"><p class="num">§ 30</p><h2>Glossary</h2>
+<div class="scroller"><table><thead><tr><th scope="col">Term</th><th scope="col">Meaning</th></tr></thead><tbody><tr><td><strong>Vault</strong></td><td>The user's personal, non-custodial contract. One owner, set at creation.</td></tr><tr><td><strong>Mandate</strong></td><td>The fence: allowed assets, ceilings, cooldown, minimum return. Born closed.</td></tr><tr><td><strong>Strategy</strong></td><td>Read-only logic that proposes a route. Never holds keys.</td></tr><tr><td><strong>Guard</strong></td><td>A check that may only veto.</td></tr><tr><td><strong>Lot</strong></td><td>A purchase recorded with its allocated cost and sale policy.</td></tr><tr><td><strong>Micro-operation</strong></td><td>One execution event with an eligible result.</td></tr><tr><td><strong>Eligible result (G)</strong></td><td>Gross result after pool fees, slippage and gas.</td></tr><tr><td><strong>PayFee (P)</strong></td><td>The protocol's share of a positive eligible result.</td></tr><tr><td><strong>Escape hatch</strong></td><td>Unconditional withdrawal, dependent on nothing else.</td></tr><tr><td><strong>Commons</strong></td><td>The network where authors publish strategies.</td></tr><tr><td><strong>Configuration epoch</strong></td><td>Identifier of a mandate version, so no order uses stale configuration.</td></tr><tr><td><strong>Quote age</strong></td><td>Time since a price was read. A gate, not a footnote.</td></tr></tbody></table></div>
+</section><section id="s31"><p class="num">§ 31</p><h2>Technical references</h2>
+<div class="scroller"><table><thead><tr><th scope="col">Source</th><th scope="col">What it supports</th></tr></thead><tbody><tr><td><code class="i">_mono/contracts/src/**</code></td><td>Every <span class="seal seal--verified">IMPLEMENTED</span> claim in sections 8, 9, 21, 23, 24</td></tr><tr><td><code class="i">forge test --no-match-path "<em>Fork</em>"</code> · 2026-09-06</td><td>311 tests, 311 passed, 0 failed, 82 s</td></tr><tr><td><code class="i">src/protocol/EscapeHatch.sol</code></td><td>Section 9, quoted in full</td></tr><tr><td><code class="i">src/vault/libraries/Fees.sol</code> · <code class="i">src/protocol/ProtocolRegistry.sol</code></td><td>The divergence in section 21</td></tr><tr><td><code class="i">deployments/137.json</code></td><td>The Polygon deployment named in section 19</td></tr><tr><td>Internal measurement study, v2.0, 2026-08-07</td><td>Every figure in section 28.2</td></tr><tr><td><code class="i">TRIVIU-Design-System-Brandbook-V1.html</code></td><td>Mark geometry, motion, measured colour</td></tr></tbody></table></div>
+</section><section id="s32"><p class="num">§ 32</p><h2>Version history</h2>
+<div class="scroller"><table><thead><tr><th scope="col">Version</th><th scope="col">Date</th><th scope="col">Change</th></tr></thead><tbody><tr><td><strong>V1</strong></td><td>2026-09-06</td><td>First whitepaper under the merged identity. Seals introduced per feature. The volume-versus-profit fee divergence stated with the code that produces it. The measured profitability gap (<code class="i">p = 0</code> in 56 samples, 6.07× short) moved from an internal note into published limitations. Referral recorded as absent from code, not as a pending percentage.</td></tr></tbody></table></div>
+<p><strong>TRIVIU · open source · verifiable maths · no promises.</strong></p>
+<p><em>Nothing in this document is investment advice, an offer, or a solicitation. Past results would not guarantee future results, and no results are claimed.</em></p>
+</section>
+</main>
+<footer class="wrap">
+  <p class="colophon">TRIVIU · Whitepaper V1 · September 2026<br>
+    Open source. Verifiable maths. No promises.<br>
+    Nothing here is investment advice, an offer or a solicitation.</p>
+</footer>
+</body>
+</html>

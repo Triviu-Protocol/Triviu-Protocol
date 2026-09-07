@@ -147,3 +147,97 @@
 .u-d4e8f245{pointer-events:none !important}
 .u-ddb95d9e{display:flex;align-items:center;gap:var(--s3) !important}
 .u-fec5f4cc{color:var(--ink);width:24px;height:24px !important}
+
+/* ONDA-MIGRACAO-TRIVIU-2026-09-06 · style= dos cinco artefatos
+   da migracao. Mesma convencao da ONDA-TRIVIU-F3-UNSAFE-INLINE:
+   nome = sha256(valor)[0:8], e !important porque um atributo style=
+   vencia qualquer regra normal — sem ele a pagina mudaria calada. */
+.u-00bf4c1e{gap:8px !important; margin-top:16px !important}
+.u-00df60f5{background:var(--triviu-violeta-dark) !important}
+.u-0801970d{margin:12px 0 8px !important}
+.u-0d6ae564{font-size:.7rem !important}
+.u-0e1e5481{margin:24px auto 0 !important}
+.u-13c031c5{margin-top:14px !important; font-size:.9375rem !important}
+.u-15ca39a9{--net:#28a0f0 !important}
+.u-1925ee50{margin-top:12px !important; font-size:.8125rem !important}
+.u-1a2789a2{margin-top:18px !important; font-size:.75rem !important}
+.u-1c441993{background:#C13327 !important}
+.u-1d2ae541{margin-top:14px !important; font-size:.875rem !important}
+.u-1eab7ad4{font-size:.75rem !important; margin-top:10px !important}
+.u-1f6d61b3{--state:var(--amber) !important}
+.u-215a65f8{font-size:1.2rem !important; margin:8px 0 0 !important}
+.u-22cc25f7{font-size:1.45rem !important; margin:10px 0 5px !important}
+.u-22ce6341{margin-top:34px !important}
+.u-269633e5{margin:16px 0 0 !important}
+.u-2944a4dd{margin-top:10px !important; font-size:.75rem !important}
+.u-29ebb5f6{border-top:0 !important}
+.u-2a3adb92{background:#F26458 !important}
+.u-2adf3219{background:#52575D !important}
+.u-2b838feb{display:grid !important; place-items:center !important; min-height:320px !important}
+.u-301647f5{margin-top:6px !important}
+.u-305f76fb{background:var(--acc-ink) !important; color:var(--acc) !important; border:0 !important}
+.u-329012cb{--state:var(--blue) !important}
+.u-343354b0{margin-top:14px !important; font-size:.8rem !important}
+.u-37987d4f{font-family:var(--mono) !important; font-size:1.1rem !important}
+.u-41a4df5e{font-size:1.5rem !important}
+.u-4318bb5d{--mark-ink:var(--triviu-ink-dark) !important}
+.u-43a97fe4{margin-top:8px !important}
+.u-457da6bf{--triviu-mark-size:min(220px,60vw) !important}
+.u-51377a91{grid-column:1/-1 !important}
+.u-55db2416{justify-content:space-between !important}
+.u-5a83a069{margin:12px 0 6px !important}
+.u-5db0dbe3{margin-top:24px !important; font-size:.6875rem !important; font-weight:700 !important}
+.u-614d92a1{background:var(--acc) !important}
+.u-656b4160{--state:var(--red) !important}
+.u-65be136d{margin-top:17px !important}
+.u-66d5f9f9{margin-top:16px !important; font-size:.875rem !important}
+.u-683e588f{display:flex !important; justify-content:space-between !important; gap:14px !important; align-items:flex-start !important}
+.u-7175c175{background:#2743C7 !important}
+.u-73cb2565{color:var(--red) !important}
+.u-77651a2e{margin-top:10px !important; font-size:.8125rem !important}
+.u-7e6c341f{background:#237A3B !important}
+.u-840862dd{background:#FAFAF7 !important}
+.u-859811c5{font-size:.8125rem !important}
+.u-89410918{margin:14px 0 8px !important}
+.u-8b02b64b{--state:var(--acc) !important}
+.u-8c97caa1{width:100% !important; margin-top:16px !important}
+.u-8e26c5f7{margin-bottom:8px !important}
+.u-8e5626de{text-align:center !important; margin-top:8px !important}
+.u-92fbdd7d{margin-top:19px !important}
+.u-94867e88{background:var(--blue) !important}
+.u-995a9621{color:var(--verified) !important}
+.u-9d37dc96{color:#FFFFFF !important}
+.u-9f481027{margin-top:12px !important; font-size:.875rem !important}
+.u-a0b89b03{background:#7B3FE4 !important}
+.u-a0ba227f{font-size:.75rem !important}
+.u-a2f2bae2{--triviu-mark-size:min(280px,70vw) !important}
+.u-a311ec3a{background:${color} !important}
+.u-a427de63{color:var(--cost) !important}
+.u-a4939a21{background:'+esc(c)+' !important}
+.u-ab79ea2b{margin:0 !important}
+.u-b0e04d5f{width:100% !important; margin-top:9px !important}
+.u-b5a671f5{--network:#f3ba2f !important}
+.u-b6c7168f{display:flex !important; flex-wrap:wrap !important; gap:10px !important; margin-top:26px !important}
+.u-b793ae79{color:var(--action) !important}
+.u-bcab7570{background:#E8B23A !important}
+.u-bfcf9040{width:100% !important; margin-top:12px !important}
+.u-bfe9c118{background:#4CA364 !important}
+.u-c76d819d{--network:#8247e5 !important}
+.u-c9c5eecb{margin-top:8px !important; font-size:.8125rem !important}
+.u-ca5930b4{background:#16181D !important}
+.u-cd1e6c1a{background:#6E8AFF !important}
+.u-d49c035a{color:color-mix(in srgb,var(--ink) 68%,transparent) !important}
+.u-d5636fef{--net:#8247e5 !important}
+.u-d808995d{background:var(--s3) !important}
+.u-dd181bad{--net:#f3ba2f !important}
+.u-dd6de5ec{margin:7px 0 0 !important}
+.u-df928149{margin-top:10px !important}
+.u-e1bc9acc{color:var(--blue) !important}
+.u-e1d349db{margin:10px 0 10px !important; font-size:1.375rem !important}
+.u-e36cf980{color:#201a02 !important}
+.u-e69dffc6{margin:8px 0 10px !important; font-size:1.375rem !important}
+.u-f1d26fcc{--network:#28a0f0 !important}
+.u-f454bc46{background:#AF73FF !important}
+.u-f935ab90{color:var(--risk) !important}
+.u-fcdd2091{margin:10px 0 8px !important}
+.u-fe3c94c1{margin-top:9px !important}

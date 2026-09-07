@@ -1,338 +1,743 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Triviu · Open source. Verifiable math. No promises.</title>
-<meta name="description" content="Triviu is an open, non-custodial protocol for atomic triangular arbitrage on Polygon, with the same audited contracts designed for Arbitrum and BSC — built to be read, audited and run by you. Educational infrastructure. No token. No promises.">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://triviu.vercel.app/">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title translate="no">TRIVIU — Connected strategies. Autonomy in motion.</title>
+<meta name="description" content="TRIVIU organises strategies, vaults and collaboration into one DeFi experience where context, limits and decisions stay legible. Non-custodial by design.">
+<meta name="theme-color" content="#131519">
+<meta property="og:title" content="TRIVIU — Connected strategies. Autonomy in motion.">
+<meta property="og:description" content="The protocol, its architecture, and the surfaces you can explore today.">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Triviu">
-<meta property="og:title" content="Triviu · open protocol for atomic arbitrage + education">
-<meta property="og:description" content="Open, non-custodial atomic triangular arbitrage — Polygon first, Arbitrum and BSC by the same audited contracts. Education, not income. No token. No promises. Don't trust, verify.">
-<meta property="og:url" content="https://triviu.vercel.app/">
-<meta property="og:locale" content="en">
-<meta property="og:locale:alternate" content="es">
-<meta property="og:image" content="https://triviu.vercel.app/og.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Triviu — atomic arbitrage, taught honestly. Don't trust, verify.">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Triviu · open protocol for atomic arbitrage + education">
-<meta name="twitter:description" content="Polygon first, Arbitrum and BSC by the same audited contracts. Education, not income. Don't trust, verify.">
-<meta name="twitter:image" content="https://triviu.vercel.app/og.png">
-<script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[
-{"@type":"Organization","@id":"https://triviu.vercel.app/#org","name":"Triviu","url":"https://triviu.vercel.app/","description":"Open, non-custodial protocol for atomic triangular arbitrage and DeFi education. No token, no custody, no promises.","slogan":"Don't trust, verify."},
-{"@type":"WebSite","@id":"https://triviu.vercel.app/#site","url":"https://triviu.vercel.app/","name":"Triviu","publisher":{"@id":"https://triviu.vercel.app/#org"},"inLanguage":["en","es"]},
-{"@type":"SoftwareSourceCode","name":"Triviu Protocol","codeRepository":"https://github.com/Triviu-Protocol/Triviu-Protocol","license":"https://www.gnu.org/licenses/agpl-3.0.html","programmingLanguage":["Solidity","TypeScript"],"about":"Atomic triangular arbitrage executor, off-chain engine, and educational curriculum."}
-]}
-</script>
-<link href="/vendor/fonts/fontes.css" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 296'%3E%3Cpath d='M75 168 L160 20 L245 168 L104 168' fill='none' stroke='%23ECEDEA' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='75' cy='168' r='16' fill='none' stroke='%23ECEDEA' stroke-width='12'/%3E%3Ccircle cx='160' cy='20' r='16' fill='%23ECEDEA'/%3E%3Ccircle cx='245' cy='168' r='16' fill='%23ECEDEA'/%3E%3Ccircle cx='104' cy='168' r='9' fill='%23ECEDEA'/%3E%3C/svg%3E">
+
 <link href="/vendor/estilos-inline.css" rel="stylesheet">
-<link href="/vendor/estilos/index.css" rel="stylesheet">
+<link rel="stylesheet" href="assets/triviu-site-v7.css">
 </head>
-<body>
+<body data-triviu-surface="night">
+<a class="skip" href="#main">Skip to content</a>
 
-<svg class="u-ff791649" width="0" height="0" aria-hidden="true"><defs>
-  <g id="mark-min">
-    <path d="M40 25.36 Q76 32.3 100 60" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-    <path d="M100 60 Q76 87.7 40 94.64" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-    <path d="M40 94.64 Q28 60 40 25.36" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
-    <circle cx="40" cy="25.36" r="8.5" fill="#2743C7"/>
-    <circle cx="100" cy="60" r="8.5" fill="#C13327"/>
-    <circle cx="40" cy="94.64" r="8.5" fill="#E8B23A"/>
-  </g>
-</defs></svg>
-
-<canvas id="scene" aria-hidden="true"></canvas>
-<div id="tip" role="status"><span class="dot"></span><span id="tip-txt"></span></div>
-
-<div id="loader" aria-hidden="true">
-  <svg class="u-c75be3d8" id="loader-mark" viewBox="0 0 120 120"><use href="#mark-min"/></svg>
-  <div class="pct"><span id="pct">0</span>%</div>
-</div>
-
-<nav aria-label="Main">
-  <div class="nav-inner">
-    <a class="nav-mark" href="#top"><svg viewBox="0 0 120 120"><use href="#mark-min"/></svg><b>Triviu</b></a>
-    <div class="nav-links">
-      <a href="#protocol" data-i18n="nav_protocol">Protocol</a>
-      <a href="#how" data-i18n="nav_how">How it works</a>
-      <a href="#math" data-i18n="nav_math">The math</a>
-      <a href="#trilemma" data-i18n="nav_trilemma">Trilemma</a>
-      <a href="#education" data-i18n="nav_education">Education</a>
-      <a href="/simulate" data-i18n="nav_sim">Simulate</a>
-      <a href="/chains" data-i18n="nav_chains">Chains</a>
-      <a href="/learn" data-i18n="nav_learn">Learn</a>
-<a href="/safety">Safety</a>
-      <!-- /cofre/ e a tela que assina os quatro atos da V0, e ate 2026-08-23 ela
-           publicava sem que nada apontasse para ela: a unica tela que passa nas onze
-           regras do check-assinatura era a unica que nao dava para alcancar. Quem
-           guarda isto agora e scripts/check-paginas-orfas.mjs. -->
-      <a href="/console">Console</a>
-      <a href="/cofre">Your vault</a>
-      <a href="#verify" data-i18n="nav_verify">Verify</a>
-      <a href="#roadmap" data-i18n="nav_road">Roadmap</a>
-      <a href="#faq">FAQ</a>
-    </div>
-    <div class="lang" role="group" aria-label="Language">
-      <!-- Sem onclick= inline: o CSP desta origem nao concede 'unsafe-inline' a
-           script, e handler em atributo e script inline. O listener esta em
-           js/home.js, no mesmo padrao que positions/index.html ja usa. -->
-      <button id="btn-en" aria-pressed="true">EN</button>
-      <button id="btn-es" aria-pressed="false">ES</button>
-    </div>
-    <a class="gh" href="#verify" data-i18n="nav_code">Read the code</a>
-  </div>
-</nav>
-
-<header class="hero" id="top">
-  <div class="wrap hero-grid">
-    <div class="hero-copy">
-      <div class="eyebrow" data-i18n="hero_eyebrow">Open protocol · EVM · Polygon first · no token</div>
-      <h1 data-i18n="hero_h1">Don't trust.<br>Verify.</h1>
-      <p class="sub" data-i18n="hero_sub">Triviu is an open, non-custodial protocol for atomic triangular arbitrage on Polygon, with the same audited contracts designed for Arbitrum and BSC — built to be read, audited and run by you. Educational infrastructure, with every rule public and every limit documented.</p>
-      <div class="cta-row">
-        <a class="btn btn-prim" href="#verify" data-i18n="hero_cta1">Read the code</a>
-        <a class="btn btn-sec" href="https://triviu-protocol.gitbook.io/triviu-protocol-docs" data-i18n="hero_cta2">Read the whitepaper</a>
-      </div>
-      <div class="hero-meta">
-        <span data-i18n="hero_m1"><b>AGPL-3.0</b> code · <b>CC BY 4.0</b> brand · signed releases</span><br>
-        <span data-i18n="hero_m2">stateless executor · parameters via public PR · audit before mainnet</span>
-      </div>
-      <div class="scrollcue" data-i18n="hero_scroll">Scroll — the risk notice comes first</div>
-    </div>
-    <div id="stage-hit" aria-label="Interactive 3D mark: drag to turn, tap a node">
-      <svg class="u-c75be3d8" id="fallback-mark" viewBox="0 0 120 120" role="img" aria-label="Triviu mark"><use href="#mark-min"/></svg>
-      <div class="dragcue" data-i18n="hero_drag">Drag · turn the cycle · tap a node</div>
-    </div>
+<header class="header">
+  <div class="wrap">
+    <a class="lockup" href="#top">
+      <svg class="triviu-mark triviu-mark--sm" viewBox="0 0 320 296" aria-hidden="true">
+        <path class="triviu-mark__base" d="M75 168 L160 20 L245 168 L104 168"/>
+        <path class="triviu-mark__flow" d="M75 168 L160 20 L245 168 L104 168"/>
+        <circle class="triviu-mark__node triviu-mark__origin" cx="75" cy="168" r="9"/>
+        <circle class="triviu-mark__node" cx="160" cy="20" r="9"/>
+        <circle class="triviu-mark__node" cx="245" cy="168" r="9"/>
+        <circle class="triviu-mark__node" cx="104" cy="168" r="4.5"/>
+      </svg>
+      <span translate="no">TRIVIU</span>
+    </a>
+    <button class="menu-toggle" id="menuToggle" type="button"
+            aria-expanded="false" aria-controls="primaryNav">Menu</button>
+    <nav class="nav nav--drawer" id="primaryNav" aria-label="Primary">
+      <a href="#protocol">Protocol</a>
+      <a href="#commons">Commons</a>
+      <a href="#preview">Console</a>
+      <a href="#wallet">Wallet</a>
+      <a href="#multichain">Multichain</a>
+      <a href="#transparency">Transparency</a>
+    </nav>
+    <a class="btn btn--primary" href="/console-v55/">Open the Console</a>
   </div>
 </header>
 
-<div class="marquee" aria-hidden="true">
-  <div class="track" id="mq-track">
-    <span>NO TOKEN</span><span>·</span><span>NON-CUSTODIAL</span><span>·</span><span>OPEN SOURCE</span><span>·</span><span>ATOMIC A→B→C→A</span><span>·</span><span>FAILURES PUBLISHED</span><span>·</span><span>DON'T TRUST — VERIFY</span><span>·</span><span>NO TOKEN</span><span>·</span><span>NON-CUSTODIAL</span><span>·</span><span>OPEN SOURCE</span><span>·</span><span>ATOMIC A→B→C→A</span><span>·</span><span>FAILURES PUBLISHED</span><span>·</span><span>DON'T TRUST — VERIFY</span><span>·</span>
-  </div>
-</div>
-
-<div class="risk" role="note">
+<div class="statusbar">
   <div class="wrap">
-    <b data-i18n="risk_t">⚠ RISK NOTICE — REQUIRED READING</b>
-    <p data-i18n="risk_p">Most atomic-arbitrage opportunities — on any chain — are captured by professional operators. For most individual users, the expected result after gas costs tends toward zero or negative. Triviu is educational infrastructure — it is not a source of income. Reverted transactions still pay gas.</p>
+    <span class="chip"><i></i>Environment: demo</span>
+    <span class="chip chip--locked"><i></i>Real capital: locked</span>
+    <span class="chip chip--pending"><i></i>Chain data: not connected</span>
+    <span class="chip">Build 2026-09-06</span>
   </div>
 </div>
 
-<main>
+<main id="main" class="main">
 
-<section id="protocol">
-  <div class="gnum">01</div>
-  <div class="wrap reveal">
-    <div class="eyebrow" data-i18n="p_eyebrow">01 · The protocol</div>
-    <h2 data-i18n="p_h2">One transaction. Three legs. Zero custody.</h2>
-    <p class="lead" data-i18n="p_lead">A triangular cycle A→B→C→A runs inside a single atomic transaction: either it closes with the minimum profit, or everything reverts and no leg is left exposed. Your keys and your funds never touch us — the executor is stateless by construction.</p>
-    <div class="cards">
-      <div class="card"><span class="dot u-ab2848c0"></span><h3 data-i18n="c1_t">Atomic executor</h3><p data-i18n="c1_p">Stateless, verified contract. Pulls the principal from the caller, runs the legs, returns everything in the same transaction — or reverts it all.</p></div>
-      <div class="card"><span class="dot u-b6a95126"></span><h3 data-i18n="c2_t">Parameter registry</h3><p data-i18n="c2_p">Whitelists and caps on-chain. Every change records the URL of its public pull request: forum → Git → block.</p></div>
-      <div class="card"><span class="dot u-937dbcd4"></span><h3 data-i18n="c3_t">Fork simulator</h3><p data-i18n="c3_p">Every route runs on a local fork of the target chain before anything else. Mistakes there are free — and that is the point.</p></div>
-      <div class="card"><span class="dot u-282f24be"></span><h3 data-i18n="c4_t">Open engine</h3><p data-i18n="c4_p">Cycle detection with Bellman–Ford over −log(rates), written to be read. dry-run by default; mainnet requires an explicit risk acknowledgment.</p></div>
+<!-- ─── hero ───────────────────────────────────────────────────────────────── -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">Protocol · strategies · community</span>
+      <h1>Autonomy <em>in motion.</em></h1>
+      <p class="lead">TRIVIU organises strategies, vaults and collaboration into one DeFi
+        experience where context, limits and decisions stay legible.</p>
+      <p class="lead u-c53ea1da">Start at the <strong>vault</strong>, read the
+        <strong>mandate</strong> that fences it, then watch <strong>execution</strong> obey it.</p>
+      <div class="hero-cta">
+        <a class="btn btn--primary" href="#pulse">See the pulse</a>
+        <a class="btn" href="#protocol">Explore the architecture</a>
+      </div>
+      <p class="muted mono u-5db0dbe3">
+        Polygon · Arbitrum · BNB Chain</p>
     </div>
-    <div class="readings">
-      <div class="reading"><div class="rl" data-i18n="rd1_l">Reading I · the name</div><h3 data-i18n="rd1_t">The trivium</h3><p data-i18n="rd1_p">Latin for the meeting of three roads — and the classical curriculum that founded education.</p></div>
-      <div class="reading"><div class="rl" data-i18n="rd2_l">Reading II · the product</div><h3 data-i18n="rd2_t">The route</h3><p data-i18n="rd2_p">Three pools in one closed, atomic loop. It ends where it began, or it never happened.</p></div>
-      <div class="reading"><div class="rl" data-i18n="rd3_l">Reading III · the context</div><h3 data-i18n="rd3_t">The trilemma</h3><p data-i18n="rd3_p">Decentralization, security, scalability — one node each. Traveled, not chosen.</p></div>
+    <div class="orbit">
+      <div class="orbit-ring" aria-hidden="true"></div>
+      <div class="orbit-ring" aria-hidden="true"></div>
+      <svg class="triviu-mark triviu-mark--xl" viewBox="0 0 320 296" role="img" aria-label="TRIVIU" translate="no">
+        <path class="triviu-mark__base" d="M75 168 L160 20 L245 168 L104 168"/>
+        <path class="triviu-mark__flow" d="M75 168 L160 20 L245 168 L104 168"/>
+        <circle class="triviu-mark__node triviu-mark__origin" cx="75" cy="168" r="9"/>
+        <circle class="triviu-mark__node" cx="160" cy="20" r="9"/>
+        <circle class="triviu-mark__node" cx="245" cy="168" r="9"/>
+        <circle class="triviu-mark__node" cx="104" cy="168" r="4.5"/>
+      </svg>
+      <div class="orbit-card orbit-card--a"><b><i></i>VAULT</b><span>Personal context</span></div>
+      <div class="orbit-card orbit-card--b"><b><i></i>STRATEGY</b><span>Parameters and limits</span></div>
+      <div class="orbit-card orbit-card--c"><b><i></i>COMMONS</b><span>Connected knowledge</span></div>
+      <div class="orbit-card orbit-card--d"><b><i></i>LABS</b><span>Safe exploration</span></div>
     </div>
-    <span class="enter" data-i18n="enter0">Scroll to enter · How it works</span>
   </div>
 </section>
 
-<section id="how">
-  <div class="gnum">02</div>
-  <div class="wrap reveal">
-    <div class="eyebrow" data-i18n="h_eyebrow">02 · How it works</div>
-    <h2 data-i18n="h_h2">Detect. Simulate. Execute — or revert.</h2>
-    <p class="lead" data-i18n="h_lead">Three moves, always in this order. The third one has two honest endings, and both are published.</p>
-    <div class="steps">
-      <div class="step"><div class="n">STEP 01</div><h3 data-i18n="s1_t">Detect</h3><p data-i18n="s1_p">The open engine watches whitelisted pools and searches for negative cycles over −log(rates) — Bellman–Ford, in readable code.</p><span class="tag" data-i18n="s1_g">off-chain · open source</span></div>
-      <div class="step-arrow">→</div>
-      <div class="step"><div class="n">STEP 02</div><h3 data-i18n="s2_t">Simulate</h3><p data-i18n="s2_p">Every candidate route runs on a local fork of the target chain first. Gas, slippage and revert reasons — measured where mistakes cost nothing.</p><span class="tag" data-i18n="s2_g">fork · mandatory</span></div>
-      <div class="step-arrow">→</div>
-      <div class="step"><div class="n">STEP 03</div><h3 data-i18n="s3_t">Execute — or revert</h3><p data-i18n="s3_p">On-chain, the contract enforces the profit condition. Met: everything returns to your wallet. Not met: the whole transaction reverts. Both outcomes go on the public dashboard.</p><span class="tag" data-i18n="s3_g">atomic · non-custodial</span></div>
+<!-- ─── pulse ──────────────────────────────────────────────────────────────── -->
+<section class="section" id="pulse" aria-labelledby="pulse-h">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="eyebrow">Protocol pulse · illustrative</span>
+        <h2 id="pulse-h">Wallets connected, capital in flow.</h2>
+      </div>
+      <p class="lead">These figures are synthetic, fixed and here only so you can read the shape
+        of the protocol. Nothing on this page is a claim about volume, capital or returns.</p>
     </div>
-    <span class="enter" data-i18n="enter1">Scroll to enter · The math</span>
+    <dl class="grid g4">
+      <div class="pulse-fig"><dt><span class="chip chip--spec">illustrative</span>Wallets</dt>
+        <dd class="mono">4,128</dd><p>Synthetic figure · not measured</p></div>
+      <div class="pulse-fig"><dt><span class="chip chip--spec">illustrative</span>Capital</dt>
+        <dd class="mono">$2,841,773</dd><p>Synthetic figure · not measured</p></div>
+      <div class="pulse-fig"><dt><span class="chip chip--spec">illustrative</span>Vaults</dt>
+        <dd class="mono">1,136</dd><p>Synthetic figure · not measured</p></div>
+      <div class="pulse-fig"><dt><span class="chip chip--spec">illustrative</span>Cycles</dt>
+        <dd class="mono">58,214</dd><p>Synthetic figure · not measured</p></div>
+    </dl>
   </div>
 </section>
 
-<section id="math">
-  <div class="gnum">03</div>
-  <div class="wrap reveal">
-    <div class="eyebrow" data-i18n="m_eyebrow">03 · The math</div>
-    <h2 data-i18n="m_h2">The whole strategy fits in one condition.</h2>
-    <p class="lead" data-i18n="m_lead">For volume V in asset A, effective rates r and pool fees φ, the contract enforces exactly this — and reverts when it fails. No discretion, no dashboard magic: a formula you can check.</p>
-    <div class="cod">
-      <span class="c" data-i18n="m_c1">// gross profit of the cycle</span><br>
-      profit = V · [ r₁·r₂·r₃ · (1−φ₁)(1−φ₂)(1−φ₃) − 1 ]<br><br>
-      <span class="c" data-i18n="m_c2">// execution condition — otherwise the whole tx reverts</span><br>
-      <span class="k">require</span>(profit − G ≥ <span class="u">minProfit</span>)
+<!-- ─── name ───────────────────────────────────────────────────────────────── -->
+<section class="section" id="name" aria-labelledby="name-h">
+  <div class="wrap u-90500853">
+    <span class="eyebrow">the protocol has a name</span>
+    <h2 id="name-h" class="sr-only" translate="no">TRIVIU</h2>
+    <p class="name-letters" aria-hidden="true" translate="no"><span>T</span><span>R</span><span>I</span><span>V</span><span>I</span><span>U</span></p>
+    <p class="lead u-0e1e5481"><strong>Tri</strong> for the three roads.
+      <strong>Viu</strong> for the way through them. One name for a protocol where the owner
+      writes the law and the code keeps it.</p>
+    <p class="mono muted u-1a2789a2">tri · three ways &nbsp;·&nbsp;
+      viu · the path taken &nbsp;·&nbsp; open by design</p>
+  </div>
+</section>
+
+<!-- ─── origin ─────────────────────────────────────────────────────────────── -->
+<section class="section" id="origin" aria-labelledby="origin-h">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="eyebrow">01 · origin of the mark</span>
+        <h2 id="origin-h">Three roads.<br>One open path.</h2>
+      </div>
+      <p class="lead">TRIVIU comes from <em>trivium</em>: the meeting of three ways. The mark
+        draws that origin as a triangle that is alive, continuous and deliberately unfinished.</p>
     </div>
-    <div class="u-72c8b04f">
-      <div class="eyebrow mono" data-i18n="wex_eye">A simulated result · not a projection</div>
-      <h3 class="u-437a0a65" data-i18n="wex_h">What a cycle actually returns.</h3>
-      <p class="u-292f2340" data-i18n="wex_lead">Four honest markets, run through the same math the contract enforces (1,000 in A). Watch how rarely one clears.</p>
-      <table class="u-fda43fb9">
-        <tr><td class="u-d74ec391" data-i18n="wex_l1">Fair market · product 1.0000</td><td class="mono u-a7203c8a">979.35</td><td class="mono u-583cca6d" data-i18n="wex_v1">reverts · fee wall</td></tr>
-        <tr><td class="u-d74ec391" data-i18n="wex_l2">A 1% edge · product 1.0100</td><td class="mono u-a7203c8a">989.13</td><td class="mono u-583cca6d" data-i18n="wex_v2">reverts · still short</td></tr>
-        <tr><td class="u-26288eb4" data-i18n="wex_l3">A rare 3% edge · product 1.0303</td><td class="mono u-a7203c8a">1,008.90</td><td class="mono u-9d6d9242" data-i18n="wex_v3">+6.18 · rare</td></tr>
-        <tr><td class="u-d726859c" data-i18n="wex_l4">Same edge, oversized · 40,000 in</td><td class="mono u-5f326564">27,560.67</td><td class="mono u-38197073" data-i18n="wex_v4">reverts · slippage</td></tr>
+    <div class="grid g2">
+      <div>
+        <h3 class="u-8e26c5f7">The mark never stops learning.</h3>
+        <p class="lead">Motion runs from the origin to the apex, reaches the third point and
+          returns along the base without closing the shape. That opening is the argument:
+          distributed systems keep evolving through choices, evidence and new context.</p>
+        <ul class="u-eee3f850">
+          <li class="axis u-29ebb5f6">
+            <span class="axis-dot u-b793ae79">D</span>
+            <span><strong>Decentralisation</strong><br>
+            <span class="muted">Legible rules and distributed control.</span></span></li>
+          <li class="axis">
+            <span class="axis-dot u-f935ab90">S</span>
+            <span><strong>Security</strong><br>
+            <span class="muted">Validation, integrity and explicit conditions.</span></span></li>
+          <li class="axis">
+            <span class="axis-dot u-a427de63">E</span>
+            <span><strong>Scalability</strong><br>
+            <span class="muted">Room to grow while naming costs and limits.</span></span></li>
+        </ul>
+      </div>
+      <div class="card u-2b838feb">
+        <svg class="triviu-mark u-a2f2bae2" viewBox="0 0 320 296"
+             role="img" aria-label="The TRIVIU mark: an open triangle drawn continuously">
+          <path class="triviu-mark__base" d="M75 168 L160 20 L245 168 L104 168"/>
+          <path class="triviu-mark__flow" d="M75 168 L160 20 L245 168 L104 168"/>
+          <circle class="triviu-mark__node triviu-mark__origin" cx="75" cy="168" r="9"/>
+          <circle class="triviu-mark__node" cx="160" cy="20" r="9"/>
+          <circle class="triviu-mark__node" cx="245" cy="168" r="9"/>
+          <circle class="triviu-mark__node" cx="104" cy="168" r="4.5"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── protocol · six rooms ───────────────────────────────────────────────── -->
+<section class="section" id="protocol" aria-labelledby="protocol-h">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="eyebrow">02 · protocol architecture</span>
+        <h2 id="protocol-h">Six rooms.<br>One legible logic.</h2>
+      </div>
+      <p class="lead">Pick a layer to read it. Each claim carries a seal:
+        <span class="chip chip--stated">stated</span> in the reference material,
+        <span class="chip chip--pending">pending</span> evidence, or
+        <span class="chip chip--spec">spec</span> — confirm against the contract.</p>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Protocol layers">
+      <button type="button" role="tab" id="tab-vault" aria-controls="p-vault" aria-selected="true">01 Vault</button>
+      <button type="button" role="tab" id="tab-mandate" aria-controls="p-mandate" aria-selected="false">02 Mandate</button>
+      <button type="button" role="tab" id="tab-execution" aria-controls="p-execution" aria-selected="false">03 Execution</button>
+      <button type="button" role="tab" id="tab-market" aria-controls="p-market" aria-selected="false">04 Market</button>
+      <button type="button" role="tab" id="tab-referral" aria-controls="p-referral" aria-selected="false">05 Referral</button>
+      <button type="button" role="tab" id="tab-exit" aria-controls="p-exit" aria-selected="false">06 Exit</button>
+    </div>
+
+    <article class="card" role="tabpanel" id="p-vault" aria-labelledby="tab-vault" tabindex="0">
+      <span class="eyebrow">01 · vault</span>
+      <h3 class="u-e69dffc6">Your context starts here.</h3>
+      <p class="lead">One personal vault per user, cloned by the factory from a published
+        implementation. The owner is set at creation and never changes; deposits and withdrawals
+        stay explicit acts of the owner.</p>
+      <dl class="grid g4 u-2bdf8e45">
+        <div class="stat"><dt>Structure</dt><dd>ERC-1967 PROXY</dd><span class="chip chip--stated">stated</span></div>
+        <div class="stat"><dt>Address</dt><dd>DETERMINISTIC · CREATE2</dd><span class="chip chip--spec">spec</span></div>
+        <div class="stat"><dt>Withdrawal</dt><dd>OWNER FLOW</dd><span class="chip chip--stated">stated</span></div>
+        <div class="stat"><dt>Verification</dt><dd>CONTRACTS PENDING</dd><span class="chip chip--pending">pending</span></div>
+      </dl>
+      <p class="muted u-1d2ae541">Structure described in the
+        reference material. Source verification and audit reporting are still pending.</p>
+    </article>
+
+    <article class="card" role="tabpanel" id="p-mandate" aria-labelledby="tab-mandate" tabindex="0" hidden>
+      <span class="eyebrow">02 · mandate</span>
+      <h3 class="u-e69dffc6">Limits written before the action.</h3>
+      <p class="lead">The mandate is born closed: empty asset list, ceilings at zero, minimum
+        return at zero. Nothing opens until the owner arms it, and every rejection carries a
+        reason. Each edit produces a new identifiable version so no order leans on stale
+        configuration.</p>
+      <dl class="grid g4 u-2bdf8e45">
+        <div class="stat"><dt>Born</dt><dd>CLOSED</dd><span class="chip chip--stated">stated</span></div>
+        <div class="stat"><dt>Guards</dt><dd>UP TO 8 IN THE MODEL</dd><span class="chip chip--spec">spec</span></div>
+        <div class="stat"><dt>Version</dt><dd>CONFIG EPOCH</dd><span class="chip chip--spec">spec</span></div>
+        <div class="stat"><dt>Rejections</dt><dd>CARRY A NAMED REASON</dd><span class="chip chip--stated">stated</span></div>
+      </dl>
+      <p class="muted u-1d2ae541">The fence belongs to the vault
+        owner. Neither the operator nor governance can move it.</p>
+    </article>
+
+    <article class="card" role="tabpanel" id="p-execution" aria-labelledby="tab-execution" tabindex="0" hidden>
+      <span class="eyebrow">03 · execution</span>
+      <h3 class="u-e69dffc6">Strategy proposes. Rules decide.</h3>
+      <p class="lead">Execution is stateless and atomic: the route runs in a single transaction
+        or reverts whole, leaving only gas spent. The contract enforces one condition — final
+        balance must clear the initial balance plus the minimum profit.</p>
+      <dl class="grid g4 u-2bdf8e45">
+        <div class="stat"><dt>Advice</dt><dd>READ-ONLY</dd><span class="chip chip--stated">stated</span></div>
+        <div class="stat"><dt>Limits</dt><dd>CHECKED BEFORE ROUTING</dd><span class="chip chip--stated">stated</span></div>
+        <div class="stat"><dt>Guards</dt><dd>VETO ONLY</dd><span class="chip chip--stated">stated</span></div>
+        <div class="stat"><dt>Gates</dt><dd>CLOSED BY DESIGN</dd><span class="chip chip--stated">stated</span></div>
+      </dl>
+      <p class="muted u-1d2ae541">The interface must show each
+        state without implying execution when only a simulation ran.</p>
+    </article>
+
+    <article class="card" role="tabpanel" id="p-market" aria-labelledby="tab-market" tabindex="0" hidden>
+      <span class="eyebrow">04 · market</span>
+      <h3 class="u-e69dffc6">Positions with context, not just numbers.</h3>
+      <p class="lead">Every buy becomes a lot carrying its allocated cost and its sale policy. A
+        secondary market may only act after validating compatibility, price, balance, mandate and
+        settlement.</p>
+      <dl class="grid g4 u-2bdf8e45">
+        <div class="stat"><dt>Unit</dt><dd>LOT</dd><span class="chip chip--spec">spec</span></div>
+        <div class="stat"><dt>Basis</dt><dd>ALLOCATED COST</dd><span class="chip chip--spec">spec</span></div>
+        <div class="stat"><dt>Policy</dt><dd>MINIMUM RETURN</dd><span class="chip chip--spec">spec</span></div>
+        <div class="stat"><dt>Buy</dt><dd>PRE-VALIDATED</dd><span class="chip chip--stated">stated</span></div>
+      </dl>
+      <p class="muted u-1d2ae541">Profit is measured against
+        allocated cost, never against sentiment.</p>
+    </article>
+
+    <article class="card" role="tabpanel" id="p-referral" aria-labelledby="tab-referral" tabindex="0" hidden>
+      <span class="eyebrow">05 · referral</span>
+      <h3 class="u-e69dffc6">Distribution described by rule.</h3>
+      <p class="lead">The referral layer organises nodes, levels and settlement. The percentages
+        below come from the reference model; a strategy author, when one exists, is paid out of
+        the user half — never out of the protocol half.</p>
+      <dl class="grid g4 u-2bdf8e45">
+        <div class="stat"><dt>Level 1</dt><dd>25% IN THE MODEL</dd><span class="chip chip--spec">spec</span></div>
+        <div class="stat"><dt>Level 2</dt><dd>15% IN THE MODEL</dd><span class="chip chip--spec">spec</span></div>
+        <div class="stat"><dt>Level 3</dt><dd>10% IN THE MODEL</dd><span class="chip chip--spec">spec</span></div>
+        <div class="stat"><dt>Contract</dt><dd>NOT PUBLISHED</dd><span class="chip chip--pending">pending</span></div>
+      </dl>
+      <p class="muted u-1d2ae541">Rates and eligibility only hold
+        once read from a published contract. No contract implements this layer today.</p>
+    </article>
+
+    <article class="card" role="tabpanel" id="p-exit" aria-labelledby="tab-exit" tabindex="0" hidden>
+      <span class="eyebrow">06 · exit mechanism</span>
+      <h3 class="u-e69dffc6">One door, always open.</h3>
+      <p class="lead">The escape hatch is immutable inside the vault: withdrawal consults neither
+        the engine, nor the fence, nor the operator, nor governance. If every other layer stops,
+        this path keeps answering.</p>
+      <dl class="grid g4 u-2bdf8e45">
+        <div class="stat"><dt>In the vault</dt><dd>IMMUTABLE</dd><span class="chip chip--stated">stated</span></div>
+        <div class="stat"><dt>Dependencies</dt><dd>NONE</dd><span class="chip chip--stated">stated</span></div>
+        <div class="stat"><dt>Pause flag</dt><dd>NOT READ</dd><span class="chip chip--stated">stated</span></div>
+        <div class="stat"><dt>Evidence</dt><dd>SOURCE + FORK PENDING</dd><span class="chip chip--pending">pending</span></div>
+      </dl>
+      <p class="muted u-1d2ae541">Unconditional withdrawal is the
+        foundation of the non-custodial model — and the reason trusting us is never required.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ─── commons ────────────────────────────────────────────────────────────── -->
+<section class="section" id="commons" aria-labelledby="commons-h">
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <span class="eyebrow">03 · strategy commons</span>
+        <h2 id="commons-h">Ideas that can<br>be understood.</h2>
+      </div>
+      <p class="lead">Discover authors, compare descriptions, follow versions. Following stays a
+        social act of observation — it never authorises anything financial.</p>
+    </div>
+    <div class="grid g3">
+      <article class="card"><span class="chip chip--stated">default · TRIVIU</span>
+        <h3 class="u-89410918">Reference strategies</h3>
+        <p>Configurations shipped by the protocol to demonstrate parameters, limits and decision
+          states.</p></article>
+      <article class="card"><span class="chip">creator · commons</span>
+        <h3 class="u-89410918">Community strategies</h3>
+        <p>Authors describe parameters and publish versions for analysis. The card carries
+          evidence — hash, route, verdict — never a promise.</p></article>
+      <article class="card"><span class="chip">my vault · private</span>
+        <h3 class="u-89410918">Personal configuration</h3>
+        <p>Professional mode gathers parameters and diagnostics for a deeper read, without
+          changing a single permission.</p></article>
+    </div>
+
+    <div class="card u-eee3f850">
+      <span class="eyebrow">Build · publish · earn</span>
+      <h3 class="u-e1d349db">Write a strategy. Let the network use it.</h3>
+      <p class="lead">Compose a mandate in the builder — network, assets, cooldown, allocation,
+        slippage, gas, minimum profit — publish it to the Commons, and every vault that adopts it
+        pays you a share of its own half. You never touch anyone's funds to earn.</p>
+      <h4 class="eyebrow u-6e19583f">Where the author's cut comes from · per micro-operation</h4>
+      <dl class="econ">
+        <div><dt>Protocol</dt><dd>50%</dd></div>
+        <div><dt>User half</dt><dd class="u-b793ae79">50%</dd></div>
+        <div><dt>Author range</dt><dd class="u-b793ae79">0–50%</dd></div>
+        <div><dt>On a loss</dt><dd class="u-f935ab90">nobody paid</dd></div>
+      </dl>
+      <p class="muted u-1d2ae541">
+        <span class="chip chip--pending">planned</span>
+        The protocol's half is untouchable. The author's share is carved out of
+        <strong>the user's half only</strong>, at a rate the user sees before adopting — and it
+        only ever applies to a positive eligible result. A losing operation pays nobody.
+        <strong>No published contract implements this split today;</strong> it is the
+        specification the contracts must meet, not a description of code that runs.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── journey ────────────────────────────────────────────────────────────── -->
+<section class="section" id="journey" aria-labelledby="journey-h">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="eyebrow">04 · user journey</span>
+        <h2 id="journey-h">From discovery<br>to your own context.</h2></div>
+      <p class="lead">A progressive entrance lowers friction: understand first, then experiment,
+        configure and follow.</p>
+    </div>
+    <ol class="grid g4">
+      <li class="step"><span class="n">01</span><h3>Understand</h3>
+        <p class="muted">Read the proposal, the vocabulary, the six rooms and the limits of the
+          experience.</p></li>
+      <li class="step"><span class="n">02</span><h3>Experiment</h3>
+        <p class="muted">Use Labs and the demo to watch states, motion and personalisation
+          without any risk.</p></li>
+      <li class="step"><span class="n">03</span><h3>Configure</h3>
+        <p class="muted">Explore strategies and parameters in the Console without mistaking a
+          simulation for an operation.</p></li>
+      <li class="step"><span class="n">04</span><h3>Follow</h3>
+        <p class="muted">Organise your view: authors followed, strategies observed, history
+          available.</p></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ─── preview · console ──────────────────────────────────────────────────── -->
+<section class="section" id="preview" aria-labelledby="preview-h">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="eyebrow">05 · the console</span>
+        <h2 id="preview-h">Three environments.<br>One honest surface.</h2></div>
+      <p class="lead">The console never blurs a simulation into an operation. The environment is
+        always on screen, the protocol state is always named, and every number says where it
+        came from.</p>
+    </div>
+    <div class="grid g3">
+      <article class="env"><span class="chip chip--stated"><i></i>DEMO</span>
+        <h3 class="u-5a83a069">Demo</h3>
+        <p class="muted">Always available · synthetic data, no wallet, no capital.</p>
+        <p class="muted mono u-2944a4dd">Console ready · demo vault
+          synced with synthetic data.</p></article>
+      <article class="env"><span class="chip"><i></i>TESTNET</span>
+        <h3 class="u-5a83a069">Testnet</h3>
+        <p class="muted">Test networks · contracts under homologation.</p>
+        <p class="muted mono u-2944a4dd">Awaiting a source · no
+          signature is requested.</p></article>
+      <article class="env env--locked"><span class="chip chip--locked"><i></i>LOCKED</span>
+        <h3 class="u-5a83a069">Real capital</h3>
+        <p class="muted">Locked · needs contracts, audit and eligibility controls.</p>
+        <p class="muted mono u-2944a4dd">No path to execution in
+          this build.</p></article>
+    </div>
+
+    <div class="grid g2 u-eee3f850">
+      <article class="card">
+        <h3>Accounting</h3>
+        <p class="u-43a97fe4">Every positive eligible result is split at the event:
+          <strong>50% protocol PayFee, 50% the user's economic share</strong>. A community author
+          is paid out of the user's half — never out of the protocol's.</p>
+        <div class="tablewrap u-92c18f6b">
+          <table><caption class="sr-only">Illustrative micro-operation ledger</caption>
+            <thead><tr><th scope="col">Event</th><th scope="col">Split</th>
+              <th scope="col">Vault</th><th scope="col">Strategy</th></tr></thead>
+            <tbody>
+              <tr><td>#A91D</td><td>$0.20 elig · $0.10 protocol</td><td>$0.10</td><td>Default · Triangular</td></tr>
+              <tr><td>#4FC2</td><td>$0.20 elig · $0.05 author</td><td>$0.05</td><td>Community · 50/50</td></tr>
+              <tr><td>#77B8</td><td>$0.60 elig · $0.30 protocol</td><td>$0.25</td><td>Community · 16.67%</td></tr>
+            </tbody></table>
+        </div>
+        <p class="muted u-1925ee50">
+          <span class="chip chip--spec">illustrative</span> A worked example of the arithmetic,
+          not a record of anything that happened.</p>
+      </article>
+      <article class="card">
+        <h3>Decision gates</h3>
+        <p class="muted mono u-c9c5eecb">PASS ⇔ vault credit ≥
+          minimum ∧ amountOut ≥ amountOutMin ∧ quoteAge ≤ maximum</p>
+        <ul class="u-92c18f6b">
+          <li class="axis u-29ebb5f6"><span class="chip chip--spec">×</span>
+            <span>Vault credit ≥ minimum profit</span></li>
+          <li class="axis"><span class="chip chip--stated">✓</span>
+            <span>amountOut ≥ amountOutMin</span></li>
+          <li class="axis"><span class="chip chip--stated">✓</span>
+            <span>quoteAge 4s ≤ maximum 12s</span></li>
+          <li class="axis"><span class="chip chip--stated">✓</span>
+            <span>Route verified — execution disabled by design</span></li>
+        </ul>
+        <h3 class="u-6e19583f">Custody</h3>
+        <p class="muted u-43a97fe4">Wallet → vault → mandate → strategy. The strategy
+          only proposes, read-only; the mandate decides; the vault holds the limits.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ─── wallet ─────────────────────────────────────────────────────────────── -->
+<section class="section" id="wallet" aria-labelledby="wallet-h">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="eyebrow">06 · the wallet</span>
+        <h2 id="wallet-h">Your vault,<br>with a face.</h2></div>
+      <p class="lead">A new user lands here first: one card, one address, one legible list of
+        what the vault holds. The card is the vault, not a bank product.</p>
+    </div>
+    <div class="grid g2">
+      <div>
+        <div class="card-black">
+          <div class="row">
+            <div><small>TRIVIU</small><b>VAULT · BLACK</b></div>
+            <svg class="triviu-mark triviu-mark--md u-4318bb5d" viewBox="0 0 320 296" aria-hidden="true"
+                >
+              <path class="triviu-mark__base" d="M75 168 L160 20 L245 168 L104 168"/>
+              <path class="triviu-mark__flow" d="M75 168 L160 20 L245 168 L104 168"/>
+              <circle class="triviu-mark__node triviu-mark__origin" cx="75" cy="168" r="9"/>
+              <circle class="triviu-mark__node" cx="160" cy="20" r="9"/>
+              <circle class="triviu-mark__node" cx="245" cy="168" r="9"/>
+              <circle class="triviu-mark__node" cx="104" cy="168" r="4.5"/>
+            </svg>
+          </div>
+          <p class="addr">0x8f3C · 4A2e · 91D7 · a91D</p>
+          <div class="row">
+            <div><small>Vault owner</small><b>OWNER ONLY</b></div>
+            <div class="u-5f326564"><small>Network</small><b>POLYGON</b></div>
+          </div>
+        </div>
+        <p class="muted u-1925ee50">
+          <span class="chip chip--spec">illustrative</span> Example address. The card is a view
+          of the vault, never a credit line.</p>
+      </div>
+      <div class="card">
+        <h3>What the model guarantees</h3>
+        <dl class="grid g2 u-92c18f6b">
+          <div class="stat"><dt>Custody</dt><dd class="u-995a9621">OWNER ONLY</dd>
+            <p class="muted u-a0ba227f">Set at creation and never reassigned.</p></div>
+          <div class="stat"><dt>Withdrawal</dt><dd class="u-995a9621">UNCONDITIONAL</dd>
+            <p class="muted u-a0ba227f">Consults no engine, fence, operator or governance.</p></div>
+          <div class="stat"><dt>Privacy</dt><dd>ONE TAP</dd>
+            <p class="muted u-a0ba227f">Balances hide across every surface at once.</p></div>
+          <div class="stat"><dt>Signature</dt><dd>NEVER HERE</dd>
+            <p class="muted u-a0ba227f">This page reads nothing; the console asks only when you act.</p></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── multichain ─────────────────────────────────────────────────────────── -->
+<section class="section" id="multichain" aria-labelledby="multichain-h">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="eyebrow">07 · multichain context</span>
+        <h2 id="multichain-h">One interface.<br>Three contexts.</h2></div>
+      <p class="lead">Each network keeps its own source, timestamp, cache and state. Selecting a
+        network changes the visual context only — this page connects to no RPC.</p>
+    </div>
+    <div class="grid g3">
+      <article class="net u-d5636fef">
+        <div class="u-683e588f">
+          <div><span class="eyebrow">chain 01</span><h3 class="u-301647f5">Polygon</h3></div>
+          <span class="net-code">POL</span></div>
+        <p class="muted u-9f481027">Chain ID 137 · explorer PolygonScan.</p>
+        <p class="muted u-77651a2e">
+          <span class="chip chip--pending">legacy</span> Contracts from an earlier generation are
+          deployed here and are being replaced. Their addresses live in the repository; this page
+          does not promote them as the protocol's current surface.</p>
+      </article>
+      <article class="net u-15ca39a9">
+        <div class="u-683e588f">
+          <div><span class="eyebrow">chain 02</span><h3 class="u-301647f5">Arbitrum</h3></div>
+          <span class="net-code">ARB</span></div>
+        <p class="muted u-9f481027">Chain ID 42161 · explorer Arbiscan.</p>
+        <p class="muted u-77651a2e">
+          <span class="chip chip--pending">pending</span> No TRIVIU contract is deployed on this
+          chain.</p>
+      </article>
+      <article class="net u-dd181bad">
+        <div class="u-683e588f">
+          <div><span class="eyebrow">chain 03</span><h3 class="u-301647f5">BNB Chain</h3></div>
+          <span class="net-code u-e36cf980">BNB</span></div>
+        <p class="muted u-9f481027">Chain ID 56 · explorer BscScan.</p>
+        <p class="muted u-77651a2e">
+          <span class="chip chip--pending">pending</span> No TRIVIU contract is deployed on this
+          chain.</p>
+      </article>
+    </div>
+    <p class="muted u-66d5f9f9">Real integration needs a source,
+      a freshness window, error handling and per-chain data isolation. None of that runs on this
+      page: it reads nothing and signs nothing.</p>
+  </div>
+</section>
+
+<!-- ─── surfaces ───────────────────────────────────────────────────────────── -->
+<section class="section" id="surfaces" aria-labelledby="surfaces-h">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="eyebrow">08 · one coherent ecosystem</span>
+        <h2 id="surfaces-h">Discover. Explore.<br>Go deeper.</h2></div>
+      <p class="lead">Each surface has one clear job and shares the same identity, motion and
+        language.</p>
+    </div>
+    <div class="grid g4">
+      <article class="card"><span class="eyebrow">Console</span>
+        <h3 class="u-fcdd2091">Your operational space</h3>
+        <p>Adaptive view for phone and desktop, Essential and Professional modes, community,
+          strategies and multichain context. <strong>Demo — real capital is locked.</strong></p>
+        <p class="u-92c18f6b"><a class="btn" href="/console-v55/">Open the Console</a></p>
+        <p class="u-77651a2e"><a href="/console/">The V0 console</a>
+          stays where it is, operating against the contracts deployed on Polygon. It is the
+          previous generation and it is being replaced — not removed.</p>
+      </article>
+      <article class="card"><span class="eyebrow">Labs</span>
+        <h3 class="u-fcdd2091">Laboratory of possibilities</h3>
+        <p>Play with parameters, motion, states and interface behaviour in a place where nothing
+          can break.</p>
+        <p class="u-92c18f6b"><a class="btn" href="/labs/">Open Labs</a></p>
+      </article>
+      <article class="card"><span class="eyebrow">Brand</span>
+        <h3 class="u-fcdd2091">Brandbook + design system</h3>
+        <p>Origin, triangle, taxonomy, tokens, components and the rules that keep every surface
+          consistent.</p>
+        <p class="u-92c18f6b"><a class="btn" href="/brand/">Read the brand</a></p>
+      </article>
+      <article class="card"><span class="eyebrow">Whitepaper</span>
+        <h3 class="u-fcdd2091">The document of record</h3>
+        <p>Architecture, economics, formulas, worked examples, known limits and version history —
+          each feature carrying its own seal.</p>
+        <p class="u-92c18f6b"><a class="btn" href="/whitepaper/">Read the whitepaper</a></p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ─── transparency ───────────────────────────────────────────────────────── -->
+<section class="section" id="transparency" aria-labelledby="transparency-h">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="eyebrow">09 · transparency by default</span>
+        <h2 id="transparency-h">State is part<br>of the information.</h2></div>
+      <p class="lead">The interface separates what can be explored today, what depends on
+        integration, and what still needs technical evidence.</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <caption class="sr-only">What is available in this build, per layer</caption>
+        <thead><tr><th scope="col">Layer</th><th scope="col">Available in this build</th>
+          <th scope="col">Technical dependency</th><th scope="col">State</th></tr></thead>
+        <tbody>
+          <tr><td>Institutional</td><td>Narrative, architecture and journey</td>
+            <td>Final editorial review</td><td><span class="chip chip--stated">design</span></td></tr>
+          <tr><td>Console</td><td>Interface and local interactions</td>
+            <td>Services, identity and data sources</td><td><span class="chip chip--stated">demo</span></td></tr>
+          <tr><td>Labs</td><td>Local visual experimentation</td>
+            <td>No financial dependency</td><td><span class="chip chip--stated">demo</span></td></tr>
+          <tr><td>Commons</td><td>Experience model</td>
+            <td>Backend, auth and moderation</td><td><span class="chip chip--pending">pending</span></td></tr>
+          <tr><td>Multichain</td><td>Selectors and visual states</td>
+            <td>RPC, indexer and per-chain cache isolation</td><td><span class="chip chip--pending">pending</span></td></tr>
+          <tr><td>Economics</td><td>Formulas and worked examples</td>
+            <td>Contracts that implement the split</td><td><span class="chip chip--pending">planned</span></td></tr>
+          <tr><td>Real capital</td><td>Visual flow locked</td>
+            <td>Contracts, audit and homologation</td><td><span class="chip chip--locked">locked</span></td></tr>
+        </tbody>
       </table>
-      <p class="u-92c18f6b"><a href="/simulate" class="arrow" data-i18n="wex_cta">Run your own market →</a></p>
-      <p class="mono u-502acabf" data-i18n="wex_note">Real numbers from the audited AMM math — 0.997 fee per hop, price impact, gas. Not a forecast.</p>
     </div>
-    <p class="u-66d8b591"><a href="#verify" class="arrow" data-i18n="m_link">See it implemented in the executor →</a></p>
-    <span class="enter" data-i18n="enter2">Scroll to enter · The trilemma</span>
   </div>
 </section>
 
-<section id="trilemma">
-  <div class="gnum">04</div>
-  <div class="wrap reveal">
-    <div class="eyebrow" data-i18n="t_eyebrow">04 · The trilemma</div>
-    <h2 data-i18n="t_h2">We don't solve the trilemma. We travel it.</h2>
-    <p class="lead" data-i18n="t_lead">No blockchain maximizes decentralization, security and scalability at once. The industry markets that away; we document it instead. Every architecture decision ships with a Tradeoff Record — and a record without a cost line is invalid.</p>
-    <div class="ficha">
-      <div class="fnum" data-i18n="t_fnum">TRADEOFF RECORD No. 0001 · FOUNDING DECISION</div>
-      <div class="ftit" data-i18n="t_ftit">Execution network: Polygon PoS</div>
-      <div class="frow"><span class="dot u-937dbcd4"></span><b data-i18n="t_ax1">Scalability<span class="chip">GAINS</span></b><p data-i18n="t_r1">Low gas makes small cycles executable and mistakes cheap — the prerequisite of hands-on education.</p></div>
-      <div class="frow"><span class="dot u-b6a95126"></span><b data-i18n="t_ax2">Security<span class="chip">HOLDS</span></b><p data-i18n="t_r2">Atomicity removes leg exposure; contract risk remains — external audit before v1.</p></div>
-      <div class="frow"><span class="dot u-ab2848c0"></span><b data-i18n="t_ax3">Decentralization<span class="chip">COSTS</span></b><p data-i18n="t_r3">We inherit Polygon's validator set. Mitigation: verified contracts, local simulation, self-hosted RPC.</p></div>
+<!-- ─── roadmap ────────────────────────────────────────────────────────────── -->
+<section class="section" id="roadmap" aria-labelledby="roadmap-h">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="eyebrow">10 · roadmap</span>
+        <h2 id="roadmap-h">What is built.<br>What comes next.</h2></div>
+      <p class="lead">Each phase ships evidence, not intent. A phase is only marked done when its
+        claims can be checked.</p>
     </div>
-    <p class="u-e4683558" data-i18n="t_more">Polygon is the founding record. The same EVM contracts extend to <b>Arbitrum</b> (Record 0004) and <b>BSC</b> (0005) — each pays a different price; BSC is the most centralized of the three, and we say so. <b>Solana</b> is not EVM: a deferred sibling protocol (0006), not a config. Nothing is "live" until its own gate clears. <a href="/chains">See the expansion records →</a></p>
-    <span class="enter" data-i18n="enter3">Scroll to enter · Education</span>
+    <ol class="grid g4">
+      <li class="phase"><span class="chip chip--stated">now</span>
+        <h3 class="u-0801970d">Institutional surface</h3>
+        <p class="muted">The narrative, the six rooms, the journey and the state vocabulary, in
+          one page.</p></li>
+      <li class="phase"><span class="chip">next</span>
+        <h3 class="u-0801970d">Console beta</h3>
+        <p class="muted">Essential and Professional depth over real sources, with per-chain
+          isolation.</p></li>
+      <li class="phase"><span class="chip">then</span>
+        <h3 class="u-0801970d">Commons</h3>
+        <p class="muted">Authors, versions and evidence cards, separated from any
+          authorisation.</p></li>
+      <li class="phase"><span class="chip chip--locked">later</span>
+        <h3 class="u-0801970d">Verified capital</h3>
+        <p class="muted">Contracts published, audited and homologated before a single real
+          deposit.</p></li>
+    </ol>
   </div>
 </section>
 
-<section id="education">
-  <div class="gnum">05</div>
-  <div class="wrap reveal">
-    <div class="eyebrow" data-i18n="e_eyebrow">05 · Education</div>
-    <h2 data-i18n="e_h2">Learn it before you run it.</h2>
-    <p class="lead" data-i18n="e_lead">A public curriculum, with any AI-generated content labeled as AI in every video and every piece — always. The editorial rule is non-negotiable: show technology, never income.</p>
-    <div class="pilares">
-      <div class="pilar"><div><h3 data-i18n="e1_t">AMMs from zero</h3><p data-i18n="e1_p">How pools set prices, and why that creates the discrepancies arbitrage closes.</p></div></div>
-      <div class="pilar"><div><h3 data-i18n="e2_t">Anatomy of a real cycle</h3><p data-i18n="e2_p">Gas, slippage, competition — the numbers of one real transaction, block by block.</p></div></div>
-      <div class="pilar"><div><h3 data-i18n="e3_t">Run it yourself</h3><p data-i18n="e3_p"><a href="/simulate">Simulate a cycle here</a> — no wallet, no money — then read the code and run it on a fork.</p></div></div>
-      <div class="pilar"><div><h3 data-i18n="e4_t">Wallet &amp; MEV literacy</h3><p data-i18n="e4_p">Key safety, approvals hygiene, and how professional searchers actually win.</p></div></div>
+<!-- ─── faq ────────────────────────────────────────────────────────────────── -->
+<section class="section faq" id="faq" aria-labelledby="faq-h">
+  <div class="wrap">
+    <div class="head">
+      <div><span class="eyebrow">11 · frequently asked</span>
+        <h2 id="faq-h">Clarity before<br>the next action.</h2></div>
+      <p class="lead">Straight answers, including the ones that say no.</p>
     </div>
-    <p class="u-29e36099"><span class="badge">AI-GENERATED</span> &nbsp;<span class="u-52b64559" data-i18n="e_badge">— the badge every piece of persona content carries, by rule.</span></p>
-    <p class="u-6e19583f"><a href="/learn" class="arrow" data-i18n="e_course">Open the full course →</a></p>
-    <span class="enter" data-i18n="enter4">Scroll to enter · Read this twice</span>
+    <details><summary>What is TRIVIU?</summary>
+      <p>A proposal for organising strategies, vaults, multichain context and collaboration in
+        one DeFi ecosystem. This build presents the product and its interfaces.</p></details>
+    <details><summary>Do I need a wallet to look around?</summary>
+      <p>No. The site, Labs and the demo Console can be explored with no wallet, no signature and
+        no deposit.</p></details>
+    <details><summary>What changes between Essential and Professional?</summary>
+      <p>Essential leads with the overview and common actions. Professional adds parameters,
+        routes, micro-operations and diagnostics. The mode never changes permissions.</p></details>
+    <details><summary>Does following a strategy start an operation?</summary>
+      <p>No. Following authors and watching strategies are social acts of observation. Any
+        execution flow needs its own authorisation and validations.</p></details>
+    <details><summary>Are the three chains connected already?</summary>
+      <p>No. In this build the selectors present visual contexts. Real integration needs a
+        source, freshness, error handling and per-chain data isolation.</p></details>
+    <details><summary>Is the 50/50 split running on-chain today?</summary>
+      <p>No. The split is the specification the contracts must meet. No published contract
+        implements it yet, which is why every economic figure on this page carries a
+        <em>planned</em> or <em>illustrative</em> seal.</p></details>
+    <details><summary>Do the numbers shown prove returns?</summary>
+      <p>No. Synthetic data exists to judge the experience. Performance has to be demonstrated
+        with verifiable sources, costs and an identified period. Nothing here promises a return,
+        and past results would not guarantee future ones.</p></details>
   </div>
 </section>
 
-<section class="not" id="not">
-  <div class="gnum">06</div>
-  <div class="wrap reveal">
-    <div class="eyebrow u-08008248" data-i18n="n_eyebrow">06 · Read this twice</div>
-    <h2 data-i18n="n_h2">What Triviu is not.</h2>
-    <ul class="notlist">
-      <li data-i18n="n1">It does not custody funds — there is no deposit function anywhere.</li>
-      <li data-i18n="n2">It has no token, presale or allocation — and none is planned.</li>
-      <li data-i18n="n3">It sells no signals, premium groups or "guaranteed" strategies.</li>
-      <li data-i18n="n4">It promises no returns. Possibility is not probability.</li>
-    </ul>
-    <p class="nota" data-i18n="n_nota">If anyone offers any of these things in Triviu's name, it is a scam — report it. The only official surfaces are this site and the public repository.</p>
-  </div>
-</section>
-
-<section id="verify">
-  <div class="gnum">07</div>
-  <div class="wrap reveal">
-    <div class="eyebrow" data-i18n="v_eyebrow">07 · Don't trust: verify</div>
-    <h2 data-i18n="v_h2">Everything we claim, you can check.</h2>
-    <table>
-      <tr><th data-i18n="v_th1">What</th><th data-i18n="v_th2">Where</th></tr>
-      <tr><td data-i18n="v_r1">Whitepaper — the founding document</td><td class="mono"><a href="https://triviu-protocol.gitbook.io/triviu-protocol-docs">triviu-protocol.gitbook.io</a></td></tr>
-      <tr><td data-i18n="v_r2">Contracts, v0 — tested, external audit pending</td><td class="mono"><a href="https://triviu-protocol.gitbook.io/triviu-protocol-docs/contracts">docs · contracts</a> · <a href="https://github.com/Triviu-Protocol/Triviu-Protocol/tree/main/contracts">github</a></td></tr>
-      <tr><td data-i18n="v_r3">Decisions and their costs (Tradeoff Records)</td><td class="mono">github.com/Triviu-Protocol — /decisions</td></tr>
-      <tr><td data-i18n="v_r4">Verified addresses on each chain's explorer</td><td class="mono" data-i18n="v_soon1">at mainnet deploy, after the external audit</td></tr>
-      <tr><td data-i18n="v_r5">Public dashboard — failures included</td><td class="mono"><a href="/dashboard">triviu.vercel.app/dashboard</a></td></tr>
-    </table>
-    <div class="metricas">
-      <div class="metrica"><div class="lbl" data-i18n="mt1_l">Executions · incl. reverts</div><div class="val">—</div><div class="nt" data-i18n="mt_n">after mainnet deploy</div></div>
-      <div class="metrica"><div class="lbl" data-i18n="mt2_l">Revert rate · 30d</div><div class="val">—</div><div class="nt" data-i18n="mt_n2">the real number, good or bad</div></div>
-      <div class="metrica"><div class="lbl" data-i18n="mt3_l">Gas spent vs. net result</div><div class="val">—</div><div class="nt" data-i18n="mt_n3">failures included, always</div></div>
-    </div>
-    <span class="enter" data-i18n="enter5">Scroll to enter · Roadmap</span>
-  </div>
-</section>
-
-<section id="roadmap">
-  <div class="gnum">08</div>
-  <div class="wrap reveal">
-    <div class="eyebrow" data-i18n="r_eyebrow">08 · Roadmap</div>
-    <h2 data-i18n="r_h2">Intent, not deadlines.</h2>
-    <p class="lead" data-i18n="r_lead">Consistent with the no-promises principle: the roadmap states direction, and every milestone below the audit gate stays off mainnet.</p>
-    <div class="road">
-      <div class="mile"><span class="md u-ab2848c0"></span><div class="mv">v0 · NOW</div><h3 data-i18n="rm1_t">Public foundation</h3><p data-i18n="rm1_p">Whitepaper, open repository, fork simulator, tested v0 contracts.</p></div>
-      <div class="mile"><span class="md u-937dbcd4"></span><div class="mv">v0.2</div><h3 data-i18n="rm2_t">Contract hardening</h3><p data-i18n="rm2_p">Balance-delta accounting and typed swap adapters; public dashboard fills with on-chain data.</p></div>
-      <div class="mile"><span class="md u-b6a95126"></span><div class="mv" data-i18n="rm3_v">GATE</div><h3 data-i18n="rm3_t">External audit</h3><p data-i18n="rm3_p">Independent review of Executor and Registry. Nothing touches mainnet before this.</p></div>
-      <div class="mile"><span class="md u-5367ca5f"></span><div class="mv">v1</div><h3 data-i18n="rm4_t">Mainnet + curriculum</h3><p data-i18n="rm4_p">Polygon mainnet first; the same contracts then extend to Arbitrum and BSC, each behind its own gate. Timelocked Registry, full curriculum, second audit.</p></div>
-    </div>
-    <span class="enter" data-i18n="enter6">Scroll to enter · FAQ</span>
-  </div>
-</section>
-
-<section id="faq">
-  <div class="gnum">09</div>
-  <div class="wrap reveal">
-    <div class="eyebrow">09 · FAQ</div>
-    <h2 data-i18n="f_h2">Straight answers.</h2>
-    <details><summary data-i18n="f1_q">Is this an investment?</summary><p data-i18n="f1_a">No. Triviu is educational infrastructure and open-source tooling. It takes no deposits, manages no capital and promises no returns.</p></details>
-    <details><summary data-i18n="f2_q">Is there a token or presale?</summary><p data-i18n="f2_a">No — and none is planned. Anyone selling a "Triviu token" is running a scam. Report it.</p></details>
-    <details><summary data-i18n="f3_q">Will I make money running the bot?</summary><p data-i18n="f3_a">Probably not. Most opportunities are captured by professional operators with dedicated infrastructure; after gas, expected results tend toward zero or negative. That is why the risk notice sits at the top of this page.</p></details>
-    <details><summary data-i18n="f4_q">Why Polygon?</summary><p data-i18n="f4_a">Because low gas makes learning cheap — so Polygon is the default and reference chain. The same audited contracts are EVM-equivalent and extend to Arbitrum and BSC by configuration, each with its own Tradeoff Record (0001, 0004, 0005). What each chain costs — in decentralization — is documented in the open; none is "live" until its own audit gate clears.</p></details>
-    <details><summary data-i18n="f5_q">Who is behind Triviu?</summary><p data-i18n="f5_a">Triviu Contributors. Code, parameters, decisions and their costs are all public in the repository — judge the work, not the names.</p></details>
-  </div>
+<section class="finalcta" aria-labelledby="cta-h">
+  <span class="eyebrow u-9d37dc96">Start with the experience</span>
+  <h2 id="cta-h">Your context.<br>Your depth.</h2>
+  <p>Explore the demo, read the six rooms, and see how every layer of TRIVIU connects — before
+    anything is ever signed.</p>
+  <p class="u-b6c7168f">
+    <a class="btn" href="/console-v55/">Open the Console</a>
+    <a class="btn btn--ghost" href="#protocol">Read the architecture</a>
+  </p>
 </section>
 
 </main>
 
-<div class="final">
-  <div class="wrap reveal">
-    <h2 data-i18n="cta_h2">Start on a fork. Mistakes there are free.</h2>
-    <div class="cta-row">
-      <a class="btn btn-prim" href="#verify" data-i18n="cta_b1">Open the fork guide</a>
-      <a class="btn btn-sec" href="#verify" data-i18n="cta_b2">Browse the repository</a>
-    </div>
-  </div>
-</div>
-
-<footer>
-  <div class="wrap foot-grid">
-    <div class="u-5441ee4b">
-      <svg class="u-e4de11b0" viewBox="0 0 120 120"><use href="#mark-min"/></svg>
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-grid">
       <div>
-        <div class="u-e10f9213">Triviu</div>
-        <div class="mono u-51d2b6d3" data-i18n="foot_lic">AGPL-3.0 code · CC BY 4.0 brand · no token · no tracking</div>
+        <a class="lockup" href="#top">
+          <svg class="triviu-mark triviu-mark--sm" viewBox="0 0 320 296" aria-hidden="true">
+            <path class="triviu-mark__base" d="M75 168 L160 20 L245 168 L104 168"/>
+            <path class="triviu-mark__flow" d="M75 168 L160 20 L245 168 L104 168"/>
+            <circle class="triviu-mark__node triviu-mark__origin" cx="75" cy="168" r="9"/>
+            <circle class="triviu-mark__node" cx="160" cy="20" r="9"/>
+            <circle class="triviu-mark__node" cx="245" cy="168" r="9"/>
+            <circle class="triviu-mark__node" cx="104" cy="168" r="4.5"/>
+          </svg>
+          <span translate="no">TRIVIU</span>
+        </a>
+        <p class="muted u-13c031c5">Connected strategies.<br>
+          Autonomy in motion.</p>
       </div>
+      <nav aria-labelledby="foot-explore">
+        <h2 id="foot-explore">Explore</h2>
+        <ul><li><a href="#protocol">Protocol</a></li><li><a href="#commons">Commons</a></li>
+          <li><a href="#journey">Journey</a></li><li><a href="#origin">The name</a></li></ul>
+      </nav>
+      <nav aria-labelledby="foot-surfaces">
+        <h2 id="foot-surfaces">Surfaces</h2>
+        <ul><li><a href="/console-v55/">Console</a></li>
+          <li><a href="/labs/">Labs</a></li>
+          <li><a href="/brand/">Brand</a></li>
+          <li><a href="/whitepaper/">Whitepaper</a></li></ul>
+      </nav>
+      <nav aria-labelledby="foot-context">
+        <h2 id="foot-context">Context</h2>
+        <ul><li><a href="#transparency">Transparency</a></li><li><a href="#roadmap">Roadmap</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="https://github.com/Triviu-Protocol" rel="noopener">Source</a></li></ul>
+      </nav>
     </div>
-    <div class="colofao">
-      <em class="u-f7dd1da8" data-i18n="foot_tag">Open source. Verifiable math. No promises.</em><br>
-      <span data-i18n="foot_col">Set in Libre Caslon Text, Public Sans &amp; IBM Plex Mono · July 2026</span>
+    <div class="colophon">
+      <span>© 2026 TRIVIU · institutional build · Site V7</span>
+      <span>Illustrative figures · no financial execution · nothing here is investment advice</span>
     </div>
   </div>
 </footer>
 
-<noscript><div class="wrap u-a859f9d0"><p>This page works without JavaScript too — the 3D scene and the language toggle simply stay off. Repository and whitepaper: github.com/Triviu-Protocol</p></div></noscript>
 
-<!-- three.js r128, servido do proprio dominio. Antes vinha de cdnjs.cloudflare.com
-     sem integrity: um terceiro com execucao de script nesta origem. A copia em
-     /vendor foi conferida contra o SRI que o proprio cdnjs publica em
-     api.cdnjs.com (sha512-dLxUelAp…KCN8Q==) e bateu byte a byte.
-     O onerror inline saiu porque era redundante: js/home.js ja checa
-     `typeof THREE === "undefined"` e liga a classe .no3d. -->
-<script src="/vendor/three-r128.min.js"></script>
-<script src="/js/home.js"></script>
+<script src="assets/triviu-site-v7.js"></script>
 </body>
 </html>

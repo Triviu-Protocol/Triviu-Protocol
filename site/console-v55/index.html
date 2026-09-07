@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" id="themeColor" content="#131519">
+<meta name="description" content="TRIVIU Console V5.5 — adaptive prototype with separated environments, community strategies and internal communication.">
+<title translate="no">TRIVIU — Console V5.5</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 296'%3E%3Cpath d='M75 168 L160 20 L245 168 L104 168' fill='none' stroke='%23ECEDEA' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='75' cy='168' r='16' fill='none' stroke='%23ECEDEA' stroke-width='12'/%3E%3Ccircle cx='160' cy='20' r='16' fill='%23ECEDEA'/%3E%3Ccircle cx='245' cy='168' r='16' fill='%23ECEDEA'/%3E%3Ccircle cx='104' cy='168' r='9' fill='%23ECEDEA'/%3E%3C/svg%3E">
+
+<link href="/vendor/estilos-inline.css" rel="stylesheet">
+<link rel="stylesheet" href="../assets/triviu-console-v5.5.css">
+</head>
+<body data-platform="ios">
+<a class="skip-link" href="#mainContent">Skip to content</a>
+<section class="onboarding" id="onboarding" role="dialog" aria-modal="true" aria-label="Illustrative entry into the protocol">
+  <div class="onboard-art"><svg class="onboard-logo" viewBox="0 0 320 296" aria-label="TRIVIU Triangle Motion"><path class="mark-base" d="M75 168 L160 20 L245 168 L104 168"/><path class="mark-flow" d="M75 168 L160 20 L245 168 L104 168"/><circle class="mark-origin" cx="75" cy="168" r="9"/><circle class="mark-point" cx="160" cy="20" r="9"/><circle class="mark-point" cx="245" cy="168" r="9"/><circle class="mark-point" cx="104" cy="168" r="4.5"/><text x="160" y="252" text-anchor="middle" fill="currentColor" font-family="system-ui" font-size="28" font-weight="800" letter-spacing="8">TRIVIU</text></svg></div>
+  <div class="onboard-panel">
+    <div class="onboard-progress"><i class="on"></i><i></i><i></i><i></i></div>
+    <article class="onboard-step active" data-step="0"><div class="eyebrow">YOUR KEYS · YOUR MANDATE</div><h1>Create your<br>vault pessoal.</h1><p>The vault is the non-custodial layer between the user's wallet, the contracts and the strategies the mandate allows.</p><div class="onboard-actions"><button class="btn primary" data-onboard-next>Start the demo</button><button class="btn ghost" data-onboard-skip>Open the console</button></div></article>
+    <article class="onboard-step" data-step="1"><div class="eyebrow">STEP 1 · NETWORK</div><h1>Choose the<br>chain.</h1><p>Up to three networks may be enabled. In this build the choice changes only how the interface presents itself.</p><div class="network-choices"><button class="network-choice active" data-onboard-chain="polygon"><b>Polygon</b><span>PoS · demonstration</span></button><button class="network-choice" data-onboard-chain="arbitrum"><b>Arbitrum</b><span>One · demonstration</span></button><button class="network-choice" data-onboard-chain="bsc"><b>BNB Smart Chain</b><span>PoS · demonstration</span></button></div><div class="onboard-actions"><button class="btn primary" data-onboard-next>Simulate wallet connection</button><button class="btn" data-onboard-back>Back</button></div></article>
+    <article class="onboard-step" data-step="2"><div class="eyebrow">STEP 2 · CONTRACTS</div><h1>Prepare the<br>vault.</h1><p>The future flow will deploy audited contracts. For now this shows only the visual sequence — no RPC, no signature, no real deployment.</p><div class="deploy-list"><div class="deploy-row ready"><i>✓</i><b>Vault Factory</b><span class="chip acc">READY</span></div><div class="deploy-row ready"><i>✓</i><b>Mandate Registry</b><span class="chip acc">READY</span></div><div class="deploy-row"><i>3</i><b>Strategy Registry</b><span class="chip">DEMO</span></div></div><div class="onboard-actions"><button class="btn primary" id="simulateDeploy" data-onboard-next>Simular deploy</button><button class="btn" data-onboard-back>Back</button></div></article>
+    <article class="onboard-step" data-step="3"><div class="eyebrow">STEP 3 · CONSOLE</div><h1>Vault ready<br>to explore.</h1><p>The address, contracts and balances shown are illustrative. Real integration is switched on only after contracts, audit and eligibility controls.</p><div class="onboard-actions"><button class="btn primary" data-onboard-finish>Open console</button><button class="btn" data-onboard-back>Rever</button></div></article>
+  </div>
+</section>
+<div class="shell">
+  <aside class="sidebar">
+    <button class="brand" data-screen="home" aria-label="Go to Home">
+      <svg class="brand-mark" viewBox="0 0 320 296" aria-label="TRIVIU Triangle Motion"><path class="mark-base" d="M75 168 L160 20 L245 168 L104 168"/><path class="mark-flow" d="M75 168 L160 20 L245 168 L104 168"/><circle class="mark-origin" cx="75" cy="168" r="9"/><circle class="mark-point" cx="160" cy="20" r="9"/><circle class="mark-point" cx="245" cy="168" r="9"/><circle class="mark-point" cx="104" cy="168" r="4.5"/></svg>
+      <span class="brand-word" translate="no">TRIVIU</span><span class="demo-badge" id="environmentBadge">DEMO</span>
+    </button>
+    <div class="nav-label">Console</div>
+    <div class="nav-items" data-nav-container>
+      <button class="nav-btn active" data-screen="home" data-nav-id="home"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 11.2 12 4l8 7.2V20H5a1 1 0 0 1-1-1z"/><path d="M9.5 20v-6h5v6"/></svg><span>Home</span></button>
+      <button class="nav-btn" data-screen="community" data-nav-id="community"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5.5h16v11H9l-5 3z"/><path d="M8 9h8M8 12.5h5"/></svg><span>Community</span></button>
+      <button class="nav-btn" data-screen="wallet" data-nav-id="wallet"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7.5h16v11H4zM4 10h16M16 14.5h1"/></svg><span>Wallet</span></button>
+      <button class="nav-btn" data-screen="strategies" data-nav-id="strategies"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="5" cy="17" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="19" cy="17" r="2"/><path d="m6.5 15.5 4.2-7.7M13.3 7.8l4.2 7.7M17 17H7"/></svg><span>Strategies</span></button>
+      <button class="nav-btn" data-screen="referral" data-nav-id="referral"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="7" r="2"/><path d="M3.5 19c.5-3.7 2-5.5 4.5-5.5s4 1.8 4.5 5.5M14 13.5c2.8 0 4.6 1.7 5 4.5M12 8h3"/></svg><span>Referrals</span></button>
+      <button class="nav-btn" data-screen="orders" data-nav-id="orders"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h9"/></svg><span>Lots</span></button>
+      <button class="nav-btn" data-screen="settings" data-nav-id="settings"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="5"/><path d="M9 12h6m-3-3v6"/></svg><span>Settings</span></button>
+    </div>
+    <div class="sidebar-foot"><b id="sidebarEnvironment">READ-ONLY · DEMO</b><br><span id="sidebarEnvironmentCopy">No custody<br>No signature<br>No real execution</span></div>
+  </aside>
+
+  <div class="app">
+    <header class="topbar"><h1 id="desktopTitle">Home</h1><div class="top-actions"><select class="chain-select chain-sync" aria-label="Select network"><option value="polygon">Polygon</option><option value="arbitrum">Arbitrum</option><option value="bsc">BNB Smart Chain</option></select><span class="status-pill" id="topProtocolStatus">READY · DEMO</span><span class="account-pill mono"><i></i>0x8f3C…a91D</span><button class="icon-btn privacy-toggle" aria-label="Hide balances"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="2.5"/></svg></button><button class="icon-btn avatar" data-screen="community" aria-label="Open profile and community">TG</button></div></header>
+    <header class="mobile-head"><div class="brand"><svg class="brand-mark" viewBox="0 0 320 296" aria-hidden="true"><path class="mark-base" d="M75 168 L160 20 L245 168 L104 168"/><path class="mark-flow" d="M75 168 L160 20 L245 168 L104 168"/><circle class="mark-origin" cx="75" cy="168" r="9"/><circle class="mark-point" cx="160" cy="20" r="9"/><circle class="mark-point" cx="245" cy="168" r="9"/><circle class="mark-point" cx="104" cy="168" r="4.5"/></svg><div><div class="eyebrow" id="mobileEnvironment">TRIVIU · DEMO</div><h1 class="mobile-title" id="mobileTitle">Home</h1></div></div><button class="icon-btn avatar" data-screen="community" aria-label="Open profile and community">TG</button></header>
+
+    <main class="content">
+      <div class="environment-bar" aria-label="Select environment"><div class="environment-switch" role="group" aria-label="Console environment"><button class="active" data-environment="demo">Demo</button><button data-environment="testnet">Testnet</button><button data-environment="real">Real capital</button></div><div class="environment-copy"><i></i><span><b id="environmentTitle">Demo always available</b> · <span id="environmentSummary">synthetic data, no wallet, no capital</span></span></div></div>
+      <div class="safety-note" id="environmentNotice"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.7c0 4.6 3.1 7.5 7.5 9.3 4.4-1.8 7.5-4.7 7.5-9.3V6z"/><path d="m8.8 12 2.1 2.1 4.4-4.5"/></svg><div><b id="environmentNoticeTitle">DEMO · SYNTHETIC DATA</b> · <span id="environmentNoticeCopy">This interface connects no wallet, requests no signature and sends no transaction.</span></div></div>
+      <aside class="protocol-state" id="protocolStateBanner" data-state="ready" aria-live="polite"><i class="state-signal" aria-hidden="true"></i><div><strong id="protocolStateTitle">Console ready</strong><span id="protocolStateCopy">Demo vault synced with synthetic data.</span></div><button class="btn" id="protocolStateAction">View state</button></aside>
+
+      <section class="screen active" id="screen-home">
+        <div class="dashboard-tools"><div class="experience-toggle" role="group" aria-label="Detail level"><button class="active" data-experience-mode="essential">Essential</button><button data-experience-mode="professional">Professional</button></div><div class="actions"><span class="chip acc" id="feedChip"><span class="dot"></span>DEMO FEED</span><button class="btn pro-only" id="pauseFeed">Pause</button><button class="btn pro-only" id="customize">Customise</button></div></div>
+        <div class="home-command">
+          <article class="command-main"><div class="command-top"><div class="chain-identity"><span class="chain-emblem" data-chain-code>POL</span><div><div class="eyebrow">Consolidated vault</div><b data-chain-label>Polygon</b></div></div><span class="chip acc" id="homeVaultState">ESTIMATED</span></div><div class="command-balance private-value">$12,238.41</div><div class="command-caption">Synthetic balance · no asset connected</div><div class="command-result"><span>Scenario result</span><b class="private-value" id="commandNet">−$5.00</b><span>· unrealised</span></div></article>
+          <article class="quick-panel"><div class="widget-head"><div><div class="widget-title">Quick actions</div><div class="widget-sub">Reach the main areas without hunting through the menu.</div></div><span class="chip">4 SHORTCUTS</span></div><div class="quick-grid"><button class="quick-action" data-screen="community"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5.5h16v11H9l-5 3z"/><path d="M8 9h8M8 12.5h5"/></svg><b>Community</b><span>Feed and authors</span></button><button class="quick-action" data-screen="strategies"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="5" cy="17" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="19" cy="17" r="2"/><path d="m6.5 15.5 4.2-7.7M13.3 7.8l4.2 7.7"/></svg><b>Strategies</b><span>Mandates and guards</span></button><button class="quick-action" data-screen="referral"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"/><path d="M3.5 19c.5-3.7 2-5.5 4.5-5.5s4 1.8 4.5 5.5M14 8h6M17 5v6"/></svg><b>Referrals</b><span>Node and invites</span></button><button class="quick-action" data-screen="wallet"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7.5h16v11H4zM4 10h16M16 14.5h1"/></svg><b>Wallet</b><span>Assets and contracts</span></button></div></article>
+        </div>
+        <div class="hidden-widgets" id="hiddenWidgets"></div>
+        <div class="widget-grid" id="widgetGrid">
+          <article class="widget wallet pro-only" data-widget="wallet" data-title="Wallet">
+            <div class="widget-controls"><button class="widget-control" data-move="-1" aria-label="Move left">←</button><button class="widget-control" data-move="1" aria-label="Move right">→</button><button class="widget-control" data-hide aria-label="Hide widget">×</button></div>
+            <div class="wallet-top"><div><div class="eyebrow">Consolidated balance · synthetic</div><div class="balance private-value">$12,238.41</div><div class="balance-caption">USDC · WETH · WBTC · POL</div></div><svg class="wallet-mark" viewBox="0 0 320 296" aria-hidden="true"><path class="mark-base" d="M75 168 L160 20 L245 168 L104 168"/><path class="mark-flow" d="M75 168 L160 20 L245 168 L104 168"/><circle class="mark-origin" cx="75" cy="168" r="9"/><circle class="mark-point" cx="160" cy="20" r="9"/><circle class="mark-point" cx="245" cy="168" r="9"/><circle class="mark-point" cx="104" cy="168" r="4.5"/></svg></div>
+            <div class="wallet-footer"><div><div class="address">0x8f3C…a91D</div><div class="balance-caption">Demo address</div></div><div class="wallet-actions"><button class="privacy-toggle" aria-label="Hide balances"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="2.5"/></svg></button><button id="copyAddress" aria-label="Copy address"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button></div></div>
+          </article>
+
+          <article class="widget metrics" data-widget="metrics" data-title="Metrics">
+            <div class="widget-controls"><button class="widget-control" data-move="-1">←</button><button class="widget-control" data-move="1">→</button><button class="widget-control" data-hide>×</button></div>
+            <div class="metric wide"><div class="metric-label">Scenario result</div><div class="metric-value private-value" id="homeNet">−$5.00</div><div class="metric-detail">Computed from the current parameters; this is not real yield.</div></div>
+            <div class="metric"><div class="metric-label">Net ROI</div><div class="metric-value private-value" id="homeRoi">−0.50%</div><div class="metric-detail">After costs.</div></div>
+            <div class="metric"><div class="metric-label">Decision</div><div class="metric-value u-73cb2565" id="homeDecision">REJECT</div><div class="metric-detail">Guardrails active.</div></div>
+            <div class="metric"><div class="metric-label">Quote age</div><div class="metric-value" id="homeAge">4s</div><div class="metric-detail">Maximum: <span id="homeMaxAge">12s</span>.</div></div>
+            <div class="metric"><div class="metric-label">Evidence</div><div class="metric-value">0x4D…91</div><div class="metric-detail">Illustrative hash.</div></div>
+          </article>
+
+          <article class="widget result-chart pro-only" data-widget="result" data-title="How the result forms">
+            <div class="widget-head"><div><div class="widget-title">How the result forms</div><div class="widget-sub">Synthetic scenario · capital preserved as the zero line</div></div><div class="widget-controls"><button class="widget-control" data-move="-1">←</button><button class="widget-control" data-move="1">→</button><button class="widget-control" data-hide>×</button></div></div>
+            <svg class="chart" viewBox="0 0 700 190" role="img" aria-label="Illustrative curve of the net result"><defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--acc)" stop-opacity=".27"/><stop offset="1" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs><path class="chart-grid" d="M35 28H680M35 78H680M35 128H680M35 170H680"/><path class="chart-area" d="M35 132 C100 122 125 139 180 110 S275 92 325 101 S420 61 470 75 S560 44 680 52 L680 170 L35 170Z"/><path class="chart-line" d="M35 132 C100 122 125 139 180 110 S275 92 325 101 S420 61 470 75 S560 44 680 52"/><circle class="chart-dot" cx="680" cy="52" r="5"/><text class="chart-label" x="35" y="186">T−24H</text><text class="chart-label" x="645" y="186">NOW</text></svg>
+          </article>
+
+          <article class="widget allocation" data-widget="allocation" data-title="Allocation">
+            <div class="widget-head"><div><div class="widget-title">Wallet composition</div><div class="widget-sub">Synthetic values</div></div><div class="widget-controls"><button class="widget-control" data-move="-1">←</button><button class="widget-control" data-move="1">→</button><button class="widget-control" data-hide>×</button></div></div>
+            <div class="allocation-wrap"><div class="ring"></div><div class="legend"><div class="legend-row"><i class="legend-color u-614d92a1"></i><span>USDC</span><b>42%</b></div><div class="legend-row"><i class="legend-color u-94867e88"></i><span>WETH</span><b>29%</b></div><div class="legend-row"><i class="legend-color u-00df60f5"></i><span>WBTC</span><b>19%</b></div><div class="legend-row"><i class="legend-color u-d808995d"></i><span>POL</span><b>10%</b></div></div></div>
+          </article>
+
+          <article class="widget route-preview pro-only" data-widget="route" data-title="Observed route">
+            <div class="widget-head"><div><div class="widget-title">Observed route</div><div class="widget-sub">The route is verified, not executed.</div></div><div class="actions"><span class="state reject" id="routeState">REJECT</span><div class="widget-controls"><button class="widget-control" data-move="-1">←</button><button class="widget-control" data-move="1">→</button><button class="widget-control" data-hide>×</button></div></div></div>
+            <div class="route-line"><div class="route-token"><b>USDC</b><span>Polygon</span></div><span class="arrow">→</span><div class="route-token"><b>WETH</b><span>QuickSwap</span></div><span class="arrow">→</span><div class="route-token"><b>POL</b><span>Uniswap</span></div><span class="arrow">→</span><div class="route-token"><b>USDC</b><span>1inch quote</span></div></div>
+            <div class="route-summary"><div class="route-stat"><span>Gross edge</span><b id="routeEdge">0.80%</b></div><div class="route-stat"><span>Pool fees</span><b id="routeFees">0.90%</b></div><div class="route-stat"><span>Slippage</span><b id="routeSlip">0.15%</b></div><div class="route-stat"><span>Gas</span><b id="routeGas">$2.50</b></div></div>
+          </article>
+
+          <article class="widget trilemma pro-only" data-widget="triangle" data-title="Triangle">
+            <div class="widget-head"><div><div class="widget-title">The open triangle</div><div class="widget-sub">Trivium · route · trilemma</div></div><div class="widget-controls"><button class="widget-control" data-move="-1">←</button><button class="widget-control" data-move="1">→</button><button class="widget-control" data-hide>×</button></div></div>
+            <div class="triangle-panel"><svg class="brand-mark" viewBox="0 0 320 296" aria-hidden="true"><path class="mark-base" d="M75 168 L160 20 L245 168 L104 168"/><path class="mark-flow" d="M75 168 L160 20 L245 168 L104 168"/><circle class="mark-origin" cx="75" cy="168" r="9"/><circle class="mark-point" cx="160" cy="20" r="9"/><circle class="mark-point" cx="245" cy="168" r="9"/><circle class="mark-point" cx="104" cy="168" r="4.5"/></svg><div class="axes"><div class="axis"><b>Superior</b><span>Decentralisation</span></div><div class="axis"><b>Direito</b><span>Security</span></div><div class="axis"><b>Open</b><span>Scalability</span></div></div></div>
+          </article>
+
+          <article class="widget ledger-card" data-widget="microledger" data-title="Micro-operations">
+            <div class="widget-head"><div><div class="widget-title">Micro-operation ledger</div><div class="widget-sub">Every positive result is split at the event: 50% protocol, 50% the user's economic share.</div></div><div class="actions"><span class="chip acc" id="ledgerEnvironment">DEMO</span><div class="widget-controls"><button class="widget-control" data-move="-1">←</button><button class="widget-control" data-move="1">→</button><button class="widget-control" data-hide>×</button></div></div></div>
+            <div class="ledger-summary"><div class="ledger-stat"><span>Eligible result</span><b class="private-value">$1.00</b></div><div class="ledger-stat"><span>Protocol PayFee</span><b class="private-value">$0.50</b></div><div class="ledger-stat"><span>Users' share</span><b class="private-value">$0.50</b></div><div class="ledger-stat"><span>Vault credit</span><b class="private-value">$0.40</b></div></div>
+            <div class="micro-ledger"><div class="micro-row head"><span>Event</span><span>Eligible</span><span>Protocol</span><span>Author</span><span>Vault</span><span>Strategy</span></div><div class="micro-row"><b>#A91D</b><span>$0.20</span><span>$0.10</span><span>—</span><span>$0.10</span><span>Default · Triangular</span></div><div class="micro-row"><b>#4FC2</b><span>$0.20</span><span>$0.10</span><span>$0.05</span><span>$0.05</span><span>Community · 50/50</span></div><div class="micro-row"><b>#77B8</b><span>$0.60</span><span>$0.30</span><span>$0.05</span><span>$0.25</span><span>Community · 16.67%</span></div></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-strategies">
+        <div class="section-head"><div><div class="eyebrow">Vault strategy registry</div><h2>Vault strategies</h2><p class="section-copy">Pick an existing logic or compose a mandate with explicit limits. In this build, saving creates only a local illustrative configuration.</p></div><button class="btn primary" data-screen="simulator">Create strategy</button></div>
+        <div class="strategy-grid" id="strategyGrid">
+          <article class="strategy-card"><div class="strategy-icon">△</div><h3>Triangular Guarded</h3><p>Watches three pools and rejects the route when any cost passes the defined limits.</p><div class="strategy-tags"><span class="chip">3 HOPS</span><span class="chip">GAS CAP</span><span class="chip acc">CURATED</span></div><div class="kv"><span>Networks</span><b>3</b></div><div class="kv"><span>Execution</span><b>DISABLED</b></div><button class="btn u-bfcf9040" data-strategy="Triangular Guarded">Ver mandato</button></article>
+          <article class="strategy-card"><div class="strategy-icon">≋</div><h3>Stable Route</h3><p>Compares routes between stable assets and requires valid evidence before any decision.</p><div class="strategy-tags"><span class="chip">STABLES</span><span class="chip">QUOTE AGE</span><span class="chip acc">VERIFIED</span></div><div class="kv"><span>Networks</span><b>2</b></div><div class="kv"><span>Execution</span><b>DISABLED</b></div><button class="btn u-bfcf9040" data-strategy="Stable Route">Ver mandato</button></article>
+          <article class="strategy-card"><div class="strategy-icon">＋</div><h3>Your strategy</h3><p>Combine network, assets, cooldown, allocation, slippage, gas and the minimum allowed return.</p><div class="strategy-tags"><span class="chip">CUSTOM</span><span class="chip">8 GUARDS</span><span class="chip amber">DRAFT</span></div><div class="kv"><span>Scope</span><b>USER</b></div><div class="kv"><span>State</span><b>DRAFT</b></div><button class="btn primary u-bfcf9040" data-screen="simulator">Open builder</button></article>
+        </div>
+        <article class="panel u-92c18f6b"><div class="widget-head"><div><div class="widget-title">DeFi architecture, visible</div><div class="widget-sub">The strategy proposes; the mandate decides; the vault holds the limits.</div></div><span class="chip acc">NON-CUSTODIAL</span></div><div class="defi-map"><div class="defi-node"><b>Wallet</b><span>owner</span></div><div class="defi-node"><b>Vault</b><span>on-chain custody</span></div><div class="defi-node"><b>Mandate</b><span>regras e guards</span></div><div class="defi-node"><b>Strategy</b><span>proposta read-only</span></div></div></article>
+      </section>
+
+      <section class="screen" id="screen-simulator">
+        <div class="section-head"><div><div class="eyebrow">Strategy builder · local demo</div><h2>Compose the strategy mandate</h2><p class="section-copy">Set risk and validation limits. The builder publishes no contract and enables no execution.</p></div><div class="actions"><button class="btn" data-screen="strategies">Back</button><button class="btn" id="resetSimulator">Reset scenario</button></div></div>
+        <div class="sim-layout">
+          <article class="panel"><div class="widget-head"><div><div class="widget-title">Mandate parameters</div><div class="widget-sub">Explicit costs and limits; no promise of profitability.</div></div><span class="chip amber">SYNTHETIC</span></div>
+            <div class="sim-fields">
+              <div class="field"><div class="field-top"><label for="strategyName">Strategy name</label></div><input id="strategyName" type="text" value="Minha rota protegida" maxlength="42"><small>Local identification of the draft.</small></div>
+              <div class="field"><div class="field-top"><label for="strategyChain">Chain</label></div><select id="strategyChain" class="chain-sync"><option value="polygon">Polygon</option><option value="arbitrum">Arbitrum</option><option value="bsc">BNB Smart Chain</option></select><small>Network allowed by the mandate.</small></div>
+              <div class="field"><div class="field-top"><label for="assetScope">Allowed assets</label></div><select id="assetScope"><option>Stable + Blue chips</option><option>Somente stablecoins</option><option>Custom list</option></select><small>Illustrative asset scope.</small></div>
+              <div class="field"><div class="field-top"><label for="strategyVisibility">Availability</label></div><select id="strategyVisibility"><option value="private">Private · my vault only</option><option value="community">Community · publish to the Commons</option></select><small>Publishing grants access to nobody's vault.</small></div>
+              <div class="field"><div class="field-top"><label for="authorShare">Author share</label><output id="authorShareOut">0%</output></div><input id="authorShare" type="range" min="0" max="50" step="5" value="0" disabled><small>Applies only to the user's economic share, on community strategies.</small></div>
+              <div class="field"><div class="field-top"><label for="maxAllocation">Maximum allocation</label><output id="maxAllocationOut">20%</output></div><input id="maxAllocation" type="range" min="5" max="50" step="5" value="20"><small>Cap per route proposal.</small></div>
+              <div class="field"><div class="field-top"><label for="cooldown">Cooldown</label><output id="cooldownOut">60 min</output></div><input id="cooldown" type="range" min="0" max="240" step="15" value="60"><small>Interval between valid proposals.</small></div>
+              <div class="field"><div class="field-top"><label for="capital">Illustrative capital</label><output id="capitalOut">$1,000</output></div><input id="capital" type="range" min="100" max="5000" step="100" value="1000"><small>Local basis for the calculation.</small></div>
+              <div class="field"><div class="field-top"><label for="edge">Edge bruto</label><output id="edgeOut">0.80%</output></div><input id="edge" type="range" min="0" max="3" step="0.05" value="0.8"><small>Gross edge of the scenario.</small></div>
+              <div class="field"><div class="field-top"><label for="poolFee">Pool fees</label><output id="poolFeeOut">0.90%</output></div><input id="poolFee" type="range" min="0" max="1.5" step="0.05" value="0.9"><small>Estimated sum of the hops.</small></div>
+              <div class="field"><div class="field-top"><label for="slippage">Slippage</label><output id="slippageOut">0.15%</output></div><input id="slippage" type="range" min="0" max="1.5" step="0.05" value="0.15"><small>Estimated execution impact.</small></div>
+              <div class="field"><div class="field-top"><label for="gas">Gas</label><output id="gasOut">$2.50</output></div><input id="gas" type="range" min="0" max="30" step="0.5" value="2.5"><small>Cost in the reference currency.</small></div>
+              <div class="field"><div class="field-top"><label for="performanceFee">Protocol PayFee</label><output id="performanceFeeOut">50%</output></div><input id="performanceFee" type="range" min="50" max="50" step="1" value="50" disabled><small>Fixed rule per positive micro-operation; the author cannot edit it.</small></div>
+              <div class="field"><div class="field-top"><label for="minimumProfit">Minimum profit</label><output id="minimumProfitOut">0.25%</output></div><input id="minimumProfit" type="range" min="0" max="2" step="0.05" value="0.25"><small>Required net guardrail.</small></div>
+              <div class="field"><div class="field-top"><label for="quoteAge">Idade do quote</label><output id="quoteAgeOut">4s</output></div><input id="quoteAge" type="range" min="0" max="60" step="1" value="4"><small>Time since the illustrative quote.</small></div>
+              <div class="field"><div class="field-top"><label for="maxQuoteAge">Maximum age</label><output id="maxQuoteAgeOut">12s</output></div><input id="maxQuoteAge" type="range" min="1" max="60" step="1" value="12"><small>Above this, reject.</small></div>
+              <div class="field"><div class="field-top"><label for="amountOutMin">AmountOutMin</label><output id="amountOutMinOut">1002.50</output></div><input id="amountOutMin" type="range" min="990" max="1030" step="0.5" value="1002.5"><small>Minimum protection for the scenario.</small></div>
+            </div>
+            <div class="formula"><b>MICROOP</b> ⇔ positive eligible → 50% protocol + 50% user share · <b>PASS</b> ⇔ vault credit ≥ minimum ∧ amountOut ≥ amountOutMin ∧ quoteAge ≤ maximum</div>
+          </article>
+          <aside class="panel"><div class="widget-head"><div><div class="widget-title">Result per micro-operation</div><div class="widget-sub">Local calculation, separated by economic destination.</div></div><span class="chip acc">PAYFEE 50%</span></div>
+            <div class="decision reject" id="decisionBox"><div><div class="eyebrow">FINAL VAULT CREDIT</div><div class="net" id="netResult">−$5.00</div><span class="state reject" id="decisionState">REJECT</span></div></div>
+            <div class="breakdown"><div class="kv"><span>Gross result</span><b id="grossResult">$8.00</b></div><div class="kv"><span>Pool fees</span><b id="poolCost">−$9.00</b></div><div class="kv"><span>Slippage</span><b id="slippageCost">−$1.50</b></div><div class="kv"><span>Gas</span><b id="gasCost">−$2.50</b></div><div class="kv"><span>Eligible result</span><b id="eligibleResult">−$5.00</b></div><div class="kv"><span>Protocol PayFee</span><b id="performanceCost">$0.00</b></div><div class="kv"><span>User's economic share</span><b id="userShareResult">−$5.00</b></div><div class="kv"><span>Author share</span><b id="authorShareResult">$0.00</b></div><div class="kv"><span>Final vault ROI</span><b id="roiResult">−0.50%</b></div><div class="kv"><span>Amount out</span><b id="amountOutResult">1008.00</b></div><div class="kv"><span>Minimum required</span><b id="minimumResult">$2.50</b></div></div>
+            <div class="gate-list"><div class="gate bad" id="gateNet"><i>×</i><span>Vault credit ≥ minimum</span></div><div class="gate ok" id="gateOut"><i>✓</i><span>AmountOut ≥ AmountOutMin</span></div><div class="gate ok" id="gateAge"><i>✓</i><span>Quote age ≤ maximum</span></div></div><div class="strategy-publish-actions"><button class="btn" id="saveStrategy">Save draft</button><button class="btn primary" id="publishStrategy" disabled>Publish to the Commons</button></div><p class="widget-sub u-8e5626de">This build saves and publishes only in this browser; no contract is created.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-community">
+        <div class="section-head"><div><div class="eyebrow">TRIVIU COMMONS · STRATEGY NETWORK</div><h2>Community</h2><p class="section-copy">Publish ideas, share evidence, follow authors and analyse strategies. Following content never activates an operation in the vault.</p></div><button class="btn primary" id="focusComposer">Create post</button></div>
+        <div class="community-tabs" role="tablist" aria-label="Community filters"><button class="active" data-community-filter="all">Discover</button><button data-community-filter="following">Following</button><button data-community-filter="strategies">Strategies</button><button data-community-filter="risk">Risk</button></div>
+        <div class="community-layout u-c53ea1da">
+          <div class="community-main">
+            <article class="panel profile-editor" id="profileEditor">
+              <div class="profile-editor-head">
+                <button class="profile-avatar-btn" id="avatarBtn" aria-label="Change profile photo">
+                  <span class="profile-avatar" id="profileAvatar">TG</span>
+                  <span class="avatar-edit">Alterar</span>
+                </button>
+                <div class="profile-id">
+                  <b id="profileNameOut">Trader Guest</b>
+                  <span class="mono small muted" id="profileHandleOut">@guest</span>
+                  <p class="small muted" id="profileBioOut">No bio yet. Say in one line what you watch in the market.</p>
+                </div>
+                <button class="btn" id="editProfileBtn">Editar perfil</button>
+              </div>
+              <div class="profile-form" id="profileForm" hidden>
+                <label for="profileNameInput">Nome</label>
+                <input id="profileNameInput" maxlength="32" placeholder="How you want to be called">
+                <label for="profileHandleInput">Username</label>
+                <input id="profileHandleInput" maxlength="20" placeholder="seuusuario">
+                <label for="profileBioInput">Bio</label>
+                <textarea id="profileBioInput" maxlength="160" rows="2" placeholder="One line about you and what you follow"></textarea>
+                <input type="file" id="avatarFile" accept="image/*" hidden>
+                <div class="profile-form-actions">
+                  <button class="btn" id="profileAvatarPick">Escolher foto</button>
+                  <button class="btn" id="profileAvatarClear">Remove photo</button>
+                  <span class="u-83725d2c"></span>
+                  <button class="btn" id="profileCancel">Cancel</button>
+                  <button class="btn primary" id="profileSave">Save</button>
+                </div>
+                <p class="small muted">The photo stays in this browser only (local storage). Nothing is sent to any server.</p>
+              </div>
+            </article>
+            <article class="panel composer" id="communityComposer">
+              <div class="profile-avatar" id="composerAvatar">TG</div>
+              <div><textarea id="postText" maxlength="420" placeholder="Share an analysis, update or risk record…" aria-label="Post text"></textarea><div class="composer-tools"><div class="left"><select id="postKind" aria-label="Post type"><option value="analysis">Analysis</option><option value="strategy">Strategy</option><option value="result">Illustrative result</option><option value="risk">Risk record</option></select><span class="chip" id="postEnvironment">DEMO</span><span class="char-count" id="postCount">0/420</span></div><button class="btn primary" id="publishPost">Publish</button></div></div>
+            </article>
+
+            <div data-community-section="strategies"><div class="widget-head"><div><div class="widget-title">Community strategies</div><div class="widget-sub">Watching is read-only. Analysing opens the mandate; no strategy is activated by a social click.</div></div><button class="btn" data-screen="simulator">Create mine</button></div><div class="community-strategies" id="communityStrategies"></div></div>
+
+            <div data-community-section="feed"><div class="widget-head"><div><div class="widget-title">Verifiable feed</div><div class="widget-sub">Local posts from this demonstration, separated by environment.</div></div><span class="chip acc"><span class="dot"></span>COMMONS</span></div><div class="feed-list" id="communityFeed"></div></div>
+          </div>
+
+          <aside class="community-side">
+            <article class="panel"><div class="widget-head"><div><div class="widget-title">Minha rede</div><div class="widget-sub">Illustrative profile summary.</div></div><span class="chip acc">TG</span></div><div class="kv"><span>Following</span><b id="followingCount">2</b></div><div class="kv"><span>Followers</span><b>184</b></div><div class="kv"><span>Strategies watched</span><b id="watchingCount">1</b></div><div class="kv"><span>Posts</span><b id="myPostCount">0</b></div></article>
+            <article class="panel"><div class="widget-head"><div><div class="widget-title">Featured authors</div><div class="widget-sub">Profiles and reputation are illustrative.</div></div></div><div id="creatorList"></div></article>
+            <article class="environment-lock"><b>SEPARATION OF ACTIONS</b><br>Following receives content. Watching observes the strategy. Simulating tests parameters. None of these actions authorises moving assets.</article>
+          </aside>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-referral">
+        <div class="section-head"><div><div class="eyebrow">Referral node · transparent distribution</div><h2>Referrals</h2><p class="section-copy">Invites, levels and node fees in one view. Every figure below is synthetic and exists only to demonstrate the interface.</p></div><div class="actions"><button class="btn" id="referralDetails">How it works</button><button class="btn primary" id="openShareStudio">Share result</button></div></div>
+
+        <div class="referral-overview">
+          <article class="referral-hero">
+            <span class="chip acc"><span class="dot"></span>NODE ACTIVE · DEMO</span>
+            <h2>Grow the node.<br><span>Simulate the split.</span></h2>
+            <p>The link identifies where an invite came from. In a connected build, audited contracts would account for eligible fees and apply the protocol's rules.</p>
+            <div class="referral-link"><code id="referralCode">triviu.vercel.app/r/TVU-8F3C</code><button class="btn" id="copyReferralCode">Copy</button><button class="btn primary share-invite" id="shareInvite">Invite</button></div>
+            <div class="referral-kpis"><div class="referral-kpi"><span>Invites</span><b>18</b></div><div class="referral-kpi"><span>Active nodes</span><b>11</b></div><div class="referral-kpi"><span>Conversion</span><b>61.1%</b></div></div>
+          </article>
+
+          <article class="node-card">
+            <div class="node-head"><div><div class="eyebrow">TRIVIU NODE</div><b>Fee distribution</b></div><span class="chip u-305f76fb">UP TO 50%*</span></div>
+            <svg class="node-symbol brand-mark" viewBox="0 0 320 296" aria-label="TRIVIU Triangle Motion"><path class="mark-base" d="M75 168 L160 20 L245 168 L104 168"/><path class="mark-flow" d="M75 168 L160 20 L245 168 L104 168"/><circle class="mark-origin" cx="75" cy="168" r="9"/><circle class="mark-point" cx="160" cy="20" r="9"/><circle class="mark-point" cx="245" cy="168" r="9"/><circle class="mark-point" cx="104" cy="168" r="4.5"/></svg>
+            <div class="node-total"><span>Received at the node · synthetic scenario</span><strong class="private-value">$1,240.00</strong></div>
+            <div class="node-actions"><button class="btn" id="settleReferral">Settle · demo</button><button class="btn secondary" id="viewReferralHistory">History</button></div><p class="node-note">* Maximum sum of the three levels in this example; it is not guaranteed yield.</p>
+          </article>
+        </div>
+
+        <div class="referral-status">
+          <article class="status-card accent"><span>Awaiting at the node</span><b class="private-value" id="pendingReferral">$87.99</b><small>Illustrative settlement available.</small></article>
+          <article class="status-card"><span>Your share · level 1</span><b class="private-value">$310.00</b><small>25% in the current example.</small></article>
+          <article class="status-card"><span>Upline</span><b class="private-value">$310.00</b><small>Levels 2 and 3 combined.</small></article>
+          <article class="status-card"><span>Protocol treasury</span><b class="private-value">$620.00</b><small>Remaining share. 25 + 25 + 50 = 100, with no cent absorbed anywhere.</small></article>
+        </div>
+
+        <article class="panel">
+          <div class="widget-head"><div><div class="widget-title">Node taxonomy</div><div class="widget-sub">Example split per level; final percentages depend on an approved on-chain rule.</div></div><span class="chip acc">3 LEVELS</span></div>
+          <div class="level-grid"><div class="level-card"><i>N1</i><b>25%</b><span>You</span><small>Direct share of the code owner.</small></div><div class="level-card"><i>N2</i><b>15%</b><span>Sponsor</span><small>Upline bound to the first level.</small></div><div class="level-card"><i>N3</i><b>10%</b><span>Next level</span><small>Third layer of the eligible split.</small></div><div class="level-card"><i>TP</i><b>remainder</b><span>Treasury</span><small>Balance routed to the treasury per the rule.</small></div></div>
+        </article>
+
+        <article class="panel u-92c18f6b">
+          <div class="widget-head"><div><div class="widget-title">Recent invites</div><div class="widget-sub">Shortened identifiers and synthetic values, to protect privacy.</div></div><span class="chip">18 TOTAL</span></div>
+          <div class="invite-row"><div class="invite-avatar">A1</div><div class="invite-person"><b>Vault 0x21…9A</b><span>Active for 12 days</span></div><span class="invite-chain muted">Polygon</span><span class="invite-volume private-value">$2,840</span><span class="state quoted">ACTIVE</span></div>
+          <div class="invite-row"><div class="invite-avatar">B7</div><div class="invite-person"><b>Vault 0x9C…44</b><span>Active for 7 days</span></div><span class="invite-chain muted">Arbitrum</span><span class="invite-volume private-value">$1,260</span><span class="state quoted">ACTIVE</span></div>
+          <div class="invite-row"><div class="invite-avatar">C3</div><div class="invite-person"><b>Convite TVU-C3</b><span>Awaiting vault creation</span></div><span class="invite-chain muted">BNB Chain</span><span class="invite-volume private-value">$0</span><span class="state stale">PENDING</span></div>
+        </article>
+
+        <div class="share-studio" id="shareStudio">
+          <article class="panel share-controls">
+            <div><div class="widget-title">Sharing studio</div><div class="widget-sub">Prepare an original TRIVIU card for your phone's native sharing.</div></div>
+            <div class="share-control"><label for="shareType">Result shown</label><select id="shareType"><option value="strategy">Strategy · +4.84%</option><option value="node">Node · $310.13</option><option value="vault">Vault · +$128.41</option></select></div>
+            <div class="share-control"><label for="sharePeriod">Period</label><select id="sharePeriod"><option>Last 14 days</option><option>Last 7 days</option><option>Last 24 hours</option><option>Vault lifetime</option></select></div>
+            <div class="share-control"><label for="shareFormat">Image format</label><select id="shareFormat"><option value="feed">Feed · 1080 × 1350</option><option value="story">Story · 1080 × 1920</option><option value="square">Square · 1080 × 1080</option></select></div>
+            <div class="share-control"><label for="shareTheme">Card theme</label><select id="shareTheme"><option value="obsidian">Obsidian</option><option value="accent">Accent</option><option value="minimal">Minimal</option></select></div>
+            <div class="share-control"><label for="shareDisplay">Visible data</label><select id="shareDisplay"><option value="percent">Percentage only</option><option value="amount">Amount only</option><option value="both">Percentage and amount</option></select></div>
+            <div class="share-control share-option"><div><label class="u-ab79ea2b">Show invite code</label><span class="muted u-0d6ae564">Never shows the full address.</span></div><button class="switch" id="shareCodeSwitch" aria-pressed="false"><span class="sr-only">Show invite code</span></button></div>
+            <div class="accessibility-note"><span>Verifiable proof and a QR code are enabled only once an indexer can confirm network, block and on-chain event. This build creates no fake proof.</span></div>
+            <div class="share-actions"><button class="btn primary" id="shareResult">Share to social</button><button class="btn" id="downloadShareCard">Save PNG</button><button class="btn" id="copyShareText">Copy caption</button></div>
+            <p class="widget-sub">The button uses native Apple/Android sharing when available. The card states that the data is illustrative and promises no return.</p>
+          </article>
+
+          <article class="share-preview-shell">
+            <div class="share-card hide-amount" id="shareCard" data-format="feed" data-theme="obsidian" data-display="percent">
+              <div class="share-brand"><div><b>TRIVIU</b><div class="share-card-label">PROTOCOL CONSOLE</div></div><svg class="brand-mark" viewBox="0 0 320 296" aria-hidden="true"><path class="mark-base" d="M75 168 L160 20 L245 168 L104 168"/><path class="mark-flow" d="M75 168 L160 20 L245 168 L104 168"/><circle class="mark-origin" cx="75" cy="168" r="9"/><circle class="mark-point" cx="160" cy="20" r="9"/><circle class="mark-point" cx="245" cy="168" r="9"/><circle class="mark-point" cx="104" cy="168" r="4.5"/></svg></div>
+              <div class="share-card-main"><div class="share-card-label" id="shareCardLabel">STRATEGY RESULT</div><div class="share-card-value" id="shareCardValue">+4.84%</div><div class="share-card-amount private-value" id="shareCardAmount">+$128.41</div></div>
+              <div class="share-card-meta"><span id="shareCardPeriod">Last 14 days</span><span><span id="shareCardChain">POLYGON</span> · <span id="shareCardEnvironment">DEMO</span></span></div><span class="share-proof"><i></i>PROOF · AWAITING INDEXER</span><div class="share-card-footer"><span class="share-code">TVU-8F3C · </span>Connected strategies. Autonomy in motion.<br><span id="shareCardDisclaimer">Synthetic data. Past results do not guarantee future results.</span></div>
+            </div>
+          </article>
+        </div>
+
+        <div class="section-head u-22ce6341"><div><div class="eyebrow">BRAND KIT · YOUR MARKETING</div><h2>Brandbook</h2><p class="section-copy">The brand elements live here because this is where you build your posts. Use them in your content; the material is yours, to promote your node.</p></div><button class="btn" id="downloadBrandKit">Download kit</button></div>
+
+        <div class="brandkit">
+          <article class="panel bk-card">
+            <div class="widget-title">A marca</div>
+            <div class="bk-marks">
+              <div class="bk-mark"><svg viewBox="0 0 320 296" aria-hidden="true"><path class="bk-flow" d="M75 168 L160 20 L245 168 L104 168"/><circle class="bk-origin" cx="75" cy="168" r="9"/><circle class="bk-node" cx="160" cy="20" r="9"/><circle class="bk-node" cx="245" cy="168" r="9"/><circle class="bk-node" cx="104" cy="168" r="4.5"/></svg><span>Triangle Motion · primary</span></div>
+              <div class="bk-mark bk-inv"><svg viewBox="0 0 320 296" aria-hidden="true"><path class="bk-flow" d="M75 168 L160 20 L245 168 L104 168"/><circle class="bk-origin" cx="75" cy="168" r="9"/><circle class="bk-node" cx="160" cy="20" r="9"/><circle class="bk-node" cx="245" cy="168" r="9"/><circle class="bk-node" cx="104" cy="168" r="4.5"/></svg><span>On light</span></div>
+              <div class="bk-mark"><b class="bk-word">TRIVIU</b><span>Logotipo</span></div>
+            </div>
+            <p class="small muted">The path never closes: it starts at the origin, climbs, returns and stops before completing. Never close the triangle, never rotate it, never change its proportions.</p>
+          </article>
+
+          <article class="panel bk-card">
+            <div class="widget-title">Cor</div>
+            <div class="bk-swatches" id="bkSwatches"></div>
+            <p class="small muted">The accent is live: it changes with context and with your choice. Copy the current value and use it in your pieces.</p>
+            <button class="btn" id="bkCopyAccent">Copy current accent</button>
+          </article>
+
+          <article class="panel bk-card">
+            <div class="widget-title">Tipografia</div>
+            <div class="bk-type">
+              <div><b class="u-41a4df5e">Public Sans</b><span class="small muted">Headings and interface</span></div>
+              <div><b class="u-37987d4f">IBM Plex Mono</b><span class="small muted">Data, evidence, addresses</span></div>
+            </div>
+          </article>
+
+          <article class="panel bk-card">
+            <div class="widget-title">Voz</div>
+            <ul class="bk-voice">
+              <li><b>Say:</b> “synthetic scenario”, “rejected by rule”, “non-custodial”, “verify it yourself”.</li>
+              <li><b>Do not say:</b> “earn”, “guaranteed income”, “safe return”, “easy profit”.</li>
+              <li>Every published result carries its environment (DEMO · TESTNET) and date.</li>
+            </ul>
+          </article>
+
+          <article class="panel bk-card bk-rules">
+            <div class="widget-title">Regras de uso</div>
+            <ul class="bk-voice">
+              <li>You publish in your own name — the card always shows the environment and never hides that it is synthetic.</li>
+              <li>Do not alter the card's numbers or remove the environment seal.</li>
+              <li>Never use the mark to suggest a promised return, or in any context implying financial advice.</li>
+              <li>Mark under CC BY 4.0 · code AGPL-3.0.</li>
+            </ul>
+          </article>
+        </div>
+        <canvas id="shareCanvas" hidden></canvas>
+      </section>
+
+      <section class="screen" id="screen-orders">
+        <div class="section-head"><div><div class="eyebrow">Secondary order surface</div><h2>Open lots</h2><p class="section-copy">Eligible users will be able to analyse lots offered by other vaults. At this stage the lots are synthetic and purchasing stays locked.</p></div><span class="chip amber">MARKET DEMO</span></div>
+        <div class="order-grid">
+          <article class="order-card"><div class="actions u-55db2416"><span class="state quoted">OPEN</span><span class="mono muted u-a0ba227f">LOT #014</span></div><div class="order-price">$1,214.60</div><div class="order-pair">WETH / USDC</div><div class="order-route"><span>Polygon</span><b>→</b><span>Vault 0x1d…b0</span></div><div class="kv"><span>Quantidade</span><b>0.420 WETH</b></div><div class="kv"><span>Seller policy</span><b>VERIFIED</b></div><button class="btn u-bfcf9040" data-order="LOT #014">Analisar ordem</button></article>
+          <article class="order-card"><div class="actions u-55db2416"><span class="state quoted">OPEN</span><span class="mono muted u-a0ba227f">LOT #006</span></div><div class="order-price">$1,317.20</div><div class="order-pair">WBTC / USDC</div><div class="order-route"><span>Arbitrum</span><b>→</b><span>Vault 0x9c…ee</span></div><div class="kv"><span>Quantidade</span><b>0.021 WBTC</b></div><div class="kv"><span>Seller policy</span><b>VERIFIED</b></div><button class="btn u-bfcf9040" data-order="LOT #006">Analisar ordem</button></article>
+          <article class="order-card"><div class="actions u-55db2416"><span class="state stale">PENDING</span><span class="mono muted u-a0ba227f">LOT #031</span></div><div class="order-price">$5,901.00</div><div class="order-pair">POL / USDC</div><div class="order-route"><span>BNB Chain</span><b>→</b><span>Vault 0xb0…12</span></div><div class="kv"><span>Quantidade</span><b>38.00 POL</b></div><div class="kv"><span>Seller policy</span><b>PENDING</b></div><button class="btn u-bfcf9040" data-order="LOT #031">Analisar ordem</button></article>
+        </div>
+        <article class="table-card u-92c18f6b"><div class="widget-head"><div><div class="widget-title">Rules before any purchase</div><div class="widget-sub">A lot can proceed only when contract, network, balance, mandate and price are compatible.</div></div></div><div class="timeline"><div class="event"><time>GUARD 01</time><i class="event-dot acc"></i><p>Batch contract verified<span>Address and bytecode must match the approved catalogue.</span></p><span class="state quoted">REQUIRED</span></div><div class="event"><time>GUARD 02</time><i class="event-dot acc"></i><p>Buyer policy compatible<span>The purchase cannot exceed the vault's limits.</span></p><span class="state quoted">REQUIRED</span></div><div class="event"><time>GUARD 03</time><i class="event-dot red"></i><p>Execution unavailable in this demonstration<span>No lot can be purchased in this HTML.</span></p><span class="state reject">LOCKED</span></div></div></article>
+      </section>
+
+      <section class="screen" id="screen-wallet">
+        <div class="section-head"><div><div class="eyebrow">Multichain vault identity</div><h2>Wallet and contracts</h2><p class="section-copy">One view of the vault's identity across enabled networks, without hiding the DeFi architecture.</p></div><div class="chain-strip"><span class="chain-emblem" data-chain-code>POL</span><span class="chain-pill"><i></i><span id="activeChainLabel">Polygon</span></span><select class="chain-select chain-sync" aria-label="Select wallet network"><option value="polygon">Polygon</option><option value="arbitrum">Arbitrum</option><option value="bsc">BNB Smart Chain</option></select></div></div>
+        <div class="wallet-layout">
+          <div><article class="premium-card" id="premiumCard" data-card="obsidian"><div class="card-top"><div><div class="card-name">TRIVIU</div><div class="card-tier">VAULT · BLACK</div></div><svg class="brand-mark" viewBox="0 0 320 296" aria-hidden="true"><path class="mark-base" d="M75 168 L160 20 L245 168 L104 168"/><path class="mark-flow" d="M75 168 L160 20 L245 168 L104 168"/><circle class="mark-origin" cx="75" cy="168" r="9"/><circle class="mark-point" cx="160" cy="20" r="9"/><circle class="mark-point" cx="245" cy="168" r="9"/><circle class="mark-point" cx="104" cy="168" r="4.5"/></svg></div><div class="card-chip"></div><div class="card-address">0x8f3C ···· a91D</div><div class="card-bottom"><div><span>Vault owner</span><b>TRIVIU USER</b></div><div class="u-5f326564"><span>Network</span><b class="card-chain">POLYGON</b></div></div></article><div class="card-style-picker"><button class="btn active" data-card-style="obsidian">Obsidian</button><button class="btn" data-card-style="graphite">Graphite</button><button class="btn" data-card-style="accent">Accent</button></div></div>
+          <article class="panel"><div class="widget-head"><div><div class="widget-title">Scenario assets</div><div class="widget-sub">Synthetic data per network.</div></div><button class="icon-btn privacy-toggle" aria-label="Hide balances"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div><div class="asset-grid"><div class="asset-tile"><b class="private-value">5,230.00 USDC</b><span>Stable balance</span></div><div class="asset-tile"><b class="private-value">1.245 WETH</b><span>Wrapped Ether</span></div><div class="asset-tile"><b class="private-value">0.058 WBTC</b><span>Wrapped Bitcoin</span></div><div class="asset-tile"><b class="private-value">184.20 POL</b><span>Network token</span></div></div><div class="widget-title u-92fbdd7d">Network contracts</div><div class="contract-stack"><div class="contract-row"><span>Personal Vault</span><b>0x8f…1D</b></div><div class="contract-row"><span>Mandate Registry</span><b>0x27…A4</b></div><div class="contract-row"><span>Strategy Registry</span><b>0x51…C8</b></div></div><div class="safety-note u-269633e5"><div><b>DEMONSTRATION</b> · Addresses with no link to real contracts.</div></div></article>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-settings">
+        <div class="section-head"><div><div class="eyebrow">Your console, your rules</div><h2>Settings</h2><p class="section-copy">Personalise the interface without changing guardrail logic.</p></div></div>
+        <div class="settings-grid">
+          <article class="panel u-51377a91"><div class="widget-head"><div><div class="widget-title">Console mode and states</div><div class="widget-sub">Switch information density and review the states needed before integration.</div></div><span class="chip acc">V5.4</span></div><div class="state-lab"><div><div class="setting"><div><label for="experienceSelect"><b>Detail level</b></label><p>Essential leads with decisions; Professional reveals metrics, routes and evidence.</p></div><select class="select" id="experienceSelect"><option value="essential">Essential</option><option value="professional">Professional</option></select></div><div class="setting"><div><label for="protocolStateSelect"><b>State shown</b></label><p>Simulates only the console's visual response.</p></div><select class="select" id="protocolStateSelect"><option value="ready">Console ready</option><option value="disconnected">Wallet disconnected</option><option value="no-vault">Vault not created</option><option value="empty">No strategies</option><option value="loading">Reading the chain</option><option value="wrong-network">Wrong network</option><option value="pending">Transaction pending</option><option value="confirmed">Transaction confirmed</option><option value="rejected">Transaction rejected</option><option value="rpc">RPC unavailable</option><option value="stale">Stale data</option></select></div></div><div class="state-preview" id="statePreview"><div class="eyebrow">STATE PREVIEW</div><b id="statePreviewTitle">Console ready</b><span id="statePreviewCopy">Demo vault synced with synthetic data.</span><span class="chip acc" id="statePreviewChip">READY · DEMO</span></div></div></article>
+          <article class="panel"><div class="widget-title">Acessibilidade</div><div class="setting"><div><b>High contrast</b><p>Lightens secondary text and strengthens dividers.</p></div><button class="switch" id="contrastSwitch" aria-pressed="false"><span class="sr-only">Enable high contrast</span></button></div><div class="setting"><div><b>Text enlarged</b><p>Increases the base scale without breaking the cards.</p></div><button class="switch" id="textSizeSwitch" aria-pressed="false"><span class="sr-only">Enable larger text</span></button></div><div class="accessibility-note u-c53ea1da"><span>Every primary control keeps a minimum touch area, visible focus and labels for assistive technology.</span></div></article>
+          <article class="panel"><div class="widget-title">Experience</div><div class="setting"><div><label for="platform"><b>Menu behaviour</b></label><p>Auto-detects the system; Apple and Samsung allow manual comparison.</p></div><select class="select" id="platform"><option value="auto">Automatic</option><option value="ios">Apple / iOS</option><option value="samsung">Samsung / Android</option></select></div><div class="setting"><div><b>Interface density</b><p>Changes breathing room and card size.</p></div><select class="select" id="density"><option value="compact">Compacta</option><option value="comfortable">Comfortable</option><option value="spacious">Ampla</option></select></div><div class="setting"><div><label for="navSize"><b>Menu size</b></label><p>Adjusts the mobile dock and desktop sidebar.</p></div><input class="range-setting" id="navSize" type="range" min="0" max="2" step="1" value="1"></div><div class="setting"><div><b>Hide balances</b><p>Hides values during presentations.</p></div><button class="switch" id="privacySwitch" aria-pressed="false"><span class="sr-only">Hide balances</span></button></div><div class="setting"><div><b>Reduce motion</b><p>Pauses the continuous trace and transitions.</p></div><button class="switch" id="motionSwitch" aria-pressed="false"><span class="sr-only">Reduce motion</span></button></div><div class="setting"><div><b>Redo the vault entry</b><p>Reopens the illustrative onboarding.</p></div><button class="btn" id="restartOnboarding">Open</button></div><div class="setting"><div><b>Ambientes</b><p>Demo and Testnet are local prototypes. Real capital stays locked.</p></div><span class="chip acc">3 LAYERS</span></div><div class="setting"><div><b>Execution mode</b><p>This build sends no financial transaction.</p></div><span class="chip acc">READ-ONLY</span></div></article>
+          <article class="panel"><div class="widget-title">Appearance</div><div class="widget-sub">Background, contrast and accent can be combined.</div><div class="setting"><div><b>Console background</b><p>Black, Graphite or Midnight.</p></div><div class="bg-picker"><button class="bg-option active" data-bg="black" aria-label="Fundo black"></button><button class="bg-option" data-bg="graphite" aria-label="Fundo graphite"></button><button class="bg-option" data-bg="midnight" aria-label="Fundo midnight"></button></div></div><div class="widget-title u-65be136d">Interface accent</div><div class="swatches" id="swatches"></div><div class="setting"><div><b>Custom colour</b><p>Contrast is adjusted automatically.</p></div><input type="color" id="colorPicker" value="#6E8AFF" aria-label="Select accent colour"></div><div class="widget-title u-2bdf8e45">Brand taxonomy</div><div class="kv"><span>Source</span><b>TRIVIUM · 3 WAYS</b></div><div class="kv"><span>Symbol</span><b>TRIANGLE MOTION</b></div><div class="kv"><span>Rule</span><b>BASE ABERTA</b></div></article>
+          <article class="panel u-51377a91"><div class="widget-head"><div><div class="widget-title">Ordem do menu</div><div class="widget-sub">Drag the items or use the arrows. The order applies to phone and desktop.</div></div><button class="btn" id="resetAllLocal" title="Erases everything this demo stored in this browser">Erase local data</button> <button class="btn" id="resetMenu">Reset</button></div><div class="menu-editor" id="menuEditor"></div></article>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<nav class="bottom-nav" aria-label="Primary navigation" data-nav-container>
+  <button class="nav-btn" data-screen="community" data-nav-id="community"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5.5h16v11H9l-5 3z"/><path d="M8 9h8M8 12.5h5"/></svg><span>Discover</span></button>
+  <button class="nav-btn" data-screen="strategies" data-nav-id="strategies"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="5" cy="17" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="19" cy="17" r="2"/><path d="m6.5 15.5 4.2-7.7M13.3 7.8l4.2 7.7M17 17H7"/></svg><span>Strategies</span></button>
+  <button class="nav-btn home-fab active" data-screen="home" data-nav-id="home" aria-label="Home"><svg class="brand-mark" viewBox="0 0 320 296" aria-hidden="true"><path class="mark-base" d="M75 168 L160 20 L245 168 L104 168"/><path class="mark-flow" d="M75 168 L160 20 L245 168 L104 168"/><circle class="mark-origin" cx="75" cy="168" r="9"/><circle class="mark-point" cx="160" cy="20" r="9"/><circle class="mark-point" cx="245" cy="168" r="9"/><circle class="mark-point" cx="104" cy="168" r="4.5"/></svg><span>Home</span></button>
+  <button class="nav-btn" data-screen="referral" data-nav-id="referral"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="7" r="2"/><path d="M3.5 19c.5-3.7 2-5.5 4.5-5.5s4 1.8 4.5 5.5M14 13.5c2.8 0 4.6 1.7 5 4.5M12 8h3"/></svg><span>Referrals</span></button>
+  <button class="nav-btn" data-screen="wallet" data-nav-id="wallet"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7.5h16v11H4zM4 10h16M16 14.5h1"/></svg><span>Wallet</span></button>
+</nav>
+
+<div class="veil" id="veil"></div><aside class="sheet" id="sheet" aria-modal="true" role="dialog"><div class="grip"></div><div id="sheetBody"></div></aside><div class="toast-stack" id="toastStack"></div>
+
+
+
+
+
+
+
+
+<script src="../assets/triviu-console-v5.5.js"></script>
+</body>
+</html>
